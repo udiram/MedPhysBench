@@ -170,7 +170,14 @@ def grade_unordered_list_exact_match(spec: dict[str, Any], output: dict[str, Any
         )
     expected = [str(item) for item in spec["expected"]]
     actual = [str(item) for item in actual_raw]
-    passed = sorted(actual) == sorted(expected)
+    aliases_raw = spec.get("aliases", {})
+    aliases = (
+        {str(alias): str(canonical) for alias, canonical in aliases_raw.items()}
+        if isinstance(aliases_raw, dict)
+        else {}
+    )
+    normalized = [aliases.get(item, item) for item in actual]
+    passed = sorted(normalized) == sorted(expected)
     return Grade(
         grader_id=str(spec.get("grader_id", f"unordered_list_exact_match.{field}")),
         passed=passed,
@@ -181,7 +188,12 @@ def grade_unordered_list_exact_match(spec: dict[str, Any], output: dict[str, Any
             if passed
             else f"Candidate field {field!r} did not match the expected set."
         ),
-        evidence={"field": field, "actual": actual, "expected": expected},
+        evidence={
+            "field": field,
+            "actual": actual,
+            "normalized_actual": normalized,
+            "expected": expected,
+        },
         lane=str(spec.get("lane", "outcome")),
     )
 
@@ -204,6 +216,83 @@ def grade_contains_all_strings(spec: dict[str, Any], output: dict[str, Any]) -> 
         ),
         evidence={"field": field, "missing": missing, "expected": expected},
         lane=str(spec.get("lane", "outcome")),
+    )
+
+
+def grade_bounding_box_iou(spec: dict[str, Any], output: dict[str, Any]) -> Grade:
+    """Grade one XYXY box with a deterministic intersection-over-union gate."""
+    field = str(spec["field"])
+    actual = output.get(field)
+    expected = spec.get("expected")
+    threshold = float(spec.get("minimum_iou", 0.5))
+    try:
+        if not isinstance(actual, list) or not isinstance(expected, list):
+            raise TypeError
+        if len(actual) != 4 or len(expected) != 4:
+            raise ValueError
+        actual_box = [float(value) for value in actual]
+        expected_box = [float(value) for value in expected]
+        if not all(math.isfinite(value) for value in [*actual_box, *expected_box, threshold]):
+            raise ValueError
+        iou = _box_iou(actual_box, expected_box)
+    except (TypeError, ValueError):
+        return Grade(
+            grader_id=str(spec.get("grader_id", f"bounding_box_iou.{field}")),
+            passed=False,
+            score=0.0,
+            severity=str(spec.get("severity", "high")),
+            rationale=f"Candidate field {field!r} is not a valid finite XYXY box.",
+            evidence={"field": field, "actual": actual},
+            lane=str(spec.get("lane", "localization")),
+        )
+    passed = iou >= threshold
+    return Grade(
+        grader_id=str(spec.get("grader_id", f"bounding_box_iou.{field}")),
+        passed=passed,
+        score=round(iou, 8),
+        severity=str(spec.get("severity", "high" if not passed else "none")),
+        rationale=f"Bounding-box IoU {iou:.4f} {'meets' if passed else 'is below'} threshold {threshold:.4f}.",
+        evidence={"field": field, "actual": actual_box, "expected": expected_box, "iou": iou},
+        lane=str(spec.get("lane", "localization")),
+    )
+
+
+def grade_grid_mask_dice(spec: dict[str, Any], output: dict[str, Any]) -> Grade:
+    """Grade a coarse segmentation represented by unique [row, column] cells."""
+    field = str(spec["field"])
+    actual = output.get(field)
+    expected = spec.get("expected", [])
+    threshold = float(spec.get("minimum_dice", 0.5))
+    try:
+        actual_cells = _cell_set(actual)
+        expected_cells = _cell_set(expected)
+    except (TypeError, ValueError):
+        return Grade(
+            grader_id=str(spec.get("grader_id", f"grid_mask_dice.{field}")),
+            passed=False,
+            score=0.0,
+            severity=str(spec.get("severity", "high")),
+            rationale=f"Candidate field {field!r} is not a valid unique grid-cell list.",
+            evidence={"field": field, "actual": actual},
+            lane=str(spec.get("lane", "segmentation")),
+        )
+    denominator = len(actual_cells) + len(expected_cells)
+    dice = 1.0 if denominator == 0 else (2.0 * len(actual_cells & expected_cells)) / denominator
+    passed = dice >= threshold
+    return Grade(
+        grader_id=str(spec.get("grader_id", f"grid_mask_dice.{field}")),
+        passed=passed,
+        score=round(dice, 8),
+        severity=str(spec.get("severity", "high" if not passed else "none")),
+        rationale=f"Grid-mask Dice {dice:.4f} {'meets' if passed else 'is below'} threshold {threshold:.4f}.",
+        evidence={
+            "field": field,
+            "predicted_cell_count": len(actual_cells),
+            "expected_cell_count": len(expected_cells),
+            "intersection_cell_count": len(actual_cells & expected_cells),
+            "dice": dice,
+        },
+        lane=str(spec.get("lane", "segmentation")),
     )
 
 
@@ -262,6 +351,10 @@ def run_declared_graders(task: TaskSpec, output: dict[str, Any]) -> list[Grade]:
             grades.append(grade_unordered_list_exact_match(spec, output))
         elif grader_type == "contains_all_strings":
             grades.append(grade_contains_all_strings(spec, output))
+        elif grader_type == "bounding_box_iou":
+            grades.append(grade_bounding_box_iou(spec, output))
+        elif grader_type == "grid_mask_dice":
+            grades.append(grade_grid_mask_dice(spec, output))
         else:
             grades.append(
                 Grade(
@@ -297,3 +390,34 @@ def _non_finite_number_paths(value: Any, path: str = "$") -> list[str]:
         for index, child in enumerate(value):
             paths.extend(_non_finite_number_paths(child, f"{path}[{index}]"))
     return paths
+
+
+def _box_iou(actual: list[float], expected: list[float]) -> float:
+    ax1, ay1, ax2, ay2 = actual
+    ex1, ey1, ex2, ey2 = expected
+    if ax2 <= ax1 or ay2 <= ay1 or ex2 <= ex1 or ey2 <= ey1:
+        raise ValueError("boxes must have positive area")
+    intersection_width = max(0.0, min(ax2, ex2) - max(ax1, ex1))
+    intersection_height = max(0.0, min(ay2, ey2) - max(ay1, ey1))
+    intersection = intersection_width * intersection_height
+    union = (ax2 - ax1) * (ay2 - ay1) + (ex2 - ex1) * (ey2 - ey1) - intersection
+    return intersection / union
+
+
+def _cell_set(value: Any) -> set[tuple[int, int]]:
+    if not isinstance(value, list):
+        raise TypeError("cell list required")
+    cells: set[tuple[int, int]] = set()
+    for item in value:
+        if not isinstance(item, list) or len(item) != 2:
+            raise TypeError("each cell must be [row, column]")
+        row, column = item
+        if isinstance(row, bool) or isinstance(column, bool) or not isinstance(row, int) or not isinstance(column, int):
+            raise TypeError("cell coordinates must be integers")
+        if row < 0 or column < 0:
+            raise ValueError("cell coordinates must be non-negative")
+        cell = (row, column)
+        if cell in cells:
+            raise ValueError("cell coordinates must be unique")
+        cells.add(cell)
+    return cells

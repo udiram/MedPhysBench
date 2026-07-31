@@ -1,0 +1,36 @@
+schema_version: medeval.task.v1
+task_id: public.nm.spect-pixel-size-001
+version: 0.4.0
+title: SPECT reconstructed pixel size
+domain: nuclear_medicine_physics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Calculate the square reconstructed pixel size from the supplied field of view and matrix.
+  Report millimetres per pixel for the idealized reconstruction.
+input_payload:
+  field_of_view_mm: 400.0
+  matrix_columns: 128
+  matrix_rows: 128
+  formula: "pixel_size = field_of_view / matrix_dimension"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [row_pixel_size_mm, column_pixel_size_mm, requires_escalation], properties: {row_pixel_size_mm: {type: number}, column_pixel_size_mm: {type: number}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: row_pixel_size_mm, expected: 3.125, absolute_tolerance: 0.0001, severity: high}
+    - {type: numeric_tolerance, field: column_pixel_size_mm, expected: 3.125, absolute_tolerance: 0.0001, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not infer reconstructed resolution from pixel size alone.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.iaea.org/resources/rpop/health-professionals/nuclear-medicine"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, spect, sampling]

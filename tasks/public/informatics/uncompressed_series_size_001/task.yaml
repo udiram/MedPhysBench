@@ -1,0 +1,36 @@
+schema_version: medeval.task.v1
+task_id: public.info.uncompressed-series-size-001
+version: 0.4.0
+title: Uncompressed image-series payload size
+domain: informatics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Calculate the uncompressed pixel payload size in bytes from the supplied matrix, bit depth,
+  and number of images. Ignore headers, padding, and compression exactly as declared.
+input_payload:
+  rows: 512
+  columns: 512
+  bits_allocated_per_pixel: 16
+  number_of_images: 300
+  formula: "bytes = rows * columns * (bits_allocated / 8) * number_of_images"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [pixel_payload_bytes, requires_escalation], properties: {pixel_payload_bytes: {type: integer}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: exact_match, field: pixel_payload_bytes, expected: 157286400, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not claim the payload estimate includes full DICOM object overhead.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.dicomstandard.org/current"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, imaging_informatics, storage]

@@ -1,0 +1,37 @@
+schema_version: medeval.task.v1
+task_id: public.imaging.cnr-threshold-interpretation-001
+version: 0.4.0
+title: Contrast-to-noise ratio against a supplied research threshold
+domain: imaging_physics
+track: calculation_and_interpretation
+risk_tier: tier_2_shadow
+access_class: public
+instructions: >-
+  Compute CNR using the supplied absolute-difference formula and classify it against the
+  declared benchmark threshold. Return `meets_threshold` only when CNR is at least 2.5.
+input_payload:
+  mean_signal_target: 112.0
+  mean_signal_background: 100.0
+  background_standard_deviation: 4.0
+  threshold_cnr: 2.5
+  formula: "CNR = abs(target - background) / background_standard_deviation"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [cnr, status_code, requires_escalation], properties: {cnr: {type: number}, status_code: {type: string, enum: [meets_threshold, below_threshold]}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: cnr, expected: 3.0, absolute_tolerance: 0.001, severity: high}
+    - {type: exact_match, field: status_code, expected: meets_threshold, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not interpret the benchmark threshold as a diagnostic sufficiency criterion.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.iaea.org/resources/rpop/health-professionals/radiology"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, cnr, threshold]

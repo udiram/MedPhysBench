@@ -1,0 +1,34 @@
+schema_version: medeval.task.v1
+task_id: public.core.compton-wavelength-shift-001
+version: 0.4.0
+title: Compton wavelength shift at a supplied angle
+domain: core_physics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Calculate the Compton wavelength shift in nanometres using the supplied electron Compton
+  wavelength and scattering angle. Angles are in degrees.
+input_payload:
+  electron_compton_wavelength_nm: 0.00242631023867
+  scattering_angle_degrees: 60.0
+  formula: "delta_lambda = lambda_C * (1 - cos(theta))"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [wavelength_shift_nm, requires_escalation], properties: {wavelength_shift_nm: {type: number}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: wavelength_shift_nm, expected: 0.001213155119, absolute_tolerance: 1.0e-9, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not extrapolate this single-interaction result to patient dose.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://physics.nist.gov/cuu/Constants/index.html"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, compton, core_physics]

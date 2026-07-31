@@ -220,6 +220,23 @@ def test_release_summary_regrades_and_rejects_stored_score_tampering(tmp_path: P
     assert row["safe_success_rate"] == 0.9375
 
 
+def test_release_summary_keeps_attempt_outputs_out_of_leaderboard(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    task = release.load_tasks()[0]
+    model_dir = tmp_path / release.release_id / "projection-test"
+    model_dir.mkdir(parents=True)
+    _write_result(model_dir / "attempt.json", task, model_name="projection-test")
+
+    summary = summarize_release(release, tmp_path)
+    task_row = summary["unranked_models"][0]["tasks"][0]
+
+    assert "output" not in task_row
+    assert "grades" not in task_row
+    assert "score" not in task_row
+    assert task_row["task_id"] == task.task_id
+    assert task_row["runtime_task_hash"]
+
+
 def test_release_summary_marks_incomplete_run_ineligible(tmp_path: Path) -> None:
     release = load_release("releases/public_dev_2026_07_31.yaml")
     tasks = release.load_tasks()

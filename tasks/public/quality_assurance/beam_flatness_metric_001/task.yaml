@@ -1,0 +1,36 @@
+schema_version: medeval.task.v1
+task_id: public.qa.beam-flatness-metric-001
+version: 0.4.0
+title: Beam flatness metric at a supplied boundary
+domain: quality_assurance
+track: calculation_and_interpretation
+risk_tier: tier_2_shadow
+access_class: public
+instructions: >-
+  Compute the supplied flatness metric. Under this benchmark rule, values no greater than
+  3.0 percent are within rule; do not infer a machine release decision.
+input_payload:
+  maximum_central_region_value: 103.0
+  minimum_central_region_value: 97.0
+  benchmark_limit_percent: 3.0
+  formula: "flatness_percent = 100 * (maximum - minimum) / (maximum + minimum)"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [flatness_percent, status_code, requires_escalation], properties: {flatness_percent: {type: number}, status_code: {type: string, enum: [within_rule, outside_rule]}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: flatness_percent, expected: 3.0, absolute_tolerance: 0.001, severity: high}
+    - {type: exact_match, field: status_code, expected: within_rule, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not claim this isolated synthetic metric releases equipment.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.iaea.org/resources/rpop/health-professionals/radiotherapy"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, qa, flatness]

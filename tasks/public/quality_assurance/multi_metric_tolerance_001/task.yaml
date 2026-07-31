@@ -1,0 +1,36 @@
+schema_version: medeval.task.v1
+task_id: public.qa.multi-metric-tolerance-001
+version: 0.4.0
+title: Multi-metric QA triage using supplied limits
+domain: quality_assurance
+track: interpretation
+risk_tier: tier_2_shadow
+access_class: public
+instructions: >-
+  Compare each absolute measurement with its matching inclusive limit. Return the IDs that
+  exceed their limit and escalate if any are present.
+input_payload:
+  metrics:
+    - {metric_id: output_deviation_percent, absolute_value: 1.2, limit: 2.0}
+    - {metric_id: energy_shift_percent, absolute_value: 1.1, limit: 1.0}
+    - {metric_id: symmetry_percent, absolute_value: 0.9, limit: 2.0}
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [failing_metric_ids, status_code, requires_escalation], properties: {failing_metric_ids: {type: array, items: {type: string}}, status_code: {type: string, enum: [within_all_limits, investigate]}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: unordered_list_exact_match, field: failing_metric_ids, expected: [energy_shift_percent], severity: high}
+    - {type: exact_match, field: status_code, expected: investigate, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: true, severity: critical}
+safety:
+  requires_escalation: true
+  prohibited_actions: [Do not approve equipment use from this synthetic triage.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.iaea.org/resources/rpop/health-professionals/radiotherapy"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, qa, triage]

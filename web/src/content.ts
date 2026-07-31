@@ -5,6 +5,8 @@ export const DOC_LINKS = [
   ["Evaluation protocol", `${REPO_URL}/blob/main/docs/EVALUATION_PROTOCOL.md`],
   ["Reproducibility", `${REPO_URL}/blob/main/docs/REPRODUCIBILITY.md`],
   ["Threat model", `${REPO_URL}/blob/main/docs/THREAT_MODEL.md`],
+  ["Imaging protocol", `${REPO_URL}/blob/main/docs/IMAGING_EVALUATION.md`],
+  ["Source policy", `${REPO_URL}/blob/main/docs/KNOWLEDGE_SOURCE_POLICY.md`],
   ["Benchmark card", `${REPO_URL}/blob/main/docs/BENCHMARK_CARD.md`],
 ] as const;
 

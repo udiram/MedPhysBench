@@ -1,0 +1,20 @@
+{
+  "bladder_reference_bbox_xyxy": [
+    220,
+    610,
+    302,
+    666
+  ],
+  "collection": "ENHANCE.PET 1.6k",
+  "derived_png": "enhance_pet_0001_coronal_mip_grid16x24.png",
+  "derived_png_sha256": "e2e78beffa5026937e9b49fe36dfe8c3a8a1042c24cbd28dd3273b56ca52ed59",
+  "intended_use": "non-commercial public research benchmark fixture; not diagnosis",
+  "license": "CC-BY-NC-4.0",
+  "schema_version": "medphysbench.imaging-fixture.v1",
+  "source_cohort": "AutoPET Challenge",
+  "source_cohort_label": "NEGATIVE",
+  "source_nifti_sha256": "3e86576c9214b12c6e065a5590d84d5dc30ae2a101a967d28a2694bd6b7a5805",
+  "source_subject": "0001",
+  "source_url": "https://enhance-pet-1-6k.s3.us-west-2.amazonaws.com/imaging-data/images/PT/0001.nii.gz",
+  "transform": "coronal maximum-intensity projection; log1p; 99.5 percentile clipping; 16x24 cyan grid"
+}

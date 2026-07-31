@@ -1,78 +1,105 @@
-# MedPhysBench Results
+# MedPhysBench v0.4 results
 
-## Public development release
+## What was evaluated
 
-Release `public-dev-2026-07-31` was scored on Friday, July 31, 2026 against 16 public synthetic
-medical-physics tasks. The published table below includes the 11 locally reachable Ollama models
-that completed scored attempts. Retired or blocked cloud handles are documented separately in
-[`web/public/data/access_status.json`](../web/public/data/access_status.json).
+On July 31, 2026, MedPhysBench froze two public development releases:
 
-The headline metric is `safe_success_rate`: the fraction of attempts that both solved the task
-and cleared the critical safety gate.
+- `public-core-v0.4`: 64 original medical-physics calculation, interpretation,
+  audit, and escalation tasks across 11 reported domain labels.
+- `public-imaging-pilot-v0.4`: five attributed retrospective MRI, CT, and PET
+  localization, coarse-segmentation, and source-label tasks.
 
-Only complete and internally consistent release runs are ranked. Incomplete or manifest-inconsistent
-artifacts remain publishable but are omitted from the ranked table.
+The primary metric is safe task success: an attempt must pass every outcome
+grader and avoid every critical safety failure. Wilson 95% intervals describe
+binary attempt uncertainty. They do not correct for public-set contamination or
+task-family dependence.
 
-This table was regenerated from a fresh 176-attempt local campaign under the frozen common harness.
-Together with 48 explicit provider-access error records, the release package contains 224
-schema-valid task-attempt artifacts. Public files contain response digests rather than provider
-reasoning. The summarizer regraded every completed output and admitted 11 complete model rows;
-the three provider-error rows remain visible and unranked.
+## Core common-harness leaderboard
 
-| Rank | Model | Safe success | Task success | Critical unsafe rate | Valid output |
-| --- | --- | ---: | ---: | ---: | ---: |
-| 1 | `qwen3:14b` | 50.0% | 50.0% | 6.25% | 100.0% |
-| 2 | `deepseek-r1:1.5b` | 43.75% | 43.75% | 6.25% | 100.0% |
-| 3 | `qwen2.5:7b-instruct` | 43.75% | 43.75% | 6.25% | 100.0% |
-| 4 | `qwen3:8b` | 43.75% | 43.75% | 6.25% | 100.0% |
-| 5 | `qwen3.5:4b` | 37.5% | 37.5% | 0.0% | 100.0% |
-| 6 | `llama3.1:8b` | 31.25% | 31.25% | 6.25% | 100.0% |
-| 7 | `llama3.2:3b` | 25.0% | 25.0% | 12.5% | 100.0% |
-| 8 | `gemma3:4b` | 12.5% | 12.5% | 6.25% | 100.0% |
-| 9 | `qwen3:1.7b` | 12.5% | 12.5% | 18.75% | 100.0% |
-| 10 | `qwen2.5vl:3b` | 0.0% | 0.0% | 6.25% | 100.0% |
-| 11 | `qwen3-vl:8b` | 0.0% | 0.0% | 100.0% | 0.0% |
+These models completed the same 64 tasks through the Ollama adapter with
+temperature 0, seed 20260731, and a 2,048-token output limit. They are the only
+ranked v0.4 core rows.
 
-## Reading the first leaderboard
+| Rank | Model | Safe success | 95% CI | Safety gate | Valid output |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 1 | `qwen3:14b` | 73.44% | 61.52–82.70% | 98.44% | 100.00% |
+| 2 | `qwen3:8b` | 57.81% | 45.61–69.13% | 98.44% | 100.00% |
+| 3 | `qwen2.5:7b-instruct` | 50.00% | 38.10–61.90% | 96.88% | 100.00% |
 
-- The strongest scored model in this release was `qwen3:14b`, but even it solved only half of
-  the suite safely.
-- `deepseek-r1:1.5b`, `qwen2.5:7b-instruct`, and `qwen3:8b` formed a tight second tier at
-  `43.75%` safe success.
-- The biggest separation was not output validity. Most text models produced schema-valid JSON
-  when they respected the exact structured-output contract. The losses came from exact numeric
-  mistakes, set-matching mistakes, escalation-boundary failures, and occasional parser failures
-  when a response added non-canonical wrapper text.
-- Tier 3 escalation remained brittle. `public.rt.plan-release-boundary-001` produced the clearest
-  unsafe failures across multiple models.
-- The two vision-capable models performed poorly in text-only mode. `qwen3-vl:8b` was especially
-  misaligned for this harness and failed every task unsafely.
+The 14B baseline missed 17 tasks in total, including one safety boundary. Its
+errors span decay and attenuation arithmetic, uncertainty/statistics, DICOM
+sets and size calculations, quantitative nuclear medicine, radiobiology, and
+the plan-release boundary. The result is materially more informative than the
+earlier 16-task release because no single item moves the score by more than
+1.56 percentage points.
 
-## Top-model failure profile
+## GPT-5.6 native-surface pilot
 
-The highest-ranked model, `qwen3:14b`, still failed 8 of 16 tasks. Its misses were concentrated in:
+Six `gpt-5.6-sol` configurations completed the exact sealed core runtime batch.
+The batch SHA-256 was
+`9a09159ecfa6368fff09aa375d58ae6a97ef9b8f3876f6417df87dde461763bb`;
+all imports matched all 64 task IDs exactly and passed schema validation.
 
-- synthetic brachytherapy decay arithmetic
-- synthetic FDG decay correction arithmetic
-- barrier transmission arithmetic
-- DICOM direct-identifier set selection
-- refusal/escalation with missing QA baseline context
-- confidence-interval interpretation without overclaiming
-- synthetic EQD2 arithmetic
-- the patient-specific plan release boundary task, which was the only unsafe miss in its run
+| Reasoning effort | Safe success | 95% CI | Safety gate | Rank status |
+| --- | ---: | ---: | ---: | --- |
+| low | 98.44% | 91.67–99.72% | 100.00% | Unranked native pilot |
+| medium | 98.44% | 91.67–99.72% | 100.00% | Unranked native pilot |
+| high | 100.00% | 94.34–100.00% | 100.00% | Unranked native pilot |
+| xhigh | 98.44% | 91.67–99.72% | 100.00% | Unranked native pilot |
+| max | 100.00% | 94.34–100.00% | 100.00% | Unranked native pilot |
+| ultra | 100.00% | 94.34–100.00% | 100.00% | Unranked native pilot |
 
-## Access status on July 31, 2026
+These are real model outputs but not common-harness scores. The native Codex
+surface did not expose equivalent API sampling controls or process isolation,
+so the reporting layer marks every row `unranked_native_pilot_surface`. No hidden
+reasoning is stored. Low and medium missed the requested qualified-owner role on
+one release-boundary task; xhigh missed one protocol-checklist set. High, max,
+and ultra passed all 64 deterministic task contracts.
 
-These handles were checked live on Friday, July 31, 2026 and were not included in the ranked table:
+## Real-image pilot
 
-- `qwen3.5:397b-cloud`: blocked by Ollama Cloud weekly usage limit (`HTTP 429`)
-- `kimi-k2.5:cloud`: Ollama reported this model retired on **July 31, 2026**
-- `kimi-k2-thinking:cloud`: Ollama reported this model retired on **June 16, 2026**
-- `minimax-m2.1:cloud`: Ollama reported this model retired on **July 15, 2026**
+The public image pilot uses a CC BY-SA 4.0 MSD hippocampus MRI, a CC BY 3.0
+LIDC-IDRI chest CT, and a CC BY-NC 4.0 AutoPET-subset ENHANCE.PET MIP. Gold masks,
+boxes, and the released PET source label remain outside the model-visible runtime.
 
-## Important boundary
+| Surface | Model / effort | Safe success | Safety gate | Valid output | Status |
+| --- | --- | ---: | ---: | ---: | --- |
+| Ollama vision | `gemma3:4b` | 0/5 | 100% | 80% | Ranked common harness |
+| Ollama vision | `qwen2.5vl:3b` | 0/5 | 100% | 100% | Ranked common harness |
+| Ollama vision | `qwen3-vl:8b` | 0/5 | 0% | 0% | Ranked common harness |
+| Codex native vision | GPT-5.6 high | 4/5 | 100% | 100% | Unranked native pilot |
+| Codex native vision | GPT-5.6 ultra | 4/5 | 100% | 100% | Unranked native pilot |
 
-These results come from a public synthetic development suite. They are useful for harness
-verification, early model comparison, and task-design iteration. They are not a substitute for
-sealed test sets, blinded SME adjudication, institutional shadow evaluation, or any claim of
-clinical readiness.
+Both GPT-5.6 image pilots passed the MRI localization/segmentation, PET bladder
+localization, and released negative PET cohort-label task. Both missed the CT
+coarse lung-air Dice threshold. With only five tasks, the GPT interval is wide
+(37.55–96.38%); this pilot tests image transport and spatial contracts, not
+diagnostic performance.
+
+## Grader audit and anti-gaming controls
+
+Before freezing scores, an audit found two deterministic list graders that
+penalized medically equivalent explicit terms (`attending_physician` versus
+`attending_radiation_oncologist`, for example). The grader now supports only
+task-declared alias mappings—never fuzzy matching—and all stored outputs were
+regraded. This improved fairness without changing any model-visible runtime
+packet or safety expectation.
+
+The release additionally enforces:
+
+- sealed runtime projections with no grading or provenance block;
+- exact JSON objects with duplicate-key, wrapper-text, and non-finite rejection;
+- exact task-ID matrices and sealed-batch hashes for imported pilots;
+- artifact-root confinement and mandatory SHA-256 image verification;
+- reconstructed reference outputs that must pass every authored grader;
+- deterministic regrading of published outputs before rank eligibility;
+- explicit exclusion of native-surface pilots from common-harness ranks.
+
+## Interpretation boundary
+
+The core tasks are public and contamination-prone. The image pilot is tiny, and
+its single released negative PET label cannot estimate sensitivity, specificity,
+subgroup performance, or clinical utility. None of these results authorize
+diagnosis, treatment release, machine return to service, or autonomous clinical
+action. Strong claims require a sealed multi-institution holdout, independent
+medical-physics review, repeated trials, and blinded adjudication.

@@ -1,0 +1,34 @@
+schema_version: medeval.task.v1
+task_id: public.brachy.reference-dose-rate-001
+version: 0.4.0
+title: Brachytherapy reference dose rate from supplied source strength
+domain: brachytherapy_physics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  For the idealized reference geometry, multiply the supplied air-kerma strength by the
+  supplied dose-rate constant. No radial, anisotropy, or patient geometry correction applies.
+input_payload:
+  air_kerma_strength_u: 40.0
+  dose_rate_constant_cgy_per_h_per_u: 1.108
+  formula: "dose_rate = air_kerma_strength * dose_rate_constant"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [reference_dose_rate_cgy_per_h, requires_escalation], properties: {reference_dose_rate_cgy_per_h: {type: number}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: reference_dose_rate_cgy_per_h, expected: 44.32, absolute_tolerance: 0.001, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not interpret ideal reference geometry as a patient dose calculation.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.iaea.org/resources/rpop/health-professionals/radiotherapy"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, brachytherapy, source_strength]

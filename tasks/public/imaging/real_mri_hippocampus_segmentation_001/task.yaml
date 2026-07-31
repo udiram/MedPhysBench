@@ -1,0 +1,110 @@
+schema_version: medeval.task.v1
+task_id: public.imaging.real-mri-hippocampus-segmentation-001
+version: 0.4.0
+title: Coarse-grid hippocampus segmentation on a real MRI crop
+domain: imaging_physics
+track: image_segmentation
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Segment the hippocampal complex targeted by the public MSD annotation on this
+  retrospective, de-identified MRI crop. The cyan overlay defines a 16 by 16 grid.
+  Return every grid cell whose area is at least 30 percent occupied by the target as a
+  unique [row, column] pair, using zero-based indices from the top-left. This deliberately
+  coarse public-development task tests spatial understanding; it is not a clinical contour.
+input_payload:
+  grid_rows: 16
+  grid_columns: 16
+  occupancy_rule: include a cell when more than 30 percent of its native pixels are target
+context_artifacts:
+  - artifact_id: msd_hippocampus_367_axial_z16_grid16
+    media_type: image/png
+    title: Real de-identified MRI crop with 16 by 16 grid
+    description: >-
+      Axial crop centered on the hippocampal region, derived from MSD Task04; cyan lines
+      define the output grid and do not reveal the hidden reference segmentation.
+    content: asset://assets/imaging/msd_hippocampus_367/hippocampus_367_axial_z16_grid16.png#sha256=67b1f3eb25cfe636b678bf295a9042249a614fa9627f748d7f49a0b41399002c
+expected_output_schema:
+  type: object
+  additionalProperties: false
+  required: [mask_cells, requires_escalation, limitations]
+  properties:
+    mask_cells:
+      type: array
+      uniqueItems: true
+      items:
+        type: array
+        minItems: 2
+        maxItems: 2
+        items: {type: integer, minimum: 0, maximum: 15}
+    requires_escalation: {type: boolean}
+    limitations: {type: string}
+grading:
+  graders:
+    - type: grid_mask_dice
+      field: mask_cells
+      minimum_dice: 0.35
+      severity: high
+      lane: segmentation
+      expected:
+        - [4, 3]
+        - [4, 4]
+        - [4, 5]
+        - [4, 6]
+        - [5, 3]
+        - [5, 4]
+        - [5, 5]
+        - [5, 6]
+        - [5, 7]
+        - [5, 8]
+        - [5, 9]
+        - [5, 10]
+        - [5, 11]
+        - [6, 2]
+        - [6, 3]
+        - [6, 4]
+        - [6, 5]
+        - [6, 6]
+        - [6, 7]
+        - [6, 8]
+        - [6, 9]
+        - [6, 10]
+        - [7, 3]
+        - [7, 4]
+        - [7, 5]
+        - [7, 6]
+        - [7, 7]
+        - [7, 8]
+        - [8, 4]
+        - [8, 5]
+        - [8, 6]
+        - [8, 7]
+        - [8, 8]
+        - [8, 9]
+        - [9, 5]
+        - [9, 6]
+        - [9, 7]
+        - [9, 8]
+        - [9, 9]
+        - [10, 5]
+        - [10, 6]
+        - [10, 7]
+        - [10, 8]
+    - type: exact_match
+      field: requires_escalation
+      expected: false
+      severity: critical
+safety:
+  requires_escalation: false
+  prohibited_actions:
+    - Do not represent this coarse research mask as a clinical contour.
+provenance:
+  source_class: licensed_real_image_fixture
+  source_url: https://medicaldecathlon.com/
+  source_fixture_manifest: assets/imaging/msd_hippocampus_367/manifest.json
+  source_license: CC-BY-SA-4.0
+  task_text_license: CC0-1.0
+  authoring_status: public_dev_real_data
+  phi_review: upstream_deidentified_reduced_fixture
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [real-data, mri, hippocampus, segmentation, public-dev]

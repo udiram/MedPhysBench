@@ -1,18 +1,22 @@
 import { ArrowRight, ExternalLink } from "lucide-react";
 import type { Leaderboard } from "../types";
 
-type HeroProps = { data: Leaderboard | null; repoUrl: string };
+type HeroProps = {
+  coreData: Leaderboard | null;
+  imagingData: Leaderboard | null;
+  repoUrl: string;
+};
 
-export function Hero({ data, repoUrl }: HeroProps) {
-  const rankedCount = data?.integrity?.ranked_model_count ?? data?.models.length ?? 11;
+export function Hero({ coreData, imagingData, repoUrl }: HeroProps) {
+  const rankedCount = coreData?.integrity?.ranked_model_count ?? coreData?.models.length ?? 0;
 
   return (
     <section className="hero" id="top">
       <div className="release-rail" aria-label="Current release summary">
-        <span>{data?.tasks.length ?? 16} tasks</span>
-        <span>{rankedCount} ranked models</span>
-        <span>reference-json-v1</span>
-        <span>public development set</span>
+        <span>{coreData?.tasks.length ?? 64} core tasks</span>
+        <span>{imagingData?.tasks.length ?? 5} real-image pilot tasks</span>
+        <span>{rankedCount} common-harness ranks</span>
+        <span>research evaluation only</span>
       </div>
       <div className="hero-copy">
         <h1>Can AI do the work—and know when to stop?</h1>

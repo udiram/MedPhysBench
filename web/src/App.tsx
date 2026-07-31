@@ -6,16 +6,20 @@ import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { LeaderboardExplorer } from "./components/LeaderboardExplorer";
 import { useLeaderboard } from "./hooks/useLeaderboard";
-import type { AccessStatus, Leaderboard } from "./types";
+import type { AccessStatus, ReleaseView } from "./types";
 
 const LEADERBOARD_URL = "/data/leaderboard.json";
+const IMAGING_LEADERBOARD_URL = "/data/imaging_leaderboard.json";
 const ACCESS_STATUS_URL = "/data/access_status.json";
 const REPO_URL = "https://github.com/udiram/MedPhysBench";
 
 function App() {
-  const { data, loadError } = useLeaderboard(LEADERBOARD_URL);
+  const core = useLeaderboard(LEADERBOARD_URL);
+  const imaging = useLeaderboard(IMAGING_LEADERBOARD_URL);
   const [accessStatus, setAccessStatus] = useState<AccessStatus[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [releaseView, setReleaseView] = useState<ReleaseView>("core");
+  const selected = releaseView === "core" ? core : imaging;
 
   useEffect(() => {
     fetch(ACCESS_STATUS_URL)
@@ -38,9 +42,15 @@ function App() {
         repoUrl={REPO_URL}
       />
       <main>
-        <Hero data={data} repoUrl={REPO_URL} />
-        <LeaderboardExplorer data={data} accessStatus={accessStatus} loadError={loadError} />
-        <EvidenceSections data={data} accessStatus={accessStatus} />
+        <Hero coreData={core.data} imagingData={imaging.data} repoUrl={REPO_URL} />
+        <LeaderboardExplorer
+          data={selected.data}
+          accessStatus={releaseView === "core" ? accessStatus : []}
+          loadError={selected.loadError}
+          releaseView={releaseView}
+          onReleaseViewChange={setReleaseView}
+        />
+        <EvidenceSections data={core.data} accessStatus={accessStatus} />
       </main>
       <footer className="site-footer">
         <p>MedPhysBench is a research and evaluation platform. It is not a clinical decision-support system.</p>

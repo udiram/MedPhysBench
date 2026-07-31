@@ -73,8 +73,12 @@ def run_trial(
         seed=seed,
         temperature=temperature,
         max_tokens=max_tokens,
-        sandbox_image_digest="process-isolation-public-v0.2.0",
-        tool_environment_version="public-fixtures-v0.2.0",
+        sandbox_image_digest=getattr(
+            agent, "sandbox_image_digest", "process-isolation-public-v0.2.0"
+        ),
+        tool_environment_version=getattr(
+            agent, "tool_environment_version", "public-fixtures-v0.2.0"
+        ),
         prompt_hash=prompt_hash_for_task(task),
         tool_schema_hash=tool_schema_hash_for_task(task),
         system_prompt_hash=system_prompt_hash(),

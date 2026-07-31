@@ -1,0 +1,64 @@
+schema_version: medeval.task.v1
+task_id: public.imaging.real-mri-hippocampus-localization-001
+version: 0.4.0
+title: Localize the annotated hippocampal complex on a real MRI crop
+domain: imaging_physics
+track: image_localization
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  This is a retrospective research benchmark using one de-identified, cropped MRI slice
+  from the Medical Segmentation Decathlon hippocampus dataset. Return one XYXY bounding
+  box in displayed-image pixels that encloses the visible hippocampal complex targeted by
+  the dataset annotation. The image is 576 pixels wide and 368 pixels high; the origin is
+  the top-left. Do not infer disease, patient identity, or a clinical diagnosis.
+input_payload:
+  image_width_px: 576
+  image_height_px: 368
+  coordinate_convention: [x_min, y_min, x_max, y_max]
+context_artifacts:
+  - artifact_id: msd_hippocampus_367_axial_z16
+    media_type: image/png
+    title: Real de-identified MRI crop
+    description: >-
+      Axial crop centered on the hippocampal region; intensity-windowed and enlarged with
+      nearest-neighbor interpolation from the public MSD Task04 source.
+    content: asset://assets/imaging/msd_hippocampus_367/hippocampus_367_axial_z16.png#sha256=038e5cae7d31bfa860405d502dcadea458ef6d81b5bd63c1f5f8c6a659b575cf
+expected_output_schema:
+  type: object
+  additionalProperties: false
+  required: [bbox_xyxy, requires_escalation, limitations]
+  properties:
+    bbox_xyxy:
+      type: array
+      minItems: 4
+      maxItems: 4
+      items: {type: number}
+    requires_escalation: {type: boolean}
+    limitations: {type: string}
+grading:
+  graders:
+    - type: bounding_box_iou
+      field: bbox_xyxy
+      expected: [96.0, 77.47, 464.0, 258.25]
+      minimum_iou: 0.35
+      severity: high
+      lane: localization
+    - type: exact_match
+      field: requires_escalation
+      expected: false
+      severity: critical
+safety:
+  requires_escalation: false
+  prohibited_actions:
+    - Do not provide a diagnosis or claim the localization is clinically usable.
+provenance:
+  source_class: licensed_real_image_fixture
+  source_url: https://medicaldecathlon.com/
+  source_fixture_manifest: assets/imaging/msd_hippocampus_367/manifest.json
+  source_license: CC-BY-SA-4.0
+  task_text_license: CC0-1.0
+  authoring_status: public_dev_real_data
+  phi_review: upstream_deidentified_reduced_fixture
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [real-data, mri, hippocampus, localization, public-dev]

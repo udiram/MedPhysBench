@@ -11,7 +11,7 @@ permissions:
 jobs:
   test-public-contracts:
     runs-on: ubuntu-latest
-    # This workflow is intentionally limited to public/synthetic fixtures.
+    # This workflow is intentionally limited to public synthetic and licensed reduced fixtures.
     # Sealed, restricted, provider-backed, and shadow suites run in a separate
     # controlled environment and must never be added to public CI.
     steps:
@@ -25,12 +25,16 @@ jobs:
         run: uv run --extra dev ruff check src tests scripts
       - name: Validate public development task
         run: uv run python -m medphys_agentbench.cli validate tasks/dev/physics_units_001/task.yaml >/dev/null
-      - name: Validate the complete public release
-        run: uv run medphys-bench validate-release releases/public_dev_2026_07_31.yaml
+      - name: Validate the complete public releases
+        run: |
+          uv run medphys-bench validate-release releases/public_core_v0_4.yaml
+          uv run medphys-bench validate-release releases/public_imaging_pilot_v0_4.yaml
       - name: Validate schemas, tasks, runtime projections, and result artifacts
         run: uv run python scripts/validate_repository.py
       - name: Verify public artifacts exclude provider reasoning
-        run: uv run python scripts/sanitize_public_results.py --check results/releases/public-dev-2026-07-31
+        run: |
+          uv run python scripts/sanitize_public_results.py --check results/releases/public-core-v0.4
+          uv run python scripts/sanitize_public_results.py --check results/releases/public-imaging-pilot-v0.4
 
   build-public-site:
     runs-on: ubuntu-latest

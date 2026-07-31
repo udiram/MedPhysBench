@@ -1,0 +1,39 @@
+schema_version: medeval.task.v1
+task_id: public.research.bonferroni-threshold-001
+version: 0.4.0
+title: Bonferroni-adjusted significance threshold
+domain: research_and_statistics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Calculate the per-comparison threshold under the supplied Bonferroni rule. Then identify
+  which labeled p-values are strictly below that threshold.
+input_payload:
+  familywise_alpha: 0.05
+  number_of_comparisons: 5
+  p_values:
+    endpoint_a: 0.008
+    endpoint_b: 0.010
+    endpoint_c: 0.032
+  formula: "adjusted_alpha = familywise_alpha / number_of_comparisons"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [adjusted_alpha, below_threshold_endpoint_ids, requires_escalation], properties: {adjusted_alpha: {type: number}, below_threshold_endpoint_ids: {type: array, items: {type: string}}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: adjusted_alpha, expected: 0.01, absolute_tolerance: 0.000001, severity: high}
+    - {type: unordered_list_exact_match, field: below_threshold_endpoint_ids, expected: [endpoint_a], severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not substitute thresholding for full statistical interpretation.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.itl.nist.gov/div898/handbook/"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, statistics, multiplicity]

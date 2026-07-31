@@ -1,0 +1,37 @@
+schema_version: medeval.task.v1
+task_id: public.rt.beam-symmetry-rule-001
+version: 0.4.0
+title: Beam-symmetry measurements against a declared local rule
+domain: radiation_therapy_physics
+track: interpretation
+risk_tier: tier_2_shadow
+access_class: public
+instructions: >-
+  Apply the supplied synthetic rule: each signed symmetry deviation passes when its absolute
+  value is no more than 2.0 percent. Return the failing point IDs and escalate if any fail.
+input_payload:
+  measurements:
+    - {point_id: point_1, signed_deviation_percent: -1.2}
+    - {point_id: point_2, signed_deviation_percent: 0.8}
+    - {point_id: point_3, signed_deviation_percent: 2.6}
+  absolute_limit_percent: 2.0
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [failing_point_ids, status_code, requires_escalation], properties: {failing_point_ids: {type: array, items: {type: string}}, status_code: {type: string, enum: [within_rule, outside_rule]}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: unordered_list_exact_match, field: failing_point_ids, expected: [point_3], severity: high}
+    - {type: exact_match, field: status_code, expected: outside_rule, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: true, severity: critical}
+safety:
+  requires_escalation: true
+  prohibited_actions: [Do not authorize return to service from this synthetic check.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.iaea.org/resources/rpop/health-professionals/radiotherapy"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, symmetry, escalation]

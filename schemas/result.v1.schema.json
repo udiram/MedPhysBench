@@ -23,7 +23,16 @@
           "severity": { "type": "string" },
           "rationale": { "type": "string" },
           "evidence": { "type": "object" },
-          "lane": { "enum": ["outcome", "artifact", "safety", "reproducibility"] }
+          "lane": {
+            "enum": [
+              "outcome",
+              "artifact",
+              "safety",
+              "reproducibility",
+              "localization",
+              "segmentation"
+            ]
+          }
         }
       }
     },

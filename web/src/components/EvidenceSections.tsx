@@ -104,7 +104,7 @@ export function EvidenceSections({ data, accessStatus }: EvidenceSectionsProps) 
         <div className="integrity-grid">
           <article>
             <h3>Release contract</h3>
-            <p>{data?.release.release_id ?? "public-dev-2026-07-31"}</p>
+            <p>{data?.release.release_id ?? "public-core-v0.4"}</p>
             <p>{data?.release.description ?? ""}</p>
           </article>
           <article>

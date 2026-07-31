@@ -1,0 +1,34 @@
+schema_version: medeval.task.v1
+task_id: public.research.standard-error-mean-001
+version: 0.4.0
+title: Standard error of a sample mean
+domain: research_and_statistics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Calculate the standard error of the mean from the supplied sample standard deviation and
+  sample size. Treat observations as independent under this benchmark model.
+input_payload:
+  sample_standard_deviation: 12.0
+  sample_size: 36
+  formula: "standard_error = sample_standard_deviation / sqrt(sample_size)"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [standard_error, requires_escalation], properties: {standard_error: {type: number}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: standard_error, expected: 2.0, absolute_tolerance: 0.001, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not infer population representativeness from this calculation.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.itl.nist.gov/div898/handbook/"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, statistics, standard_error]

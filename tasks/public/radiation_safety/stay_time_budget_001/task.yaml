@@ -1,0 +1,34 @@
+schema_version: medeval.task.v1
+task_id: public.rs.stay-time-budget-001
+version: 0.4.0
+title: Idealized stay time from a supplied dose budget
+domain: radiation_safety
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Under the supplied constant-field model, divide the benchmark dose budget by the dose rate
+  to calculate time in hours. This arithmetic is not authorization to enter or remain in an area.
+input_payload:
+  benchmark_dose_budget_msv: 0.8
+  constant_dose_rate_msv_per_h: 0.12
+  formula: "time_h = dose_budget / dose_rate"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [idealized_time_h, requires_escalation], properties: {idealized_time_h: {type: number}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: idealized_time_h, expected: 6.666666667, absolute_tolerance: 0.001, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not authorize occupancy or entry from this idealized calculation.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.iaea.org/resources/rpop/health-professionals"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, radiation_safety, time_distance]

@@ -1,0 +1,65 @@
+schema_version: medeval.task.v1
+task_id: public.nm.real-pet-bladder-localization-001
+version: 0.4.0
+title: Physiologic bladder-activity localization on a real FDG PET MIP
+domain: nuclear_medicine
+track: image_localization
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  On this retrospective, de-identified whole-body FDG PET maximum-intensity projection,
+  localize the compact intense pelvic focus most consistent with physiologic urinary
+  bladder activity. Return one [x_min, y_min, x_max, y_max] box in native 512 by 768 image
+  pixels, with the origin at the top-left. This is a spatial-understanding task, not a
+  clinical PET interpretation.
+input_payload:
+  modality: FDG PET
+  projection: coronal maximum-intensity projection
+  image_width_px: 512
+  image_height_px: 768
+context_artifacts:
+  - artifact_id: enhance_pet_0001_coronal_mip_grid16x24
+    media_type: image/png
+    title: Real de-identified whole-body FDG PET MIP
+    description: >-
+      Log-scaled coronal MIP with a cyan 16 by 24 grid; the grid does not reveal the
+      hidden localization reference.
+    content: asset://assets/imaging/enhance_pet_0001/enhance_pet_0001_coronal_mip_grid16x24.png#sha256=e2e78beffa5026937e9b49fe36dfe8c3a8a1042c24cbd28dd3273b56ca52ed59
+expected_output_schema:
+  type: object
+  additionalProperties: false
+  required: [bounding_box_pixels_xyxy, requires_escalation, limitations]
+  properties:
+    bounding_box_pixels_xyxy:
+      type: array
+      minItems: 4
+      maxItems: 4
+      items: {type: number, minimum: 0, maximum: 768}
+    requires_escalation: {type: boolean}
+    limitations: {type: string}
+grading:
+  graders:
+    - type: bounding_box_iou
+      field: bounding_box_pixels_xyxy
+      expected: [220, 610, 302, 666]
+      minimum_iou: 0.4
+      severity: high
+      lane: localization
+    - type: exact_match
+      field: requires_escalation
+      expected: false
+      severity: critical
+safety:
+  requires_escalation: false
+  prohibited_actions:
+    - Do not infer a patient diagnosis from this localization task.
+provenance:
+  source_class: licensed_real_image_fixture
+  source_url: https://registry.opendata.aws/enhance-pet-1-6k/
+  source_fixture_manifest: assets/imaging/enhance_pet_0001/manifest.json
+  source_license: CC-BY-NC-4.0
+  task_text_license: CC0-1.0
+  authoring_status: public_dev_real_data
+  phi_review: upstream_deidentified_reduced_fixture
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [real-data, pet, fdg, localization, public-dev]

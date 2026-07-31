@@ -10,17 +10,18 @@
 ```bash
 git clone https://github.com/udiram/MedPhysBench.git
 cd MedPhysBench
-uv sync --extra dev
+uv sync --extra dev --extra imaging
 uv run pytest
 uv run python scripts/validate_repository.py
-uv run medphys-bench validate-release releases/public_dev_2026_07_31.yaml
+uv run medphys-bench validate-release releases/public_core_v0_4.yaml
+uv run medphys-bench validate-release releases/public_imaging_pilot_v0_4.yaml
 ```
 
 ## Run a model
 
 ```bash
 uv run medphys-bench run-release \
-  releases/public_dev_2026_07_31.yaml \
+  releases/public_core_v0_4.yaml \
   --adapter ollama \
   --model qwen3.5:4b \
   --results-dir runs \
@@ -38,7 +39,7 @@ sets are retained as unranked evidence.
 
 ```bash
 uv run medphys-bench summarize \
-  releases/public_dev_2026_07_31.yaml \
+  releases/public_core_v0_4.yaml \
   --results-dir runs \
   --output leaderboard.json
 ```
@@ -50,10 +51,23 @@ Before publishing a provider-backed package, remove provider reasoning while ret
 digests and provenance, then validate the result tree:
 
 ```bash
-uv run python scripts/sanitize_public_results.py results/releases/public-dev-2026-07-31
-uv run python scripts/sanitize_public_results.py --check results/releases/public-dev-2026-07-31
+uv run python scripts/sanitize_public_results.py results/releases/public-core-v0.4
+uv run python scripts/sanitize_public_results.py --check results/releases/public-core-v0.4
 uv run python scripts/validate_repository.py
 ```
+
+For a non-API pilot, export the sealed runtime batch and collect strict task-ID-keyed JSON outputs:
+
+```bash
+uv run medphys-bench export-runtime releases/public_core_v0_4.yaml --output sealed.json
+uv run medphys-bench score-recorded-batch \
+  releases/public_core_v0_4.yaml recorded.json \
+  --model MODEL --model-revision REVISION --reasoning-effort high \
+  --results-dir runs
+```
+
+The recorded file must bind the exact sealed-batch SHA-256 and task ID set. These imports are
+always marked `codex-native` and unranked; they are not substitutes for a qualified provider adapter.
 
 ## Build the website
 

@@ -1,8 +1,8 @@
 # MedPhysBench: Reproducible Evaluation of Medical-Physics AI Systems
 
-**Public development release:** `public-dev-2026-07-31`
+**Public development releases:** `public-core-v0.4` and `public-imaging-pilot-v0.4`
 
-**Benchmark version:** `0.3.0`
+**Benchmark version:** `0.4.0`
 
 **Status:** Research benchmark; not clinical validation
 
@@ -15,19 +15,20 @@ answering. MedPhysBench instead evaluates whether an AI system can complete a ve
 correctly, satisfy a machine-checkable output contract, preserve safety boundaries, and produce a
 reproducible run record.
 
-The first public development release contains 16 synthetic and source-grounded tasks spanning core
-physics, radiation therapy, brachytherapy, imaging, nuclear medicine, radiation safety,
-informatics, quality assurance, and research interpretation. Every task has an authored view and a
+Version 0.4 contains a 64-task public core release plus five separately reported, hash-pinned real
+MRI, CT, and PET tasks spanning localization, coarse segmentation, and retrospective source-label
+classification. The core spans radiation therapy, brachytherapy, imaging, nuclear medicine,
+radiation safety, informatics, quality assurance, and research methods. Every task has an authored view and a
 sealed runtime view; gold answers, graders, and sensitive provenance never cross the candidate
 boundary. The reference harness records model identity, prompt and tool hashes, sampling
 parameters, latency, provider-response digests, grader results, and safety failures. Results are reported
 as task success, safe success, structured-output validity, escalation accuracy, `any_pass`,
 `all_pass`, domain results, and Wilson 95% confidence intervals.
 
-Version 0.3 adds a publication-integrity layer: summaries reconstruct grades from recorded outputs
-instead of trusting stored score fields, and a model is rankable only when the declared task/attempt
-matrix is complete, composed of completed attempts, unique, hash-consistent, tied to one model and
-harness identity, and executed under one sampling/sandbox configuration.
+Version 0.4 retains deterministic regrading and adds reference-feasibility reconstruction,
+hash-verified multimodal assets, bounding-box IoU and grid-mask Dice graders, and sealed-batch
+import checks. A model is rankable only when its task/attempt matrix is complete and consistent.
+Native conversation-surface pilots are published separately and cannot receive a common-harness rank.
 
 This release is a complete public-development evaluation loop and publication package. It is not
 evidence of autonomous clinical competence. Headline generalization claims require the planned
@@ -73,20 +74,21 @@ assert this separation and assert that CLI validation cannot print grading mater
 
 ## 3. Public development release
 
-The `public-dev-2026-07-31` release contains 16 tasks. It intentionally mixes calculation,
-evidence-grounding, checklist, informatics, and abstention boundaries.
+The `public-core-v0.4` release contains 64 tasks. It mixes calculation, evidence-grounding,
+checklist, informatics, and abstention boundaries. The `public-imaging-pilot-v0.4` release contains
+five licensed retrospective-image tasks and is never merged into the core rank.
 
 | Domain | Representative task families |
 | --- | --- |
-| Core physics | inverse-square scaling and units |
-| Radiation therapy | output deviation, EQD2, plan-release boundary |
-| Brachytherapy | radionuclide decay |
-| Imaging | CT pixel spacing, trend escalation, protocol checklist gaps |
-| Nuclear medicine | decay-corrected activity and effective half-life |
-| Radiation safety | barrier transmission and boundary-aware interpretation |
-| Informatics | DICOM identifier-tag handling |
-| Quality assurance | missing baseline and missing detector calibration |
-| Research and leadership | source-packet claims and confidence-interval restraint |
+| Core physics | attenuation, inverse square, uncertainty, units |
+| Radiation therapy | dosimetry calculations, QA rules, release boundaries |
+| Brachytherapy | decay, dwell-time scaling, release boundaries |
+| Imaging | sampling, CT/MR/US calculations, trend escalation |
+| Nuclear medicine | activity, SUV, SPECT/PET QA, missing-input boundaries |
+| Radiation safety | time, distance, correction, decay, spill boundaries |
+| Informatics | DICOM, checksums, timestamps, run integrity |
+| Quality assurance | metrics, tolerances, interruption and calibration boundaries |
+| Research and statistics | uncertainty, multiplicity, diagnostic metrics, claim restraint |
 
 The open set is designed for harness development, replication, adapter testing, and transparent
 baseline comparisons. Because task content and graders are public, it must not be used alone for
@@ -94,7 +96,8 @@ strong generalization claims.
 
 ## 4. Execution
 
-The current reference harness supports Ollama-compatible local and cloud models. It:
+The reference harness supports Ollama-compatible models and native image payloads. It also imports
+a sealed, task-ID-keyed recorded batch for explicitly unranked native-surface pilots. It:
 
 1. constructs a frozen system prompt and runtime task payload;
 2. requests a JSON object matching the task schema;
@@ -124,6 +127,8 @@ The public grader library currently supports:
 - exact scalar match;
 - unordered exact-list match;
 - required source or concept strings;
+- bounding-box intersection over union;
+- coarse-grid mask Dice;
 - mandatory escalation.
 
 Task success requires every declared grader to pass. Safety is reported independently: a
@@ -155,12 +160,13 @@ bootstrap intervals and publish rank uncertainty.
 
 ### 6.1 Public baseline snapshot
 
-Eleven locally reachable Ollama models completed all 16 expected attempts and were rank-eligible.
-The highest observed safe-success rate was 50.0% for `qwen3:14b`; the next three rows were 43.8%.
-Three additional cloud handles produced complete error evidence but no completed attempts and were
-not ranked. These are access outcomes, not model-quality estimates. Full task-level outputs,
-uncertainty intervals, latency, and failure evidence are published in [`RESULTS.md`](RESULTS.md) and
-the release artifact directory.
+`qwen3:14b` completed the 64-task core through the common Ollama harness and achieved 73.44% safe
+success with a 98.44% safety-gate rate. Six GPT-5.6 effort configurations completed the same sealed
+runtime batch on a native Codex conversation surface; three scored 100% and three scored 98.44%, all
+with 100% safety-gate rate. Those GPT rows are deliberately unranked because the surface was not the
+common adapter and did not provide equivalent isolation or sampling controls. Three local vision
+models also completed the separate imaging pilot. Full evidence is published in
+[`RESULTS.md`](RESULTS.md) and the release directories.
 
 ## 7. Reproducibility artifacts
 
@@ -207,8 +213,9 @@ oversight, clear limits, quality assurance, and fallback behavior [7–10].
 
 The public release has deliberate limits:
 
-- 16 tasks are enough to test the evaluation loop but not enough to represent medical physics.
-- Most inputs are synthetic; no patient data or proprietary clinical content is included.
+- 64 core tasks still do not represent the breadth or prevalence of medical-physics work.
+- Most core inputs are synthetic. The imaging pilot contains reduced, de-identified public research
+  images under MSD, TCIA, and AutoPET/ENHANCE.PET terms.
 - The development set is public and therefore contamination-prone.
 - Current published scores use one attempt per task unless a manifest states otherwise.
 - The v1 `prompt_hash` remains the legacy instruction hash for comparability; separate system-prompt
@@ -217,6 +224,8 @@ The public release has deliberate limits:
   expert-authored release tasks before they can support headline results.
 - Model availability through a local Ollama installation is an access snapshot, not an exhaustive
   survey of frontier systems.
+- The PET classification pilot contains one released negative source label and cannot estimate
+  diagnostic performance, subgroup performance, or clinical utility.
 - The benchmark has not undergone external peer review or medical-device validation.
 
 These limits are reported as part of the result, not deferred to fine print.
@@ -226,7 +235,7 @@ These limits are reported as part of the result, not deferred to fine print.
 The next research-grade release gates are:
 
 1. recruit independent medical-physics reviewers and publish reviewer criteria;
-2. expand to at least 100 vetted tasks with prespecified domain/risk quotas;
+2. expand beyond 100 independently reviewed tasks with prespecified domain/risk quotas;
 3. add resettable tool-state and artifact tasks in container images pinned by digest;
 4. establish a private holdout and rotating fresh set;
 5. run contamination and solvability audits;
@@ -246,3 +255,6 @@ The next research-grade release gates are:
 8. U.S. Food and Drug Administration. *Transparency for Machine Learning-Enabled Medical Devices: Guiding Principles*. https://www.fda.gov/medical-devices/software-medical-device-samd/transparency-machine-learning-enabled-medical-devices-guiding-principles
 9. World Health Organization. *Ethics and governance of artificial intelligence for health*. https://www.who.int/publications/i/item/9789240029200
 10. World Health Organization. *Ethics and governance of artificial intelligence for health: guidance on large multi-modal models*. https://www.who.int/publications/i/item/9789240084759
+11. Antonelli M, et al. *The Medical Segmentation Decathlon*. Nature Communications. 2022. https://www.nature.com/articles/s41467-022-30695-9
+12. Armato SG III, et al. *The Lung Image Database Consortium and Image Database Resource Initiative*. Medical Physics. 2011. https://doi.org/10.1118/1.3528204
+13. ENHANCE.PET initiative. *ENHANCE.PET 1.6k*. https://registry.opendata.aws/enhance-pet-1-6k/

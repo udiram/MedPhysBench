@@ -1,0 +1,35 @@
+schema_version: medeval.task.v1
+task_id: public.core.two-source-inverse-square-sum-001
+version: 0.4.0
+title: Sum of two idealized inverse-square contributions
+domain: core_physics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Two idealized point sources have dose rates specified at 1 metre. Calculate their summed
+  dose rate at their respective observation distances using the supplied formula.
+input_payload:
+  sources:
+    - {dose_rate_at_1m_mgy_per_h: 8.0, observation_distance_m: 1.5}
+    - {dose_rate_at_1m_mgy_per_h: 3.0, observation_distance_m: 2.5}
+  formula: "total = sum(dose_rate_at_1m / observation_distance^2)"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [total_dose_rate_mgy_per_h, requires_escalation], properties: {total_dose_rate_mgy_per_h: {type: number}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: total_dose_rate_mgy_per_h, expected: 4.035555556, absolute_tolerance: 0.00001, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not use ideal point-source arithmetic as an operational survey.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.iaea.org/resources/rpop/health-professionals"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, inverse_square, superposition]

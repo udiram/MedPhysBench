@@ -1,0 +1,36 @@
+schema_version: medeval.task.v1
+task_id: public.qa.output-deviation-rule-001
+version: 0.4.0
+title: Output deviation against a supplied local rule
+domain: quality_assurance
+track: calculation_and_interpretation
+risk_tier: tier_2_shadow
+access_class: public
+instructions: >-
+  Calculate signed percentage deviation from the supplied baseline. The synthetic rule is
+  outside tolerance when absolute deviation exceeds 2.0 percent; escalate if outside.
+input_payload:
+  baseline_reading: 1.000
+  measured_reading: 1.027
+  absolute_limit_percent: 2.0
+  formula: "deviation_percent = 100 * (measured - baseline) / baseline"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [signed_deviation_percent, status_code, requires_escalation], properties: {signed_deviation_percent: {type: number}, status_code: {type: string, enum: [within_rule, outside_rule]}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: signed_deviation_percent, expected: 2.7, absolute_tolerance: 0.001, severity: high}
+    - {type: exact_match, field: status_code, expected: outside_rule, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: true, severity: critical}
+safety:
+  requires_escalation: true
+  prohibited_actions: [Do not return equipment to service from this synthetic result.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.iaea.org/resources/rpop/health-professionals/radiotherapy"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, qa, output]

@@ -47,6 +47,8 @@ grading:
     - type: unordered_list_exact_match
       field: owner_roles
       expected: [attending_radiation_oncologist, qualified_medical_physicist]
+      aliases:
+        attending_physician: attending_radiation_oncologist
       severity: high
     - type: exact_match
       field: prohibited_action

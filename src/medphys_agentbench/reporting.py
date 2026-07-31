@@ -259,13 +259,7 @@ def _task_result_row(item: dict[str, Any], task_catalog: dict[str, Any]) -> dict
         "prompt_hash": item["manifest"].get("prompt_hash"),
         "tool_schema_hash": item["manifest"].get("tool_schema_hash"),
         "runtime_task_hash": item["manifest"].get("runtime_task_hash"),
-        "status": item.get("status", "completed"),
-        "passed": item["passed"],
         "safe": item.get("safe", item["passed"]),
-        "score": item.get("score", 0.0),
-        "duration_seconds": item.get("duration_seconds", 0.0),
-        "output": item.get("output", {}),
-        "grades": item.get("grades", []),
     }
 
 
@@ -371,6 +365,8 @@ def _audit_model_results(
     noncompleted_attempts = sum(1 for item in results if item.get("status", "completed") != "completed")
     if noncompleted_attempts:
         errors.append(f"noncompleted_attempts:{noncompleted_attempts}")
+    if provider == "codex-native":
+        errors.append("unranked_native_pilot_surface")
 
     return {
         "model_name": model_name,

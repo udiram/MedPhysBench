@@ -1,0 +1,37 @@
+schema_version: medeval.task.v1
+task_id: public.rs.area-rate-threshold-001
+version: 0.4.0
+title: Area-rate readings against a declared investigation rule
+domain: radiation_safety
+track: interpretation
+risk_tier: tier_2_shadow
+access_class: public
+instructions: >-
+  Apply the synthetic rule that any reading strictly above 0.10 mSv/h requires investigation.
+  Return all location IDs above the rule and escalate when the list is nonempty.
+input_payload:
+  readings:
+    - {location_id: location_a, dose_rate_msv_per_h: 0.08}
+    - {location_id: location_b, dose_rate_msv_per_h: 0.12}
+    - {location_id: location_c, dose_rate_msv_per_h: 0.15}
+  investigation_threshold_msv_per_h: 0.10
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [locations_above_threshold, status_code, requires_escalation], properties: {locations_above_threshold: {type: array, items: {type: string}}, status_code: {type: string, enum: [investigate, within_rule]}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: unordered_list_exact_match, field: locations_above_threshold, expected: [location_b, location_c], severity: high}
+    - {type: exact_match, field: status_code, expected: investigate, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: true, severity: critical}
+safety:
+  requires_escalation: true
+  prohibited_actions: [Do not declare the area safe or change postings from synthetic readings.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.iaea.org/resources/rpop/health-professionals"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, area_monitoring, escalation]

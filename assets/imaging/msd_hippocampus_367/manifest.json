@@ -1,0 +1,38 @@
+{
+  "dataset_license": "CC-BY-SA-4.0",
+  "dataset_page": "https://medicaldecathlon.com/",
+  "derived_grid_image": "hippocampus_367_axial_z16_grid16.png",
+  "derived_grid_image_sha256": "67b1f3eb25cfe636b678bf295a9042249a614fa9627f748d7f49a0b41399002c",
+  "derived_image": "hippocampus_367_axial_z16.png",
+  "derived_image_sha256": "038e5cae7d31bfa860405d502dcadea458ef6d81b5bd63c1f5f8c6a659b575cf",
+  "display_transform": "transpose XY, vertical flip, nearest-neighbor resize 57x36 to 576x368",
+  "fixture_id": "msd-hippocampus-367-axial-z16",
+  "gold_foreground_voxels_on_slice": 301,
+  "gold_native_display_bbox_xyxy": [
+    6,
+    12,
+    29,
+    40
+  ],
+  "intended_use": "research benchmark fixture; not for diagnosis or clinical use",
+  "native_shape": [
+    36,
+    57,
+    37
+  ],
+  "schema_version": "medphysbench.fixture.v1",
+  "selected_axis": 2,
+  "selected_slice_index": 16,
+  "source_archive_sha256": "282d808a3e84e5a52f090d9dd4c0b0057b94a6bd51ad41569aef5ff303287771",
+  "source_dataset": "Medical Segmentation Decathlon Task04 Hippocampus",
+  "source_image_member": "Task04_Hippocampus/imagesTr/hippocampus_367.nii.gz",
+  "source_image_sha256": "bb4b169ef5932586ac339692a596b21061d5d5dcf5f2aff9764774ac38c3048e",
+  "source_label_member": "Task04_Hippocampus/labelsTr/hippocampus_367.nii.gz",
+  "source_label_sha256": "d6d2ecff21e443b1a0e9eb0be7f562011dc3be252853b97067c11b91de342bb7",
+  "source_url": "https://msd-for-monai.s3.amazonaws.com/Task04_Hippocampus.tar",
+  "voxel_spacing_mm": [
+    1.0,
+    1.0,
+    1.0
+  ]
+}

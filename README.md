@@ -19,13 +19,15 @@ package, or evidence of autonomous clinical competence.
 
 ## Current public release
 
-- Live site: `https://medphysbench.xs8psvkmj6.chatgpt.site`
+- Live site: `https://62fd19716942a2a0f8.v2.appdeploy.ai/`
 - Public repository: `https://github.com/udiram/MedPhysBench`
-- Release: `public-dev-2026-07-31`
-- Public tasks: `16`
-- Scored models on Friday, July 31, 2026: `11` locally reachable Ollama models
-- Leaderboard artifact: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
-- Complete public run package: [`results/releases/public-dev-2026-07-31/`](results/releases/public-dev-2026-07-31/)
+- Core release: `public-core-v0.4` (`64` tasks)
+- Real-image pilot: `public-imaging-pilot-v0.4` (`5` real MRI, CT, and PET tasks)
+- Scored configurations on Friday, July 31, 2026: three common-harness local models,
+  six explicitly unranked GPT-5.6 native-effort pilots, and three local vision models
+- Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
+- Core run package: [`results/releases/public-core-v0.4/`](results/releases/public-core-v0.4/)
+- Imaging run package: [`results/releases/public-imaging-pilot-v0.4/`](results/releases/public-imaging-pilot-v0.4/)
 - Release writeup: [`docs/RESULTS.md`](docs/RESULTS.md)
 - Benchmark card: [`docs/BENCHMARK_CARD.md`](docs/BENCHMARK_CARD.md)
 - Changelog: [`CHANGELOG.md`](CHANGELOG.md)
@@ -46,7 +48,7 @@ package, or evidence of autonomous clinical competence.
 - Versioned task, runtime-task, run, result, and release contracts in [`schemas/`](schemas/).
 - A sealed `RuntimeTask` projection that excludes authoring-only grading and provenance data.
 - A deterministic grading stack covering schema validity, safety gates, numeric tolerances,
-  exact matches, unordered set matches, and string-constraint checks.
+  exact matches, unordered set matches, string constraints, bounding-box IoU, and grid-mask Dice.
 - Rank eligibility that rejects missing, duplicate, or non-completed attempts; mixed model or run
   configurations; task-version or hash drift; malformed outputs; and stored grades that disagree
   with deterministic regrading.
@@ -55,28 +57,32 @@ package, or evidence of autonomous clinical competence.
 - A runnable Ollama adapter and release runner that persist benchmark artifacts under [`runs/`](runs/).
 - Strict structured-output parsing: one exact JSON object, with no repair from Markdown wrappers,
   duplicate keys, trailing prose, or non-finite numbers.
-- A public synthetic development suite spanning core physics, RT physics, brachytherapy,
-  imaging physics, nuclear medicine, radiation safety, informatics, QA, and research-style tasks.
+- A 64-task public core suite spanning core physics, RT physics, brachytherapy, imaging,
+  nuclear medicine, radiation safety, informatics, QA, and research methods.
+- Hash-pinned, attributed MRI, CT, and PET fixtures with a separately reported five-task
+  real-image pilot; image assets never carry hidden grader geometry into runtime.
 - Ranked-only release summaries: incomplete or manifest-inconsistent runs remain published but are
   excluded from leaderboard ranking.
 - Architecture, governance, evaluation, onboarding, and deployment documentation in [`docs/`](docs/).
 - Repository-wide validation of all five JSON Schemas, every authored/runtime task projection,
-  and all 224 published task-attempt artifacts in public CI.
+  every artifact digest, constructed reference feasibility, and every published result artifact.
+- A compact browser leaderboard that exposes scores, integrity state, task labels, and contract
+  hashes while keeping attempt outputs and grader evidence in the immutable release result files.
 
 ## Quick start
 
 ```bash
-uv sync --extra dev
+uv sync --extra dev --extra imaging
 uv run pytest
 uv run python scripts/validate_repository.py
-uv run medphys-bench validate-release releases/public_dev_2026_07_31.yaml
+uv run medphys-bench validate-release releases/public_core_v0_4.yaml
 uv run medphys-bench run-release \
-  releases/public_dev_2026_07_31.yaml \
+  releases/public_core_v0_4.yaml \
   --adapter ollama \
   --model qwen3.5:4b \
   --results-dir runs
 uv run medphys-bench summarize \
-  releases/public_dev_2026_07_31.yaml \
+  releases/public_core_v0_4.yaml \
   --results-dir runs \
   --expected-attempts 1 \
   --output web/public/data/leaderboard.json
@@ -121,7 +127,7 @@ package and cannot silently disappear from a denominator.
 
 ## Status note
 
-The current release is a **public synthetic development benchmark**. It is a real runnable
-benchmark package with published results, but it is not yet a sealed multi-institution benchmark
-program on the scale of SWE-bench Verified or a frontier-lab internal eval stack. The repository
-is structured to grow into that.
+Version 0.4 is a **public development benchmark** with a larger core suite and a licensed
+real-image pilot. It is runnable and auditable, but it is not yet a sealed multi-institution
+benchmark or clinical validation study. The GPT-5.6 rows are native-surface pilots and remain
+unranked until reproduced through a qualified common adapter.

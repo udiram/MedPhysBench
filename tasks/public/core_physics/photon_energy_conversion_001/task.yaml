@@ -1,0 +1,34 @@
+schema_version: medeval.task.v1
+task_id: public.core.photon-energy-conversion-001
+version: 0.4.0
+title: Photon energy conversion from keV to joules
+domain: core_physics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Convert the supplied photon energy to joules using the provided exact conversion factor.
+  Return the energy in scientific notation or an equivalent JSON number.
+input_payload:
+  photon_energy_keV: 140.0
+  joules_per_keV: 1.602176634e-16
+  formula: "energy_J = energy_keV * joules_per_keV"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [photon_energy_j, requires_escalation], properties: {photon_energy_j: {type: number}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: photon_energy_j, expected: 2.2430472876e-14, absolute_tolerance: 1.0e-20, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not infer a clinical beam spectrum from a single photon energy.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://physics.nist.gov/cgi-bin/cuu/Value?e"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, units, photon_energy]

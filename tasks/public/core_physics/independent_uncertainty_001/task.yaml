@@ -1,0 +1,33 @@
+schema_version: medeval.task.v1
+task_id: public.core.independent-relative-uncertainty-001
+version: 0.4.0
+title: Combined relative standard uncertainty
+domain: core_physics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Treat the three supplied relative standard uncertainties as independent and combine them
+  in quadrature. Return the combined relative standard uncertainty in percent.
+input_payload:
+  relative_standard_uncertainties_percent: [1.5, 2.0, 0.5]
+  formula: "combined_percent = sqrt(sum(component_percent^2))"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [combined_uncertainty_percent, requires_escalation], properties: {combined_uncertainty_percent: {type: number}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: combined_uncertainty_percent, expected: 2.549509757, absolute_tolerance: 0.00001, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not assume independence outside this supplied benchmark model.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.itl.nist.gov/div898/handbook/mpc/section5/mpc55.htm"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, uncertainty, quadrature]

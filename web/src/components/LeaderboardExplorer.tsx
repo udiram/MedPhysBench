@@ -1,6 +1,6 @@
 import { ArrowDownToLine, ChevronDown, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import type { AccessStatus, Leaderboard, ModelResult } from "../types";
+import type { AccessStatus, Leaderboard, ModelResult, ReleaseView } from "../types";
 import { domainLabel, formatDuration, formatPercent, shortHash } from "../lib/format";
 
 type SortKey =
@@ -16,6 +16,8 @@ type LeaderboardExplorerProps = {
   data: Leaderboard | null;
   accessStatus: AccessStatus[];
   loadError: boolean;
+  releaseView: ReleaseView;
+  onReleaseViewChange: (value: ReleaseView) => void;
 };
 
 const SORT_KEYS: Array<{ key: SortKey; label: string }> = [
@@ -28,7 +30,13 @@ const SORT_KEYS: Array<{ key: SortKey; label: string }> = [
   { key: "median_duration_seconds", label: "Median duration" },
 ];
 
-export function LeaderboardExplorer({ data, accessStatus, loadError }: LeaderboardExplorerProps) {
+export function LeaderboardExplorer({
+  data,
+  accessStatus,
+  loadError,
+  releaseView,
+  onReleaseViewChange,
+}: LeaderboardExplorerProps) {
   const [query, setQuery] = useState("");
   const [domainFilter, setDomainFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -64,12 +72,38 @@ export function LeaderboardExplorer({ data, accessStatus, loadError }: Leaderboa
 
   return (
     <section className="leaderboard-section" id="leaderboard">
+      <div className="release-switch" role="tablist" aria-label="Benchmark release family">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={releaseView === "core"}
+          onClick={() => onReleaseViewChange("core")}
+        >
+          Core knowledge and workflow
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={releaseView === "imaging"}
+          onClick={() => onReleaseViewChange("imaging")}
+        >
+          Real-image pilot
+        </button>
+      </div>
       <div className="section-heading section-heading-row">
         <div>
-          <h2>Public leaderboard</h2>
-          <p>Common-harness results on the open development release. Scores are reproducibility evidence, not clinical validation.</p>
+          <h2>{releaseView === "core" ? "Core benchmark results" : "Real-image pilot results"}</h2>
+          <p>
+            {releaseView === "core"
+              ? "Original medical-physics calculations, audits, evidence checks, and escalation boundaries."
+              : "Separate real MRI, CT, and PET localization, coarse segmentation, and source-label results; five tasks are not clinical validation."}
+          </p>
         </div>
-        <a className="download-link" href="/data/leaderboard.json" download>
+        <a
+          className="download-link"
+          href={releaseView === "core" ? "/data/leaderboard.json" : "/data/imaging_leaderboard.json"}
+          download
+        >
           <ArrowDownToLine aria-hidden="true" /> Download JSON
         </a>
       </div>
@@ -116,7 +150,9 @@ export function LeaderboardExplorer({ data, accessStatus, loadError }: Leaderboa
       <div className="table-frame">
         <div className="table-scroll" role="region" aria-label="Model leaderboard" tabIndex={0}>
           <table className="leaderboard-table">
-            <caption className="sr-only">MedPhysBench public leaderboard</caption>
+            <caption className="sr-only">
+              MedPhysBench {releaseView === "core" ? "core" : "real-image pilot"} results
+            </caption>
             <thead>
               <tr>
                 <th>Rank</th>

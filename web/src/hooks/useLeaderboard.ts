@@ -14,10 +14,17 @@ export function useLeaderboard(url: string) {
         return response.json() as Promise<Leaderboard>;
       })
       .then((payload) => {
-        startTransition(() => setData(payload));
+        startTransition(() => {
+          setData(payload);
+          setLoadError(false);
+        });
       })
       .catch((error: unknown) => {
-        if (!(error instanceof DOMException && error.name === "AbortError")) setLoadError(true);
+        const errorName =
+          typeof error === "object" && error !== null && "name" in error
+            ? String(error.name)
+            : "";
+        if (errorName !== "AbortError") setLoadError(true);
       });
     return () => controller.abort();
   }, [url]);

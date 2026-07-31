@@ -1,0 +1,116 @@
+schema_version: medeval.task.v1
+task_id: public.imaging.real-ct-lung-segmentation-001
+version: 0.4.0
+title: Coarse-grid lung-air segmentation on a real chest CT
+domain: imaging_physics
+track: image_segmentation
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Segment the two lung air regions on this retrospective, de-identified axial chest CT.
+  The cyan overlay defines a 16 by 16 grid. Return every grid cell whose area is at least
+  30 percent occupied by lung air as a unique [row, column] pair, using zero-based indices
+  from the top-left. Do not include exterior air. This is a deliberately coarse public
+  research task and must not be represented as a diagnostic or clinical contour.
+input_payload:
+  modality: CT
+  display_window_hu: [-1000, 400]
+  grid_rows: 16
+  grid_columns: 16
+  occupancy_rule: include a cell when at least 30 percent of its native pixels are target
+context_artifacts:
+  - artifact_id: lidc_0957_mid_chest_lung_window_grid16
+    media_type: image/png
+    title: Real de-identified chest CT with 16 by 16 grid
+    description: >-
+      Median axial slice from one LIDC-IDRI CT series, displayed in a lung window. Cyan
+      lines define the output grid and do not reveal the hidden deterministic reference.
+    content: asset://assets/imaging/lidc_idri_0957/lidc_0957_mid_chest_lung_window_grid16.png#sha256=02c07f09c332b4a311e9dd2c294cad0b415dcc969544ead1994f204a979b83b5
+expected_output_schema:
+  type: object
+  additionalProperties: false
+  required: [mask_cells, requires_escalation, limitations]
+  properties:
+    mask_cells:
+      type: array
+      uniqueItems: true
+      items:
+        type: array
+        minItems: 2
+        maxItems: 2
+        items: {type: integer, minimum: 0, maximum: 15}
+    requires_escalation: {type: boolean}
+    limitations: {type: string}
+grading:
+  graders:
+    - type: grid_mask_dice
+      field: mask_cells
+      minimum_dice: 0.65
+      severity: high
+      lane: segmentation
+      expected:
+        - [4, 5]
+        - [4, 6]
+        - [4, 7]
+        - [4, 8]
+        - [5, 4]
+        - [5, 5]
+        - [5, 6]
+        - [5, 7]
+        - [6, 3]
+        - [6, 4]
+        - [6, 5]
+        - [6, 6]
+        - [6, 13]
+        - [7, 3]
+        - [7, 4]
+        - [7, 5]
+        - [7, 6]
+        - [7, 13]
+        - [8, 3]
+        - [8, 4]
+        - [8, 5]
+        - [8, 6]
+        - [8, 7]
+        - [8, 12]
+        - [8, 13]
+        - [9, 3]
+        - [9, 4]
+        - [9, 5]
+        - [9, 6]
+        - [9, 7]
+        - [9, 11]
+        - [9, 12]
+        - [9, 13]
+        - [10, 3]
+        - [10, 4]
+        - [10, 5]
+        - [10, 6]
+        - [10, 7]
+        - [10, 11]
+        - [10, 12]
+        - [10, 13]
+        - [11, 4]
+        - [11, 5]
+        - [11, 6]
+        - [11, 10]
+        - [11, 11]
+        - [11, 12]
+    - type: exact_match
+      field: requires_escalation
+      expected: false
+      severity: critical
+safety:
+  requires_escalation: false
+  prohibited_actions:
+    - Do not represent this deterministic coarse mask as a clinical lung contour.
+provenance:
+  source_class: licensed_real_image_fixture
+  source_url: https://www.cancerimagingarchive.net/collection/lidc-idri/
+  source_fixture_manifest: assets/imaging/lidc_idri_0957/manifest.json
+  source_license: CC-BY-3.0
+  task_text_license: CC0-1.0
+  authoring_status: public_dev_real_data
+  phi_review: upstream_deidentified_reduced_fixture
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [real-data, ct, lung, segmentation, public-dev]

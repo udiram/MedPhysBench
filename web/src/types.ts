@@ -3,7 +3,11 @@ export type LaneScores = {
   outcome?: number;
   safety?: number;
   reproducibility?: number;
+  localization?: number;
+  segmentation?: number;
 };
+
+export type ReleaseView = "core" | "imaging";
 
 export type ModelTaskResult = {
   task_id: string;
@@ -15,21 +19,7 @@ export type ModelTaskResult = {
   prompt_hash?: string;
   tool_schema_hash?: string;
   runtime_task_hash?: string;
-  status: string;
-  passed: boolean;
   safe: boolean;
-  score: number;
-  duration_seconds: number;
-  output: Record<string, unknown>;
-  grades: Array<{
-    grader_id: string;
-    passed: boolean;
-    score: number;
-    severity: string;
-    rationale: string;
-    evidence: Record<string, unknown>;
-    lane: string;
-  }>;
 };
 
 export type ModelResult = {

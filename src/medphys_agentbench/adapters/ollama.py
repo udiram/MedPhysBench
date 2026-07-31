@@ -7,8 +7,10 @@ import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
+from ..artifacts import ollama_image_payloads
 from ..contracts import ModelDescriptor, RuntimeTask
 from ..json_utils import StrictJsonError, decode_strict_json_object
 from ..prompting import SYSTEM_PROMPT, build_user_prompt
@@ -27,6 +29,7 @@ class OllamaAdapter:
     seed: int = 20260731
     max_tokens: int = 1024
     timeout_seconds: int = 300
+    artifact_root: Path = Path.cwd()
 
     provider = "ollama"
     harness_revision = "reference-json-v1"
@@ -50,6 +53,10 @@ class OllamaAdapter:
 
     def execute(self, task: RuntimeTask) -> AgentResult:
         started = time.perf_counter()
+        user_message: dict[str, Any] = {"role": "user", "content": build_user_prompt(task)}
+        images = ollama_image_payloads(task.context_artifacts, self.artifact_root)
+        if images:
+            user_message["images"] = images
         request_payload = {
             "model": self.model_name,
             "stream": False,
@@ -57,7 +64,7 @@ class OllamaAdapter:
             "format": task.expected_output_schema,
             "messages": [
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": build_user_prompt(task)},
+                user_message,
             ],
             "options": {
                 "temperature": self.temperature,

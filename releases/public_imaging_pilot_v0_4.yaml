@@ -1,0 +1,15 @@
+schema_version: medeval.release.v1
+release_id: public-imaging-pilot-v0.4
+title: MedPhysBench Real-Image Public Pilot v0.4
+description: >-
+  Five explicitly attributed, retrospective real-MRI, CT, and PET tasks that exercise image
+  localization, coarse segmentation, and source-label classification. This development pilot
+  is reported separately from the core leaderboard and is not clinical validation.
+allow_access_classes: [public]
+expected_attempts_per_task: 1
+task_files:
+  - ../tasks/public/imaging/real_mri_hippocampus_localization_001/task.yaml
+  - ../tasks/public/imaging/real_mri_hippocampus_segmentation_001/task.yaml
+  - ../tasks/public/imaging/real_ct_lung_segmentation_001/task.yaml
+  - ../tasks/public/nuclear_medicine/real_pet_bladder_localization_001/task.yaml
+  - ../tasks/public/nuclear_medicine/real_pet_cohort_classification_001/task.yaml

@@ -1,0 +1,34 @@
+schema_version: medeval.task.v1
+task_id: public.nm.nonparalyzable-dead-time-001
+version: 0.4.0
+title: Nonparalyzable count-rate correction
+domain: nuclear_medicine_physics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Correct the observed count rate using the supplied nonparalyzable detector model. Assume
+  the denominator is positive and use the dead time in seconds.
+input_payload:
+  observed_count_rate_cps: 45000.0
+  dead_time_seconds: 2.0e-6
+  formula: "true_rate = observed_rate / (1 - observed_rate * dead_time)"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [corrected_count_rate_cps, requires_escalation], properties: {corrected_count_rate_cps: {type: number}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: corrected_count_rate_cps, expected: 49450.549451, absolute_tolerance: 0.1, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not infer detector calibration validity from this correction alone.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.iaea.org/resources/rpop/health-professionals/nuclear-medicine"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, nuclear_medicine, dead_time]

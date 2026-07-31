@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from dataclasses import asdict
 from datetime import UTC, datetime
@@ -10,7 +11,10 @@ from pathlib import Path
 from uuid import uuid4
 
 from .adapters.ollama import OllamaAdapter
+from .adapters.recorded import RecordedOutputAdapter
 from .adapters.reference import DevelopmentReferenceAgent
+from .contracts import TaskSpec
+from .prompting import SYSTEM_PROMPT
 from .release_loader import load_release
 from .reporting import summarize_release, write_summary
 from .runner import (
@@ -64,6 +68,26 @@ def main() -> None:
     summarize.add_argument("--results-dir", type=Path, default=Path("runs"))
     summarize.add_argument("--output", type=Path, required=True)
     summarize.add_argument("--expected-attempts", type=int)
+
+    export_runtime = subparsers.add_parser(
+        "export-runtime", help="Export sealed model-visible tasks for an external evaluation surface."
+    )
+    export_runtime.add_argument("release_file", type=Path)
+    export_runtime.add_argument("--output", type=Path, required=True)
+
+    score_recorded = subparsers.add_parser(
+        "score-recorded-batch", help="Score a task-id to JSON-output mapping from a declared pilot surface."
+    )
+    score_recorded.add_argument("release_file", type=Path)
+    score_recorded.add_argument("batch_file", type=Path)
+    score_recorded.add_argument("--model", required=True)
+    score_recorded.add_argument("--model-revision", required=True)
+    score_recorded.add_argument(
+        "--reasoning-effort",
+        choices=["low", "medium", "high", "xhigh", "max", "ultra"],
+        required=True,
+    )
+    score_recorded.add_argument("--results-dir", type=Path, default=Path("runs"))
 
     args = parser.parse_args()
     if args.command == "validate":
@@ -223,6 +247,44 @@ def main() -> None:
         print(json.dumps(summary, indent=2, sort_keys=True))
         return
 
+    if args.command == "export-runtime":
+        release = load_release(args.release_file)
+        tasks = release.load_tasks()
+        payload = _sealed_batch_payload(release.release_id, tasks)
+        _write_json(args.output, payload)
+        print(json.dumps({"output": str(args.output), "task_count": len(tasks)}, sort_keys=True))
+        return
+
+    if args.command == "score-recorded-batch":
+        release = load_release(args.release_file)
+        batch = json.loads(args.batch_file.read_text(encoding="utf-8"))
+        outputs = batch.get("outputs") if isinstance(batch, dict) else None
+        if not isinstance(outputs, dict):
+            raise SystemExit("Recorded batch must contain an object named 'outputs'.")
+        tasks = release.load_tasks()
+        _validate_recorded_batch(
+            batch,
+            release_id=release.release_id,
+            tasks=tasks,
+            model=args.model,
+            reasoning_effort=args.reasoning_effort,
+        )
+        adapter = RecordedOutputAdapter(
+            outputs=outputs,
+            model_name=args.model,
+            model_revision=args.model_revision,
+            reasoning_effort=args.reasoning_effort,
+        )
+        model_slug = _slugify(f"{args.model}_effort_{args.reasoning_effort}")
+        model_dir = args.results_dir / release.release_id / model_slug
+        for task in tasks:
+            result = run_trial(task, adapter, seed=None, temperature=None, max_tokens=None)
+            payload = {**result.to_dict(), "status": "completed", "attempt_index": 0}
+            output_path = model_dir / f"{_slugify(task.task_id)}--attempt-1.json"
+            _write_json(output_path, payload)
+        print(json.dumps({"model": adapter.model_descriptor().model_name, "task_count": len(tasks)}, sort_keys=True))
+        return
+
 
 def _build_adapter(
     adapter: str,
@@ -248,6 +310,44 @@ def _write_json(path: Path, payload: dict[str, object]) -> None:
     with path.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2, sort_keys=True)
         handle.write("\n")
+
+
+def _sealed_batch_payload(release_id: str, tasks: list[TaskSpec]) -> dict[str, object]:
+    return {
+        "schema_version": "medphysbench.sealed-batch.v1",
+        "release_id": release_id,
+        "system_prompt": SYSTEM_PROMPT,
+        "tasks": [task.runtime_task().to_dict() for task in tasks],
+    }
+
+
+def _sealed_batch_sha256(release_id: str, tasks: list[TaskSpec]) -> str:
+    payload = _sealed_batch_payload(release_id, tasks)
+    serialized = json.dumps(payload, indent=2, sort_keys=True) + "\n"
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def _validate_recorded_batch(
+    batch: dict[str, object],
+    *,
+    release_id: str,
+    tasks: list[TaskSpec],
+    model: str,
+    reasoning_effort: str,
+) -> None:
+    expected_ids = {task.task_id for task in tasks}
+    outputs = batch["outputs"]
+    assert isinstance(outputs, dict)
+    actual_ids = set(outputs)
+    if actual_ids != expected_ids:
+        missing = sorted(expected_ids - actual_ids)
+        extra = sorted(actual_ids - expected_ids)
+        raise SystemExit(f"Recorded batch task IDs mismatch; missing={missing}, extra={extra}.")
+    expected_hash = _sealed_batch_sha256(release_id, tasks)
+    if batch.get("sealed_batch_sha256") != expected_hash:
+        raise SystemExit("Recorded batch sealed_batch_sha256 does not match this release runtime.")
+    if batch.get("model") != model or batch.get("reasoning_effort") != reasoning_effort:
+        raise SystemExit("Recorded batch model or reasoning_effort does not match CLI declarations.")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,35 @@
+schema_version: medeval.task.v1
+task_id: public.rt.bed-fractionation-001
+version: 0.4.0
+title: Biologically effective dose from supplied fractionation
+domain: radiation_therapy_physics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Compute BED for the synthetic fractionation using the supplied linear-quadratic expression
+  and alpha/beta value. Report Gy under the benchmark model only.
+input_payload:
+  number_of_fractions: 5
+  dose_per_fraction_gy: 6.0
+  alpha_beta_gy: 3.0
+  formula: "BED = n * d * (1 + d / alpha_beta)"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [bed_gy, requires_escalation], properties: {bed_gy: {type: number}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: bed_gy, expected: 90.0, absolute_tolerance: 0.01, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not recommend or compare patient treatment regimens from this benchmark result.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.iaea.org/resources/rpop/health-professionals/radiotherapy"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, bed, fractionation]

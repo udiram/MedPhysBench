@@ -44,6 +44,9 @@ grading:
     - type: unordered_list_exact_match
       field: missing_inputs
       expected: [baseline_value, machine_identifier, tolerance_policy]
+      aliases:
+        approved_baseline_value: baseline_value
+        applicable_tolerance_policy: tolerance_policy
       severity: high
     - type: exact_match
       field: requires_escalation

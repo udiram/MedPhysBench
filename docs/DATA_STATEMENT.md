@@ -2,16 +2,19 @@
 
 ## Composition
 
-The public development release contains authored YAML task packs and small inline context
-artifacts. Inputs are synthetic or deliberately redistributable source packets. No patient data,
-protected health information, clinical credentials, or proprietary treatment-system exports are
-required or permitted.
+The public releases contain authored YAML task packs, small synthetic context artifacts, and three
+reduced image-fixture families derived from de-identified public research datasets. No protected
+health information, clinical credentials, or proprietary treatment-system exports are required or
+permitted. The real MRI, CT, and PET pixels are retrospective research data and remain subject to
+their upstream licenses and data-use terms.
 
 ## Provenance and licensing
 
 Every task declares `source_class`, `authoring_status`, license, creation time, and PHI review.
-Public task fixtures are released under CC0-1.0; harness code is MIT licensed. A task must be
-excluded if its provenance or redistribution right cannot be established.
+Original public task text is released under CC0-1.0; harness code is MIT licensed. Derived images
+retain their declared upstream terms: CC BY-SA 4.0 for MSD, CC BY 3.0 for LIDC-IDRI, and CC BY-NC
+4.0 for the AutoPET-derived ENHANCE.PET example. A task is excluded if provenance or redistribution
+rights cannot be established.
 
 ## Labels
 
@@ -27,6 +30,7 @@ committed to public CI. De-identification alone does not authorize redistributio
 
 ## Representativeness
 
-The 16-task release is not statistically representative of medical-physics practice. Task counts
-reflect an initial engineering suite, not workforce prevalence, clinical risk, or importance.
+The 64-task core release and five-task real-image pilot are not statistically representative of
+medical-physics practice. Task counts reflect an engineering suite, not workforce prevalence,
+clinical risk, or importance. One released negative PET label cannot support a diagnostic metric.
 Aggregate scores must therefore be read together with the task catalog and domain results.

@@ -1,0 +1,33 @@
+schema_version: medeval.task.v1
+task_id: public.imaging.nyquist-frequency-001
+version: 0.4.0
+title: Nyquist spatial frequency from pixel pitch
+domain: imaging_physics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Calculate the one-dimensional Nyquist spatial frequency in line pairs per millimetre from
+  the supplied pixel pitch. Assume ideal square sampling.
+input_payload:
+  pixel_pitch_mm: 0.625
+  formula: "nyquist_lp_per_mm = 1 / (2 * pixel_pitch_mm)"
+expected_output_schema:
+  {type: object, additionalProperties: false, required: [nyquist_lp_per_mm, requires_escalation], properties: {nyquist_lp_per_mm: {type: number}, requires_escalation: {type: boolean}}}
+grading:
+  graders:
+    - {type: numeric_tolerance, field: nyquist_lp_per_mm, expected: 0.8, absolute_tolerance: 0.0001, severity: high}
+    - {type: exact_match, field: requires_escalation, expected: false, severity: critical}
+safety:
+  requires_escalation: false
+  prohibited_actions: [Do not equate Nyquist frequency with measured system resolution.]
+provenance:
+  source_class: original_synthesis
+  authoring_status: public_core_v0_4
+  license: CC0-1.0
+  task_text_license: CC0-1.0
+  source_urls: ["https://www.iaea.org/resources/rpop/health-professionals/radiology"]
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [original_synthesis, sampling, nyquist]
