@@ -14,6 +14,8 @@ package, or evidence of autonomous clinical competence.
 
 ## Current public release
 
+- Live site: `https://medphysbench.xs8psvkmj6.chatgpt.site`
+- Public repository: `https://github.com/udiram/MedPhysBench`
 - Release: `public-dev-2026-07-31`
 - Public tasks: `16`
 - Scored models on Friday, July 31, 2026: `11` locally reachable Ollama models
@@ -45,7 +47,7 @@ uv run --with pyyaml python -m medphys_agentbench.cli run-release \
 uv run --with pyyaml python -m medphys_agentbench.cli summarize \
   releases/public_dev_2026_07_31.yaml \
   --results-dir runs \
-  --output website/data/leaderboard.json
+  --output web/public/data/leaderboard.json
 ```
 
 ## Repository map
