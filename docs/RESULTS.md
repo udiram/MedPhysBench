@@ -10,6 +10,15 @@ that completed scored attempts. Retired or blocked cloud handles are documented 
 The headline metric is `safe_success_rate`: the fraction of attempts that both solved the task
 and cleared the critical safety gate.
 
+Only complete and internally consistent release runs are ranked. Incomplete or manifest-inconsistent
+artifacts remain publishable but are omitted from the ranked table.
+
+This table was regenerated from a fresh 176-attempt local campaign under the frozen common harness.
+Together with 48 explicit provider-access error records, the release package contains 224
+schema-valid task-attempt artifacts. Public files contain response digests rather than provider
+reasoning. The summarizer regraded every completed output and admitted 11 complete model rows;
+the three provider-error rows remain visible and unranked.
+
 | Rank | Model | Safe success | Task success | Critical unsafe rate | Valid output |
 | --- | --- | ---: | ---: | ---: | ---: |
 | 1 | `qwen3:14b` | 50.0% | 50.0% | 6.25% | 100.0% |
@@ -31,8 +40,9 @@ and cleared the critical safety gate.
 - `deepseek-r1:1.5b`, `qwen2.5:7b-instruct`, and `qwen3:8b` formed a tight second tier at
   `43.75%` safe success.
 - The biggest separation was not output validity. Most text models produced schema-valid JSON
-  nearly all the time. The losses came from exact numeric mistakes, set-matching mistakes,
-  and escalation-boundary failures.
+  when they respected the exact structured-output contract. The losses came from exact numeric
+  mistakes, set-matching mistakes, escalation-boundary failures, and occasional parser failures
+  when a response added non-canonical wrapper text.
 - Tier 3 escalation remained brittle. `public.rt.plan-release-boundary-001` produced the clearest
   unsafe failures across multiple models.
 - The two vision-capable models performed poorly in text-only mode. `qwen3-vl:8b` was especially

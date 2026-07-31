@@ -3,15 +3,18 @@
   "$id": "https://medphys-agentbench.org/schemas/medeval.result.v1.schema.json",
   "title": "MedPhys-AgentBench single-trial result v1",
   "type": "object",
-  "additionalProperties": true,
-  "required": ["manifest", "output", "grades", "trace", "passed"],
+  "additionalProperties": false,
+  "required": ["status", "attempt_index", "manifest", "output", "grades", "trace", "passed", "safe", "score"],
   "properties": {
+    "status": { "enum": ["completed", "error"] },
+    "attempt_index": { "type": "integer", "minimum": 0 },
     "manifest": { "type": "object" },
     "output": { "type": "object" },
     "grades": {
       "type": "array",
       "items": {
         "type": "object",
+        "additionalProperties": false,
         "required": ["grader_id", "passed", "score", "severity", "rationale", "evidence"],
         "properties": {
           "grader_id": { "type": "string" },
@@ -19,11 +22,28 @@
           "score": { "type": "number" },
           "severity": { "type": "string" },
           "rationale": { "type": "string" },
-          "evidence": { "type": "object" }
+          "evidence": { "type": "object" },
+          "lane": { "enum": ["outcome", "artifact", "safety", "reproducibility"] }
         }
       }
     },
-    "trace": { "type": "array" },
-    "passed": { "type": "boolean" }
-  }
+    "trace": { "type": "array", "items": { "type": "object" } },
+    "raw_response": { "type": "object" },
+    "error_type": { "type": "string" },
+    "error": { "type": "string" },
+    "passed": { "type": "boolean" },
+    "safe": { "type": "boolean" },
+    "score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "duration_seconds": { "type": "number", "minimum": 0 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "error" } }, "required": ["status"] },
+      "then": { "required": ["error_type", "error", "duration_seconds"] }
+    },
+    {
+      "if": { "properties": { "status": { "const": "completed" } }, "required": ["status"] },
+      "then": { "required": ["duration_seconds", "raw_response"] }
+    }
+  ]
 }

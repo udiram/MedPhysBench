@@ -20,9 +20,14 @@ class BenchmarkRelease:
     description: str
     task_files: tuple[Path, ...]
     allow_access_classes: tuple[AccessClass, ...]
+    expected_attempts_per_task: int = 1
 
     def load_tasks(self) -> tuple[TaskSpec, ...]:
         tasks = tuple(load_task(path) for path in self.task_files)
+        task_ids = [task.task_id for task in tasks]
+        if len(task_ids) != len(set(task_ids)):
+            duplicates = sorted({task_id for task_id in task_ids if task_ids.count(task_id) > 1})
+            raise ContractError(f"Release {self.release_id!r} contains duplicate task IDs: {duplicates}.")
         for task in tasks:
             if task.access_class not in self.allow_access_classes:
                 raise ContractError(
@@ -51,10 +56,15 @@ def load_release(release_file: str | Path) -> BenchmarkRelease:
     if not isinstance(task_files_raw, list) or not task_files_raw:
         raise ContractError("release.task_files must be a non-empty list.")
     task_files = tuple((path.parent / item).resolve() for item in task_files_raw)
+    if len(task_files) != len(set(task_files)):
+        raise ContractError(f"Release {raw['release_id']!r} contains duplicate task_files entries.")
     allow_raw = raw.get("allow_access_classes", ["public"])
     if not isinstance(allow_raw, list) or not allow_raw:
         raise ContractError("release.allow_access_classes must be a non-empty list when present.")
     allow_access_classes = tuple(AccessClass(item) for item in allow_raw)
+    expected_attempts_per_task = int(raw.get("expected_attempts_per_task", 1))
+    if expected_attempts_per_task < 1:
+        raise ContractError("release.expected_attempts_per_task must be a positive integer.")
 
     return BenchmarkRelease(
         schema_version=str(raw["schema_version"]),
@@ -63,4 +73,5 @@ def load_release(release_file: str | Path) -> BenchmarkRelease:
         description=str(raw["description"]),
         task_files=task_files,
         allow_access_classes=allow_access_classes,
+        expected_attempts_per_task=expected_attempts_per_task,
     )

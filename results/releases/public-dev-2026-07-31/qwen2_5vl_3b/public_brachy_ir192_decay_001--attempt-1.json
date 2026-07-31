@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 3.49843,
+  "duration_seconds": 2.91106,
   "grades": [
     {
       "evidence": {},
@@ -52,7 +52,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:45:24.861245+00:00",
+    "created_at": "2026-07-31T13:58:27.067440+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -62,10 +62,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "32d6e22e9681cf23269236efde9d2927af49320a49e31d61ac476b8eee5c71b5",
-    "run_id": "a834a900-60c4-4664-be48-7fef223006c0",
+    "run_id": "767236ff-caa4-4483-b58f-2fc6ae9efda8",
+    "runtime_task_hash": "95698ad6461f6c8e4b8f19b03aedbea66ddaf15ec371c1a7f1af5d13ce9d4b9f",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.brachy.ir192-decay-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -85,14 +87,14 @@
     "content_redacted": true,
     "content_sha256": "75183b4890ed9831a0ffe4552a168106e8d60c7f600df21e54d56b04a3c14e01",
     "done_reason": "stop",
-    "latency_ms": 3498.1,
+    "latency_ms": 2909.13,
     "model": "qwen2.5vl:3b",
     "provider": "ollama",
     "usage": {
       "eval_count": 65,
-      "load_duration": 238911208,
+      "load_duration": 202182959,
       "prompt_eval_count": 492,
-      "total_duration": 3496656667
+      "total_duration": 2908177459
     }
   },
   "safe": true,
@@ -101,14 +103,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 3498.1,
+      "latency_ms": 2909.13,
       "model": "qwen2.5vl:3b",
       "provider": "ollama",
       "usage": {
         "eval_count": 65,
-        "load_duration": 238911208,
+        "load_duration": 202182959,
         "prompt_eval_count": 492,
-        "total_duration": 3496656667
+        "total_duration": 2908177459
       }
     }
   ]

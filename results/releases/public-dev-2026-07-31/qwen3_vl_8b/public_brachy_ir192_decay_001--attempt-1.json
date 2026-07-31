@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 3.957636,
+  "duration_seconds": 4.551106,
   "grades": [
     {
       "evidence": {
@@ -55,7 +55,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:44:13.140533+00:00",
+    "created_at": "2026-07-31T13:57:08.494160+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -65,10 +65,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "32d6e22e9681cf23269236efde9d2927af49320a49e31d61ac476b8eee5c71b5",
-    "run_id": "9767119f-c6e0-4d2e-8791-30d8af0406b2",
+    "run_id": "27f51190-1a64-411a-8fb6-44cb1955a45c",
+    "runtime_task_hash": "95698ad6461f6c8e4b8f19b03aedbea66ddaf15ec371c1a7f1af5d13ce9d4b9f",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.brachy.ir192-decay-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -81,16 +83,16 @@
     "content_redacted": true,
     "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "done_reason": "stop",
-    "latency_ms": 3957.49,
+    "latency_ms": 4548.1,
     "model": "qwen3-vl:8b",
     "provider": "ollama",
     "thinking_redacted": true,
     "thinking_sha256": "581a477cb214476ce47c7ddae8d0ee960e914f30e70f4395ebca28418b9a13d3",
     "usage": {
       "eval_count": 46,
-      "load_duration": 160045750,
+      "load_duration": 159592833,
       "prompt_eval_count": 492,
-      "total_duration": 3956518625
+      "total_duration": 4546864167
     }
   },
   "safe": false,
@@ -99,20 +101,20 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 3957.49,
+      "latency_ms": 4548.1,
       "model": "qwen3-vl:8b",
       "provider": "ollama",
       "usage": {
         "eval_count": 46,
-        "load_duration": 160045750,
+        "load_duration": 159592833,
         "prompt_eval_count": 492,
-        "total_duration": 3956518625
+        "total_duration": 4546864167
       }
     },
     {
       "event": "structured_output_parse_failed",
       "raw_preview": "",
-      "reason": "no_json_object_found"
+      "reason": "empty_response"
     }
   ]
 }

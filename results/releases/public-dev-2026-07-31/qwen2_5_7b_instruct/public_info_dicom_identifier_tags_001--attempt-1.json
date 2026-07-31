@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 15.505881,
+  "duration_seconds": 6.766817,
   "grades": [
     {
       "evidence": {},
@@ -62,7 +62,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:29:38.572650+00:00",
+    "created_at": "2026-07-31T13:50:24.420980+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -72,10 +72,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "69df493ce5c940913a5fccaa0d38d7b08f8a1035e53db69300a5d755cc46ac0f",
-    "run_id": "a9ac5bc8-c08c-404b-a1d1-c9b31eed26ee",
+    "run_id": "33f452e9-da76-4c4a-9e30-2adb4307df44",
+    "runtime_task_hash": "7984140a6dbda9ac4bffe296aeed7ed7ab1ca8d2850db14d2aa1157d43da92a0",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.info.dicom-identifier-tags-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -101,14 +103,14 @@
     "content_redacted": true,
     "content_sha256": "66f7763f13cfd8043cd4e09034269c6cd385380de5bcdc214f07513926b219e2",
     "done_reason": "stop",
-    "latency_ms": 15502.25,
+    "latency_ms": 6763.9,
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
     "usage": {
       "eval_count": 92,
-      "load_duration": 159370125,
+      "load_duration": 132886084,
       "prompt_eval_count": 587,
-      "total_duration": 15492733625
+      "total_duration": 6762868834
     }
   },
   "safe": true,
@@ -117,14 +119,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 15502.25,
+      "latency_ms": 6763.9,
       "model": "qwen2.5:7b-instruct",
       "provider": "ollama",
       "usage": {
         "eval_count": 92,
-        "load_duration": 159370125,
+        "load_duration": 132886084,
         "prompt_eval_count": 587,
-        "total_duration": 15492733625
+        "total_duration": 6762868834
       }
     }
   ]

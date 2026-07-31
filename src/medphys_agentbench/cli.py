@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 from dataclasses import asdict
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -12,7 +13,13 @@ from .adapters.ollama import OllamaAdapter
 from .adapters.reference import DevelopmentReferenceAgent
 from .release_loader import load_release
 from .reporting import summarize_release, write_summary
-from .runner import run_trial
+from .runner import (
+    prompt_hash_for_task,
+    run_trial,
+    runtime_task_hash_for_task,
+    system_prompt_hash,
+    tool_schema_hash_for_task,
+)
 from .task_loader import load_task
 
 
@@ -56,6 +63,7 @@ def main() -> None:
     summarize.add_argument("release_file", type=Path)
     summarize.add_argument("--results-dir", type=Path, default=Path("runs"))
     summarize.add_argument("--output", type=Path, required=True)
+    summarize.add_argument("--expected-attempts", type=int)
 
     args = parser.parse_args()
     if args.command == "validate":
@@ -83,7 +91,8 @@ def main() -> None:
         if not isinstance(output, dict):
             raise SystemExit("The demo command requires grading.development_reference_output in a dev task.")
         result = run_trial(task, DevelopmentReferenceAgent(output=output))
-        print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+        payload = {**result.to_dict(), "status": "completed", "attempt_index": 0}
+        print(json.dumps(payload, indent=2, sort_keys=True))
         if not result.passed:
             raise SystemExit(1)
         return
@@ -96,6 +105,7 @@ def main() -> None:
                 {
                     "valid": True,
                     "release_id": release.release_id,
+                    "expected_attempts_per_task": release.expected_attempts_per_task,
                     "task_count": len(tasks),
                     "task_ids": [task.task_id for task in tasks],
                 },
@@ -115,8 +125,9 @@ def main() -> None:
             temperature=args.temperature,
             max_tokens=args.max_tokens,
         )
-        _write_json(args.output, result.to_dict())
-        print(json.dumps(result.to_dict(), indent=2, sort_keys=True))
+        payload = {**result.to_dict(), "status": "completed", "attempt_index": 0}
+        _write_json(args.output, payload)
+        print(json.dumps(payload, indent=2, sort_keys=True))
         if not result.safe:
             raise SystemExit(1)
         return
@@ -167,6 +178,13 @@ def main() -> None:
                                 "seed": args.seed + attempt_index,
                                 "temperature": args.temperature,
                                 "max_tokens": args.max_tokens,
+                                "sandbox_image_digest": "process-isolation-public-v0.2.0",
+                                "tool_environment_version": "public-fixtures-v0.2.0",
+                                "created_at": datetime.now(UTC).isoformat(),
+                                "prompt_hash": prompt_hash_for_task(task),
+                                "tool_schema_hash": tool_schema_hash_for_task(task),
+                                "system_prompt_hash": system_prompt_hash(),
+                                "runtime_task_hash": runtime_task_hash_for_task(task),
                             },
                             "output": {},
                             "grades": [],
@@ -196,7 +214,11 @@ def main() -> None:
 
     if args.command == "summarize":
         release = load_release(args.release_file)
-        summary = summarize_release(release, args.results_dir)
+        summary = summarize_release(
+            release,
+            args.results_dir,
+            expected_attempts_per_task=args.expected_attempts,
+        )
         write_summary(summary, args.output)
         print(json.dumps(summary, indent=2, sort_keys=True))
         return

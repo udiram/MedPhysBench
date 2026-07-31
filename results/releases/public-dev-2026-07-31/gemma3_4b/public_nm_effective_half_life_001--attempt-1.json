@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 4.450767,
+  "duration_seconds": 2.928929,
   "grades": [
     {
       "evidence": {},
@@ -52,7 +52,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:31:56.095893+00:00",
+    "created_at": "2026-07-31T13:51:39.823934+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -62,10 +62,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "dcd2b51271203f333d2b80f0cd5696049daafc3e16065a990e2bdc964833ead5",
-    "run_id": "bf984320-dc07-4192-9b28-9e6a5b44e7dd",
+    "run_id": "c1dc2422-86a7-4de2-b985-4b58a3b695d5",
+    "runtime_task_hash": "6c7091f5c11251b53427be85c41c54a5f59d087bcd5352bbd50077b9b075c825",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.nm.effective-half-life-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -82,14 +84,14 @@
     "content_redacted": true,
     "content_sha256": "b7c0ad449c78495578b321cfdce0bd0451e9d342fcd1f78214946d873ae610e8",
     "done_reason": "stop",
-    "latency_ms": 4450.03,
+    "latency_ms": 2926.87,
     "model": "gemma3:4b",
     "provider": "ollama",
     "usage": {
       "eval_count": 43,
-      "load_duration": 1135540834,
+      "load_duration": 363692042,
       "prompt_eval_count": 505,
-      "total_duration": 4443164625
+      "total_duration": 2923706917
     }
   },
   "safe": true,
@@ -98,14 +100,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 4450.03,
+      "latency_ms": 2926.87,
       "model": "gemma3:4b",
       "provider": "ollama",
       "usage": {
         "eval_count": 43,
-        "load_duration": 1135540834,
+        "load_duration": 363692042,
         "prompt_eval_count": 505,
-        "total_duration": 4443164625
+        "total_duration": 2923706917
       }
     }
   ]

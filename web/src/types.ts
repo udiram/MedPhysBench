@@ -2,16 +2,47 @@ export type LaneScores = {
   artifact?: number;
   outcome?: number;
   safety?: number;
+  reproducibility?: number;
+};
+
+export type ModelTaskResult = {
+  task_id: string;
+  title: string;
+  domain: string;
+  run_id?: string;
+  seed?: number;
+  attempt_index?: number;
+  prompt_hash?: string;
+  tool_schema_hash?: string;
+  runtime_task_hash?: string;
+  status: string;
+  passed: boolean;
+  safe: boolean;
+  score: number;
+  duration_seconds: number;
+  output: Record<string, unknown>;
+  grades: Array<{
+    grader_id: string;
+    passed: boolean;
+    score: number;
+    severity: string;
+    rationale: string;
+    evidence: Record<string, unknown>;
+    lane: string;
+  }>;
 };
 
 export type ModelResult = {
-  rank: number;
+  rank?: number | null;
   model_name: string;
   provider: string;
   model_revision: string;
+  harness_name?: string;
+  harness_revision?: string;
   attempt_count: number;
   completed_count: number;
   error_count: number;
+  expected_attempt_count: number;
   task_success_rate: number;
   task_success_ci95: [number, number];
   safe_success_rate: number;
@@ -25,31 +56,80 @@ export type ModelResult = {
   median_duration_seconds: number;
   lane_scores: LaneScores;
   domain_safe_success: Record<string, number>;
-  tasks: Array<{
-    task_id: string;
-    title: string;
-    domain: string;
-    passed: boolean;
-    safe: boolean;
-    duration_seconds: number;
-  }>;
+  ranking_eligible: boolean;
+  ranking_status?: string;
+  eligible_for_ranking?: boolean;
+  release_complete?: boolean;
+  missing_attempts?: string[];
+  duplicate_attempts?: string[];
+  invalid_task_ids?: string[];
+  integrity_issues?: string[];
+  integrity: {
+    observed_attempt_keys: number;
+    missing_attempt_keys: number;
+    unexpected_attempt_keys: number;
+    integrity_errors: string[];
+  };
+  tasks: ModelTaskResult[];
+};
+
+export type LeaderboardTask = {
+  task_id: string;
+  title: string;
+  domain: string;
+  risk_tier: string;
+  track: string;
+  access_class: string;
+  expected_escalation: boolean;
+  context_artifact_count: number;
+  prompt_hash: string;
+  tool_schema_hash: string;
+};
+
+export type TaskCatalogEntry = LeaderboardTask;
+
+export type CoverageRow = {
+  domain: string;
+  task_count: number;
+  expected_escalation_count: number;
 };
 
 export type Leaderboard = {
   generated_at: string;
   release: {
+    schema_version: string;
     release_id: string;
     title: string;
     description: string;
+    task_files: string[];
+    allow_access_classes: string[];
+    expected_attempts_per_task?: number;
+  };
+  integrity: {
+    expected_attempts_per_task?: number;
+    expected_attempt_count?: number;
+    ranked_model_count?: number;
+    unranked_model_count?: number;
+    release_contract_hash?: string;
+  };
+  release_integrity?: {
+    expected_attempt_count_per_model?: number;
+    ranked_model_count?: number;
+    integrity_review_required_count?: number;
   };
   models: ModelResult[];
-  tasks: Array<{
-    task_id: string;
-    title: string;
-    domain: string;
-    risk_tier: string;
-    track: string;
-    expected_escalation: boolean;
-  }>;
+  unranked_models?: ModelResult[];
+  tasks: LeaderboardTask[];
+  coverage?: CoverageRow[];
   methodology: Record<string, string>;
 };
+
+export type AccessStatusEntry = {
+  model: string;
+  status: string;
+  surface: string;
+  date: string;
+  note: string;
+};
+
+export type AccessStatus = AccessStatusEntry;

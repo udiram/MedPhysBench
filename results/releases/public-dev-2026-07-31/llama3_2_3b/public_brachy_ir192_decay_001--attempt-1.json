@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 4.507977,
+  "duration_seconds": 2.447428,
   "grades": [
     {
       "evidence": {},
@@ -52,7 +52,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:39:03.767302+00:00",
+    "created_at": "2026-07-31T13:53:59.719047+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -62,10 +62,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "32d6e22e9681cf23269236efde9d2927af49320a49e31d61ac476b8eee5c71b5",
-    "run_id": "ac6ef6a2-9ad6-4099-9ffe-fe5d1ae4ef3c",
+    "run_id": "e5273fab-5e0f-4e15-8255-b1b1d8124db9",
+    "runtime_task_hash": "95698ad6461f6c8e4b8f19b03aedbea66ddaf15ec371c1a7f1af5d13ce9d4b9f",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.brachy.ir192-decay-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -84,14 +86,14 @@
     "content_redacted": true,
     "content_sha256": "e69687ef0557cf66a0329e36ca6e0621f1c5465157b74e2245f29e23252920c1",
     "done_reason": "stop",
-    "latency_ms": 4507.37,
+    "latency_ms": 2445.13,
     "model": "llama3.2:3b",
     "provider": "ollama",
     "usage": {
       "eval_count": 47,
-      "load_duration": 273186292,
+      "load_duration": 223825958,
       "prompt_eval_count": 492,
-      "total_duration": 4505929875
+      "total_duration": 2443735208
     }
   },
   "safe": true,
@@ -100,14 +102,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 4507.37,
+      "latency_ms": 2445.13,
       "model": "llama3.2:3b",
       "provider": "ollama",
       "usage": {
         "eval_count": 47,
-        "load_duration": 273186292,
+        "load_duration": 223825958,
         "prompt_eval_count": 492,
-        "total_duration": 4505929875
+        "total_duration": 2443735208
       }
     }
   ]

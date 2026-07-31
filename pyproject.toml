@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "medphysbench"
-version = "0.2.0"
+version = "0.3.0"
 description = "Reproducible, safety-aware benchmark for medical-physics AI systems"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -13,7 +13,7 @@ authors = [{ name = "MedPhysBench contributors" }]
 dependencies = ["PyYAML>=6.0", "jsonschema>=4.23"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.3", "ruff>=0.9"]
+dev = ["pytest>=8.3", "ruff>=0.9", "hypothesis>=6.130"]
 platform = [
   "fastapi>=0.115",
   "uvicorn[standard]>=0.34",

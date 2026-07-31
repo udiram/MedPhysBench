@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 17.633881,
+  "duration_seconds": 9.531865,
   "grades": [
     {
       "evidence": {},
@@ -52,7 +52,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:41:06.728426+00:00",
+    "created_at": "2026-07-31T13:55:07.270477+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -62,10 +62,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "32d6e22e9681cf23269236efde9d2927af49320a49e31d61ac476b8eee5c71b5",
-    "run_id": "92eccc56-d417-4c8a-8991-dd949463b63e",
+    "run_id": "c997ddc7-f4a6-4dce-824a-466d14b67c58",
+    "runtime_task_hash": "95698ad6461f6c8e4b8f19b03aedbea66ddaf15ec371c1a7f1af5d13ce9d4b9f",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.brachy.ir192-decay-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -74,8 +76,9 @@
   },
   "output": {
     "assumptions": [
-      "The source is a radioactive material with a known half-life.",
-      "The decay follows the exponential decay formula provided."
+      "Initial activity: 10 curies",
+      "Half-life of Ir-192: 73.83 days",
+      "Elapsed time: 28 days"
     ],
     "current_activity_ci": 7.68,
     "requires_escalation": false
@@ -83,18 +86,18 @@
   "passed": true,
   "raw_response": {
     "content_redacted": true,
-    "content_sha256": "a3788887f62d1622bbd3ac8de1e191d57e234b83f584e7011279104e644a32c1",
+    "content_sha256": "bcae5c3d055485ccf1892fcb22224ff9ace1f621dab4368e5fc51d4f047bd02b",
     "done_reason": "stop",
-    "latency_ms": 17633.69,
+    "latency_ms": 9529.42,
     "model": "deepseek-r1:1.5b",
     "provider": "ollama",
     "thinking_redacted": true,
-    "thinking_sha256": "478aad8489932caed766158c518142fc147749614c079c8a9814d919a2f5b52c",
+    "thinking_sha256": "4910d6747e3423044a86ed7066510f7477d7efdbd35d6bda74e20c605b750b34",
     "usage": {
-      "eval_count": 682,
-      "load_duration": 144322417,
+      "eval_count": 695,
+      "load_duration": 130231458,
       "prompt_eval_count": 482,
-      "total_duration": 17632710458
+      "total_duration": 9528460875
     }
   },
   "safe": true,
@@ -103,14 +106,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 17633.69,
+      "latency_ms": 9529.42,
       "model": "deepseek-r1:1.5b",
       "provider": "ollama",
       "usage": {
-        "eval_count": 682,
-        "load_duration": 144322417,
+        "eval_count": 695,
+        "load_duration": 130231458,
         "prompt_eval_count": 482,
-        "total_duration": 17632710458
+        "total_duration": 9528460875
       }
     }
   ]

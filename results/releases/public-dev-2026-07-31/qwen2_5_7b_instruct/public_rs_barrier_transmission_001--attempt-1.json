@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 10.99149,
+  "duration_seconds": 5.217477,
   "grades": [
     {
       "evidence": {},
@@ -52,7 +52,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:29:23.066793+00:00",
+    "created_at": "2026-07-31T13:50:17.651601+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -62,10 +62,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "2c1baa10dba9ee8ee41b67352f5aa913bcbd621e231a4b4164344e3d0df15809",
-    "run_id": "67514595-8565-43d3-bb4e-1a843df2017e",
+    "run_id": "2f2c088b-c937-4e93-bbb3-a57f7ff3102d",
+    "runtime_task_hash": "8cfac9cac3017788072848bac2951b6223763534be5aed17bff300e75cca2c2a",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.rs.barrier-transmission-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -85,14 +87,14 @@
     "content_redacted": true,
     "content_sha256": "a55da8dfbeb394a450dfe5579f3861e67930ec9daf4097e5c2c50a47fd588a5e",
     "done_reason": "stop",
-    "latency_ms": 10989.98,
+    "latency_ms": 5213.99,
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
     "usage": {
       "eval_count": 60,
-      "load_duration": 139113916,
+      "load_duration": 134660542,
       "prompt_eval_count": 496,
-      "total_duration": 10986871083
+      "total_duration": 5212967500
     }
   },
   "safe": true,
@@ -101,14 +103,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 10989.98,
+      "latency_ms": 5213.99,
       "model": "qwen2.5:7b-instruct",
       "provider": "ollama",
       "usage": {
         "eval_count": 60,
-        "load_duration": 139113916,
+        "load_duration": 134660542,
         "prompt_eval_count": 496,
-        "total_duration": 10986871083
+        "total_duration": 5212967500
       }
     }
   ]

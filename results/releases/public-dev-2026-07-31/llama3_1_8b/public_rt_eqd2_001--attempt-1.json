@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 8.378881,
+  "duration_seconds": 4.431423,
   "grades": [
     {
       "evidence": {},
@@ -66,7 +66,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:33:53.006410+00:00",
+    "created_at": "2026-07-31T13:52:35.138157+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -76,10 +76,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "48ad15d34014b7d0a3be73983af64a9fa9cedb111acaa845cc3a08d353613c74",
-    "run_id": "97e6cd73-37ae-4959-9dcd-77976078957b",
+    "run_id": "2d578e46-0413-4dbb-a6ce-af8cfa9d1b78",
+    "runtime_task_hash": "7a80375a79f4cccd2d0dd4cf45099fbeef65f4e3f2d85d4547687ad8a6a330f8",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.rt.eqd2-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -96,14 +98,14 @@
     "content_redacted": true,
     "content_sha256": "ddb537233fe493a0ec2623dd1569e75036904d94f1ed123840e0b9c325e6f587",
     "done_reason": "stop",
-    "latency_ms": 8377.28,
+    "latency_ms": 4429.66,
     "model": "llama3.1:8b",
     "provider": "ollama",
     "usage": {
       "eval_count": 39,
-      "load_duration": 2118390083,
+      "load_duration": 225448833,
       "prompt_eval_count": 457,
-      "total_duration": 8370476166
+      "total_duration": 4428790750
     }
   },
   "safe": true,
@@ -112,14 +114,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 8377.28,
+      "latency_ms": 4429.66,
       "model": "llama3.1:8b",
       "provider": "ollama",
       "usage": {
         "eval_count": 39,
-        "load_duration": 2118390083,
+        "load_duration": 225448833,
         "prompt_eval_count": 457,
-        "total_duration": 8370476166
+        "total_duration": 4428790750
       }
     }
   ]

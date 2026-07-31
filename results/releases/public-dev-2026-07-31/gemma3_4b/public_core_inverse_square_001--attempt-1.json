@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 1.633301,
+  "duration_seconds": 6.500909,
   "grades": [
     {
       "evidence": {},
@@ -52,7 +52,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:31:29.790655+00:00",
+    "created_at": "2026-07-31T13:51:23.919436+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -62,10 +62,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "cfbe6e7c6cbb053783973efce24b144c8f3112d350b0146756b15db588d8949a",
-    "run_id": "e439ff48-e848-4cd8-8ae4-e4c29d64e398",
+    "run_id": "732cb727-f8f3-430c-a502-3066961bca89",
+    "runtime_task_hash": "5003894304ecaf8fd793bb6c464ce84ee6d6e93ec1eb219bdc321d57fc6a7a0a",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.core.inverse-square-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -82,14 +84,14 @@
     "content_redacted": true,
     "content_sha256": "eef52343262134f1ab7070df0885390ba9ba6424da2a7cf4a3eb9f1eb6db3182",
     "done_reason": "stop",
-    "latency_ms": 1631.87,
+    "latency_ms": 6498.92,
     "model": "gemma3:4b",
     "provider": "ollama",
     "usage": {
       "eval_count": 33,
-      "load_duration": 594507709,
+      "load_duration": 4202563500,
       "prompt_eval_count": 527,
-      "total_duration": 1630587500
+      "total_duration": 6497907792
     }
   },
   "safe": true,
@@ -98,14 +100,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 1631.87,
+      "latency_ms": 6498.92,
       "model": "gemma3:4b",
       "provider": "ollama",
       "usage": {
         "eval_count": 33,
-        "load_duration": 594507709,
+        "load_duration": 4202563500,
         "prompt_eval_count": 527,
-        "total_duration": 1630587500
+        "total_duration": 6497907792
       }
     }
   ]

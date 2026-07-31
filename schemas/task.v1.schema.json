@@ -3,7 +3,7 @@
   "$id": "https://medphys-agentbench.org/schemas/medeval.task.v1.schema.json",
   "title": "MedPhys-AgentBench task contract v1",
   "type": "object",
-  "additionalProperties": true,
+  "additionalProperties": false,
   "required": [
     "schema_version",
     "task_id",
@@ -37,6 +37,7 @@
       "type": "array",
       "items": {
         "type": "object",
+        "additionalProperties": false,
         "required": ["artifact_id", "media_type", "content"],
         "properties": {
           "artifact_id": { "type": "string" },
@@ -51,6 +52,7 @@
       "type": "array",
       "items": {
         "type": "object",
+        "additionalProperties": false,
         "required": ["name", "mode"],
         "properties": {
           "name": { "type": "string" },

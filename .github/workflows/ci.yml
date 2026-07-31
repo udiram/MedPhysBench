@@ -27,6 +27,8 @@ jobs:
         run: uv run python -m medphys_agentbench.cli validate tasks/dev/physics_units_001/task.yaml >/dev/null
       - name: Validate the complete public release
         run: uv run medphys-bench validate-release releases/public_dev_2026_07_31.yaml
+      - name: Validate schemas, tasks, runtime projections, and result artifacts
+        run: uv run python scripts/validate_repository.py
       - name: Verify public artifacts exclude provider reasoning
         run: uv run python scripts/sanitize_public_results.py --check results/releases/public-dev-2026-07-31
 

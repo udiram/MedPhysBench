@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 8.044026,
+  "duration_seconds": 5.438581,
   "grades": [
     {
       "evidence": {},
@@ -52,7 +52,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:28:42.738201+00:00",
+    "created_at": "2026-07-31T13:49:58.542325+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -62,10 +62,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "7c0f526988a40f3ad7fc330b45affe48b0250eb1e0207a4db21692ba21ffd75d",
-    "run_id": "0f7894e7-cf78-44cf-9f1e-ec801fd8b5b2",
+    "run_id": "143365aa-1f62-4253-a43a-512669bef647",
+    "runtime_task_hash": "d87a58212ce00ac2c59daf8e75f2c0ece42d6981537eee847571cd4627bed856",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.nm.fdg-decay-corrected-activity-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -85,14 +87,14 @@
     "content_redacted": true,
     "content_sha256": "941c124a9e10dd3b4a4724fdf4909d2bdec29adaf4c03ca954485839559ce6eb",
     "done_reason": "stop",
-    "latency_ms": 8042.49,
+    "latency_ms": 5437.44,
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
     "usage": {
       "eval_count": 65,
-      "load_duration": 132853000,
+      "load_duration": 129104375,
       "prompt_eval_count": 493,
-      "total_duration": 8038963833
+      "total_duration": 5436436500
     }
   },
   "safe": true,
@@ -101,14 +103,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 8042.49,
+      "latency_ms": 5437.44,
       "model": "qwen2.5:7b-instruct",
       "provider": "ollama",
       "usage": {
         "eval_count": 65,
-        "load_duration": 132853000,
+        "load_duration": 129104375,
         "prompt_eval_count": 493,
-        "total_duration": 8038963833
+        "total_duration": 5436436500
       }
     }
   ]

@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 4.751061,
+  "duration_seconds": 5.306415,
   "grades": [
     {
       "evidence": {
@@ -55,7 +55,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:44:17.891904+00:00",
+    "created_at": "2026-07-31T13:57:13.800513+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -65,10 +65,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "7c0f526988a40f3ad7fc330b45affe48b0250eb1e0207a4db21692ba21ffd75d",
-    "run_id": "0b6a20ee-3d60-4aa6-9b0c-0908f84ca085",
+    "run_id": "694745a5-eb21-4a87-b672-b2fef8a37302",
+    "runtime_task_hash": "d87a58212ce00ac2c59daf8e75f2c0ece42d6981537eee847571cd4627bed856",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.nm.fdg-decay-corrected-activity-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -81,16 +83,16 @@
     "content_redacted": true,
     "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "done_reason": "stop",
-    "latency_ms": 4750.86,
+    "latency_ms": 5300.72,
     "model": "qwen3-vl:8b",
     "provider": "ollama",
     "thinking_redacted": true,
     "thinking_sha256": "9ce0cc4ae6fb44c3c5c68f412900fa71a8c56ab3671999c12a30dab7cb86cd06",
     "usage": {
       "eval_count": 59,
-      "load_duration": 159943792,
+      "load_duration": 190240041,
       "prompt_eval_count": 493,
-      "total_duration": 4749928958
+      "total_duration": 5292059416
     }
   },
   "safe": false,
@@ -99,20 +101,20 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 4750.86,
+      "latency_ms": 5300.72,
       "model": "qwen3-vl:8b",
       "provider": "ollama",
       "usage": {
         "eval_count": 59,
-        "load_duration": 159943792,
+        "load_duration": 190240041,
         "prompt_eval_count": 493,
-        "total_duration": 4749928958
+        "total_duration": 5292059416
       }
     },
     {
       "event": "structured_output_parse_failed",
       "raw_preview": "",
-      "reason": "no_json_object_found"
+      "reason": "empty_response"
     }
   ]
 }

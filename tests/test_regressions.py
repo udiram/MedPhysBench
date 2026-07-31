@@ -6,177 +6,336 @@ import sys
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+from hypothesis import given
+from hypothesis import strategies as st
+
 from medphys_agentbench.adapters.ollama import _parse_json_object
+from medphys_agentbench.json_utils import decode_strict_json_object
 from medphys_agentbench.release_loader import load_release
 from medphys_agentbench.reporting import summarize_release
-from medphys_agentbench.scoring import grade_safety_gate, score_attempt, validate_expected_output_shape
+from medphys_agentbench.runner import (
+    prompt_hash_for_task,
+    runtime_task_hash_for_task,
+    system_prompt_hash,
+    tool_schema_hash_for_task,
+)
+from medphys_agentbench.scoring import (
+    grade_numeric_tolerance,
+    grade_safety_gate,
+    score_attempt,
+    validate_expected_output_shape,
+)
 from medphys_agentbench.task_loader import load_task
 
 
-def test_ollama_parser_extracts_fenced_json_and_succeeds() -> None:
-    content = """```json
-{"answer_percent": 5, "requires_escalation": false}
-```"""
-
-    output, parse_trace = _parse_json_object(content)
-
-    assert output == {"answer_percent": 5, "requires_escalation": False}
-    assert parse_trace == []
-
-
-def test_ollama_parser_repair_finds_first_json_object_in_noisy_content() -> None:
-    content = "Here is my result:\n```text\nignore this line\n{\"answer_percent\": 4.99}\n```\n"
-
-    output, parse_trace = _parse_json_object(content)
-
-    assert output == {"answer_percent": 4.99}
-    assert parse_trace == []
+@given(
+    st.dictionaries(
+        keys=st.text(min_size=1, max_size=8),
+        values=st.one_of(
+            st.none(),
+            st.booleans(),
+            st.integers(min_value=-1000, max_value=1000),
+            st.floats(allow_nan=False, allow_infinity=False, width=32),
+            st.text(max_size=16),
+        ),
+        max_size=6,
+    )
+)
+def test_strict_json_decoder_round_trips_plain_objects(payload: dict[str, object]) -> None:
+    encoded = json.dumps(payload)
+    assert decode_strict_json_object(encoded) == payload
 
 
-def test_ollama_parser_rejects_non_dict_content() -> None:
-    output, parse_trace = _parse_json_object("[1, 2, 3]")
+@pytest.mark.parametrize(
+    ("content", "reason_prefix"),
+    [
+        ('```json\n{"answer_percent": 5}\n```', "invalid_json"),
+        ('{"answer_percent": 5} trailing', "trailing_content"),
+        ('{"answer_percent": 5, "answer_percent": 6}', "duplicate_key"),
+        ('{"answer_percent": NaN}', "non_finite_number"),
+        ("[1, 2, 3]", "decoded_type:list"),
+    ],
+)
+def test_ollama_parser_rejects_non_canonical_json(content: str, reason_prefix: str) -> None:
+    output, trace = _parse_json_object(content)
 
     assert output == {}
-    assert parse_trace == [
-        {
-            "event": "structured_output_parse_failed",
-            "reason": "decoded_type:list",
-            "raw_preview": "[1, 2, 3]",
-        }
-    ]
+    assert trace
+    assert str(trace[0]["reason"]).startswith(reason_prefix)
 
 
-def test_json_schema_grade_fails_on_invalid_output_shape() -> None:
+def test_ollama_parser_accepts_exact_json_object() -> None:
+    output, trace = _parse_json_object('{"answer_percent": 5, "requires_escalation": false}')
+
+    assert output == {"answer_percent": 5, "requires_escalation": False}
+    assert trace == []
+
+
+def test_json_schema_grade_rejects_non_finite_output() -> None:
     task = load_task("tasks/public/core_physics/inverse_square_001/task.yaml")
 
-    output = {"dose_rate_mgy_per_min": 3.0}
-    grade = validate_expected_output_shape(task, output)
+    grade = validate_expected_output_shape(
+        task,
+        {"distance_cm": 100.0, "answer_ratio": float("nan"), "requires_escalation": False, "assumptions": []},
+    )
 
     assert grade.grader_id == "schema.json_schema"
     assert grade.passed is False
-    assert grade.score == 0.0
     assert grade.severity == "high"
 
 
-def test_safety_escalation_gate_enforces_required_bool() -> None:
-    task = load_task("tasks/public/core_physics/inverse_square_001/task.yaml")
+def test_numeric_tolerance_rejects_boolean_actual_value() -> None:
+    task = load_task("tasks/dev/physics_units_001/task.yaml")
 
-    pass_grade = grade_safety_gate(task, {"requires_escalation": False})
-    fail_grade = grade_safety_gate(task, {"requires_escalation": True})
+    grade = grade_numeric_tolerance(task, {"answer_percent": True})
 
-    assert pass_grade.passed is True
-    assert pass_grade.score == 1.0
-    assert pass_grade.severity == "none"
+    assert grade.passed is False
+    assert grade.severity == "high"
 
-    assert fail_grade.passed is False
-    assert fail_grade.score == 0.0
-    assert fail_grade.severity == "critical"
+
+def test_numeric_tolerance_rejects_invalid_authored_tolerance() -> None:
+    task = SimpleNamespace(
+        grading={"numeric_tolerance": {"field": "answer", "expected": 5.0, "absolute_tolerance": -1.0}},
+    )
+
+    grade = grade_numeric_tolerance(task, {"answer": 5.0})
+
+    assert grade.passed is False
+    assert grade.severity == "critical"
 
 
 def test_safety_gate_is_noop_without_declared_contract() -> None:
-    task = SimpleNamespace(safety={})
-
-    grade = grade_safety_gate(task, {})
+    grade = grade_safety_gate(SimpleNamespace(safety={}), {})
 
     assert grade.passed is True
     assert grade.severity == "none"
 
 
-def _write_result(path: Path, task_id: str, model_name: str, *, passed: bool, safe: bool) -> None:
-    model = {
-        "provider": "ollama",
-        "model_name": model_name,
-        "model_revision": "local",
-        "harness_name": "medphysbench-ollama",
-        "harness_revision": "reference-json-v1",
-    }
-
+def _write_result(
+    path: Path,
+    task,
+    model_name: str,
+    *,
+    attempt_index: int = 0,
+    passed: bool = True,
+    safe: bool = True,
+    include_hashes: bool = True,
+) -> None:
+    output = _passing_output(task)
+    if not safe:
+        output["requires_escalation"] = not bool(task.safety.get("requires_escalation", False))
+    elif not passed:
+        first_grader = task.grading.get("graders", [])[0]
+        output[first_grader["field"]] = "deliberately incorrect"
+    grades = score_attempt(task, output)
+    verified_passed = all(grade.passed for grade in grades)
+    verified_safe = not any((not grade.passed) and grade.severity == "critical" for grade in grades)
     payload = {
         "status": "completed",
-        "passed": passed,
-        "safe": safe,
-        "attempt_index": 0,
+        "attempt_index": attempt_index,
+        "passed": verified_passed,
+        "safe": verified_safe,
+        "score": 1.0 if verified_passed else 0.0,
         "duration_seconds": 1.0,
         "manifest": {
             "schema_version": "medeval.run.v1",
-            "task_id": task_id,
-            "task_version": "0.2.0",
-            "model": model,
-            "seed": 20260731,
+            "run_id": f"{model_name}-{task.task_id}-{attempt_index}",
+            "task_id": task.task_id,
+            "task_version": task.version,
+            "model": {
+                "provider": "ollama",
+                "model_name": model_name,
+                "model_revision": model_name,
+                "harness_name": "medphysbench-ollama",
+                "harness_revision": "reference-json-v1",
+            },
+            "seed": 20260731 + attempt_index,
             "temperature": 0.0,
             "max_tokens": 1024,
+            "sandbox_image_digest": "process-isolation-public-v0.2.0",
+            "tool_environment_version": "public-fixtures-v0.2.0",
+            "prompt_hash": prompt_hash_for_task(task) if include_hashes else "wrong",
+            "tool_schema_hash": tool_schema_hash_for_task(task) if include_hashes else "wrong",
+            "system_prompt_hash": system_prompt_hash() if include_hashes else "wrong",
+            "runtime_task_hash": runtime_task_hash_for_task(task) if include_hashes else "wrong",
         },
-        "grades": [
-            {
-                "grader_id": "schema.json_schema",
-                "passed": True,
-                "score": 1.0,
-                "severity": "none",
-                "rationale": "schema",
-                "evidence": {},
-                "lane": "artifact",
-            },
-            {
-                "grader_id": "safety.escalation",
-                "passed": safe,
-                "score": 1.0 if safe else 0.0,
-                "severity": "none" if safe else "critical",
-                "rationale": "safety",
-                "evidence": {},
-                "lane": "safety",
-            },
-        ],
-        "output": {},
+        "grades": [grade.to_dict() for grade in grades],
+        "output": output,
         "trace": [],
         "raw_response": {},
     }
-
-    if not passed:
-        payload["grades"][0]["passed"] = False
-        payload["grades"][0]["score"] = 0.0
-        payload["grades"][0]["severity"] = "high"
-
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def test_release_summary_reports_wilson_ci_and_ranking(tmp_path: Path) -> None:
+def _passing_output(task) -> dict[str, object]:
+    schema = task.expected_output_schema
+    output: dict[str, object] = {}
+    for field in schema.get("required", []):
+        field_schema = schema.get("properties", {}).get(field, {})
+        raw_types = field_schema.get("type")
+        field_types = {raw_types} if isinstance(raw_types, str) else set(raw_types or [])
+        if "const" in field_schema:
+            output[field] = field_schema["const"]
+        elif field_schema.get("enum"):
+            output[field] = field_schema["enum"][0]
+        elif "boolean" in field_types:
+            output[field] = False
+        elif field_types & {"number", "integer"}:
+            output[field] = 0
+        elif "array" in field_types:
+            output[field] = []
+        else:
+            output[field] = "clinical limitation"
+    for grader in task.grading.get("graders", []):
+        field = grader["field"]
+        if grader["type"] in {"exact_match", "numeric_tolerance", "unordered_list_exact_match"}:
+            output[field] = grader["expected"]
+        elif grader["type"] == "contains_all_strings":
+            output[field] = " ".join(grader["expected"])
+    if "requires_escalation" in output:
+        output["requires_escalation"] = bool(task.safety.get("requires_escalation", False))
+    return output
+
+
+def test_release_summary_regrades_and_rejects_stored_score_tampering(tmp_path: Path) -> None:
     release = load_release("releases/public_dev_2026_07_31.yaml")
     tasks = release.load_tasks()
+    model_dir = tmp_path / release.release_id / "tampered-score"
+    model_dir.mkdir(parents=True)
+    for task in tasks:
+        result_file = model_dir / f"{task.task_id}--attempt-1.json"
+        _write_result(result_file, task, "tampered-score")
+        if task == tasks[0]:
+            payload = json.loads(result_file.read_text(encoding="utf-8"))
+            payload["output"]["requires_escalation"] = not task.safety.get("requires_escalation", False)
+            payload["passed"] = True
+            payload["safe"] = True
+            result_file.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
-    top_model = "bench-top"
-    baseline_model = "bench-baseline"
-    top_dir = tmp_path / release.release_id / top_model
-    baseline_dir = tmp_path / release.release_id / baseline_model
-    top_dir.mkdir(parents=True)
-    baseline_dir.mkdir(parents=True)
+    summary = summarize_release(release, tmp_path)
+    assert summary["models"] == []
+    row = summary["unranked_models"][0]
+    assert any("stored_grades_disagree_with_regrade" in issue for issue in row["integrity"]["integrity_errors"])
+    assert row["safe_success_rate"] == 0.9375
 
-    _write_result(top_dir / f"{tasks[0].task_id}--attempt-1.json", tasks[0].task_id, top_model, passed=True, safe=True)
-    _write_result(top_dir / f"{tasks[1].task_id}--attempt-2.json", tasks[1].task_id, top_model, passed=True, safe=True)
 
-    _write_result(
-        baseline_dir / f"{tasks[0].task_id}--attempt-1.json", tasks[0].task_id, baseline_model, passed=False, safe=False
-    )
-    _write_result(
-        baseline_dir / f"{tasks[1].task_id}--attempt-2.json", tasks[1].task_id, baseline_model, passed=True, safe=True
-    )
+def test_release_summary_marks_incomplete_run_ineligible(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    tasks = release.load_tasks()
+    model_dir = tmp_path / release.release_id / "partial-model"
+    model_dir.mkdir(parents=True)
+
+    for task in tasks[:-1]:
+        _write_result(model_dir / f"{task.task_id}--attempt-1.json", task, "partial-model")
+
+    summary = summarize_release(release, tmp_path)
+    assert summary["models"] == []
+    row = next(item for item in summary["unranked_models"] if item["model_name"] == "partial-model")
+
+    assert row["ranking_eligible"] is False
+    assert any("missing_attempts" in issue for issue in row["integrity"]["integrity_errors"])
+
+
+def test_release_summary_marks_hash_drift_ineligible(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    tasks = release.load_tasks()
+    model_dir = tmp_path / release.release_id / "tampered-model"
+    model_dir.mkdir(parents=True)
+
+    for task in tasks:
+        _write_result(
+            model_dir / f"{task.task_id}--attempt-1.json",
+            task,
+            "tampered-model",
+            include_hashes=(task.task_id != tasks[0].task_id),
+        )
+
+    summary = summarize_release(release, tmp_path)
+    assert summary["models"] == []
+    row = next(item for item in summary["unranked_models"] if item["model_name"] == "tampered-model")
+
+    assert row["ranking_eligible"] is False
+    assert any("prompt_hash_mismatch" in issue for issue in row["integrity"]["integrity_errors"])
+
+
+def test_release_summary_requires_runtime_and_system_hashes(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    tasks = release.load_tasks()
+    model_dir = tmp_path / release.release_id / "missing-runtime-hashes"
+    model_dir.mkdir(parents=True)
+
+    for task in tasks:
+        result_file = model_dir / f"{task.task_id}--attempt-1.json"
+        _write_result(result_file, task, "missing-runtime-hashes")
+        payload = json.loads(result_file.read_text(encoding="utf-8"))
+        payload["manifest"].pop("runtime_task_hash", None)
+        payload["manifest"].pop("system_prompt_hash", None)
+        result_file.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    summary = summarize_release(release, tmp_path)
+    assert summary["models"] == []
+    row = next(item for item in summary["unranked_models"] if item["model_name"] == "missing-runtime-hashes")
+
+    assert row["ranking_eligible"] is False
+    assert any("missing_runtime_task_hash" in issue for issue in row["integrity"]["integrity_errors"])
+    assert any("missing_system_prompt_hash" in issue for issue in row["integrity"]["integrity_errors"])
+
+
+def test_release_summary_rejects_mixed_run_configuration(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    tasks = release.load_tasks()
+    model_dir = tmp_path / release.release_id / "mixed-config"
+    model_dir.mkdir(parents=True)
+
+    for task in tasks:
+        result_file = model_dir / f"{task.task_id}--attempt-1.json"
+        _write_result(result_file, task, "mixed-config")
+        if task == tasks[0]:
+            payload = json.loads(result_file.read_text(encoding="utf-8"))
+            payload["manifest"]["temperature"] = 0.25
+            result_file.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     summary = summarize_release(release, tmp_path)
 
-    assert len(summary["tasks"]) == 16
-    models = summary["models"]
-    assert [row["model_name"] for row in models] == [top_model, baseline_model]
-
-    top = models[0]
-    baseline = models[1]
-
-    assert top["safe_success_rate"] == 1.0
-    assert baseline["safe_success_rate"] == 0.5
-
-    ci_low, ci_high = baseline["task_success_ci95"]
-    assert 0 <= ci_low <= 0.5 <= ci_high <= 1
+    assert summary["models"] == []
+    row = summary["unranked_models"][0]
+    assert "mixed_run_configuration_manifest" in row["integrity"]["integrity_errors"]
 
 
-def test_validate_release_command_reports_sixteen_public_tasks() -> None:
+def test_release_summary_never_ranks_provider_error_attempts(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    tasks = release.load_tasks()
+    model_dir = tmp_path / release.release_id / "provider-error"
+    model_dir.mkdir(parents=True)
+
+    for task in tasks:
+        result_file = model_dir / f"{task.task_id}--attempt-1.json"
+        _write_result(result_file, task, "provider-error")
+        payload = json.loads(result_file.read_text(encoding="utf-8"))
+        payload.update(
+            {
+                "status": "error",
+                "error_type": "AdapterError",
+                "error": "provider unavailable",
+                "passed": False,
+                "safe": False,
+                "score": 0.0,
+                "grades": [],
+                "output": {},
+            }
+        )
+        result_file.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    summary = summarize_release(release, tmp_path)
+
+    assert summary["models"] == []
+    row = summary["unranked_models"][0]
+    assert row["completed_count"] == 0
+    assert "noncompleted_attempts:16" in row["integrity"]["integrity_errors"]
+
+
+def test_validate_release_command_reports_expected_attempt_count() -> None:
     completed = subprocess.run(
         [
             sys.executable,
@@ -193,15 +352,51 @@ def test_validate_release_command_reports_sixteen_public_tasks() -> None:
 
     assert report["valid"] is True
     assert report["release_id"] == "public-dev-2026-07-31"
+    assert report["expected_attempts_per_task"] == 1
     assert report["task_count"] == 16
-    assert len(report["task_ids"]) == 16
 
 
-def test_score_attempt_picks_deterministic_gates_for_dev_task() -> None:
-    task = load_task("tasks/dev/physics_units_001/task.yaml")
-    output = task.grading["development_reference_output"]
+def test_repository_contracts_and_public_artifacts_validate() -> None:
+    completed = subprocess.run(
+        [sys.executable, "scripts/validate_repository.py"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    counts = json.loads(completed.stdout)
 
-    grades = score_attempt(task, output)
-    ids = {grade.grader_id for grade in grades}
+    assert counts["schema_count"] == 5
+    assert counts["release_count"] >= 1
+    assert counts["task_count"] >= 17
+    assert counts["result_count"] >= 16
 
-    assert ids == {"schema.json_schema", "safety.escalation", "numeric_tolerance"}
+
+def test_release_summary_ranks_complete_models(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    tasks = release.load_tasks()
+    top_dir = tmp_path / release.release_id / "complete-top"
+    base_dir = tmp_path / release.release_id / "complete-base"
+    top_dir.mkdir(parents=True)
+    base_dir.mkdir(parents=True)
+
+    for task in tasks:
+        _write_result(top_dir / f"{task.task_id}--attempt-1.json", task, "complete-top")
+        _write_result(
+            base_dir / f"{task.task_id}--attempt-1.json",
+            task,
+            "complete-base",
+            passed=task.task_id != tasks[0].task_id,
+            safe=task.task_id != tasks[0].task_id,
+        )
+
+    summary = summarize_release(release, tmp_path)
+
+    assert summary["integrity"]["ranked_model_count"] == 2
+    assert summary["release"]["expected_attempts_per_task"] == 1
+    assert [row["model_name"] for row in summary["models"]] == ["complete-top", "complete-base"]
+    assert summary["models"][0]["rank"] == 1
+    assert summary["models"][0]["ranking_eligible"] is True
+    assert summary["models"][0]["safe_success_rate"] == 1.0
+    assert summary["models"][1]["safe_success_rate"] == 0.9375
+    assert all(path.startswith("tasks/") for path in summary["release"]["task_files"])
+    assert not any(Path(path).is_absolute() for path in summary["release"]["task_files"])

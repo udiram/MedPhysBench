@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 8.6093,
+  "duration_seconds": 4.741189,
   "grades": [
     {
       "evidence": {},
@@ -76,7 +76,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:30:08.741249+00:00",
+    "created_at": "2026-07-31T13:50:38.486074+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -86,10 +86,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "905fc5d4234c434659a8fa3d6c0d8b44872fc90abd728746fed7f7f74da3b721",
-    "run_id": "6a2a58f4-f0b9-4e1f-a230-59d81e68462f",
+    "run_id": "332e854f-8009-42da-ab5b-e343c2877643",
+    "runtime_task_hash": "2573743a91fc91bc15610ee4ada29ae120134cd7b44b7bde27c7608b43728347",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.research.source-packet-claims-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -112,14 +114,14 @@
     "content_redacted": true,
     "content_sha256": "48adc7fdfa48884167da8c480a2437d85024aedb267610c27b1f075256761d41",
     "done_reason": "stop",
-    "latency_ms": 8609.09,
+    "latency_ms": 4738.32,
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
     "usage": {
       "eval_count": 46,
-      "load_duration": 191035500,
+      "load_duration": 212633416,
       "prompt_eval_count": 623,
-      "total_duration": 8606997625
+      "total_duration": 4735154083
     }
   },
   "safe": true,
@@ -128,14 +130,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 8609.09,
+      "latency_ms": 4738.32,
       "model": "qwen2.5:7b-instruct",
       "provider": "ollama",
       "usage": {
         "eval_count": 46,
-        "load_duration": 191035500,
+        "load_duration": 212633416,
         "prompt_eval_count": 623,
-        "total_duration": 8606997625
+        "total_duration": 4735154083
       }
     }
   ]

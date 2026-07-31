@@ -15,6 +15,7 @@ def test_development_task_loads_with_a_complete_contract() -> None:
     assert task.schema_version == "medeval.task.v1"
     assert task.risk_tier is RiskTier.LOW
     assert task.access_class is AccessClass.PUBLIC
+    assert task.expected_output_schema["additionalProperties"] is False
     assert task.expected_output_schema["required"] == [
         "answer_percent",
         "requires_escalation",
@@ -23,11 +24,15 @@ def test_development_task_loads_with_a_complete_contract() -> None:
 
 
 def test_runtime_task_cannot_see_grading_or_provenance() -> None:
-    runtime = load_task(TASK_FILE).runtime_task().to_dict()
+    task = load_task(TASK_FILE)
+    runtime = task.runtime_task().to_dict()
 
     assert "grading" not in runtime
     assert "provenance" not in runtime
+    assert "contamination_tags" not in runtime
     assert runtime["task_id"] == "dev.physics.units-001"
+    runtime["input_payload"]["measurement_cgy"] = 999.0
+    assert task.input_payload["measurement_cgy"] == 126.0
 
 
 def test_validate_cli_never_prints_grading_material() -> None:

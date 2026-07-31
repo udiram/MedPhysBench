@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 7.867271,
+  "duration_seconds": 3.673922,
   "grades": [
     {
       "evidence": {},
@@ -66,7 +66,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:29:00.579250+00:00",
+    "created_at": "2026-07-31T13:50:05.932959+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -76,10 +76,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "e51d82b4f653da3d26e46989808b2c200ac907bce0dbc3c17781afb5d4b35c7e",
-    "run_id": "c8335be6-6cac-4869-991a-bc981c6e8e29",
+    "run_id": "1217e535-78f3-42ce-ac11-8e95ff59a26e",
+    "runtime_task_hash": "2fd9e3de722635e581158d3cd3ecf6791bc8937237ad0a0266c10d48745b4f66",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.imaging.ct-pixel-spacing-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -96,14 +98,14 @@
     "content_redacted": true,
     "content_sha256": "0f61e1b5e3a2bb76c24804fd91d91ea72b06d64c1d404b94b62c576a1a85f860",
     "done_reason": "stop",
-    "latency_ms": 7865.24,
+    "latency_ms": 3672.01,
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
     "usage": {
       "eval_count": 44,
-      "load_duration": 134642625,
+      "load_duration": 128816875,
       "prompt_eval_count": 431,
-      "total_duration": 7861956375
+      "total_duration": 3670710958
     }
   },
   "safe": true,
@@ -112,14 +114,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 7865.24,
+      "latency_ms": 3672.01,
       "model": "qwen2.5:7b-instruct",
       "provider": "ollama",
       "usage": {
         "eval_count": 44,
-        "load_duration": 134642625,
+        "load_duration": 128816875,
         "prompt_eval_count": 431,
-        "total_duration": 7861956375
+        "total_duration": 3670710958
       }
     }
   ]

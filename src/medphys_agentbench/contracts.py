@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
@@ -214,12 +215,12 @@ class TaskSpec:
             track=self.track,
             risk_tier=self.risk_tier,
             instructions=self.instructions,
-            input_payload=self.input_payload,
-            context_artifacts=self.context_artifacts,
-            allowed_tools=self.allowed_tools,
-            expected_output_schema=self.expected_output_schema,
-            safety=self.safety,
-            stop_conditions=self.stop_conditions,
+            input_payload=deepcopy(self.input_payload),
+            context_artifacts=deepcopy(self.context_artifacts),
+            allowed_tools=deepcopy(self.allowed_tools),
+            expected_output_schema=deepcopy(self.expected_output_schema),
+            safety=deepcopy(self.safety),
+            stop_conditions=deepcopy(self.stop_conditions),
         )
 
 
@@ -247,6 +248,8 @@ class RunManifest:
     created_at: str
     prompt_hash: str
     tool_schema_hash: str
+    system_prompt_hash: str
+    runtime_task_hash: str
 
     @classmethod
     def create(
@@ -262,6 +265,8 @@ class RunManifest:
         tool_environment_version: str,
         prompt_hash: str,
         tool_schema_hash: str,
+        system_prompt_hash: str,
+        runtime_task_hash: str,
     ) -> RunManifest:
         return cls(
             schema_version="medeval.run.v1",
@@ -277,6 +282,8 @@ class RunManifest:
             created_at=datetime.now(UTC).isoformat(),
             prompt_hash=prompt_hash,
             tool_schema_hash=tool_schema_hash,
+            system_prompt_hash=system_prompt_hash,
+            runtime_task_hash=runtime_task_hash,
         )
 
     def to_dict(self) -> dict[str, Any]:

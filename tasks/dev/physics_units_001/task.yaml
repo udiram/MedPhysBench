@@ -18,6 +18,16 @@ input_payload:
 allowed_tools: []
 expected_output_schema:
   type: object
+  additionalProperties: false
+  properties:
+    answer_percent:
+      type: number
+    requires_escalation:
+      type: boolean
+    assumptions:
+      type: array
+      items:
+        type: string
   required:
     - answer_percent
     - requires_escalation

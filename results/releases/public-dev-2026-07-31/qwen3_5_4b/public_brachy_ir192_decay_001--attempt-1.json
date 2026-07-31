@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 10.913878,
+  "duration_seconds": 5.107877,
   "grades": [
     {
       "evidence": {},
@@ -52,8 +52,8 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:33:10.878639+00:00",
-    "max_tokens": 512,
+    "created_at": "2026-07-31T13:43:57.449151+00:00",
+    "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
       "harness_revision": "reference-json-v1",
@@ -62,10 +62,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "32d6e22e9681cf23269236efde9d2927af49320a49e31d61ac476b8eee5c71b5",
-    "run_id": "2777fb85-8e34-4e0c-bccc-fa7361dc6b7c",
+    "run_id": "047d5646-21e5-4fd2-bc04-7e9f90bda870",
+    "runtime_task_hash": "95698ad6461f6c8e4b8f19b03aedbea66ddaf15ec371c1a7f1af5d13ce9d4b9f",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.brachy.ir192-decay-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -86,14 +88,14 @@
     "content_redacted": true,
     "content_sha256": "81405a23664fd07654728aa418b13d87b0e793bf9cacc79d1e166a73ab0c8494",
     "done_reason": "stop",
-    "latency_ms": 10883.82,
+    "latency_ms": 5104.32,
     "model": "qwen3.5:4b",
     "provider": "ollama",
     "usage": {
       "eval_count": 96,
-      "load_duration": 1848660833,
+      "load_duration": 246929250,
       "prompt_eval_count": 545,
-      "total_duration": 10684930833
+      "total_duration": 5102834166
     }
   },
   "safe": true,
@@ -102,14 +104,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 10883.82,
+      "latency_ms": 5104.32,
       "model": "qwen3.5:4b",
       "provider": "ollama",
       "usage": {
         "eval_count": 96,
-        "load_duration": 1848660833,
+        "load_duration": 246929250,
         "prompt_eval_count": 545,
-        "total_duration": 10684930833
+        "total_duration": 5102834166
       }
     }
   ]

@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from ..contracts import ModelDescriptor, RuntimeTask
+from ..json_utils import StrictJsonError, decode_strict_json_object
 from ..prompting import SYSTEM_PROMPT, build_user_prompt
 from .base import AgentResult
 
@@ -109,41 +110,15 @@ class OllamaAdapter:
 
 
 def _parse_json_object(content: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Parse one exact JSON object without repair or duplicate-key ambiguity."""
     candidate = content.strip()
-    if candidate.startswith("```"):
-        lines = candidate.splitlines()
-        if len(lines) >= 3:
-            candidate = "\n".join(lines[1:-1]).strip()
-            if candidate.startswith("json"):
-                candidate = candidate[4:].lstrip()
     try:
-        parsed = json.loads(candidate)
-    except json.JSONDecodeError:
-        start = candidate.find("{")
-        end = candidate.rfind("}")
-        if start < 0 or end <= start:
-            return {}, [
-                {
-                    "event": "structured_output_parse_failed",
-                    "reason": "no_json_object_found",
-                    "raw_preview": candidate[:400],
-                }
-            ]
-        try:
-            parsed = json.loads(candidate[start : end + 1])
-        except json.JSONDecodeError as error:
-            return {}, [
-                {
-                    "event": "structured_output_parse_failed",
-                    "reason": f"invalid_json:{error}",
-                    "raw_preview": candidate[:400],
-                }
-            ]
-    if not isinstance(parsed, dict):
+        parsed = decode_strict_json_object(candidate)
+    except StrictJsonError as error:
         return {}, [
             {
                 "event": "structured_output_parse_failed",
-                "reason": f"decoded_type:{type(parsed).__name__}",
+                "reason": str(error),
                 "raw_preview": candidate[:400],
             }
         ]

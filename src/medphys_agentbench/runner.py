@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from hashlib import sha256
 from time import monotonic
 from typing import Any
 from uuid import uuid4
 
 from .adapters.base import AgentAdapter
 from .contracts import RunManifest, TaskSpec
+from .json_utils import hash_text, stable_hash
+from .prompting import SYSTEM_PROMPT
 from .scoring import Grade, score_attempt
 
 
@@ -62,7 +63,8 @@ def run_trial(
 ) -> TrialResult:
     """Run exactly one trial against the sealed runtime task view."""
     started = monotonic()
-    result = agent.execute(task.runtime_task())
+    runtime_task = task.runtime_task()
+    result = agent.execute(runtime_task)
     model = agent.model_descriptor()
     manifest = RunManifest.create(
         run_id=run_id or str(uuid4()),
@@ -73,8 +75,10 @@ def run_trial(
         max_tokens=max_tokens,
         sandbox_image_digest="process-isolation-public-v0.2.0",
         tool_environment_version="public-fixtures-v0.2.0",
-        prompt_hash=_hash_text(task.instructions),
-        tool_schema_hash=_hash_text(str([asdict(tool) for tool in task.allowed_tools])),
+        prompt_hash=prompt_hash_for_task(task),
+        tool_schema_hash=tool_schema_hash_for_task(task),
+        system_prompt_hash=system_prompt_hash(),
+        runtime_task_hash=stable_hash(runtime_task.to_dict()),
     )
     return TrialResult(
         manifest=manifest,
@@ -86,5 +90,20 @@ def run_trial(
     )
 
 
-def _hash_text(value: str) -> str:
-    return sha256(value.encode("utf-8")).hexdigest()
+def prompt_hash_for_task(task: TaskSpec) -> str:
+    # v1 artifacts defined prompt_hash as the authored instruction hash. The
+    # system prompt and complete runtime payload now have independent hashes,
+    # preserving historical comparability without weakening the new manifest.
+    return hash_text(task.instructions)
+
+
+def tool_schema_hash_for_task(task: TaskSpec) -> str:
+    return stable_hash([asdict(tool) for tool in task.allowed_tools])
+
+
+def runtime_task_hash_for_task(task: TaskSpec) -> str:
+    return stable_hash(task.runtime_task().to_dict())
+
+
+def system_prompt_hash() -> str:
+    return hash_text(SYSTEM_PROMPT)

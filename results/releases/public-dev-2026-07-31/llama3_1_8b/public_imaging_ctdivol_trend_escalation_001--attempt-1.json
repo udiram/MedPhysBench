@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 41.91879,
+  "duration_seconds": 6.337349,
   "grades": [
     {
       "evidence": {},
@@ -79,7 +79,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:35:28.937317+00:00",
+    "created_at": "2026-07-31T13:53:00.096023+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -89,10 +89,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "7cd099972d2783945dcdf0577cf1e5812fde4d76909386e838d2658a90408c05",
-    "run_id": "88b9f06a-f458-4d16-afa6-08e0763a094b",
+    "run_id": "23e7ec70-b339-4298-8311-d0768994376e",
+    "runtime_task_hash": "6fe1891f4de32979e8169fbf2005dfc9ffee4af881583af5b1839ae8037b82f0",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.imaging.ctdivol-trend-escalation-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -114,14 +116,14 @@
     "content_redacted": true,
     "content_sha256": "6b3b638a6a35b500ca2bcb0b1af98c547180e22a07ed8a1b9fa295f9f8e37db6",
     "done_reason": "stop",
-    "latency_ms": 41735.84,
+    "latency_ms": 6334.16,
     "model": "llama3.1:8b",
     "provider": "ollama",
     "usage": {
       "eval_count": 86,
-      "load_duration": 1387612791,
+      "load_duration": 158728292,
       "prompt_eval_count": 567,
-      "total_duration": 41303310166
+      "total_duration": 6333150042
     }
   },
   "safe": true,
@@ -130,14 +132,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 41735.84,
+      "latency_ms": 6334.16,
       "model": "llama3.1:8b",
       "provider": "ollama",
       "usage": {
         "eval_count": 86,
-        "load_duration": 1387612791,
+        "load_duration": 158728292,
         "prompt_eval_count": 567,
-        "total_duration": 41303310166
+        "total_duration": 6333150042
       }
     }
   ]

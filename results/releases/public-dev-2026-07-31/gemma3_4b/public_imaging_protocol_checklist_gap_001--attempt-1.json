@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 11.721217,
+  "duration_seconds": 2.699289,
   "grades": [
     {
       "evidence": {},
@@ -57,7 +57,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:33:13.534345+00:00",
+    "created_at": "2026-07-31T13:52:15.516552+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -67,10 +67,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "f7032265794077ee3f7299b4a7cbdf3a444fe7e5969b8772dbdd110a1e623f54",
-    "run_id": "9ff9fd05-5102-47d4-896e-675ad2a9b915",
+    "run_id": "303bfd91-1cc0-428c-a409-37f428b121ac",
+    "runtime_task_hash": "f5f3c8037b53a884cfcb120d515c9c6b499b27ae92f5afadc952e0c8ca9ec81f",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.imaging.protocol-checklist-gap-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -89,14 +91,14 @@
     "content_redacted": true,
     "content_sha256": "9058e7cfca59f111476e359552d857a494277ebb86d6d4176f3c11058f5bfc30",
     "done_reason": "stop",
-    "latency_ms": 11717.81,
+    "latency_ms": 2697.98,
     "model": "gemma3:4b",
     "provider": "ollama",
     "usage": {
       "eval_count": 32,
-      "load_duration": 3393430041,
+      "load_duration": 385609084,
       "prompt_eval_count": 593,
-      "total_duration": 11706134125
+      "total_duration": 2697146167
     }
   },
   "safe": true,
@@ -105,14 +107,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 11717.81,
+      "latency_ms": 2697.98,
       "model": "gemma3:4b",
       "provider": "ollama",
       "usage": {
         "eval_count": 32,
-        "load_duration": 3393430041,
+        "load_duration": 385609084,
         "prompt_eval_count": 593,
-        "total_duration": 11706134125
+        "total_duration": 2697146167
       }
     }
   ]

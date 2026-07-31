@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 16.783297,
+  "duration_seconds": 7.277393,
   "grades": [
     {
       "evidence": {},
@@ -78,7 +78,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:40:29.513525+00:00",
+    "created_at": "2026-07-31T13:54:47.583522+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -88,10 +88,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "e5ff97bd47954556b3b9c61223bc4f2eef5b24507ac5aadd5df27bf7af4c3018",
-    "run_id": "a6b21520-e5af-4698-bd9a-c8a2427e9ca3",
+    "run_id": "9043919e-1fc6-4f38-8554-6738629df02b",
+    "runtime_task_hash": "c02c1a837b581d417b0ac228cfe1416f9e8ad3c3c5ecf4399ed90340a87755ee",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.rt.linac-output-deviation-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -114,16 +116,16 @@
     "content_redacted": true,
     "content_sha256": "4828a02e5b462cd27d1b4c82cf3f0c9f11c2730f04ae8dd1bc81650b2fa45abb",
     "done_reason": "stop",
-    "latency_ms": 16780.16,
+    "latency_ms": 7272.09,
     "model": "deepseek-r1:1.5b",
     "provider": "ollama",
     "thinking_redacted": true,
     "thinking_sha256": "c6d7e94222b6b437e6b6163ed207104872aa65f3c0d3d5c5010b752268885daf",
     "usage": {
       "eval_count": 511,
-      "load_duration": 314712583,
+      "load_duration": 132189875,
       "prompt_eval_count": 543,
-      "total_duration": 16775048875
+      "total_duration": 7270843125
     }
   },
   "safe": true,
@@ -132,14 +134,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 16780.16,
+      "latency_ms": 7272.09,
       "model": "deepseek-r1:1.5b",
       "provider": "ollama",
       "usage": {
         "eval_count": 511,
-        "load_duration": 314712583,
+        "load_duration": 132189875,
         "prompt_eval_count": 543,
-        "total_duration": 16775048875
+        "total_duration": 7270843125
       }
     }
   ]

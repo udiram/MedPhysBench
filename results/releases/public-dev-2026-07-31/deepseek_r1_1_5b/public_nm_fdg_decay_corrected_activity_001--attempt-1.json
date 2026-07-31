@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 22.478288,
+  "duration_seconds": 12.832903,
   "grades": [
     {
       "evidence": {},
@@ -52,7 +52,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:41:29.207068+00:00",
+    "created_at": "2026-07-31T13:55:20.103159+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -62,10 +62,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "7c0f526988a40f3ad7fc330b45affe48b0250eb1e0207a4db21692ba21ffd75d",
-    "run_id": "110c414e-5e17-46a5-bde5-bd7ef9edd39c",
+    "run_id": "6986137a-3c39-4a7d-b24d-ea5589cc7f76",
+    "runtime_task_hash": "d87a58212ce00ac2c59daf8e75f2c0ece42d6981537eee847571cd4627bed856",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.nm.fdg-decay-corrected-activity-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -86,16 +88,16 @@
     "content_redacted": true,
     "content_sha256": "ddf8e29fa63ae554259ce5a0379f745fd45921135b453770742a9609c41633e4",
     "done_reason": "stop",
-    "latency_ms": 22477.86,
+    "latency_ms": 12828.82,
     "model": "deepseek-r1:1.5b",
     "provider": "ollama",
     "thinking_redacted": true,
     "thinking_sha256": "4df9fbb8f312e46b72cb084e141f5113a741d284ffdb3b0dc9c4046da2dc3d51",
     "usage": {
       "eval_count": 910,
-      "load_duration": 161403667,
+      "load_duration": 183495709,
       "prompt_eval_count": 483,
-      "total_duration": 22476363000
+      "total_duration": 12824379292
     }
   },
   "safe": true,
@@ -104,14 +106,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 22477.86,
+      "latency_ms": 12828.82,
       "model": "deepseek-r1:1.5b",
       "provider": "ollama",
       "usage": {
         "eval_count": 910,
-        "load_duration": 161403667,
+        "load_duration": 183495709,
         "prompt_eval_count": 483,
-        "total_duration": 22476363000
+        "total_duration": 12824379292
       }
     }
   ]

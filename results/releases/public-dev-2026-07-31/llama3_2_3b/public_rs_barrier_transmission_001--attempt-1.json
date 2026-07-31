@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 4.28448,
+  "duration_seconds": 2.222297,
   "grades": [
     {
       "evidence": {},
@@ -52,7 +52,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:39:27.817471+00:00",
+    "created_at": "2026-07-31T13:54:11.657022+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -62,10 +62,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "2c1baa10dba9ee8ee41b67352f5aa913bcbd621e231a4b4164344e3d0df15809",
-    "run_id": "6699d076-13b3-46cd-90f3-00bb4d57361c",
+    "run_id": "87a69d6b-8944-408a-87e2-e959efc45411",
+    "runtime_task_hash": "8cfac9cac3017788072848bac2951b6223763534be5aed17bff300e75cca2c2a",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.rs.barrier-transmission-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -82,14 +84,14 @@
     "content_redacted": true,
     "content_sha256": "3f0b47f9ed454589e664d11ad13acc2ddc77116115dc3a192a0992b7796b6ee1",
     "done_reason": "stop",
-    "latency_ms": 4283.5,
+    "latency_ms": 2220.02,
     "model": "llama3.2:3b",
     "provider": "ollama",
     "usage": {
       "eval_count": 35,
-      "load_duration": 635875292,
+      "load_duration": 196699334,
       "prompt_eval_count": 502,
-      "total_duration": 4278593458
+      "total_duration": 2218025542
     }
   },
   "safe": true,
@@ -98,14 +100,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 4283.5,
+      "latency_ms": 2220.02,
       "model": "llama3.2:3b",
       "provider": "ollama",
       "usage": {
         "eval_count": 35,
-        "load_duration": 635875292,
+        "load_duration": 196699334,
         "prompt_eval_count": 502,
-        "total_duration": 4278593458
+        "total_duration": 2218025542
       }
     }
   ]

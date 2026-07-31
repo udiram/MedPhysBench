@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import asdict, dataclass
 from typing import Any
 
@@ -25,6 +26,29 @@ class Grade:
 
 
 def validate_expected_output_shape(task: TaskSpec, output: dict[str, Any]) -> Grade:
+    try:
+        Draft202012Validator.check_schema(task.expected_output_schema)
+    except Exception as error:
+        return Grade(
+            grader_id="schema.json_schema",
+            passed=False,
+            score=0.0,
+            severity="critical",
+            rationale="The authored output schema is invalid; the task cannot be scored.",
+            evidence={"schema_error": str(error)},
+            lane="artifact",
+        )
+    non_finite_paths = _non_finite_number_paths(output)
+    if non_finite_paths:
+        return Grade(
+            grader_id="schema.json_schema",
+            passed=False,
+            score=0.0,
+            severity="high",
+            rationale="Candidate output contains non-finite numeric values, which are not valid JSON.",
+            evidence={"non_finite_paths": non_finite_paths[:10]},
+            lane="artifact",
+        )
     errors = sorted(
         Draft202012Validator(task.expected_output_schema).iter_errors(output),
         key=lambda error: list(error.path),
@@ -64,9 +88,14 @@ def grade_numeric_tolerance(task: TaskSpec, output: dict[str, Any]) -> Grade:
         )
 
     field = str(spec.get("field", "answer"))
+    raw_actual = output.get(field)
     try:
-        actual = float(output[field])
-    except (KeyError, TypeError, ValueError):
+        if isinstance(raw_actual, bool):
+            raise TypeError("booleans are not numeric answers")
+        actual = float(raw_actual)
+        if not math.isfinite(actual):
+            raise ValueError("numeric answer must be finite")
+    except (TypeError, ValueError):
         return Grade(
             grader_id="numeric_tolerance",
             passed=False,
@@ -79,6 +108,16 @@ def grade_numeric_tolerance(task: TaskSpec, output: dict[str, Any]) -> Grade:
 
     expected = float(spec["expected"])
     tolerance = float(spec["absolute_tolerance"])
+    if not math.isfinite(expected) or not math.isfinite(tolerance) or tolerance < 0:
+        return Grade(
+            grader_id="numeric_tolerance",
+            passed=False,
+            score=0.0,
+            severity="critical",
+            rationale="The authored numeric grader is invalid; the task cannot be scored.",
+            evidence={"expected": expected, "absolute_tolerance": tolerance},
+            lane=str(spec.get("lane", "outcome")),
+        )
     error = abs(actual - expected)
     passed = error <= tolerance
     return Grade(
@@ -245,3 +284,16 @@ def score_attempt(task: TaskSpec, output: dict[str, Any]) -> list[Grade]:
     if declared:
         return grades + declared
     return grades + [grade_numeric_tolerance(task, output)]
+
+
+def _non_finite_number_paths(value: Any, path: str = "$") -> list[str]:
+    paths: list[str] = []
+    if isinstance(value, float) and not math.isfinite(value):
+        paths.append(path)
+    elif isinstance(value, dict):
+        for key, child in value.items():
+            paths.extend(_non_finite_number_paths(child, f"{path}.{key}"))
+    elif isinstance(value, (list, tuple)):
+        for index, child in enumerate(value):
+            paths.extend(_non_finite_number_paths(child, f"{path}[{index}]"))
+    return paths

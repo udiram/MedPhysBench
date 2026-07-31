@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 11.557238,
+  "duration_seconds": 6.876082,
   "grades": [
     {
       "evidence": {},
@@ -78,7 +78,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:28:15.925934+00:00",
+    "created_at": "2026-07-31T13:49:44.538233+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -88,10 +88,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "e5ff97bd47954556b3b9c61223bc4f2eef5b24507ac5aadd5df27bf7af4c3018",
-    "run_id": "07ddde15-283a-4774-8e0c-d3cfb83d4d95",
+    "run_id": "267333fd-a050-45cf-b2bb-51b4927f1b4c",
+    "runtime_task_hash": "c02c1a837b581d417b0ac228cfe1416f9e8ad3c3c5ecf4399ed90340a87755ee",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.rt.linac-output-deviation-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -113,14 +115,14 @@
     "content_redacted": true,
     "content_sha256": "7ac49dbf1d41a721b04740712fd7d886b1425bbdc2c0d3073c59f1649ee135ac",
     "done_reason": "stop",
-    "latency_ms": 11556.81,
+    "latency_ms": 6874.73,
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
     "usage": {
       "eval_count": 98,
-      "load_duration": 138390958,
+      "load_duration": 158372375,
       "prompt_eval_count": 553,
-      "total_duration": 11555604750
+      "total_duration": 6873949208
     }
   },
   "safe": true,
@@ -129,14 +131,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 11556.81,
+      "latency_ms": 6874.73,
       "model": "qwen2.5:7b-instruct",
       "provider": "ollama",
       "usage": {
         "eval_count": 98,
-        "load_duration": 138390958,
+        "load_duration": 158372375,
         "prompt_eval_count": 553,
-        "total_duration": 11555604750
+        "total_duration": 6873949208
       }
     }
   ]

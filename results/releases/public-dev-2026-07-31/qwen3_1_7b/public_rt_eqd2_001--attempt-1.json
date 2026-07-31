@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 6.18752,
+  "duration_seconds": 1.013231,
   "grades": [
     {
       "evidence": {},
@@ -66,8 +66,8 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:38:17.583765+00:00",
-    "max_tokens": 512,
+    "created_at": "2026-07-31T13:50:57.904401+00:00",
+    "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
       "harness_revision": "reference-json-v1",
@@ -76,10 +76,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "48ad15d34014b7d0a3be73983af64a9fa9cedb111acaa845cc3a08d353613c74",
-    "run_id": "8b0344b8-0bb9-4721-b0cc-b62e275fd2d8",
+    "run_id": "e866ded3-40e9-42a6-908f-ae95499659ee",
+    "runtime_task_hash": "7a80375a79f4cccd2d0dd4cf45099fbeef65f4e3f2d85d4547687ad8a6a330f8",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.rt.eqd2-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -96,14 +98,14 @@
     "content_redacted": true,
     "content_sha256": "ddb537233fe493a0ec2623dd1569e75036904d94f1ed123840e0b9c325e6f587",
     "done_reason": "stop",
-    "latency_ms": 5816.46,
+    "latency_ms": 1010.7,
     "model": "qwen3:1.7b",
     "provider": "ollama",
     "usage": {
       "eval_count": 40,
-      "load_duration": 420405542,
+      "load_duration": 139252375,
       "prompt_eval_count": 467,
-      "total_duration": 5763663583
+      "total_duration": 1009904167
     }
   },
   "safe": true,
@@ -112,14 +114,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 5816.46,
+      "latency_ms": 1010.7,
       "model": "qwen3:1.7b",
       "provider": "ollama",
       "usage": {
         "eval_count": 40,
-        "load_duration": 420405542,
+        "load_duration": 139252375,
         "prompt_eval_count": 467,
-        "total_duration": 5763663583
+        "total_duration": 1009904167
       }
     }
   ]

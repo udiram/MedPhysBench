@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 13.76816,
+  "duration_seconds": 8.068381,
   "grades": [
     {
       "evidence": {},
@@ -58,7 +58,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:43:51.793266+00:00",
+    "created_at": "2026-07-31T13:56:43.531949+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -68,10 +68,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "f7032265794077ee3f7299b4a7cbdf3a444fe7e5969b8772dbdd110a1e623f54",
-    "run_id": "6eeaee6a-477f-4dc6-b3a1-52b13cbdb66b",
+    "run_id": "51c11aee-4b08-400c-acc2-8cc321b19c09",
+    "runtime_task_hash": "f5f3c8037b53a884cfcb120d515c9c6b499b27ae92f5afadc952e0c8ca9ec81f",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.imaging.protocol-checklist-gap-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -91,16 +93,16 @@
     "content_redacted": true,
     "content_sha256": "5af251b061fa6903e820d0c3b3570d95d04cd42909efc90b4c74360e1ef246cc",
     "done_reason": "stop",
-    "latency_ms": 13768.01,
+    "latency_ms": 8066.67,
     "model": "deepseek-r1:1.5b",
     "provider": "ollama",
     "thinking_redacted": true,
     "thinking_sha256": "d706f0f2c663e5fef6682da8aba841d40093103f469f1aa37a9e369da870ac25",
     "usage": {
       "eval_count": 547,
-      "load_duration": 197167875,
+      "load_duration": 149438125,
       "prompt_eval_count": 498,
-      "total_duration": 13767224833
+      "total_duration": 8065476125
     }
   },
   "safe": true,
@@ -109,14 +111,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 13768.01,
+      "latency_ms": 8066.67,
       "model": "deepseek-r1:1.5b",
       "provider": "ollama",
       "usage": {
         "eval_count": 547,
-        "load_duration": 197167875,
+        "load_duration": 149438125,
         "prompt_eval_count": 498,
-        "total_duration": 13767224833
+        "total_duration": 8065476125
       }
     }
   ]

@@ -1,8 +1,10 @@
 # MedPhysBench: Reproducible Evaluation of Medical-Physics AI Systems
 
-**Public development release:** `public-dev-2026-07-31`  
-**Benchmark version:** `0.2.0`  
-**Status:** Research benchmark; not clinical validation  
+**Public development release:** `public-dev-2026-07-31`
+
+**Benchmark version:** `0.3.0`
+
+**Status:** Research benchmark; not clinical validation
 
 ## Abstract
 
@@ -18,9 +20,14 @@ physics, radiation therapy, brachytherapy, imaging, nuclear medicine, radiation 
 informatics, quality assurance, and research interpretation. Every task has an authored view and a
 sealed runtime view; gold answers, graders, and sensitive provenance never cross the candidate
 boundary. The reference harness records model identity, prompt and tool hashes, sampling
-parameters, latency, raw provider output, grader results, and safety failures. Results are reported
+parameters, latency, provider-response digests, grader results, and safety failures. Results are reported
 as task success, safe success, structured-output validity, escalation accuracy, `any_pass`,
 `all_pass`, domain results, and Wilson 95% confidence intervals.
+
+Version 0.3 adds a publication-integrity layer: summaries reconstruct grades from recorded outputs
+instead of trusting stored score fields, and a model is rankable only when the declared task/attempt
+matrix is complete, composed of completed attempts, unique, hash-consistent, tied to one model and
+harness identity, and executed under one sampling/sandbox configuration.
 
 This release is a complete public-development evaluation loop and publication package. It is not
 evidence of autonomous clinical competence. Headline generalization claims require the planned
@@ -92,11 +99,17 @@ The current reference harness supports Ollama-compatible local and cloud models.
 1. constructs a frozen system prompt and runtime task payload;
 2. requests a JSON object matching the task schema;
 3. records provider/model revision and sampling parameters;
-4. preserves raw response, reasoning field when the provider exposes it, token counts, and latency;
+4. preserves raw response and reasoning only in the private execution record, then publishes
+   response digests, token counts, and latency after sanitization;
 5. converts malformed or absent structured output into an explicit parser failure;
 6. runs deterministic outcome, artifact, and safety graders;
 7. writes one immutable JSON record per task attempt;
-8. aggregates model results into a leaderboard artifact.
+8. aggregates model results into a leaderboard artifact and ranks only complete,
+   internally consistent runs.
+
+The structured-output parser accepts exactly one JSON object. It rejects Markdown fences,
+surrounding prose, trailing candidates, duplicate keys, non-object roots, and non-finite numeric
+constants. This prevents adapter repair behavior from becoming an undocumented source of score.
 
 Provider failures are not converted into answers and do not disappear from denominators. The
 campaign runner can continue after an error, while `--fail-fast` is available for adapter
@@ -140,6 +153,15 @@ Ranks are descriptive. Overlapping intervals and small public task counts make c
 differences unsuitable for superiority claims. Larger sealed suites should use hierarchical
 bootstrap intervals and publish rank uncertainty.
 
+### 6.1 Public baseline snapshot
+
+Eleven locally reachable Ollama models completed all 16 expected attempts and were rank-eligible.
+The highest observed safe-success rate was 50.0% for `qwen3:14b`; the next three rows were 43.8%.
+Three additional cloud handles produced complete error evidence but no completed attempts and were
+not ranked. These are access outcomes, not model-quality estimates. Full task-level outputs,
+uncertainty intervals, latency, and failure evidence are published in [`RESULTS.md`](RESULTS.md) and
+the release artifact directory.
+
 ## 7. Reproducibility artifacts
 
 Each public score is backed by:
@@ -147,17 +169,25 @@ Each public score is backed by:
 - the versioned release manifest;
 - task YAML and schema versions;
 - frozen system/user prompt construction;
+- system-prompt, task-prompt, tool-schema, and runtime-task hashes;
 - provider and model revision;
 - temperature, seed, and token budget;
-- prompt and tool-schema hashes;
 - sandbox/tool-environment identifiers;
-- raw provider response and parse events;
+- sanitized provider-response digests and parse events;
 - deterministic grader outputs;
 - task-level duration and error state;
 - generated leaderboard JSON.
 
-The repository CI runs contract tests, task-release validation, lint, and the deterministic
-reference demo. Live model scores are never regenerated in CI without an explicit campaign.
+During publication, the summarizer verifies the expected `(task_id, attempt_index)` set, rejects
+duplicates, unknown tasks, provider-error attempts, and mixed execution configurations, enforces
+task/model/harness identity consistency, checks prompt/tool/runtime/system hashes, and recomputes
+deterministic grades from output. Any disagreement between stored and recomputed pass/safety fields
+makes the row unrankable and remains visible in the integrity report.
+
+The repository CI runs contract tests, task-release validation, repository-wide schema checks over
+all authored tasks, sealed runtime projections, run manifests, and public results, lint, public
+reasoning-redaction checks, and the deterministic reference demo. Live model scores are never
+regenerated in CI without an explicit campaign.
 
 ## 8. Governance and validation
 
@@ -181,6 +211,8 @@ The public release has deliberate limits:
 - Most inputs are synthetic; no patient data or proprietary clinical content is included.
 - The development set is public and therefore contamination-prone.
 - Current published scores use one attempt per task unless a manifest states otherwise.
+- The v1 `prompt_hash` remains the legacy instruction hash for comparability; separate system-prompt
+  and full-runtime-task hashes bind the complete candidate-visible contract.
 - Tool-state and file-artifact tracks are implemented in the architecture but require additional
   expert-authored release tasks before they can support headline results.
 - Model availability through a local Ollama installation is an access snapshot, not an exhaustive

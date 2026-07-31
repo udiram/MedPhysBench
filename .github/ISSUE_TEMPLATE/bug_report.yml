@@ -1,0 +1,40 @@
+name: Harness or website defect
+description: Report a reproducible implementation, integrity, or public-site problem
+title: "[Bug] "
+labels: ["bug", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include PHI, credentials, private holdout labels, or provider secrets.
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      options: [Harness, Grading, Release integrity, Provider adapter, Public website, Documentation]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Commit, package version, or release ID
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Include commands, inputs, expected behavior, and observed behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Non-sensitive evidence
+      description: Logs, trace excerpts, screenshots, or artifact paths with secrets removed.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed PHI, credentials, private labels, and provider secrets.
+          required: true

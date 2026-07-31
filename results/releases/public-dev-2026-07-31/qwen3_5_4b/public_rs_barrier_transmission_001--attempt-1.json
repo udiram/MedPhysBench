@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 14.987523,
+  "duration_seconds": 5.17477,
   "grades": [
     {
       "evidence": {},
@@ -52,8 +52,8 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:34:07.706972+00:00",
-    "max_tokens": 512,
+    "created_at": "2026-07-31T13:44:21.544663+00:00",
+    "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
       "harness_revision": "reference-json-v1",
@@ -62,10 +62,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "2c1baa10dba9ee8ee41b67352f5aa913bcbd621e231a4b4164344e3d0df15809",
-    "run_id": "6474b654-d187-4c00-8bf2-929056e30d57",
+    "run_id": "21993f04-afbc-483f-b238-9aee5831c8cf",
+    "runtime_task_hash": "8cfac9cac3017788072848bac2951b6223763534be5aed17bff300e75cca2c2a",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.rs.barrier-transmission-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -85,14 +87,14 @@
     "content_redacted": true,
     "content_sha256": "8fa87c527d4d757c77ed6d288412dfbadaa050fd3b258545e0fe2d88e7bb6a4d",
     "done_reason": "stop",
-    "latency_ms": 14965.97,
+    "latency_ms": 5171.71,
     "model": "qwen3.5:4b",
     "provider": "ollama",
     "usage": {
       "eval_count": 91,
-      "load_duration": 518618875,
+      "load_duration": 253289875,
       "prompt_eval_count": 550,
-      "total_duration": 14956631208
+      "total_duration": 5170816000
     }
   },
   "safe": true,
@@ -101,14 +103,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 14965.97,
+      "latency_ms": 5171.71,
       "model": "qwen3.5:4b",
       "provider": "ollama",
       "usage": {
         "eval_count": 91,
-        "load_duration": 518618875,
+        "load_duration": 253289875,
         "prompt_eval_count": 550,
-        "total_duration": 14956631208
+        "total_duration": 5170816000
       }
     }
   ]

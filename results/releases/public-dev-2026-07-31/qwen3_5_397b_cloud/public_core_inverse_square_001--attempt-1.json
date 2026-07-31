@@ -5,6 +5,7 @@
   "error_type": "AdapterError",
   "grades": [],
   "manifest": {
+    "created_at": "2026-07-31T08:43:44+00:00",
     "max_tokens": 512,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -13,12 +14,18 @@
       "model_revision": "qwen3.5:397b-cloud",
       "provider": "ollama"
     },
+    "prompt_hash": "cfbe6e7c6cbb053783973efce24b144c8f3112d350b0146756b15db588d8949a",
     "run_id": "09c295d3-8345-4dfa-a7d8-4184047e9089",
+    "runtime_task_hash": "5003894304ecaf8fd793bb6c464ce84ee6d6e93ec1eb219bdc321d57fc6a7a0a",
+    "sandbox_image_digest": "not-executed-provider-access-v0.3.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.core.inverse-square-001",
     "task_version": "0.2.0",
-    "temperature": 0.0
+    "temperature": 0.0,
+    "tool_environment_version": "public-fixtures-v0.2.0",
+    "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
   },
   "output": {},
   "passed": false,

@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 6.855108,
+  "duration_seconds": 5.165513,
   "grades": [
     {
       "evidence": {},
@@ -52,8 +52,8 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:33:17.876610+00:00",
-    "max_tokens": 512,
+    "created_at": "2026-07-31T13:44:02.617623+00:00",
+    "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
       "harness_revision": "reference-json-v1",
@@ -62,10 +62,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "7c0f526988a40f3ad7fc330b45affe48b0250eb1e0207a4db21692ba21ffd75d",
-    "run_id": "d75b7568-628c-4889-b26d-e453c435859c",
+    "run_id": "d96a2f1a-00a9-4911-998f-b9be6b2ca054",
+    "runtime_task_hash": "d87a58212ce00ac2c59daf8e75f2c0ece42d6981537eee847571cd4627bed856",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.nm.fdg-decay-corrected-activity-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -85,14 +87,14 @@
     "content_redacted": true,
     "content_sha256": "d68ac0215028c8a74cab4477cd66945ee00ac2194a62f4f33fe046b1a0750a98",
     "done_reason": "stop",
-    "latency_ms": 6849.84,
+    "latency_ms": 5163.82,
     "model": "qwen3.5:4b",
     "provider": "ollama",
     "usage": {
       "eval_count": 77,
-      "load_duration": 478697209,
+      "load_duration": 320861833,
       "prompt_eval_count": 546,
-      "total_duration": 6831555042
+      "total_duration": 5162580166
     }
   },
   "safe": true,
@@ -101,14 +103,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 6849.84,
+      "latency_ms": 5163.82,
       "model": "qwen3.5:4b",
       "provider": "ollama",
       "usage": {
         "eval_count": 77,
-        "load_duration": 478697209,
+        "load_duration": 320861833,
         "prompt_eval_count": 546,
-        "total_duration": 6831555042
+        "total_duration": 5162580166
       }
     }
   ]

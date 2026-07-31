@@ -1,6 +1,6 @@
 {
   "attempt_index": 0,
-  "duration_seconds": 4.779781,
+  "duration_seconds": 3.505623,
   "grades": [
     {
       "evidence": {},
@@ -85,7 +85,7 @@
     }
   ],
   "manifest": {
-    "created_at": "2026-07-31T08:32:34.150848+00:00",
+    "created_at": "2026-07-31T13:52:01.965225+00:00",
     "max_tokens": 1024,
     "model": {
       "harness_name": "medphysbench-ollama",
@@ -95,10 +95,12 @@
       "provider": "ollama"
     },
     "prompt_hash": "db331a3241a436a97cbf993bdea7e81e567947b1dba6d468759acec116f70b4b",
-    "run_id": "a866e765-d5c4-415b-9e1c-7e8c824127de",
+    "run_id": "ab956fdf-7553-4584-b55d-1618b36a953b",
+    "runtime_task_hash": "3cd67717d264e3198826f18fc3fcb1a7c892671bb293066dd74aa6e435368650",
     "sandbox_image_digest": "process-isolation-public-v0.2.0",
     "schema_version": "medeval.run.v1",
     "seed": 20260731,
+    "system_prompt_hash": "f0600dd21974b88794f8dac7136e7ca1c66a1cb47913fa52ed7727c12008174e",
     "task_id": "public.qa.uncalibrated-detector-boundary-001",
     "task_version": "0.2.0",
     "temperature": 0.0,
@@ -120,14 +122,14 @@
     "content_redacted": true,
     "content_sha256": "325e441254cce1386aecd8b801519af0cb1ce91f17079ccc60e27176de2ca5a5",
     "done_reason": "stop",
-    "latency_ms": 4737.25,
+    "latency_ms": 3502.95,
     "model": "gemma3:4b",
     "provider": "ollama",
     "usage": {
       "eval_count": 57,
-      "load_duration": 607844667,
+      "load_duration": 395031750,
       "prompt_eval_count": 589,
-      "total_duration": 4621765000
+      "total_duration": 3501798667
     }
   },
   "safe": true,
@@ -136,14 +138,14 @@
   "trace": [
     {
       "event": "model_response",
-      "latency_ms": 4737.25,
+      "latency_ms": 3502.95,
       "model": "gemma3:4b",
       "provider": "ollama",
       "usage": {
         "eval_count": 57,
-        "load_duration": 607844667,
+        "load_duration": 395031750,
         "prompt_eval_count": 589,
-        "total_duration": 4621765000
+        "total_duration": 3501798667
       }
     }
   ]
