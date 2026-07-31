@@ -84,6 +84,14 @@ export function LeaderboardExplorer({
         <button
           type="button"
           role="tab"
+          aria-selected={releaseView === "tg263"}
+          onClick={() => onReleaseViewChange("tg263")}
+        >
+          TG-263 naming pilot
+        </button>
+        <button
+          type="button"
+          role="tab"
           aria-selected={releaseView === "imaging"}
           onClick={() => onReleaseViewChange("imaging")}
         >
@@ -92,16 +100,18 @@ export function LeaderboardExplorer({
       </div>
       <div className="section-heading section-heading-row">
         <div>
-          <h2>{releaseView === "core" ? "Core benchmark results" : "Real-image pilot results"}</h2>
+          <h2>{releaseTitle(releaseView)}</h2>
           <p>
             {releaseView === "core"
               ? "Original medical-physics calculations, audits, evidence checks, and escalation boundaries."
-              : "Separate real MRI, CT, and PET localization, coarse segmentation, and source-label results; five tasks are not clinical validation."}
+              : releaseView === "tg263"
+                ? "Ambiguity-heavy, collision-aware structure naming. Native 5.6 rows are deliberately unranked and expose saturation on the earlier core."
+                : "Separate real MRI, CT, and PET localization, coarse segmentation, and source-label results; five tasks are not clinical validation."}
           </p>
         </div>
         <a
           className="download-link"
-          href={releaseView === "core" ? "/data/leaderboard.json" : "/data/imaging_leaderboard.json"}
+          href={releaseDownload(releaseView)}
           download
         >
           <ArrowDownToLine aria-hidden="true" /> Download JSON
@@ -151,7 +161,7 @@ export function LeaderboardExplorer({
         <div className="table-scroll" role="region" aria-label="Model leaderboard" tabIndex={0}>
           <table className="leaderboard-table">
             <caption className="sr-only">
-              MedPhysBench {releaseView === "core" ? "core" : "real-image pilot"} results
+              MedPhysBench {releaseTitle(releaseView)}
             </caption>
             <thead>
               <tr>
@@ -223,6 +233,18 @@ export function LeaderboardExplorer({
       )}
     </section>
   );
+}
+
+function releaseTitle(view: ReleaseView) {
+  if (view === "core") return "Core benchmark results";
+  if (view === "tg263") return "TG-263 naming pilot results";
+  return "Real-image pilot results";
+}
+
+function releaseDownload(view: ReleaseView) {
+  if (view === "core") return "/data/leaderboard.json";
+  if (view === "tg263") return "/data/tg263_leaderboard.json";
+  return "/data/imaging_leaderboard.json";
 }
 
 function ModelDetailRow({

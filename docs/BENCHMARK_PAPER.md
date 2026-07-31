@@ -1,8 +1,8 @@
 # MedPhysBench: Reproducible Evaluation of Medical-Physics AI Systems
 
-**Public development releases:** `public-core-v0.4` and `public-imaging-pilot-v0.4`
+**Public development releases:** `public-core-v0.5`, `public-tg263-pilot-v0.5`, and `public-imaging-pilot-v0.4`
 
-**Benchmark version:** `0.4.0`
+**Benchmark version:** `0.5.0`
 
 **Status:** Research benchmark; not clinical validation
 
@@ -15,7 +15,8 @@ answering. MedPhysBench instead evaluates whether an AI system can complete a ve
 correctly, satisfy a machine-checkable output contract, preserve safety boundaries, and produce a
 reproducible run record.
 
-Version 0.4 contains a 64-task public core release plus five separately reported, hash-pinned real
+Version 0.5 contains an 82-task public-core hardening candidate, including an independently
+authored 18-task TG-263-aligned structure-naming lane, plus five separately reported, hash-pinned real
 MRI, CT, and PET tasks spanning localization, coarse segmentation, and retrospective source-label
 classification. The core spans radiation therapy, brachytherapy, imaging, nuclear medicine,
 radiation safety, informatics, quality assurance, and research methods. Every task has an authored view and a
@@ -25,10 +26,12 @@ parameters, latency, provider-response digests, grader results, and safety failu
 as task success, safe success, structured-output validity, escalation accuracy, `any_pass`,
 `all_pass`, domain results, and Wilson 95% confidence intervals.
 
-Version 0.4 retains deterministic regrading and adds reference-feasibility reconstruction,
+Version 0.5 retains deterministic regrading and adds reference-feasibility reconstruction,
 hash-verified multimodal assets, bounding-box IoU and grid-mask Dice graders, and sealed-batch
 import checks. A model is rankable only when its task/attempt matrix is complete and consistent.
 Native conversation-surface pilots are published separately and cannot receive a common-harness rank.
+Difficulty governance adds family-level splits, rotating holdouts, paired counterfactuals,
+multi-seed consistency, saturation triggers, and a 20-phase radiation-therapy competency map.
 
 This release is a complete public-development evaluation loop and publication package. It is not
 evidence of autonomous clinical competence. Headline generalization claims require the planned
@@ -74,7 +77,8 @@ assert this separation and assert that CLI validation cannot print grading mater
 
 ## 3. Public development release
 
-The `public-core-v0.4` release contains 64 tasks. It mixes calculation, evidence-grounding,
+The frozen scored snapshot, `public-core-v0.4`, contains 64 tasks. The `public-core-v0.5`
+candidate contains 82 tasks after adding 18 ambiguity-heavy structure-naming cases. It mixes calculation, evidence-grounding,
 checklist, informatics, and abstention boundaries. The `public-imaging-pilot-v0.4` release contains
 five licensed retrospective-image tasks and is never merged into the core rank.
 
@@ -153,6 +157,9 @@ The public leaderboard reports:
 - **`all_pass`**: fraction of tasks for which every attempt succeeds;
 - **domain safe success**;
 - **Wilson 95% confidence interval** over binary attempt success.
+- **median and total token use**, when the provider reports it;
+- **median common-harness wall time**, with unavailable native telemetry shown as missing;
+- **score-efficiency Pareto frontier**, reported only within one release and comparable harness.
 
 Ranks are descriptive. Overlapping intervals and small public task counts make close rank
 differences unsuitable for superiority claims. Larger sealed suites should use hierarchical
@@ -160,13 +167,19 @@ bootstrap intervals and publish rank uncertainty.
 
 ### 6.1 Public baseline snapshot
 
-`qwen3:14b` completed the 64-task core through the common Ollama harness and achieved 73.44% safe
+Five local models completed the 64-task core through the common Ollama harness. Scores ranged
+from 25.00% to 73.44%; `qwen3:14b` led with 73.44% safe
 success with a 98.44% safety-gate rate. Six GPT-5.6 effort configurations completed the same sealed
 runtime batch on a native Codex conversation surface; three scored 100% and three scored 98.44%, all
 with 100% safety-gate rate. Those GPT rows are deliberately unranked because the surface was not the
 common adapter and did not provide equivalent isolation or sampling controls. Three local vision
 models also completed the separate imaging pilot. Full evidence is published in
 [`RESULTS.md`](RESULTS.md) and the release directories.
+
+To probe saturation, GPT-5.6 high and ultra were also evaluated on the 18-task TG-263 pilot.
+They achieved 27.78% and 22.22% safe success respectively while preserving 100% of safety and
+required-escalation gates. These are unranked native-surface results, but they show that a perfect
+score on the earlier public core does not transfer to stricter naming and ambiguity contracts.
 
 ## 7. Reproducibility artifacts
 
@@ -213,7 +226,7 @@ oversight, clear limits, quality assurance, and fallback behavior [7–10].
 
 The public release has deliberate limits:
 
-- 64 core tasks still do not represent the breadth or prevalence of medical-physics work.
+- 82 candidate core tasks still do not represent the breadth or prevalence of medical-physics work.
 - Most core inputs are synthetic. The imaging pilot contains reduced, de-identified public research
   images under MSD, TCIA, and AutoPET/ENHANCE.PET terms.
 - The development set is public and therefore contamination-prone.

@@ -7,6 +7,10 @@ export const DOC_LINKS = [
   ["Threat model", `${REPO_URL}/blob/main/docs/THREAT_MODEL.md`],
   ["Imaging protocol", `${REPO_URL}/blob/main/docs/IMAGING_EVALUATION.md`],
   ["Source policy", `${REPO_URL}/blob/main/docs/KNOWLEDGE_SOURCE_POLICY.md`],
+  ["Benchmark hardening", `${REPO_URL}/blob/main/docs/BENCHMARK_HARDENING.md`],
+  ["RT competency map", `${REPO_URL}/blob/main/docs/RT_COMPETENCY_MAP.md`],
+  ["TG-263 benchmark", `${REPO_URL}/blob/main/docs/TG263_BENCHMARK.md`],
+  ["Free model evaluation", `${REPO_URL}/blob/main/docs/FREE_MODEL_EVALUATION.md`],
   ["Benchmark card", `${REPO_URL}/blob/main/docs/BENCHMARK_CARD.md`],
 ] as const;
 

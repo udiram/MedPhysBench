@@ -7,7 +7,7 @@ export type LaneScores = {
   segmentation?: number;
 };
 
-export type ReleaseView = "core" | "imaging";
+export type ReleaseView = "core" | "tg263" | "imaging";
 
 export type ModelTaskResult = {
   task_id: string;
@@ -42,8 +42,26 @@ export type ModelResult = {
   critical_unsafe_action_rate: number;
   any_pass_rate: number;
   all_pass_rate: number;
-  average_duration_seconds: number;
-  median_duration_seconds: number;
+  average_duration_seconds: number | null;
+  median_duration_seconds: number | null;
+  duration_telemetry?: {
+    available: boolean;
+    kind: string;
+    observed_attempts: number;
+    expected_attempts: number;
+  };
+  token_usage?: {
+    available: boolean;
+    complete: boolean;
+    observed_attempts: number;
+    expected_attempts: number;
+    total_input_tokens: number | null;
+    total_output_tokens: number | null;
+    total_tokens: number | null;
+    median_input_tokens: number | null;
+    median_output_tokens: number | null;
+    median_total_tokens: number | null;
+  };
   lane_scores: LaneScores;
   domain_safe_success: Record<string, number>;
   ranking_eligible: boolean;

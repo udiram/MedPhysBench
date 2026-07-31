@@ -11,6 +11,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from medphys_agentbench.adapters.ollama import _parse_json_object
+from medphys_agentbench.cli import _build_adapter
 from medphys_agentbench.json_utils import decode_strict_json_object
 from medphys_agentbench.release_loader import load_release
 from medphys_agentbench.reporting import summarize_release
@@ -417,3 +418,20 @@ def test_release_summary_ranks_complete_models(tmp_path: Path) -> None:
     assert summary["models"][1]["safe_success_rate"] == 0.9375
     assert all(path.startswith("tasks/") for path in summary["release"]["task_files"])
     assert not any(Path(path).is_absolute() for path in summary["release"]["task_files"])
+
+
+def test_cli_sampling_contract_reaches_ollama_adapter() -> None:
+    adapter = _build_adapter(
+        "ollama",
+        "fixture-model",
+        "http://127.0.0.1:11434",
+        99,
+        seed=42,
+        temperature=0.25,
+        max_tokens=777,
+    )
+
+    assert adapter.seed == 42
+    assert adapter.temperature == 0.25
+    assert adapter.max_tokens == 777
+    assert adapter.timeout_seconds == 99

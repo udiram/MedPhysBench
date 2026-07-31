@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0 - 2026-07-31
+
+- Published an 82-task hardening candidate and a dedicated 18-task TG-263-aligned structure-naming pilot with ambiguity, collision, laterality, target-grammar, and escalation cases.
+- Added an independently authored TG-263 rule engine and 30 negative, metamorphic, immutability, and executable-reference tests without redistributing the copyrighted AAPM worksheet.
+- Added a 20-phase radiation-therapy competency map, open-source planner integration ladder, AAPM TG/MPPG coverage map, contamination controls, rotating holdouts, paired counterfactuals, multi-seed reporting, and saturation criteria.
+- Expanded the comparable public-core table to five local common-harness models, ranging from 25.00% to 73.44% safe success.
+- Added input/output/total token aggregation, honest unavailable telemetry for native pilots, score-versus-token and score-versus-time charts, Pareto frontiers, confidence intervals, and a no-hover evidence table.
+- Fixed the Ollama release runner so declared seed, temperature, and token limits are passed to the adapter; the v0.4 development snapshot retains a documented metadata discrepancy while v0.5 uses the corrected path.
+- Stress-tested GPT-5.6 on the new structure-naming lane as unranked native-surface evidence rather than treating saturated v0.4 results as a common-harness rank.
+
 ## 0.4.0 - 2026-07-31
 
 - Expanded the public core release from 16 to 64 original tasks across 11 domain labels, with 18 escalation-boundary cases and executable reference-feasibility checks for every authored task.

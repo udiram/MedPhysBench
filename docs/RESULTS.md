@@ -1,4 +1,4 @@
-# MedPhysBench v0.4 results
+# MedPhysBench v0.5 results and v0.4 scored snapshot
 
 ## What was evaluated
 
@@ -9,6 +9,11 @@ On July 31, 2026, MedPhysBench froze two public development releases:
 - `public-imaging-pilot-v0.4`: five attributed retrospective MRI, CT, and PET
   localization, coarse-segmentation, and source-label tasks.
 
+Version 0.5 adds an 82-task hardening candidate and an independently authored,
+18-task TG-263-aligned structure-naming pilot. The 82-task candidate is not yet
+presented as a common-harness leaderboard: the frozen 64-task v0.4 table remains
+the directly comparable model snapshot.
+
 The primary metric is safe task success: an attempt must pass every outcome
 grader and avoid every critical safety failure. Wilson 95% intervals describe
 binary attempt uncertainty. They do not correct for public-set contamination or
@@ -17,14 +22,15 @@ task-family dependence.
 ## Core common-harness leaderboard
 
 These models completed the same 64 tasks through the Ollama adapter with
-temperature 0, seed 20260731, and a 2,048-token output limit. They are the only
-ranked v0.4 core rows.
+temperature 0 and seed 20260731. They are the only ranked v0.4 core rows.
 
 | Rank | Model | Safe success | 95% CI | Safety gate | Valid output |
 | ---: | --- | ---: | ---: | ---: | ---: |
 | 1 | `qwen3:14b` | 73.44% | 61.52–82.70% | 98.44% | 100.00% |
 | 2 | `qwen3:8b` | 57.81% | 45.61–69.13% | 98.44% | 100.00% |
 | 3 | `qwen2.5:7b-instruct` | 50.00% | 38.10–61.90% | 96.88% | 100.00% |
+| 4 | `llama3.2:3b` | 26.56% | 17.30–38.48% | 96.88% | 100.00% |
+| 5 | `qwen3:1.7b` | 25.00% | 16.01–36.82% | 92.19% | 100.00% |
 
 The 14B baseline missed 17 tasks in total, including one safety boundary. Its
 errors span decay and attenuation arithmetic, uncertainty/statistics, DICOM
@@ -32,6 +38,29 @@ sets and size calculations, quantitative nuclear medicine, radiobiology, and
 the plan-release boundary. The result is materially more informative than the
 earlier 16-task release because no single item moves the score by more than
 1.56 percentage points.
+
+### Efficiency telemetry
+
+| Model | Median tokens / attempt | Total tokens | Median wall time / attempt |
+| --- | ---: | ---: | ---: |
+| `qwen3:14b` | 507 | 33,073 | 9.813 s |
+| `qwen3:8b` | 511 | 33,248 | 4.617 s |
+| `qwen2.5:7b-instruct` | 497.5 | 32,528 | 4.218 s |
+| `llama3.2:3b` | 504 | 32,631 | 2.476 s |
+| `qwen3:1.7b` | 505 | 33,108 | 1.767 s |
+
+Token counts are provider-reported and tokenizer-specific. Wall time is the
+common harness duration, not provider-side compute time. The website plots score
+against tokens and time, shows 95% score intervals and the ranked Pareto frontier,
+and preserves a complete table for readers who cannot use hover interactions.
+
+During v0.5 hardening, an audit found that the v0.4 CLI recorded the requested
+2,048-token budget but the Ollama adapter used its 1,024-token default. All five
+common-harness runs used the same effective limit and every published response was
+shorter than that limit, so no output was truncated; however, the v0.4 manifest
+field is inaccurate. The runner now passes the declared seed, temperature, and
+token limit into the adapter. This is a known public-development provenance defect,
+and v0.5 runs must use the corrected path before any stronger comparison claim.
 
 ## GPT-5.6 native-surface pilot
 
@@ -55,6 +84,25 @@ so the reporting layer marks every row `unranked_native_pilot_surface`. No hidde
 reasoning is stored. Low and medium missed the requested qualified-owner role on
 one release-boundary task; xhigh missed one protocol-checklist set. High, max,
 and ultra passed all 64 deterministic task contracts.
+
+## Harder TG-263-aligned native pilot
+
+The `public-tg263-pilot-v0.5` release contains 18 synthetic cases covering
+conservative normalization, target grammar, missing or contradictory laterality,
+case-insensitive collisions, unknown structures, and mandatory escalation. It uses
+an independently authored rule subset and does not redistribute AAPM's worksheet.
+
+| Native surface | Safe success | 95% CI | Safety gate | Escalation accuracy | Status |
+| --- | ---: | ---: | ---: | ---: | --- |
+| GPT-5.6 high | 27.78% | 12.50–50.87% | 100% | 100% | Unranked native pilot |
+| GPT-5.6 ultra | 22.22% | 9.00–45.21% | 100% | 100% | Unranked native pilot |
+
+The result demonstrates why a perfect score on one small public set is not a
+general capability claim. The harder lane distinguishes strict schema-compliant
+answers and safe abstention from exact structure-naming competence. High and ultra
+both preserved every required escalation boundary, but neither achieved a high
+outcome score. The rows remain unranked because they were collected on a native
+conversation surface without comparable latency, token, or sampling telemetry.
 
 ## Real-image pilot
 

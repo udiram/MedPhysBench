@@ -1,0 +1,394 @@
+{
+  "methodology": {
+    "confidence_intervals": "Wilson 95% intervals are used for binary rates. A bounded normal-approximation 95% interval is reported for mean score only when at least two scores are observed.",
+    "missing_usage": "Missing token, latency, or throughput telemetry is null and is never imputed as zero.",
+    "pareto": "A model is efficient when no eligible model is at least as good on every named axis and strictly better on at least one. Leaderboard-ineligible and explicitly non-comparable surfaces are excluded.",
+    "throughput": "Output-token throughput is sum(output tokens) / sum(provider latency) over paired observations; eligibility requires complete paired telemetry.",
+    "token_semantics": "Reasoning tokens are reported separately and are not added to total tokens; provider totals are used when present, otherwise total is derived only when both input and output tokens are observed."
+  },
+  "models": [
+    {
+      "leaderboard": {
+        "attempt_count": 18,
+        "matched": true,
+        "rank": null,
+        "ranking_eligible": false,
+        "reported_safe_success_rate": 0.2778,
+        "reported_task_success_rate": 0.2778
+      },
+      "missing_telemetry": {
+        "any": true,
+        "inconsistent_total_token_records": 0,
+        "missing_counts": {
+          "input_tokens": 18,
+          "latency_seconds": 18,
+          "output_tokens": 18,
+          "output_tokens_per_second": 18,
+          "reasoning_tokens": 18,
+          "total_tokens": 18,
+          "wall_time_seconds": 0
+        },
+        "provider_telemetry_comparable": false
+      },
+      "model": {
+        "harness_name": "medphysbench-recorded-output",
+        "harness_revision": "codex-native-pilot-v1;effort=high",
+        "model_name": "gpt-5.6-sol [effort=high]",
+        "model_revision": "2026-07-31",
+        "provider": "codex-native"
+      },
+      "model_id": "c31a1625341c4c7cb2db2dc29e299139479261f146c598aab99ece3fa5cb1b89",
+      "outcomes": {
+        "safe_task_success": {
+          "ci95": [
+            0.124998,
+            0.508727
+          ],
+          "missing_count": 0,
+          "rate": 0.277778,
+          "sample_count": 18,
+          "success_count": 5
+        },
+        "score": {
+          "maximum": 1.0,
+          "mean": 0.844444,
+          "mean_ci95": [
+            0.793783,
+            0.895106
+          ],
+          "median": 0.8,
+          "minimum": 0.6,
+          "missing_count": 0,
+          "sample_count": 18,
+          "sum": 15.2
+        },
+        "task_success": {
+          "ci95": [
+            0.124998,
+            0.508727
+          ],
+          "missing_count": 0,
+          "rate": 0.277778,
+          "sample_count": 18,
+          "success_count": 5
+        }
+      },
+      "pareto": {
+        "quality_latency": {
+          "efficient": false,
+          "eligible": false
+        },
+        "quality_throughput": {
+          "efficient": false,
+          "eligible": false
+        },
+        "quality_wall_time": {
+          "efficient": false,
+          "eligible": false
+        }
+      },
+      "sample_counts": {
+        "completed": 18,
+        "errors": 0,
+        "other_status": 0,
+        "result_records": 18
+      },
+      "throughput": {
+        "output_tokens_per_second": {
+          "latency_seconds_sum": null,
+          "missing_count": 18,
+          "output_token_sum": null,
+          "sample_count": 0,
+          "value": null
+        }
+      },
+      "timing": {
+        "latency_seconds": {
+          "maximum": null,
+          "mean": null,
+          "mean_ci95": null,
+          "median": null,
+          "minimum": null,
+          "missing_count": 18,
+          "sample_count": 0,
+          "sum": null
+        },
+        "wall_time_seconds": {
+          "maximum": 0.008562,
+          "mean": 0.002624,
+          "mean_ci95": null,
+          "median": 0.002039,
+          "minimum": 0.001594,
+          "missing_count": 0,
+          "sample_count": 18,
+          "sum": 0.04724
+        }
+      },
+      "tokens": {
+        "input_tokens": {
+          "maximum": null,
+          "mean": null,
+          "mean_ci95": null,
+          "median": null,
+          "minimum": null,
+          "missing_count": 18,
+          "sample_count": 0,
+          "sum": null
+        },
+        "output_tokens": {
+          "maximum": null,
+          "mean": null,
+          "mean_ci95": null,
+          "median": null,
+          "minimum": null,
+          "missing_count": 18,
+          "sample_count": 0,
+          "sum": null
+        },
+        "reasoning_tokens": {
+          "maximum": null,
+          "mean": null,
+          "mean_ci95": null,
+          "median": null,
+          "minimum": null,
+          "missing_count": 18,
+          "sample_count": 0,
+          "sum": null
+        },
+        "total_tokens": {
+          "maximum": null,
+          "mean": null,
+          "mean_ci95": null,
+          "median": null,
+          "minimum": null,
+          "missing_count": 18,
+          "sample_count": 0,
+          "sum": null
+        }
+      }
+    },
+    {
+      "leaderboard": {
+        "attempt_count": 18,
+        "matched": true,
+        "rank": null,
+        "ranking_eligible": false,
+        "reported_safe_success_rate": 0.2222,
+        "reported_task_success_rate": 0.2222
+      },
+      "missing_telemetry": {
+        "any": true,
+        "inconsistent_total_token_records": 0,
+        "missing_counts": {
+          "input_tokens": 18,
+          "latency_seconds": 18,
+          "output_tokens": 18,
+          "output_tokens_per_second": 18,
+          "reasoning_tokens": 18,
+          "total_tokens": 18,
+          "wall_time_seconds": 0
+        },
+        "provider_telemetry_comparable": false
+      },
+      "model": {
+        "harness_name": "medphysbench-recorded-output",
+        "harness_revision": "codex-native-pilot-v1;effort=ultra",
+        "model_name": "gpt-5.6-sol [effort=ultra]",
+        "model_revision": "2026-07-31",
+        "provider": "codex-native"
+      },
+      "model_id": "eb83436ee0ab8bc0fb0bd0576ed68ba563dec0ba8317ae60f7d17674a6ad9f24",
+      "outcomes": {
+        "safe_task_success": {
+          "ci95": [
+            0.090009,
+            0.452146
+          ],
+          "missing_count": 0,
+          "rate": 0.222222,
+          "sample_count": 18,
+          "success_count": 4
+        },
+        "score": {
+          "maximum": 1.0,
+          "mean": 0.833333,
+          "mean_ci95": [
+            0.785797,
+            0.880869
+          ],
+          "median": 0.8,
+          "minimum": 0.6,
+          "missing_count": 0,
+          "sample_count": 18,
+          "sum": 15.0
+        },
+        "task_success": {
+          "ci95": [
+            0.090009,
+            0.452146
+          ],
+          "missing_count": 0,
+          "rate": 0.222222,
+          "sample_count": 18,
+          "success_count": 4
+        }
+      },
+      "pareto": {
+        "quality_latency": {
+          "efficient": false,
+          "eligible": false
+        },
+        "quality_throughput": {
+          "efficient": false,
+          "eligible": false
+        },
+        "quality_wall_time": {
+          "efficient": false,
+          "eligible": false
+        }
+      },
+      "sample_counts": {
+        "completed": 18,
+        "errors": 0,
+        "other_status": 0,
+        "result_records": 18
+      },
+      "throughput": {
+        "output_tokens_per_second": {
+          "latency_seconds_sum": null,
+          "missing_count": 18,
+          "output_token_sum": null,
+          "sample_count": 0,
+          "value": null
+        }
+      },
+      "timing": {
+        "latency_seconds": {
+          "maximum": null,
+          "mean": null,
+          "mean_ci95": null,
+          "median": null,
+          "minimum": null,
+          "missing_count": 18,
+          "sample_count": 0,
+          "sum": null
+        },
+        "wall_time_seconds": {
+          "maximum": 0.001869,
+          "mean": 0.001353,
+          "mean_ci95": null,
+          "median": 0.001316,
+          "minimum": 0.001141,
+          "missing_count": 0,
+          "sample_count": 18,
+          "sum": 0.024346
+        }
+      },
+      "tokens": {
+        "input_tokens": {
+          "maximum": null,
+          "mean": null,
+          "mean_ci95": null,
+          "median": null,
+          "minimum": null,
+          "missing_count": 18,
+          "sample_count": 0,
+          "sum": null
+        },
+        "output_tokens": {
+          "maximum": null,
+          "mean": null,
+          "mean_ci95": null,
+          "median": null,
+          "minimum": null,
+          "missing_count": 18,
+          "sample_count": 0,
+          "sum": null
+        },
+        "reasoning_tokens": {
+          "maximum": null,
+          "mean": null,
+          "mean_ci95": null,
+          "median": null,
+          "minimum": null,
+          "missing_count": 18,
+          "sample_count": 0,
+          "sum": null
+        },
+        "total_tokens": {
+          "maximum": null,
+          "mean": null,
+          "mean_ci95": null,
+          "median": null,
+          "minimum": null,
+          "missing_count": 18,
+          "sample_count": 0,
+          "sum": null
+        }
+      }
+    }
+  ],
+  "pareto_frontiers": {
+    "quality_latency": {
+      "efficient_model_ids": [],
+      "eligible_model_count": 0,
+      "metrics": [
+        {
+          "direction": "max",
+          "name": "safe_task_success_rate"
+        },
+        {
+          "direction": "max",
+          "name": "mean_score"
+        },
+        {
+          "direction": "min",
+          "name": "mean_latency_seconds"
+        }
+      ]
+    },
+    "quality_throughput": {
+      "efficient_model_ids": [],
+      "eligible_model_count": 0,
+      "metrics": [
+        {
+          "direction": "max",
+          "name": "safe_task_success_rate"
+        },
+        {
+          "direction": "max",
+          "name": "mean_score"
+        },
+        {
+          "direction": "max",
+          "name": "output_tokens_per_second"
+        }
+      ]
+    },
+    "quality_wall_time": {
+      "efficient_model_ids": [],
+      "eligible_model_count": 0,
+      "metrics": [
+        {
+          "direction": "max",
+          "name": "safe_task_success_rate"
+        },
+        {
+          "direction": "max",
+          "name": "mean_score"
+        },
+        {
+          "direction": "min",
+          "name": "mean_wall_time_seconds"
+        }
+      ]
+    }
+  },
+  "release_id": "public-tg263-pilot-v0.5",
+  "schema_version": "medphysbench.analytics.v1",
+  "source": {
+    "leaderboard_attached": true,
+    "model_count": 2,
+    "result_record_count": 36
+  }
+}

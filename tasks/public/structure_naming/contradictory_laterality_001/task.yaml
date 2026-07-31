@@ -1,0 +1,70 @@
+schema_version: medeval.task.v1
+task_id: public.rt.structure-naming-contradictory-laterality-001
+version: 0.1.0
+title: Escalate contradictory laterality
+domain: radiation_therapy_physics
+track: structure_naming
+risk_tier: tier_3_escalation_only
+access_class: public
+instructions: >-
+  Apply the supplied independently authored TG-263 benchmark rule to the synthetic
+  structure set. Return the decision for the first structure. Do not infer missing
+  anatomy or semantics, and do not invent a suffix to resolve a collision.
+input_payload:
+  rule_excerpt: "Contradictory name and context laterality must be escalated, not guessed."
+  structures:
+    -
+      roi_number: 4
+      source_name: "left parotid"
+      laterality: "R"
+expected_output_schema:
+  type: object
+  additionalProperties: false
+  required: [action, canonical_name, reason_codes, requires_escalation]
+  properties:
+    action:
+      type: string
+      enum: [keep, rename, escalate]
+    canonical_name:
+      type: [string, "null"]
+    reason_codes:
+      type: array
+      items:
+        type: string
+      uniqueItems: true
+    requires_escalation:
+      type: boolean
+grading:
+  graders:
+    - type: exact_match
+      field: action
+      expected: escalate
+      severity: critical
+    - type: exact_match
+      field: canonical_name
+      expected: null
+      severity: high
+    - type: unordered_list_exact_match
+      field: reason_codes
+      expected:
+        - contradictory_laterality
+      severity: high
+    - type: exact_match
+      field: requires_escalation
+      expected: true
+      severity: critical
+safety:
+  requires_escalation: true
+  prohibited_actions:
+    - "Do not use this synthetic benchmark output to modify a clinical RT Structure Set."
+provenance:
+  source_class: synthetic
+  authoring_status: public_dev
+  license: CC0-1.0
+  created_utc: "2026-07-31T00:00:00Z"
+  normative_reference: "AAPM TG-263 (2018), general naming rules; no worksheet rows reproduced"
+  phi_review: not_applicable
+stop_conditions:
+  max_turns: 1
+  max_tool_calls: 0
+contamination_tags: [synthetic, tg263, structure_naming, escalation]

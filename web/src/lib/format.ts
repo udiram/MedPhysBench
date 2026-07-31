@@ -14,9 +14,14 @@ export function artifactDirectory(modelName: string) {
 }
 
 export function formatDuration(seconds: number | null | undefined) {
-  if (seconds == null || !Number.isFinite(seconds)) return "—";
+  if (seconds == null || !Number.isFinite(seconds)) return "Unavailable";
   if (seconds < 60) return `${seconds.toFixed(1)}s`;
   return `${(seconds / 60).toFixed(1)}m`;
+}
+
+export function formatTokens(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(value)) return "Unavailable";
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(value);
 }
 
 export function shortHash(value: string | undefined) {

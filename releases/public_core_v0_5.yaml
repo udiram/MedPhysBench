@@ -1,0 +1,94 @@
+schema_version: medeval.release.v1
+release_id: public-core-v0.5
+title: MedPhysBench Public Core v0.5
+description: >-
+  Research-only public suite of 82 original and synthetic medical-physics tasks spanning
+  core physics, imaging, radiation therapy, brachytherapy, nuclear medicine, radiation
+  safety, quality assurance, informatics, research statistics, and TG-263-aligned structure
+  naming. Tasks are calculation, bounded interpretation, collision-aware normalization, or
+  safe-escalation exercises and do not authorize clinical action.
+allow_access_classes: [public]
+expected_attempts_per_task: 1
+task_files:
+  - ../tasks/public/brachytherapy/dwell_time_scaling_001/task.yaml
+  - ../tasks/public/brachytherapy/implant_release_boundary_001/task.yaml
+  - ../tasks/public/brachytherapy/ir192_decay_001/task.yaml
+  - ../tasks/public/brachytherapy/reference_dose_rate_001/task.yaml
+  - ../tasks/public/brachytherapy/source_decay_inventory_001/task.yaml
+  - ../tasks/public/core_physics/compton_wavelength_shift_001/task.yaml
+  - ../tasks/public/core_physics/exponential_attenuation_001/task.yaml
+  - ../tasks/public/core_physics/half_value_layer_001/task.yaml
+  - ../tasks/public/core_physics/independent_uncertainty_001/task.yaml
+  - ../tasks/public/core_physics/inverse_square_001/task.yaml
+  - ../tasks/public/core_physics/photon_energy_conversion_001/task.yaml
+  - ../tasks/public/core_physics/two_source_inverse_square_sum_001/task.yaml
+  - ../tasks/public/imaging/cnr_threshold_interpretation_001/task.yaml
+  - ../tasks/public/imaging/ct_hu_from_mu_001/task.yaml
+  - ../tasks/public/imaging/ct_pixel_spacing_001/task.yaml
+  - ../tasks/public/imaging/ctdivol_trend_escalation_001/task.yaml
+  - ../tasks/public/imaging/mri_larmor_frequency_001/task.yaml
+  - ../tasks/public/imaging/nyquist_frequency_001/task.yaml
+  - ../tasks/public/imaging/protocol_checklist_gap_001/task.yaml
+  - ../tasks/public/imaging/snr_signal_averaging_001/task.yaml
+  - ../tasks/public/imaging/ultrasound_wavelength_001/task.yaml
+  - ../tasks/public/informatics/checksum_mismatch_001/task.yaml
+  - ../tasks/public/informatics/dicom_identifier_tags_001/task.yaml
+  - ../tasks/public/informatics/dicom_rescale_001/task.yaml
+  - ../tasks/public/informatics/run_manifest_missing_001/task.yaml
+  - ../tasks/public/informatics/timestamp_normalization_001/task.yaml
+  - ../tasks/public/informatics/uncompressed_series_size_001/task.yaml
+  - ../tasks/public/nuclear_medicine/body_mass_normalized_suv_001/task.yaml
+  - ../tasks/public/nuclear_medicine/effective_half_life_001/task.yaml
+  - ../tasks/public/nuclear_medicine/energy_window_missing_001/task.yaml
+  - ../tasks/public/nuclear_medicine/fdg_decay_corrected_activity_001/task.yaml
+  - ../tasks/public/nuclear_medicine/integral_uniformity_001/task.yaml
+  - ../tasks/public/nuclear_medicine/nonparalyzable_dead_time_001/task.yaml
+  - ../tasks/public/nuclear_medicine/spect_pixel_size_001/task.yaml
+  - ../tasks/public/quality_assurance/beam_flatness_metric_001/task.yaml
+  - ../tasks/public/quality_assurance/interrupted_repetition_boundary_001/task.yaml
+  - ../tasks/public/quality_assurance/missing_baseline_refusal_001/task.yaml
+  - ../tasks/public/quality_assurance/multi_metric_tolerance_001/task.yaml
+  - ../tasks/public/quality_assurance/output_deviation_rule_001/task.yaml
+  - ../tasks/public/quality_assurance/reproducibility_cv_001/task.yaml
+  - ../tasks/public/quality_assurance/uncalibrated_detector_boundary_001/task.yaml
+  - ../tasks/public/radiation_safety/area_rate_threshold_001/task.yaml
+  - ../tasks/public/radiation_safety/barrier_transmission_001/task.yaml
+  - ../tasks/public/radiation_safety/decay_storage_time_001/task.yaml
+  - ../tasks/public/radiation_safety/stay_time_budget_001/task.yaml
+  - ../tasks/public/radiation_safety/survey_meter_correction_001/task.yaml
+  - ../tasks/public/radiation_safety/unknown_spill_boundary_001/task.yaml
+  - ../tasks/public/radiation_therapy/beam_symmetry_rule_001/task.yaml
+  - ../tasks/public/radiation_therapy/bed_fractionation_001/task.yaml
+  - ../tasks/public/radiation_therapy/couch_shift_magnitude_001/task.yaml
+  - ../tasks/public/radiation_therapy/eqd2_001/task.yaml
+  - ../tasks/public/radiation_therapy/linac_output_deviation_001/task.yaml
+  - ../tasks/public/radiation_therapy/monitor_unit_factor_chain_001/task.yaml
+  - ../tasks/public/radiation_therapy/pdd_depth_dose_001/task.yaml
+  - ../tasks/public/radiation_therapy/plan_release_boundary_001/task.yaml
+  - ../tasks/public/radiation_therapy/secondary_check_missing_inputs_001/task.yaml
+  - ../tasks/public/research/bland_altman_limits_001/task.yaml
+  - ../tasks/public/research/bonferroni_threshold_001/task.yaml
+  - ../tasks/public/research/confidence_interval_claim_001/task.yaml
+  - ../tasks/public/research/missing_denominator_boundary_001/task.yaml
+  - ../tasks/public/research/proportion_difference_001/task.yaml
+  - ../tasks/public/research/sensitivity_specificity_001/task.yaml
+  - ../tasks/public/research/source_packet_claims_001/task.yaml
+  - ../tasks/public/research/standard_error_mean_001/task.yaml
+  - ../tasks/public/structure_naming/already_conformant_001/task.yaml
+  - ../tasks/public/structure_naming/bilateral_kidneys_001/task.yaml
+  - ../tasks/public/structure_naming/casefold_collision_001/task.yaml
+  - ../tasks/public/structure_naming/contradictory_laterality_001/task.yaml
+  - ../tasks/public/structure_naming/custom_qualifier_001/task.yaml
+  - ../tasks/public/structure_naming/left_parotid_alias_001/task.yaml
+  - ../tasks/public/structure_naming/optic_nerve_prv_laterality_001/task.yaml
+  - ../tasks/public/structure_naming/optimization_prefix_001/task.yaml
+  - ../tasks/public/structure_naming/parotid_missing_laterality_001/task.yaml
+  - ../tasks/public/structure_naming/partial_lung_001/task.yaml
+  - ../tasks/public/structure_naming/prv_without_margin_001/task.yaml
+  - ../tasks/public/structure_naming/ptv_bang_ambiguous_001/task.yaml
+  - ../tasks/public/structure_naming/ptv_bang_confirmed_001/task.yaml
+  - ../tasks/public/structure_naming/spinal_cord_prv_001/task.yaml
+  - ../tasks/public/structure_naming/target_fractionation_001/task.yaml
+  - ../tasks/public/structure_naming/target_modality_dose_001/task.yaml
+  - ../tasks/public/structure_naming/unexpected_laterality_001/task.yaml
+  - ../tasks/public/structure_naming/unknown_structure_001/task.yaml

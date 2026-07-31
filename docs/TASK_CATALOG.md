@@ -46,7 +46,7 @@ should be explicit about uncovered areas (for example, proton therapy, MR-Linac,
 brachytherapy, pediatric imaging, or a specific vendor workflow) rather than
 implicitly generalizing from a thin sample.
 
-## Implemented v0.4 public coverage
+## Implemented public coverage
 
 The frozen `public-core-v0.4` manifest contains 64 original tasks: brachytherapy
 (5), core physics (7), imaging physics (9), informatics (6), nuclear medicine
@@ -55,6 +55,13 @@ research/leadership/statistics/informatics (8). Eighteen tasks require escalatio
 The separate five-task real-image pilot adds licensed MRI, CT, and PET localization,
 coarse segmentation, and one retrospective source-label classification case. These
 counts describe authored coverage, not workforce prevalence or clinical validity.
+
+The `public-core-v0.5` hardening candidate adds 18 independently authored,
+TG-263-aligned structure-naming cases for a total of 82 tasks. The lane covers
+conservative alias normalization, target syntax, laterality, optimization prefixes,
+custom qualifiers, case-insensitive collisions, unknown structures, and mandatory
+escalation. Its vocabulary is intentionally limited and does not reproduce the
+copyrighted AAPM worksheet. See [`TG263_BENCHMARK.md`](TG263_BENCHMARK.md).
 
 ## The three benchmark layers
 

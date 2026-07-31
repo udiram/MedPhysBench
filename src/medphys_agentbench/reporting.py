@@ -40,9 +40,7 @@ def summarize_release(
         for task in tasks
     }
     expected_attempt_keys = {
-        (task.task_id, attempt_index)
-        for task in tasks
-        for attempt_index in range(expected_attempts)
+        (task.task_id, attempt_index) for task in tasks for attempt_index in range(expected_attempts)
     }
 
     ranked_rows: list[dict[str, Any]] = []
@@ -166,9 +164,7 @@ def _summarize_model_dir(
     safety_gate_successes = sum(1 for item in verified_results if item.get("safe"))
     valid_outputs = sum(1 for item in verified_results if _grade_passed(item, "schema.json_schema"))
     escalation_tasks = [
-        item
-        for item in verified_results
-        if _expected_escalation(item.get("manifest", {}).get("task_id"), task_catalog)
+        item for item in verified_results if _expected_escalation(item.get("manifest", {}).get("task_id"), task_catalog)
     ]
     correct_escalations = sum(1 for item in escalation_tasks if _grade_passed(item, "safety.escalation"))
     critical_failures = sum(
@@ -193,6 +189,11 @@ def _summarize_model_dir(
     any_pass = sum(any(attempts) for attempts in by_task.values())
     all_pass = sum(all(attempts) for attempts in by_task.values())
     ci_low, ci_high = _wilson_interval(task_successes, attempt_count)
+    usage = _usage_summary(verified_results)
+    is_recorded_native = integrity["provider"] == "codex-native"
+    durations = [
+        float(item["duration_seconds"]) for item in verified_results if item.get("duration_seconds") is not None
+    ]
 
     return {
         "model_name": integrity["model_name"],
@@ -215,18 +216,21 @@ def _summarize_model_dir(
         if escalation_tasks
         else None,
         "critical_unsafe_action_rate": round(critical_failures / attempt_count, 4) if attempt_count else 0.0,
-        "average_duration_seconds": round(
-            sum(float(item.get("duration_seconds", 0.0)) for item in verified_results) / attempt_count,
-            4,
-        )
-        if attempt_count
-        else 0.0,
-        "median_duration_seconds": round(
-            statistics.median(float(item.get("duration_seconds", 0.0)) for item in verified_results),
-            4,
-        )
-        if attempt_count
-        else 0.0,
+        # Recorded native batches measure import/scoring time, not model latency.
+        # Publishing that value as inference time would be materially misleading.
+        "average_duration_seconds": (
+            None if is_recorded_native or not durations else round(statistics.fmean(durations), 4)
+        ),
+        "median_duration_seconds": (
+            None if is_recorded_native or not durations else round(statistics.median(durations), 4)
+        ),
+        "duration_telemetry": {
+            "available": bool(durations) and not is_recorded_native,
+            "kind": "common_harness_wall_clock" if not is_recorded_native else "unavailable_recorded_surface",
+            "observed_attempts": len(durations) if not is_recorded_native else 0,
+            "expected_attempts": attempt_count,
+        },
+        "token_usage": usage,
         "lane_scores": {lane: round(statistics.fmean(values), 4) for lane, values in sorted(lane_scores.items())},
         "domain_safe_success": {
             domain: round(sum(values) / len(values), 4) for domain, values in sorted(by_domain.items())
@@ -244,6 +248,58 @@ def _summarize_model_dir(
             if item.get("manifest", {}).get("task_id") in task_catalog
         ],
     }
+
+
+def _usage_summary(results: list[dict[str, Any]]) -> dict[str, Any]:
+    """Aggregate provider-reported token counts without treating missing values as zero."""
+    input_tokens: list[int] = []
+    output_tokens: list[int] = []
+    total_tokens: list[int] = []
+    for item in results:
+        usage = _provider_usage(item)
+        prompt = _nonnegative_int(usage.get("prompt_eval_count", usage.get("prompt_tokens")))
+        completion = _nonnegative_int(usage.get("eval_count", usage.get("completion_tokens")))
+        total = _nonnegative_int(usage.get("total_tokens"))
+        if prompt is not None:
+            input_tokens.append(prompt)
+        if completion is not None:
+            output_tokens.append(completion)
+        if total is None and prompt is not None and completion is not None:
+            total = prompt + completion
+        if total is not None:
+            total_tokens.append(total)
+
+    observed = min(len(input_tokens), len(output_tokens))
+    expected = len(results)
+    return {
+        "available": observed > 0,
+        "complete": observed == expected and expected > 0,
+        "observed_attempts": observed,
+        "expected_attempts": expected,
+        "total_input_tokens": sum(input_tokens) if input_tokens else None,
+        "total_output_tokens": sum(output_tokens) if output_tokens else None,
+        "total_tokens": sum(total_tokens) if total_tokens else None,
+        "median_input_tokens": round(statistics.median(input_tokens), 2) if input_tokens else None,
+        "median_output_tokens": round(statistics.median(output_tokens), 2) if output_tokens else None,
+        "median_total_tokens": round(statistics.median(total_tokens), 2) if total_tokens else None,
+    }
+
+
+def _provider_usage(item: dict[str, Any]) -> dict[str, Any]:
+    raw_usage = item.get("raw_response", {}).get("usage")
+    if isinstance(raw_usage, dict):
+        return raw_usage
+    for event in item.get("trace", []):
+        if isinstance(event, dict) and isinstance(event.get("usage"), dict):
+            return event["usage"]
+    return {}
+
+
+def _nonnegative_int(value: Any) -> int | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    number = int(value)
+    return number if number >= 0 and number == value else None
 
 
 def _task_result_row(item: dict[str, Any], task_catalog: dict[str, Any]) -> dict[str, Any]:

@@ -141,7 +141,15 @@ def main() -> None:
 
     if args.command == "run":
         task = load_task(args.task_file)
-        adapter = _build_adapter(args.adapter, args.model, args.base_url, args.timeout)
+        adapter = _build_adapter(
+            args.adapter,
+            args.model,
+            args.base_url,
+            args.timeout,
+            seed=args.seed,
+            temperature=args.temperature,
+            max_tokens=args.max_tokens,
+        )
         result = run_trial(
             task,
             adapter,
@@ -160,16 +168,22 @@ def main() -> None:
         release = load_release(args.release_file)
         tasks = release.load_tasks()
         for model_name in args.model:
-            adapter = _build_adapter(args.adapter, model_name, args.base_url, args.timeout)
+            adapter = _build_adapter(
+                args.adapter,
+                model_name,
+                args.base_url,
+                args.timeout,
+                seed=args.seed,
+                temperature=args.temperature,
+                max_tokens=args.max_tokens,
+            )
             model_slug = _slugify(model_name)
             model_dir = args.results_dir / release.release_id / model_slug
             model_dir.mkdir(parents=True, exist_ok=True)
             for task in tasks:
                 for attempt_index in range(args.attempts):
                     run_id = str(uuid4())
-                    output_path = model_dir / (
-                        f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}.json"
-                    )
+                    output_path = model_dir / (f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}.json")
                     try:
                         result = run_trial(
                             task,
@@ -291,12 +305,19 @@ def _build_adapter(
     model_name: str,
     base_url: str,
     timeout: int,
+    *,
+    seed: int,
+    temperature: float,
+    max_tokens: int,
 ) -> OllamaAdapter:
     if adapter == "ollama":
         return OllamaAdapter(
             model_name=model_name,
             base_url=base_url,
             timeout_seconds=timeout,
+            seed=seed,
+            temperature=temperature,
+            max_tokens=max_tokens,
         )
     raise ValueError(f"Unsupported adapter {adapter!r}.")
 

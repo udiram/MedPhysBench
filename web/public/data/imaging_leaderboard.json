@@ -11,7 +11,7 @@
       "task_count": 2
     }
   ],
-  "generated_at": "2026-07-31T18:31:46.018134+00:00",
+  "generated_at": "2026-07-31T21:19:08.315869+00:00",
   "integrity": {
     "expected_attempt_count": 5,
     "expected_attempts_per_task": 1,
@@ -39,6 +39,12 @@
       "domain_safe_success": {
         "imaging_physics": 0.0,
         "nuclear_medicine": 0.0
+      },
+      "duration_telemetry": {
+        "available": true,
+        "expected_attempts": 5,
+        "kind": "common_harness_wall_clock",
+        "observed_attempts": 5
       },
       "error_count": 0,
       "expected_attempt_count": 5,
@@ -132,6 +138,18 @@
           "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
         }
       ],
+      "token_usage": {
+        "available": true,
+        "complete": true,
+        "expected_attempts": 5,
+        "median_input_tokens": 1098,
+        "median_output_tokens": 59,
+        "median_total_tokens": 1157,
+        "observed_attempts": 5,
+        "total_input_tokens": 5518,
+        "total_output_tokens": 626,
+        "total_tokens": 6144
+      },
       "valid_output_rate": 0.8
     },
     {
@@ -145,6 +163,12 @@
       "domain_safe_success": {
         "imaging_physics": 0.0,
         "nuclear_medicine": 0.0
+      },
+      "duration_telemetry": {
+        "available": true,
+        "expected_attempts": 5,
+        "kind": "common_harness_wall_clock",
+        "observed_attempts": 5
       },
       "error_count": 0,
       "expected_attempt_count": 5,
@@ -238,6 +262,18 @@
           "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
         }
       ],
+      "token_usage": {
+        "available": true,
+        "complete": true,
+        "expected_attempts": 5,
+        "median_input_tokens": 1816,
+        "median_output_tokens": 56,
+        "median_total_tokens": 1868,
+        "observed_attempts": 5,
+        "total_input_tokens": 9039,
+        "total_output_tokens": 276,
+        "total_tokens": 9315
+      },
       "valid_output_rate": 1.0
     },
     {
@@ -251,6 +287,12 @@
       "domain_safe_success": {
         "imaging_physics": 0.0,
         "nuclear_medicine": 0.0
+      },
+      "duration_telemetry": {
+        "available": true,
+        "expected_attempts": 5,
+        "kind": "common_harness_wall_clock",
+        "observed_attempts": 5
       },
       "error_count": 0,
       "expected_attempt_count": 5,
@@ -344,6 +386,18 @@
           "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
         }
       ],
+      "token_usage": {
+        "available": true,
+        "complete": true,
+        "expected_attempts": 5,
+        "median_input_tokens": 1816,
+        "median_output_tokens": 49,
+        "median_total_tokens": 1865,
+        "observed_attempts": 5,
+        "total_input_tokens": 9039,
+        "total_output_tokens": 244,
+        "total_tokens": 9283
+      },
       "valid_output_rate": 0.0
     }
   ],
@@ -432,12 +486,18 @@
       "any_pass_rate": 0.8,
       "appropriate_escalation_rate": 1.0,
       "attempt_count": 5,
-      "average_duration_seconds": 0.0017,
+      "average_duration_seconds": null,
       "completed_count": 5,
       "critical_unsafe_action_rate": 0.0,
       "domain_safe_success": {
         "imaging_physics": 0.6667,
         "nuclear_medicine": 1.0
+      },
+      "duration_telemetry": {
+        "available": false,
+        "expected_attempts": 5,
+        "kind": "unavailable_recorded_surface",
+        "observed_attempts": 0
       },
       "error_count": 0,
       "expected_attempt_count": 5,
@@ -458,7 +518,7 @@
         "safety": 1.0,
         "segmentation": 0.6451
       },
-      "median_duration_seconds": 0.0018,
+      "median_duration_seconds": null,
       "model_name": "gpt-5.6-sol [effort=high]",
       "model_revision": "gpt-5.6-sol@2026-07-31",
       "provider": "codex-native",
@@ -532,6 +592,18 @@
           "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
         }
       ],
+      "token_usage": {
+        "available": false,
+        "complete": false,
+        "expected_attempts": 5,
+        "median_input_tokens": null,
+        "median_output_tokens": null,
+        "median_total_tokens": null,
+        "observed_attempts": 0,
+        "total_input_tokens": null,
+        "total_output_tokens": null,
+        "total_tokens": null
+      },
       "valid_output_rate": 1.0
     },
     {
@@ -539,12 +611,18 @@
       "any_pass_rate": 0.8,
       "appropriate_escalation_rate": 1.0,
       "attempt_count": 5,
-      "average_duration_seconds": 0.0026,
+      "average_duration_seconds": null,
       "completed_count": 5,
       "critical_unsafe_action_rate": 0.0,
       "domain_safe_success": {
         "imaging_physics": 0.6667,
         "nuclear_medicine": 1.0
+      },
+      "duration_telemetry": {
+        "available": false,
+        "expected_attempts": 5,
+        "kind": "unavailable_recorded_surface",
+        "observed_attempts": 0
       },
       "error_count": 0,
       "expected_attempt_count": 5,
@@ -565,7 +643,7 @@
         "safety": 1.0,
         "segmentation": 0.6151
       },
-      "median_duration_seconds": 0.0028,
+      "median_duration_seconds": null,
       "model_name": "gpt-5.6-sol [effort=ultra]",
       "model_revision": "gpt-5.6-sol@2026-07-31",
       "provider": "codex-native",
@@ -639,6 +717,18 @@
           "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
         }
       ],
+      "token_usage": {
+        "available": false,
+        "complete": false,
+        "expected_attempts": 5,
+        "median_input_tokens": null,
+        "median_output_tokens": null,
+        "median_total_tokens": null,
+        "observed_attempts": 0,
+        "total_input_tokens": null,
+        "total_output_tokens": null,
+        "total_tokens": null
+      },
       "valid_output_rate": 1.0
     }
   ]

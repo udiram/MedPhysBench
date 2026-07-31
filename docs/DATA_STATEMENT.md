@@ -30,7 +30,7 @@ committed to public CI. De-identification alone does not authorize redistributio
 
 ## Representativeness
 
-The 64-task core release and five-task real-image pilot are not statistically representative of
+The 82-task hardening candidate, frozen 64-task scored core snapshot, and five-task real-image pilot are not statistically representative of
 medical-physics practice. Task counts reflect an engineering suite, not workforce prevalence,
 clinical risk, or importance. One released negative PET label cannot support a diagnostic metric.
 Aggregate scores must therefore be read together with the task catalog and domain results.

@@ -1,0 +1,29 @@
+schema_version: medeval.release.v1
+release_id: public-tg263-pilot-v0.5
+title: MedPhysBench Public TG-263 Pilot v0.5
+description: >-
+  Research-only public pilot of 18 independently authored, synthetic structure-naming
+  tasks aligned with TG-263 concepts. The lane stresses conservative normalization,
+  ambiguity handling, collision detection, and safe escalation; it does not redistribute
+  the AAPM worksheet and does not authorize RTSTRUCT mutation or clinical use.
+allow_access_classes: [public]
+expected_attempts_per_task: 1
+task_files:
+  - ../tasks/public/structure_naming/already_conformant_001/task.yaml
+  - ../tasks/public/structure_naming/bilateral_kidneys_001/task.yaml
+  - ../tasks/public/structure_naming/casefold_collision_001/task.yaml
+  - ../tasks/public/structure_naming/contradictory_laterality_001/task.yaml
+  - ../tasks/public/structure_naming/custom_qualifier_001/task.yaml
+  - ../tasks/public/structure_naming/left_parotid_alias_001/task.yaml
+  - ../tasks/public/structure_naming/optic_nerve_prv_laterality_001/task.yaml
+  - ../tasks/public/structure_naming/optimization_prefix_001/task.yaml
+  - ../tasks/public/structure_naming/parotid_missing_laterality_001/task.yaml
+  - ../tasks/public/structure_naming/partial_lung_001/task.yaml
+  - ../tasks/public/structure_naming/prv_without_margin_001/task.yaml
+  - ../tasks/public/structure_naming/ptv_bang_ambiguous_001/task.yaml
+  - ../tasks/public/structure_naming/ptv_bang_confirmed_001/task.yaml
+  - ../tasks/public/structure_naming/spinal_cord_prv_001/task.yaml
+  - ../tasks/public/structure_naming/target_fractionation_001/task.yaml
+  - ../tasks/public/structure_naming/target_modality_dose_001/task.yaml
+  - ../tasks/public/structure_naming/unexpected_laterality_001/task.yaml
+  - ../tasks/public/structure_naming/unknown_structure_001/task.yaml

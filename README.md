@@ -21,10 +21,13 @@ package, or evidence of autonomous clinical competence.
 
 - Live site: `https://62fd19716942a2a0f8.v2.appdeploy.ai/`
 - Public repository: `https://github.com/udiram/MedPhysBench`
-- Core release: `public-core-v0.4` (`64` tasks)
+- Scored core snapshot: `public-core-v0.4` (`64` tasks; five comparable local models)
+- Hardening candidate: `public-core-v0.5` (`82` tasks, including `18` TG-263-aligned structure-naming tasks)
+- TG-263 pilot: `public-tg263-pilot-v0.5` (`18` synthetic ambiguity, collision, normalization, and escalation tasks)
 - Real-image pilot: `public-imaging-pilot-v0.4` (`5` real MRI, CT, and PET tasks)
-- Scored configurations on Friday, July 31, 2026: three common-harness local models,
-  six explicitly unranked GPT-5.6 native-effort pilots, and three local vision models
+- Scored configurations on Friday, July 31, 2026: five common-harness local core models,
+  six explicitly unranked GPT-5.6 core-effort pilots, two harder TG-263 native pilots,
+  and three local vision models
 - Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
 - Core run package: [`results/releases/public-core-v0.4/`](results/releases/public-core-v0.4/)
 - Imaging run package: [`results/releases/public-imaging-pilot-v0.4/`](results/releases/public-imaging-pilot-v0.4/)
@@ -42,6 +45,8 @@ package, or evidence of autonomous clinical competence.
 | Inspect what could invalidate a score | [Threat model](docs/THREAT_MODEL.md) · [Data statement](docs/DATA_STATEMENT.md) |
 | Add a provider or model | [Adapter contract](docs/ADAPTER_CONTRACT.md) · [Model onboarding](docs/MODEL_ONBOARDING.md) |
 | Propose a task | [Contribution guide](CONTRIBUTING.md) · [Task catalog](docs/TASK_CATALOG.md) |
+| Understand the harder RT roadmap | [Benchmark hardening](docs/BENCHMARK_HARDENING.md) · [RT competency map](docs/RT_COMPETENCY_MAP.md) · [TG-263 lane](docs/TG263_BENCHMARK.md) |
+| Run models at no software cost | [Free-model evaluation](docs/FREE_MODEL_EVALUATION.md) |
 
 ## What is already real
 
@@ -57,8 +62,9 @@ package, or evidence of autonomous clinical competence.
 - A runnable Ollama adapter and release runner that persist benchmark artifacts under [`runs/`](runs/).
 - Strict structured-output parsing: one exact JSON object, with no repair from Markdown wrappers,
   duplicate keys, trailing prose, or non-finite numbers.
-- A 64-task public core suite spanning core physics, RT physics, brachytherapy, imaging,
-  nuclear medicine, radiation safety, informatics, QA, and research methods.
+- An 82-task public hardening candidate spanning core physics, RT physics, brachytherapy,
+  imaging, nuclear medicine, radiation safety, informatics, QA, research methods, and
+  TG-263-aligned structure naming; the frozen 64-task v0.4 snapshot remains the scored comparison.
 - Hash-pinned, attributed MRI, CT, and PET fixtures with a separately reported five-task
   real-image pilot; image assets never carry hidden grader geometry into runtime.
 - Ranked-only release summaries: incomplete or manifest-inconsistent runs remain published but are
@@ -127,7 +133,8 @@ package and cannot silently disappear from a denominator.
 
 ## Status note
 
-Version 0.4 is a **public development benchmark** with a larger core suite and a licensed
-real-image pilot. It is runnable and auditable, but it is not yet a sealed multi-institution
-benchmark or clinical validation study. The GPT-5.6 rows are native-surface pilots and remain
-unranked until reproduced through a qualified common adapter.
+Version 0.5 is a **public hardening candidate** layered on the frozen v0.4 score snapshot. It is
+runnable and auditable, but it is not yet a sealed multi-institution benchmark or clinical
+validation study. Native GPT-5.6 rows remain unranked until reproduced through a qualified common
+adapter; perfect scores on the earlier public core are treated as evidence of saturation, not a
+claim of autonomous competence.

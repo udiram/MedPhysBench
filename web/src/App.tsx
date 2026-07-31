@@ -2,6 +2,7 @@
 
 import { startTransition, useEffect, useState } from "react";
 import { EvidenceSections } from "./components/EvidenceSections";
+import { EfficiencyExplorer } from "./components/EfficiencyExplorer";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { LeaderboardExplorer } from "./components/LeaderboardExplorer";
@@ -10,16 +11,18 @@ import type { AccessStatus, ReleaseView } from "./types";
 
 const LEADERBOARD_URL = "/data/leaderboard.json";
 const IMAGING_LEADERBOARD_URL = "/data/imaging_leaderboard.json";
+const TG263_LEADERBOARD_URL = "/data/tg263_leaderboard.json";
 const ACCESS_STATUS_URL = "/data/access_status.json";
 const REPO_URL = "https://github.com/udiram/MedPhysBench";
 
 function App() {
   const core = useLeaderboard(LEADERBOARD_URL);
   const imaging = useLeaderboard(IMAGING_LEADERBOARD_URL);
+  const tg263 = useLeaderboard(TG263_LEADERBOARD_URL);
   const [accessStatus, setAccessStatus] = useState<AccessStatus[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [releaseView, setReleaseView] = useState<ReleaseView>("core");
-  const selected = releaseView === "core" ? core : imaging;
+  const selected = releaseView === "core" ? core : releaseView === "tg263" ? tg263 : imaging;
 
   useEffect(() => {
     fetch(ACCESS_STATUS_URL)
@@ -50,6 +53,7 @@ function App() {
           releaseView={releaseView}
           onReleaseViewChange={setReleaseView}
         />
+        <EfficiencyExplorer data={selected.data} releaseView={releaseView} />
         <EvidenceSections data={core.data} accessStatus={accessStatus} />
       </main>
       <footer className="site-footer">

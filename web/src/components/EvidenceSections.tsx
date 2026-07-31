@@ -71,6 +71,31 @@ export function EvidenceSections({ data, accessStatus }: EvidenceSectionsProps) 
         </div>
       </section>
 
+      <section className="evidence-section" id="hardening">
+        <div className="section-heading">
+          <h2>Harder by construction</h2>
+          <p>
+            The v0.5 candidate expands the public core to 82 tasks and adds an 18-task
+            TG-263-aligned structure-naming lane. Saturated lanes trigger retirement or
+            promotion to protected, counterfactual, multi-step, and state-graded evaluations.
+          </p>
+        </div>
+        <div className="boundary-grid">
+          <article>
+            <h3>Freshness and contamination</h3>
+            <p>Family-level splits, rotating protected holdouts, task fingerprints, and release timestamps separate development evidence from durable claims.</p>
+          </article>
+          <article>
+            <h3>Radiotherapy workflow depth</h3>
+            <p>A 20-phase competency map spans data intake, contour review, planning, calculation checks, delivery QA, incident learning, and safe escalation.</p>
+          </article>
+          <article>
+            <h3>Beyond a single percentage</h3>
+            <p>Confidence intervals, safety gates, pass consistency, latency, token use, and Pareto efficiency accompany outcome performance.</p>
+          </article>
+        </div>
+      </section>
+
       <section className="governance-section" id="governance">
         <div className="boundary">
           <h2>Research benchmark, not clinical authority</h2>

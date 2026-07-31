@@ -13,7 +13,8 @@ export function Hero({ coreData, imagingData, repoUrl }: HeroProps) {
   return (
     <section className="hero" id="top">
       <div className="release-rail" aria-label="Current release summary">
-        <span>{coreData?.tasks.length ?? 64} core tasks</span>
+        <span>{coreData?.tasks.length ?? 64} scored core tasks</span>
+        <span>82-task v0.5 hardening candidate</span>
         <span>{imagingData?.tasks.length ?? 5} real-image pilot tasks</span>
         <span>{rankedCount} common-harness ranks</span>
         <span>research evaluation only</span>
@@ -33,6 +34,7 @@ export function Hero({ coreData, imagingData, repoUrl }: HeroProps) {
         </div>
         <div className="contract-note" aria-label="Benchmark contract notes">
           <span>Only complete, internally consistent run sets receive a public rank.</span>
+          <span>Perfect native-surface scores are review evidence—not comparable leaderboard ranks.</span>
           <span>Gold answers, graders, and provenance remain outside the evaluated runtime.</span>
         </div>
       </div>
