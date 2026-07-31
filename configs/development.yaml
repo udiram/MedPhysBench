@@ -1,0 +1,21 @@
+# Synthetic/public development profile only. This is not a clinical deployment profile.
+profile: development
+data_classes_allowed: [public]
+network:
+  outbound_default: deny
+  fixture_only: true
+execution:
+  sandbox_mode: local_process_stub
+  max_parallel_attempts: 1
+  wall_time_seconds: 120
+  max_tool_calls: 8
+storage:
+  artifact_retention_days: 14
+  immutable_release_artifacts: false
+models:
+  allow_provider_adapters: false
+  allow_local_endpoint: false
+review:
+  human_review_enabled: false
+release:
+  sealed_test_access: false

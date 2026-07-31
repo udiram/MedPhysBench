@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphys-agentbench.org/schemas/medeval.release.v1.schema.json",
+  "title": "MedPhysBench release manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "release_id",
+    "title",
+    "description",
+    "task_files"
+  ],
+  "properties": {
+    "schema_version": { "const": "medeval.release.v1" },
+    "release_id": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "description": { "type": "string", "minLength": 1 },
+    "allow_access_classes": {
+      "type": "array",
+      "items": { "enum": ["public", "gated", "restricted", "private"] }
+    },
+    "task_files": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}

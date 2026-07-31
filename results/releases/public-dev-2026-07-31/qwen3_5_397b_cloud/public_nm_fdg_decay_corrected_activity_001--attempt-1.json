@@ -1,0 +1,30 @@
+{
+  "attempt_index": 0,
+  "duration_seconds": 0.0,
+  "error": "Ollama request failed for qwen3.5:397b-cloud: HTTP Error 429: Too Many Requests",
+  "error_type": "AdapterError",
+  "grades": [],
+  "manifest": {
+    "max_tokens": 512,
+    "model": {
+      "harness_name": "medphysbench-ollama",
+      "harness_revision": "reference-json-v1",
+      "model_name": "qwen3.5:397b-cloud",
+      "model_revision": "qwen3.5:397b-cloud",
+      "provider": "ollama"
+    },
+    "run_id": "33b6c588-977c-4329-93a1-287e76caf98d",
+    "schema_version": "medeval.run.v1",
+    "seed": 20260731,
+    "task_id": "public.nm.fdg-decay-corrected-activity-001",
+    "task_version": "0.2.0",
+    "temperature": 0.0
+  },
+  "output": {},
+  "passed": false,
+  "raw_response": {},
+  "safe": false,
+  "score": 0.0,
+  "status": "error",
+  "trace": []
+}

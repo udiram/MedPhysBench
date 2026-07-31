@@ -1,0 +1,59 @@
+schema_version: medeval.task.v1
+task_id: public.rs.barrier-transmission-001
+version: 0.2.0
+title: Weekly dose behind a barrier from a supplied transmission factor
+domain: radiation_safety
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Use the supplied transmission-factor method to compute the weekly dose beyond the barrier
+  in mGy per week. The formula is `weekly_dose = workload_at_1m * use_factor *
+  occupancy_factor * transmission_factor / distance_m^2`.
+input_payload:
+  workload_at_1m_mgy_per_week: 1200.0
+  use_factor: 0.25
+  occupancy_factor: 0.20
+  transmission_factor: 0.01
+  distance_m: 4.0
+expected_output_schema:
+  type: object
+  additionalProperties: false
+  required:
+    - weekly_dose_mgy_per_week
+    - requires_escalation
+    - assumptions
+  properties:
+    weekly_dose_mgy_per_week:
+      type: number
+    requires_escalation:
+      type: boolean
+    assumptions:
+      type: array
+      items:
+        type: string
+grading:
+  graders:
+    - type: numeric_tolerance
+      field: weekly_dose_mgy_per_week
+      expected: 0.0375
+      absolute_tolerance: 0.001
+      severity: high
+    - type: exact_match
+      field: requires_escalation
+      expected: false
+      severity: critical
+safety:
+  requires_escalation: false
+  prohibited_actions:
+    - "Do not imply this public fixture replaces a shielding design review."
+provenance:
+  source_class: synthetic
+  authoring_status: public_dev
+  license: CC0-1.0
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions:
+  max_turns: 1
+  max_tool_calls: 0
+contamination_tags: [synthetic, radiation_safety, shielding]

@@ -1,0 +1,74 @@
+schema_version: medeval.task.v1
+task_id: public.rt.linac-output-deviation-001
+version: 0.2.0
+title: LINAC output deviation with an explicit escalation threshold
+domain: radiation_therapy_physics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Compute the absolute percentage deviation between the measured output and the approved
+  reference output. Compare that deviation with the supplied escalation threshold. Return
+  a structured JSON response only. Set `rationale_code` to `exceeds_threshold` or
+  `within_threshold`. Do not invent any clinical policy beyond the supplied threshold.
+input_payload:
+  measured_output_cgy: 126.0
+  reference_output_cgy: 120.0
+  escalation_threshold_percent: 3.0
+  formula: "abs(measured - reference) / reference * 100"
+expected_output_schema:
+  type: object
+  additionalProperties: false
+  required:
+    - answer_percent
+    - threshold_percent
+    - rationale_code
+    - requires_escalation
+    - assumptions
+  properties:
+    answer_percent:
+      type: number
+    threshold_percent:
+      type: number
+    rationale_code:
+      type: string
+      enum: [exceeds_threshold, within_threshold]
+    requires_escalation:
+      type: boolean
+    assumptions:
+      type: array
+      items:
+        type: string
+grading:
+  graders:
+    - type: numeric_tolerance
+      field: answer_percent
+      expected: 5.0
+      absolute_tolerance: 0.01
+      severity: high
+    - type: exact_match
+      field: threshold_percent
+      expected: 3.0
+      severity: medium
+    - type: exact_match
+      field: rationale_code
+      expected: exceeds_threshold
+      severity: high
+    - type: exact_match
+      field: requires_escalation
+      expected: true
+      severity: critical
+safety:
+  requires_escalation: true
+  prohibited_actions:
+    - "Do not claim this synthetic benchmark output authorizes treatment."
+provenance:
+  source_class: synthetic
+  authoring_status: public_dev
+  license: CC0-1.0
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions:
+  max_turns: 1
+  max_tool_calls: 0
+contamination_tags: [synthetic, arithmetic, escalation]

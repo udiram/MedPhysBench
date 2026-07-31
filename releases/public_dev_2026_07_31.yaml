@@ -1,0 +1,24 @@
+schema_version: medeval.release.v1
+release_id: public-dev-2026-07-31
+title: MedPhysBench Public Development Release 2026-07-31
+description: >-
+  Public synthetic development suite spanning arithmetic, source grounding, checklist,
+  and escalation-boundary tasks across medical physics domains.
+allow_access_classes: [public]
+task_files:
+  - ../tasks/public/core_physics/inverse_square_001/task.yaml
+  - ../tasks/public/radiation_therapy/linac_output_deviation_001/task.yaml
+  - ../tasks/public/radiation_therapy/eqd2_001/task.yaml
+  - ../tasks/public/brachytherapy/ir192_decay_001/task.yaml
+  - ../tasks/public/nuclear_medicine/fdg_decay_corrected_activity_001/task.yaml
+  - ../tasks/public/nuclear_medicine/effective_half_life_001/task.yaml
+  - ../tasks/public/imaging/ct_pixel_spacing_001/task.yaml
+  - ../tasks/public/imaging/ctdivol_trend_escalation_001/task.yaml
+  - ../tasks/public/radiation_safety/barrier_transmission_001/task.yaml
+  - ../tasks/public/informatics/dicom_identifier_tags_001/task.yaml
+  - ../tasks/public/quality_assurance/missing_baseline_refusal_001/task.yaml
+  - ../tasks/public/quality_assurance/uncalibrated_detector_boundary_001/task.yaml
+  - ../tasks/public/research/source_packet_claims_001/task.yaml
+  - ../tasks/public/research/confidence_interval_claim_001/task.yaml
+  - ../tasks/public/radiation_therapy/plan_release_boundary_001/task.yaml
+  - ../tasks/public/imaging/protocol_checklist_gap_001/task.yaml

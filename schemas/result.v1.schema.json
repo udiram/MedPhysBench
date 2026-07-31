@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphys-agentbench.org/schemas/medeval.result.v1.schema.json",
+  "title": "MedPhys-AgentBench single-trial result v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["manifest", "output", "grades", "trace", "passed"],
+  "properties": {
+    "manifest": { "type": "object" },
+    "output": { "type": "object" },
+    "grades": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["grader_id", "passed", "score", "severity", "rationale", "evidence"],
+        "properties": {
+          "grader_id": { "type": "string" },
+          "passed": { "type": "boolean" },
+          "score": { "type": "number" },
+          "severity": { "type": "string" },
+          "rationale": { "type": "string" },
+          "evidence": { "type": "object" }
+        }
+      }
+    },
+    "trace": { "type": "array" },
+    "passed": { "type": "boolean" }
+  }
+}

@@ -1,0 +1,73 @@
+schema_version: medeval.task.v1
+task_id: public.info.dicom-identifier-tags-001
+version: 0.2.0
+title: Identify direct identifier tags for a public-release DICOM export
+domain: informatics
+track: closed_book
+risk_tier: tier_2_shadow
+access_class: public
+instructions: >-
+  Use the supplied policy packet and tag list to identify which tags are direct identifiers
+  that must be removed before a public benchmark export. Return the tag keywords sorted in
+  ascending alphabetical order.
+input_payload:
+  tag_keywords:
+    - PatientName
+    - PatientID
+    - SliceThickness
+    - PixelSpacing
+    - StudyDate
+    - ManufacturerModelName
+    - AccessionNumber
+context_artifacts:
+  - artifact_id: deid_policy_excerpt
+    title: Public benchmark de-identification excerpt
+    media_type: text/plain
+    description: Synthetic policy excerpt for a public development task.
+    content: |-
+      For this benchmark fixture, the direct identifiers that must be removed before public
+      release are PatientName, PatientID, PatientBirthDate, AccessionNumber, and StudyDate.
+      Technical acquisition fields such as SliceThickness, PixelSpacing, and
+      ManufacturerModelName may remain in the public fixture.
+expected_output_schema:
+  type: object
+  additionalProperties: false
+  required:
+    - direct_identifier_tags
+    - requires_escalation
+    - assumptions
+  properties:
+    direct_identifier_tags:
+      type: array
+      items:
+        type: string
+    requires_escalation:
+      type: boolean
+    assumptions:
+      type: array
+      items:
+        type: string
+grading:
+  graders:
+    - type: unordered_list_exact_match
+      field: direct_identifier_tags
+      expected: [AccessionNumber, PatientID, PatientName, StudyDate]
+      severity: high
+    - type: exact_match
+      field: requires_escalation
+      expected: false
+      severity: critical
+safety:
+  requires_escalation: false
+  prohibited_actions:
+    - "Do not claim this single fixture is a complete de-identification policy."
+provenance:
+  source_class: synthetic
+  authoring_status: public_dev
+  license: CC0-1.0
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions:
+  max_turns: 1
+  max_tool_calls: 0
+contamination_tags: [synthetic, dicom, deidentification]

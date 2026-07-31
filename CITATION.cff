@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use MedPhysBench, cite the software and the exact benchmark release."
+title: "MedPhysBench"
+type: software
+version: 0.2.0
+date-released: 2026-07-31
+license: MIT
+repository-code: "https://github.com/udiram/MedPhysBench"
+url: "https://github.com/udiram/MedPhysBench"
+authors:
+  - family-names: "Ram"
+    given-names: "Udbhav"
+keywords:
+  - medical physics
+  - artificial intelligence
+  - benchmark
+  - agent evaluation
+  - safety

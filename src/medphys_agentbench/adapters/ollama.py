@@ -1,0 +1,150 @@
+"""Ollama adapter for local and Ollama Cloud models."""
+
+from __future__ import annotations
+
+import json
+import time
+import urllib.error
+import urllib.request
+from dataclasses import dataclass
+from typing import Any
+
+from ..contracts import ModelDescriptor, RuntimeTask
+from ..prompting import SYSTEM_PROMPT, build_user_prompt
+from .base import AgentResult
+
+
+class AdapterError(RuntimeError):
+    """A provider or response-contract failure."""
+
+
+@dataclass
+class OllamaAdapter:
+    model_name: str
+    base_url: str = "http://127.0.0.1:11434"
+    temperature: float = 0.0
+    seed: int = 20260731
+    max_tokens: int = 1024
+    timeout_seconds: int = 300
+
+    provider = "ollama"
+    harness_revision = "reference-json-v1"
+
+    @property
+    def name(self) -> str:
+        return f"ollama/{self.model_name}"
+
+    @property
+    def model_revision(self) -> str:
+        return self.model_name
+
+    def model_descriptor(self) -> ModelDescriptor:
+        return ModelDescriptor(
+            provider=self.provider,
+            model_name=self.model_name,
+            model_revision=self.model_revision,
+            harness_name="medphysbench-ollama",
+            harness_revision=self.harness_revision,
+        )
+
+    def execute(self, task: RuntimeTask) -> AgentResult:
+        started = time.perf_counter()
+        request_payload = {
+            "model": self.model_name,
+            "stream": False,
+            "think": False,
+            "format": task.expected_output_schema,
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": build_user_prompt(task)},
+            ],
+            "options": {
+                "temperature": self.temperature,
+                "seed": self.seed,
+                "num_predict": self.max_tokens,
+            },
+        }
+        request = urllib.request.Request(
+            f"{self.base_url.rstrip('/')}/api/chat",
+            data=json.dumps(request_payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+                raw = json.loads(response.read().decode("utf-8"))
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
+            raise AdapterError(f"Ollama request failed for {self.model_name}: {error}") from error
+
+        content = str(raw.get("message", {}).get("content", ""))
+        output, parse_trace = _parse_json_object(content)
+        latency_ms = round((time.perf_counter() - started) * 1000, 2)
+        usage = {
+            key: raw.get(key)
+            for key in ("prompt_eval_count", "eval_count", "total_duration", "load_duration")
+            if raw.get(key) is not None
+        }
+        return AgentResult(
+            final_output=output,
+            trace=[
+                {
+                    "event": "model_response",
+                    "provider": self.provider,
+                    "model": self.model_name,
+                    "latency_ms": latency_ms,
+                    "usage": usage,
+                },
+                *parse_trace,
+            ],
+            raw_response={
+                "provider": self.provider,
+                "model": self.model_name,
+                "content": content,
+                "done_reason": raw.get("done_reason"),
+                "usage": usage,
+                "latency_ms": latency_ms,
+                "thinking": raw.get("message", {}).get("thinking"),
+            },
+        )
+
+
+def _parse_json_object(content: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    candidate = content.strip()
+    if candidate.startswith("```"):
+        lines = candidate.splitlines()
+        if len(lines) >= 3:
+            candidate = "\n".join(lines[1:-1]).strip()
+            if candidate.startswith("json"):
+                candidate = candidate[4:].lstrip()
+    try:
+        parsed = json.loads(candidate)
+    except json.JSONDecodeError:
+        start = candidate.find("{")
+        end = candidate.rfind("}")
+        if start < 0 or end <= start:
+            return {}, [
+                {
+                    "event": "structured_output_parse_failed",
+                    "reason": "no_json_object_found",
+                    "raw_preview": candidate[:400],
+                }
+            ]
+        try:
+            parsed = json.loads(candidate[start : end + 1])
+        except json.JSONDecodeError as error:
+            return {}, [
+                {
+                    "event": "structured_output_parse_failed",
+                    "reason": f"invalid_json:{error}",
+                    "raw_preview": candidate[:400],
+                }
+            ]
+    if not isinstance(parsed, dict):
+        return {}, [
+            {
+                "event": "structured_output_parse_failed",
+                "reason": f"decoded_type:{type(parsed).__name__}",
+                "raw_preview": candidate[:400],
+            }
+        ]
+    return parsed, []

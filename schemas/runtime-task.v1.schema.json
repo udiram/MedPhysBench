@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphys-agentbench.org/schemas/medeval.runtime-task.v1.schema.json",
+  "title": "MedPhys-AgentBench runtime task v1",
+  "description": "Agent-visible projection of a task. Hidden grading and provenance are intentionally absent.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "task_id",
+    "version",
+    "title",
+    "domain",
+    "track",
+    "risk_tier",
+    "instructions",
+    "input_payload",
+    "context_artifacts",
+    "allowed_tools",
+    "expected_output_schema",
+    "safety",
+    "stop_conditions"
+  ],
+  "properties": {
+    "schema_version": { "const": "medeval.task.v1" },
+    "task_id": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "domain": { "type": "string", "minLength": 1 },
+    "track": { "type": "string", "minLength": 1 },
+    "risk_tier": {
+      "enum": ["tier_1_low", "tier_2_shadow", "tier_3_escalation_only"]
+    },
+    "instructions": { "type": "string", "minLength": 1 },
+    "input_payload": { "type": "object" },
+    "context_artifacts": { "type": "array" },
+    "allowed_tools": { "type": "array" },
+    "expected_output_schema": { "type": "object" },
+    "safety": { "type": "object" },
+    "stop_conditions": { "type": "object" }
+  }
+}

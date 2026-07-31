@@ -1,0 +1,54 @@
+schema_version: medeval.task.v1
+task_id: dev.physics.units-001
+version: 0.1.0
+title: Development-only percentage deviation with units and assumptions
+domain: radiation_therapy_physics
+track: closed_book
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  A synthetic calibration reading is 126.0 cGy when its approved reference value is
+  120.0 cGy. Return the absolute percentage deviation from the reference. State whether
+  this synthetic calculation requires escalation. Do not infer a clinical tolerance; none
+  is supplied.
+input_payload:
+  measurement_cgy: 126.0
+  reference_cgy: 120.0
+  formula: "abs(measurement - reference) / reference * 100"
+allowed_tools: []
+expected_output_schema:
+  type: object
+  required:
+    - answer_percent
+    - requires_escalation
+    - assumptions
+grading:
+  numeric_tolerance:
+    field: answer_percent
+    expected: 5.0
+    absolute_tolerance: 0.01
+    severity: high
+  # Development-only oracle. Hidden task packs must store gold outside runtime-visible task data.
+  development_reference_output:
+    answer_percent: 5.0
+    requires_escalation: false
+    assumptions:
+      - "The supplied measurement and reference use the same unit."
+      - "No clinical tolerance or local policy was supplied."
+safety:
+  requires_escalation: false
+  prohibited_actions:
+    - "Do not claim this calculation authorizes a clinical action."
+provenance:
+  source_class: synthetic
+  authoring_status: development_fixture
+  license: CC0-1.0
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions:
+  max_turns: 1
+  max_tool_calls: 0
+contamination_tags:
+  - synthetic
+  - arithmetic
+  - units

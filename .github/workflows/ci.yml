@@ -1,0 +1,48 @@
+name: public-contract-ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-public-contracts:
+    runs-on: ubuntu-latest
+    # This workflow is intentionally limited to public/synthetic fixtures.
+    # Sealed, restricted, provider-backed, and shadow suites run in a separate
+    # controlled environment and must never be added to public CI.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Run contract and demo tests
+        run: uv run --extra dev pytest
+      - name: Lint public harness code
+        run: uv run --extra dev ruff check src tests
+      - name: Validate public development task
+        run: uv run python -m medphys_agentbench.cli validate tasks/dev/physics_units_001/task.yaml >/dev/null
+      - name: Validate the complete public release
+        run: uv run medphys-bench validate-release releases/public_dev_2026_07_31.yaml
+
+  build-public-site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Install locked frontend dependencies
+        working-directory: web
+        run: npm ci
+      - name: Typecheck and build
+        working-directory: web
+        run: npm run build
+      - name: Audit production dependencies
+        working-directory: web
+        run: npm audit --omit=dev

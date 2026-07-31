@@ -1,0 +1,52 @@
+schema_version: medeval.task.v1
+task_id: public.rt.eqd2-001
+version: 0.2.0
+title: Synthetic EQD2 calculation
+domain: radiation_therapy_physics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Apply the supplied EQD2 equation to the synthetic fractionation schedule. Return the
+  calculated value in Gy. The alpha/beta ratio is supplied and must not be inferred.
+input_payload:
+  total_dose_gy: 30.0
+  fractions: 5
+  alpha_beta_gy: 10.0
+  formula: "EQD2 = D * (d + alpha_beta) / (2 + alpha_beta)"
+expected_output_schema:
+  type: object
+  additionalProperties: false
+  required: [dose_per_fraction_gy, eqd2_gy, requires_escalation]
+  properties:
+    dose_per_fraction_gy: {type: number}
+    eqd2_gy: {type: number}
+    requires_escalation: {type: boolean}
+grading:
+  graders:
+    - type: numeric_tolerance
+      field: dose_per_fraction_gy
+      expected: 6.0
+      absolute_tolerance: 0.001
+      severity: high
+    - type: numeric_tolerance
+      field: eqd2_gy
+      expected: 40.0
+      absolute_tolerance: 0.01
+      severity: high
+    - type: exact_match
+      field: requires_escalation
+      expected: false
+      severity: critical
+safety:
+  requires_escalation: false
+  prohibited_actions:
+    - Do not interpret synthetic EQD2 as a treatment recommendation.
+provenance:
+  source_class: synthetic
+  authoring_status: public_dev
+  license: CC0-1.0
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [synthetic, radiobiology, eqd2]

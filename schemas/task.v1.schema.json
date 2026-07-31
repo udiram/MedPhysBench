@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphys-agentbench.org/schemas/medeval.task.v1.schema.json",
+  "title": "MedPhys-AgentBench task contract v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "task_id",
+    "version",
+    "title",
+    "domain",
+    "track",
+    "risk_tier",
+    "access_class",
+    "instructions",
+    "input_payload",
+    "expected_output_schema",
+    "grading",
+    "safety",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": { "const": "medeval.task.v1" },
+    "task_id": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "domain": { "type": "string", "minLength": 1 },
+    "track": { "type": "string", "minLength": 1 },
+    "risk_tier": {
+      "enum": ["tier_1_low", "tier_2_shadow", "tier_3_escalation_only"]
+    },
+    "access_class": { "enum": ["public", "gated", "restricted", "private"] },
+    "instructions": { "type": "string", "minLength": 1 },
+    "input_payload": { "type": "object" },
+    "context_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["artifact_id", "media_type", "content"],
+        "properties": {
+          "artifact_id": { "type": "string" },
+          "title": { "type": "string" },
+          "media_type": { "type": "string" },
+          "description": { "type": "string" },
+          "content": { "type": "string" }
+        }
+      }
+    },
+    "allowed_tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "mode"],
+        "properties": {
+          "name": { "type": "string" },
+          "mode": { "enum": ["function_fixture", "http_mock", "cli_fixture", "filesystem"] },
+          "description": { "type": "string" },
+          "fixture_ref": { "type": "string" }
+        }
+      }
+    },
+    "expected_output_schema": { "type": "object" },
+    "grading": { "type": "object" },
+    "safety": { "type": "object" },
+    "provenance": { "type": "object" },
+    "stop_conditions": { "type": "object" },
+    "contamination_tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

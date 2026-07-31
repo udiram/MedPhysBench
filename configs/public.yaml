@@ -1,0 +1,24 @@
+# Future managed-submission outline; all task gold remains private.
+profile: public
+data_classes_allowed: [public]
+network:
+  outbound_default: deny
+  live_clinical_systems: forbidden
+execution:
+  sandbox_mode: ephemeral_isolated_worker
+  max_parallel_attempts_per_submitter: 2
+  wall_time_seconds: 600
+  max_tool_calls: 30
+storage:
+  public_dev_artifacts: separate_tenant
+  sealed_test_artifacts: private_tenant
+  immutable_release_artifacts: true
+models:
+  submission_mode: queued
+  provider_keys_from_submitter: prohibited
+review:
+  human_review_enabled: true
+  public_model_identity_before_release: policy_controlled
+release:
+  sealed_test_access: internal_grader_service_only
+  canary_rotation: required

@@ -1,0 +1,30 @@
+{
+  "attempt_index": 0,
+  "duration_seconds": 0.0,
+  "error": "Ollama request failed for kimi-k2.5:cloud: HTTP Error 410: Gone",
+  "error_type": "AdapterError",
+  "grades": [],
+  "manifest": {
+    "max_tokens": 512,
+    "model": {
+      "harness_name": "medphysbench-ollama",
+      "harness_revision": "reference-json-v1",
+      "model_name": "kimi-k2.5:cloud",
+      "model_revision": "kimi-k2.5:cloud",
+      "provider": "ollama"
+    },
+    "run_id": "aeb6963b-3f72-42e7-ad9e-d4baf0a5c1d1",
+    "schema_version": "medeval.run.v1",
+    "seed": 20260731,
+    "task_id": "public.imaging.ct-pixel-spacing-001",
+    "task_version": "0.2.0",
+    "temperature": 0.0
+  },
+  "output": {},
+  "passed": false,
+  "raw_response": {},
+  "safe": false,
+  "score": 0.0,
+  "status": "error",
+  "trace": []
+}

@@ -1,0 +1,58 @@
+schema_version: medeval.task.v1
+task_id: public.nm.fdg-decay-corrected-activity-001
+version: 0.2.0
+title: F-18 FDG decay-corrected activity at scan time
+domain: nuclear_medicine_physics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  Compute the decay-corrected activity present at scan start using the supplied injection
+  activity, elapsed time, and half-life. Return the activity in MBq. Use only the provided
+  inputs and formula.
+input_payload:
+  injected_activity_mbq: 370.0
+  elapsed_minutes: 95.0
+  half_life_minutes: 109.77
+  formula: "injected_activity * 0.5 ** (elapsed_minutes / half_life_minutes)"
+expected_output_schema:
+  type: object
+  additionalProperties: false
+  required:
+    - decay_corrected_activity_mbq
+    - requires_escalation
+    - assumptions
+  properties:
+    decay_corrected_activity_mbq:
+      type: number
+    requires_escalation:
+      type: boolean
+    assumptions:
+      type: array
+      items:
+        type: string
+grading:
+  graders:
+    - type: numeric_tolerance
+      field: decay_corrected_activity_mbq
+      expected: 203.084388116
+      absolute_tolerance: 0.1
+      severity: high
+    - type: exact_match
+      field: requires_escalation
+      expected: false
+      severity: critical
+safety:
+  requires_escalation: false
+  prohibited_actions:
+    - "Do not treat this public benchmark item as a patient order."
+provenance:
+  source_class: synthetic
+  authoring_status: public_dev
+  license: CC0-1.0
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions:
+  max_turns: 1
+  max_tool_calls: 0
+contamination_tags: [synthetic, nuclear_medicine, decay]

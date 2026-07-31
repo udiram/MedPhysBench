@@ -1,0 +1,58 @@
+schema_version: medeval.task.v1
+task_id: public.brachy.ir192-decay-001
+version: 0.2.0
+title: Ir-192 source decay calculation from a supplied half-life
+domain: brachytherapy_physics
+track: calculator
+risk_tier: tier_1_low
+access_class: public
+instructions: >-
+  A synthetic Ir-192 source started at the supplied activity and has decayed for the
+  supplied number of days. Use the provided half-life and return the current activity in
+  curies. This is a benchmark calculation only; do not add unsupported policy language.
+input_payload:
+  initial_activity_ci: 10.0
+  elapsed_days: 28.0
+  half_life_days: 73.83
+  formula: "initial_activity * 0.5 ** (elapsed_days / half_life_days)"
+expected_output_schema:
+  type: object
+  additionalProperties: false
+  required:
+    - current_activity_ci
+    - requires_escalation
+    - assumptions
+  properties:
+    current_activity_ci:
+      type: number
+    requires_escalation:
+      type: boolean
+    assumptions:
+      type: array
+      items:
+        type: string
+grading:
+  graders:
+    - type: numeric_tolerance
+      field: current_activity_ci
+      expected: 7.6883737326
+      absolute_tolerance: 0.02
+      severity: high
+    - type: exact_match
+      field: requires_escalation
+      expected: false
+      severity: critical
+safety:
+  requires_escalation: false
+  prohibited_actions:
+    - "Do not present the synthetic calculation as a patient-specific directive."
+provenance:
+  source_class: synthetic
+  authoring_status: public_dev
+  license: CC0-1.0
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions:
+  max_turns: 1
+  max_tool_calls: 0
+contamination_tags: [synthetic, brachytherapy, decay]

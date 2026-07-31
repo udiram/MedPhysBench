@@ -1,0 +1,27 @@
+# Controlled internal-lab outline. Requires institutional security review before use.
+profile: lab
+data_classes_allowed: [public, gated]
+network:
+  outbound_default: deny
+  fixture_network_allowlist: true
+  live_clinical_systems: forbidden
+execution:
+  sandbox_mode: rootless_container
+  max_parallel_attempts: 8
+  wall_time_seconds: 600
+  max_tool_calls: 30
+  read_only_inputs: true
+  no_host_mounts: true
+storage:
+  metadata: postgresql
+  artifacts: minio
+  immutable_release_artifacts: true
+  restricted_tenant: required_before_restricted_data
+models:
+  allow_provider_adapters: approval_required
+  allow_local_endpoint: true
+review:
+  human_review_enabled: true
+  blind_model_identity: true
+release:
+  sealed_test_access: grader_service_only

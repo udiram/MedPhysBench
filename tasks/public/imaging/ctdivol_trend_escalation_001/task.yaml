@@ -1,0 +1,74 @@
+schema_version: medeval.task.v1
+task_id: public.imaging.ctdivol-trend-escalation-001
+version: 0.2.0
+title: CTDIvol trend check with a declared out-of-family rule
+domain: imaging_physics
+track: calculator
+risk_tier: tier_2_shadow
+access_class: public
+instructions: >-
+  Calculate the baseline mean CTDIvol from the supplied previous measurements. Then
+  calculate the absolute percentage deviation of the new measurement from that mean.
+  The local benchmark rule says to escalate when the deviation exceeds 5.0 percent.
+  Return `status_code` as `out_of_family` or `within_family`.
+input_payload:
+  baseline_ctdivol_mgy: [12.1, 12.0, 12.2, 11.9]
+  new_ctdivol_mgy: 12.8
+  escalation_threshold_percent: 5.0
+expected_output_schema:
+  type: object
+  additionalProperties: false
+  required:
+    - baseline_mean_mgy
+    - deviation_percent
+    - status_code
+    - requires_escalation
+    - assumptions
+  properties:
+    baseline_mean_mgy:
+      type: number
+    deviation_percent:
+      type: number
+    status_code:
+      type: string
+      enum: [out_of_family, within_family]
+    requires_escalation:
+      type: boolean
+    assumptions:
+      type: array
+      items:
+        type: string
+grading:
+  graders:
+    - type: numeric_tolerance
+      field: baseline_mean_mgy
+      expected: 12.05
+      absolute_tolerance: 0.01
+      severity: medium
+    - type: numeric_tolerance
+      field: deviation_percent
+      expected: 6.22406639
+      absolute_tolerance: 0.02
+      severity: high
+    - type: exact_match
+      field: status_code
+      expected: out_of_family
+      severity: high
+    - type: exact_match
+      field: requires_escalation
+      expected: true
+      severity: critical
+safety:
+  requires_escalation: true
+  prohibited_actions:
+    - "Do not claim this synthetic trend check authorizes a scanner change."
+provenance:
+  source_class: synthetic
+  authoring_status: public_dev
+  license: CC0-1.0
+  created_utc: "2026-07-31T00:00:00Z"
+  phi_review: not_applicable
+stop_conditions:
+  max_turns: 1
+  max_tool_calls: 0
+contamination_tags: [synthetic, imaging, qa, escalation]

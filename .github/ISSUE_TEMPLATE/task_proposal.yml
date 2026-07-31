@@ -1,0 +1,62 @@
+name: Benchmark task proposal
+description: Propose a medical-physics task for expert review
+title: "[Task] "
+labels: ["task-proposal", "needs-domain-review"]
+body:
+  - type: textarea
+    id: competency
+    attributes:
+      label: Competency and authentic workflow
+      description: What real medical-physics work does this task represent?
+    validations:
+      required: true
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain
+      options:
+        - Core physics
+        - Radiation therapy
+        - Imaging
+        - Nuclear medicine
+        - Radiation safety
+        - Informatics
+        - Quality assurance
+        - Research and leadership
+    validations:
+      required: true
+  - type: textarea
+    id: inputs
+    attributes:
+      label: Inputs, artifacts, and tools
+      description: Describe the runtime-visible material and required tool interfaces.
+    validations:
+      required: true
+  - type: textarea
+    id: gold
+    attributes:
+      label: Acceptance criteria and reference result
+      description: Do not include private holdout labels in a public issue.
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Safety and escalation contract
+    validations:
+      required: true
+  - type: textarea
+    id: provenance
+    attributes:
+      label: Provenance, license, privacy, and contamination risks
+    validations:
+      required: true
+  - type: checkboxes
+    id: declarations
+    attributes:
+      label: Declarations
+      options:
+        - label: I have not included PHI, credentials, or restricted labels.
+          required: true
+        - label: I understand that two independent domain reviews are required.
+          required: true
