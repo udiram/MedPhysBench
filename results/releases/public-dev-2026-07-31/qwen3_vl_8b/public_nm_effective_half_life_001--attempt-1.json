@@ -78,12 +78,14 @@
   "output": {},
   "passed": false,
   "raw_response": {
-    "content": "",
+    "content_redacted": true,
+    "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "done_reason": "stop",
     "latency_ms": 3531.52,
     "model": "qwen3-vl:8b",
     "provider": "ollama",
-    "thinking": "{\"effective_half_life_h\": 4.0, \"requires_escalation\": false, \"equation_used\": \"1 / effective = 1 / physical + 1 / biological\"}",
+    "thinking_redacted": true,
+    "thinking_sha256": "e0daa989505ecc80a801b5ec4d95db2ebca0b488642adf110350cf8b2348e93a",
     "usage": {
       "eval_count": 40,
       "load_duration": 155704042,

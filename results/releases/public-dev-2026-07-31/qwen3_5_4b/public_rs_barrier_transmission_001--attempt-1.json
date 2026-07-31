@@ -82,12 +82,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"weekly_dose_mgy_per_week\": 3.0,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The calculation assumes the provided transmission factor (0.01) already accounts for all shielding properties and geometry of the barrier.\",\n    \"The workload is assumed to be constant over a standard working week as defined by the input unit.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "8fa87c527d4d757c77ed6d288412dfbadaa050fd3b258545e0fe2d88e7bb6a4d",
     "done_reason": "stop",
     "latency_ms": 14965.97,
     "model": "qwen3.5:4b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 91,
       "load_duration": 518618875,

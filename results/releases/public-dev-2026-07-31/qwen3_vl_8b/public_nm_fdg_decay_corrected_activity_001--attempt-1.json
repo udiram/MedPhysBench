@@ -78,12 +78,14 @@
   "output": {},
   "passed": false,
   "raw_response": {
-    "content": "",
+    "content_redacted": true,
+    "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "done_reason": "stop",
     "latency_ms": 4750.86,
     "model": "qwen3-vl:8b",
     "provider": "ollama",
-    "thinking": "{\"decay_corrected_activity_mbq\": 370.0, \"requires_escalation\": false, \"assumptions\": [\"The formula provided is used for calculation\", \"Elapsed time and half-life are given in minutes\", \"Injection activity is provided in MBq\"] }",
+    "thinking_redacted": true,
+    "thinking_sha256": "9ce0cc4ae6fb44c3c5c68f412900fa71a8c56ab3671999c12a30dab7cb86cd06",
     "usage": {
       "eval_count": 59,
       "load_duration": 159943792,

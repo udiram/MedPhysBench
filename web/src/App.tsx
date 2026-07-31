@@ -83,6 +83,9 @@ function App() {
 
   return (
     <div className="site-shell">
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
       <header className="topbar">
         <a href="#top" aria-label="MedPhysBench home" onClick={closeMenu}>
           <Logo />
@@ -107,8 +110,8 @@ function App() {
         </nav>
       </header>
 
-      <main id="top">
-        <section className="hero">
+      <main id="main-content">
+        <section className="hero" id="top">
           <div className="hero-copy">
             <h1>Can AI do the work—and know when to stop?</h1>
             <p>
@@ -124,7 +127,7 @@ function App() {
               </a>
             </div>
           </div>
-          <div className="calibration-figure" aria-label="Abstract calibration grid">
+          <div className="calibration-figure" aria-hidden="true">
             <div className="grid-lines" />
             <div className="axis axis-x" />
             <div className="axis axis-y" />
@@ -180,8 +183,17 @@ function App() {
           </div>
 
           <div className="table-frame">
-            <div className="table-scroll">
+            <div
+              className="table-scroll"
+              role="region"
+              aria-label="Public model leaderboard"
+              aria-describedby="leaderboard-scroll-hint"
+              tabIndex={0}
+            >
               <table>
+                <caption className="sr-only">
+                  MedPhysBench public development release model results
+                </caption>
                 <thead>
                   <tr>
                     <th>Rank</th>
@@ -209,14 +221,21 @@ function App() {
                   ))}
                 </tbody>
               </table>
-              {!data && !loadError && <div className="table-state">Loading verified run artifacts…</div>}
+              {!data && !loadError && (
+                <div className="table-state" role="status" aria-live="polite">
+                  Loading verified run artifacts…
+                </div>
+              )}
               {loadError && (
-                <div className="table-state table-error">
+                <div className="table-state table-error" role="alert">
                   Leaderboard artifact unavailable. See the repository for the current run package.
                 </div>
               )}
             </div>
           </div>
+          <p className="table-scroll-hint" id="leaderboard-scroll-hint">
+            On smaller screens, scroll the leaderboard horizontally to compare every metric.
+          </p>
           {data && (
             <p className="data-note">
               Generated {new Date(data.generated_at).toLocaleString()} · {data.models.length} models ·
@@ -364,6 +383,10 @@ function ModelRow({
   expanded: boolean;
   onToggle: () => void;
 }) {
+  const artifactDirectory = model.model_name
+    .replace(/[^a-zA-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
   return (
     <>
       <tr className={expanded ? "model-row row-expanded" : "model-row"}>
@@ -427,7 +450,11 @@ function ModelRow({
               </div>
               <div>
                 <span>Run package</span>
-                <a href={REPO_URL}>Browse artifacts <ExternalLink aria-hidden="true" /></a>
+                <a
+                  href={`${REPO_URL}/tree/main/results/releases/public-dev-2026-07-31/${artifactDirectory}`}
+                >
+                  Browse artifacts <ExternalLink aria-hidden="true" />
+                </a>
               </div>
             </div>
           </td>

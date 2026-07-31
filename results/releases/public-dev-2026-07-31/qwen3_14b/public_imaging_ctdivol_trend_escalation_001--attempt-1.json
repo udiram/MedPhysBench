@@ -111,12 +111,12 @@
   },
   "passed": true,
   "raw_response": {
-    "content": "{\n  \"baseline_mean_mgy\": 12.05,\n  \"deviation_percent\": 6.22,\n  \"status_code\": \"out_of_family\",\n  \"requires_escalation\": true,\n  \"assumptions\": [\n    \"The provided CTDIvol measurements are representative of the scanner's performance.\",\n    \"The local benchmark rule applies to this scenario.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "02a06d8341760922acb22d72e80576f0692b3bc64a9adc7c01f52b9f049ea841",
     "done_reason": "stop",
     "latency_ms": 45968.93,
     "model": "qwen3:14b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 85,
       "load_duration": 17625335166,

@@ -110,12 +110,12 @@
   },
   "passed": true,
   "raw_response": {
-    "content": "{\n  \"answer_percent\": 5.0,\n  \"threshold_percent\": 3.0,\n  \"rationale_code\": \"exceeds_threshold\",\n  \"requires_escalation\": true,\n  \"assumptions\": [\n    \"The measured output (126 cGy) and reference output (120 cGy) are accurate.\",\n    \"The escalation threshold of 3.0% is the only policy in effect.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "7ac49dbf1d41a721b04740712fd7d886b1425bbdc2c0d3073c59f1649ee135ac",
     "done_reason": "stop",
     "latency_ms": 11556.81,
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 98,
       "load_duration": 138390958,

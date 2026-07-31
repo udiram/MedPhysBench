@@ -99,12 +99,14 @@
   "output": {},
   "passed": false,
   "raw_response": {
-    "content": "",
+    "content_redacted": true,
+    "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "done_reason": "stop",
     "latency_ms": 4605.68,
     "model": "qwen3-vl:8b",
     "provider": "ollama",
-    "thinking": "{\"supported_claim_ids\":[\"D\"],\"unsupported_claim_ids\":[\"A\",\"B\",\"C\"],\"requires_escalation\":false}",
+    "thinking_redacted": true,
+    "thinking_sha256": "ee93abd5bb86fed3c843cffdaf975dc58a025786ca312cb3ed0850285529279f",
     "usage": {
       "eval_count": 25,
       "load_duration": 154714084,

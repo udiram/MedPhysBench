@@ -110,12 +110,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"baseline_mean_mgy\": 12.1,\n  \"deviation_percent\": 4.7,\n  \"status_code\": \"within_family\",\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"Previous measurements are accurate and representative of the current state.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "8e8446bae6b3c70a176c0db62a1e8b2e0d88b79e13651f4a0d5f3b5815873a93",
     "done_reason": "stop",
     "latency_ms": 6190.7,
     "model": "llama3.2:3b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 66,
       "load_duration": 373399292,

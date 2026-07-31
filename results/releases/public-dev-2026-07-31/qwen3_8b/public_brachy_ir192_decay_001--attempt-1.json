@@ -84,12 +84,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"current_activity_ci\": 0.5946035575883625,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The decay follows the exponential decay formula provided.\",\n    \"The half-life is constant and does not vary with time.\",\n    \"The initial activity is given as 10.0 curies.\",\n    \"The elapsed time is 28.0 days.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "48f11940c2ae87a9b79a6d108b5e402aa51aedc919809fed83ea98984a3fe8ae",
     "done_reason": "stop",
     "latency_ms": 10445.06,
     "model": "qwen3:8b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 101,
       "load_duration": 133376208,

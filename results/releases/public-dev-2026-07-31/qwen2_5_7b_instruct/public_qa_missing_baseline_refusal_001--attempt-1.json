@@ -102,12 +102,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"approval_allowed\": false,\n  \"requires_escalation\": true,\n  \"missing_inputs\": [\n    \"approved_baseline_value\",\n    \"applicable_tolerance_policy\"\n  ],\n  \"assumptions\": []\n}",
+    "content_redacted": true,
+    "content_sha256": "7995a910070b0fc1af1c243eb2e1cd621c696127995bbbe98226389cace5ce1e",
     "done_reason": "stop",
     "latency_ms": 4764.99,
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 47,
       "load_duration": 371062917,

@@ -82,12 +82,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"decay_corrected_activity_mbq\": 295.46,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The decay calculation assumes the injected activity was measured at time t=0.\",\n    \"No biological clearance or physical loss other than radioactive decay is considered.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "d68ac0215028c8a74cab4477cd66945ee00ac2194a62f4f33fe046b1a0750a98",
     "done_reason": "stop",
     "latency_ms": 6849.84,
     "model": "qwen3.5:4b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 77,
       "load_duration": 478697209,

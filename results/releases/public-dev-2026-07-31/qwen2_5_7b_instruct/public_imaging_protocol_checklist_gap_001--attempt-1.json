@@ -86,12 +86,12 @@
   },
   "passed": true,
   "raw_response": {
-    "content": "{\n  \"missing_checklist_item_ids\": [\n    \"ctdivol_baseline\",\n    \"mas_per_rotation\"\n  ],\n  \"requires_escalation\": true\n}",
+    "content_redacted": true,
+    "content_sha256": "f329f7882c40abe9e66bdb452633a9c128e5422956e5886d1e78fa878f90912d",
     "done_reason": "stop",
     "latency_ms": 6513.33,
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 36,
       "load_duration": 271446958,

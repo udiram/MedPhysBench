@@ -112,12 +112,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"baseline_mean_mgy\": 12.1,\n  \"deviation_percent\": 5.0,\n  \"status_code\": \"within_family\",\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The baseline CTDIvol values are provided as a sample and may not represent the true baseline.\",\n    \"The new measurement is a single value and not a statistical sample.\",\n    \"The deviation is calculated based on the mean of the baseline values, not the individual measurements.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "210cffeb33d6f7255b21776fbde5abce1ea9839ef72e66e42c7eda7a65c90404",
     "done_reason": "stop",
     "latency_ms": 7964.15,
     "model": "qwen3:1.7b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 111,
       "load_duration": 333038583,

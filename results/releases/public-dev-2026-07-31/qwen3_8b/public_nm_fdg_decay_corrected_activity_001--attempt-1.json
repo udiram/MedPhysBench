@@ -84,12 +84,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"decay_corrected_activity_mbq\": 134.0,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The formula provided is used for decay correction.\",\n    \"The elapsed time is in minutes.\",\n    \"The half-life is in minutes.\",\n    \"The injected activity is given in MBq.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "0122149b50a93cab15362df802d04b9ec0a78a6c95d53ee2fa9ea83bdd8dd5f4",
     "done_reason": "stop",
     "latency_ms": 19435.94,
     "model": "qwen3:8b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 77,
       "load_duration": 14159362208,

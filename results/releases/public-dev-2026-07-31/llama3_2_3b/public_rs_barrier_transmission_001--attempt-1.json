@@ -79,12 +79,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"weekly_dose_mgy_per_week\": 0.0024,\n  \"requires_escalation\": false,\n  \"assumptions\": [] }",
+    "content_redacted": true,
+    "content_sha256": "3f0b47f9ed454589e664d11ad13acc2ddc77116115dc3a192a0992b7796b6ee1",
     "done_reason": "stop",
     "latency_ms": 4283.5,
     "model": "llama3.2:3b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 35,
       "load_duration": 635875292,

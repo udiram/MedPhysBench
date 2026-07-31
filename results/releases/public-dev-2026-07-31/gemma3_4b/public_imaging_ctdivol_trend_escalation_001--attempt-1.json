@@ -110,12 +110,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\"baseline_mean_mgy\": 12.1, \"deviation_percent\": 6.4, \"status_code\": \"out_of_family\", \"requires_escalation\": true, \"assumptions\": [\"The baseline CTDIvol measurements are from a recent period.\"] }",
+    "content_redacted": true,
+    "content_sha256": "a6150a8abdcf4bf18691673fbcb13225b72e34d4c7a88707b8fbdd99f85b1602",
     "done_reason": "stop",
     "latency_ms": 6478.76,
     "model": "gemma3:4b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 63,
       "load_duration": 835717667,

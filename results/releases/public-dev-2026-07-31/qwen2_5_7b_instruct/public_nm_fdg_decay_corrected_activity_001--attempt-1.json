@@ -82,12 +82,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"decay_corrected_activity_mbq\": 23.47,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"Assuming the formula provided is correct and applicable for this scenario.\",\n    \"Assuming no other decay factors or corrections are necessary.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "941c124a9e10dd3b4a4724fdf4909d2bdec29adaf4c03ca954485839559ce6eb",
     "done_reason": "stop",
     "latency_ms": 8042.49,
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 65,
       "load_duration": 132853000,

@@ -1,0 +1,107 @@
+[
+  {
+    "model": "qwen3.5:4b",
+    "status": "available",
+    "surface": "local_ollama",
+    "date": "2026-07-31",
+    "note": "Local text model; scored on the public development release."
+  },
+  {
+    "model": "qwen3:14b",
+    "status": "available",
+    "surface": "local_ollama",
+    "date": "2026-07-31",
+    "note": "Local text model; scored on the public development release."
+  },
+  {
+    "model": "qwen3:8b",
+    "status": "available",
+    "surface": "local_ollama",
+    "date": "2026-07-31",
+    "note": "Local text model; scored on the public development release."
+  },
+  {
+    "model": "qwen2.5:7b-instruct",
+    "status": "available",
+    "surface": "local_ollama",
+    "date": "2026-07-31",
+    "note": "Local text model; scored on the public development release."
+  },
+  {
+    "model": "qwen3:1.7b",
+    "status": "available",
+    "surface": "local_ollama",
+    "date": "2026-07-31",
+    "note": "Local text model; scored on the public development release."
+  },
+  {
+    "model": "gemma3:4b",
+    "status": "available",
+    "surface": "local_ollama",
+    "date": "2026-07-31",
+    "note": "Local text model; scored on the public development release."
+  },
+  {
+    "model": "llama3.1:8b",
+    "status": "available",
+    "surface": "local_ollama",
+    "date": "2026-07-31",
+    "note": "Local text model; scored on the public development release."
+  },
+  {
+    "model": "llama3.2:3b",
+    "status": "available",
+    "surface": "local_ollama",
+    "date": "2026-07-31",
+    "note": "Local text model; scored on the public development release."
+  },
+  {
+    "model": "deepseek-r1:1.5b",
+    "status": "available",
+    "surface": "local_ollama",
+    "date": "2026-07-31",
+    "note": "Local text model; scored on the public development release."
+  },
+  {
+    "model": "qwen3-vl:8b",
+    "status": "available",
+    "surface": "local_ollama_text_only",
+    "date": "2026-07-31",
+    "note": "Vision-capable model evaluated in text-only mode on the public development release."
+  },
+  {
+    "model": "qwen2.5vl:3b",
+    "status": "available",
+    "surface": "local_ollama_text_only",
+    "date": "2026-07-31",
+    "note": "Vision-capable model evaluated in text-only mode on the public development release."
+  },
+  {
+    "model": "qwen3.5:397b-cloud",
+    "status": "blocked",
+    "surface": "ollama_cloud",
+    "date": "2026-07-31",
+    "note": "Blocked by Ollama Cloud HTTP 429 weekly usage limit during live access check."
+  },
+  {
+    "model": "kimi-k2.5:cloud",
+    "status": "blocked",
+    "surface": "ollama_cloud",
+    "date": "2026-07-31",
+    "note": "Ollama reported this handle retired on July 31, 2026."
+  },
+  {
+    "model": "kimi-k2-thinking:cloud",
+    "status": "blocked",
+    "surface": "ollama_cloud",
+    "date": "2026-06-16",
+    "note": "Ollama reported this handle retired on June 16, 2026."
+  },
+  {
+    "model": "minimax-m2.1:cloud",
+    "status": "blocked",
+    "surface": "ollama_cloud",
+    "date": "2026-07-15",
+    "note": "Ollama reported this handle retired on July 15, 2026."
+  }
+]

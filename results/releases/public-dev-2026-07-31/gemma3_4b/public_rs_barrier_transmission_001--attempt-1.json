@@ -83,12 +83,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\"weekly_dose_mgy_per_week\": 0.952, \"requires_escalation\": false, \"assumptions\": [\"The use factor represents the fraction of time spent at the specified distance.\", \"The occupancy factor represents the fraction of time spent at the specified distance.\", \"The transmission factor is a unitless value representing the probability of radiation passing through the barrier.\"] }",
+    "content_redacted": true,
+    "content_sha256": "11cfb67607686fbadbc7dada436e24c15986aa3449d894b3a7964ce2e276aafe",
     "done_reason": "stop",
     "latency_ms": 8319.76,
     "model": "gemma3:4b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 82,
       "load_duration": 953813083,

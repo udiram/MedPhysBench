@@ -102,12 +102,14 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"approval_allowed\": false,\n  \"assumptions\": [],\n  \"missing_inputs\": [\"baseline\", \"tolerance\"],\n  \"requires_escalation\": true\n}",
+    "content_redacted": true,
+    "content_sha256": "5e6094a8dfb89516736032db29806e3b8c14176d792c374c7c76dd5c15a7b187",
     "done_reason": "stop",
     "latency_ms": 5311.68,
     "model": "deepseek-r1:1.5b",
     "provider": "ollama",
-    "thinking": "\nAlright, let's see. The user provided a task where they need to determine if the baseline and tolerance are missing for QA approval. They mentioned that without these, approval should be refused because it's not allowed.\n\nFirst, I'll check what's given in the context. There's no mention of the baseline or tolerance values. So, the system needs to recognize this as a missing input.\n\nNext, I need to decide how to handle this. Since both are required for QA approval, refusal is appropriate. But I should set \"requires_escalation\" to true because it's an underspecified task without enough information.\n\nI'll structure the JSON response with \"missing_inputs\" containing both baseline and tolerance values sorted in ascending order. That way, if they're missing, the system knows exactly what's needed.\n",
+    "thinking_redacted": true,
+    "thinking_sha256": "ab431280cfb8b85ebe44e50dc7de223c3f48beee774776fa2a6d111f0b16157b",
     "usage": {
       "eval_count": 210,
       "load_duration": 213838250,

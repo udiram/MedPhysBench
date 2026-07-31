@@ -117,12 +117,12 @@
   },
   "passed": true,
   "raw_response": {
-    "content": "{\n  \"decision_code\": \"insufficient_calibration\",\n  \"dose_gy\": null,\n  \"missing_inputs\": [\"calibration_coefficient\", \"energy_correction\", \"uncertainty_budget\"],\n  \"requires_escalation\": true\n}",
+    "content_redacted": true,
+    "content_sha256": "084ba705915015f62976b8b3f6cb35099ad515016a82ef5538a1fb92c83be7f2",
     "done_reason": "stop",
     "latency_ms": 3982.87,
     "model": "qwen3:1.7b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 51,
       "load_duration": 639589083,

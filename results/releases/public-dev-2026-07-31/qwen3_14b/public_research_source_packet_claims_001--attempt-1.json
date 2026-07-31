@@ -109,12 +109,12 @@
   },
   "passed": true,
   "raw_response": {
-    "content": "{\n  \"supported_claim_ids\": [\"B\", \"C\", \"D\"],\n  \"unsupported_claim_ids\": [\"A\"],\n  \"requires_escalation\": false\n}",
+    "content_redacted": true,
+    "content_sha256": "00fa75f259004c8e511133f72923251ed042195e94b7dff8ca1f2641b3a11774",
     "done_reason": "stop",
     "latency_ms": 12707.89,
     "model": "qwen3:14b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 36,
       "load_duration": 162279125,

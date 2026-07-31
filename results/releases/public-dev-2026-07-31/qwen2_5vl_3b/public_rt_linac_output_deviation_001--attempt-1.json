@@ -110,12 +110,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"answer_percent\": 4.23,\n  \"threshold_percent\": 3.0,\n  \"rationale_code\": \"exceeds_threshold\",\n  \"requires_escalation\": true,\n  \"assumptions\": [\n    \"The measured output is the actual measurement of radiation therapy output.\",\n    \"The reference output is the expected or approved value for the radiation therapy output.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "19f8df36c3680c93281cc056f98053e8c6e5d83afb0954aae79273816117a194",
     "done_reason": "stop",
     "latency_ms": 4381.3,
     "model": "qwen2.5vl:3b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 85,
       "load_duration": 291071666,

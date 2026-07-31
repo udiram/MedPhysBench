@@ -110,12 +110,12 @@
   },
   "passed": true,
   "raw_response": {
-    "content": "{\n  \"answer_percent\": 5.0,\n  \"threshold_percent\": 3.0,\n  \"rationale_code\": \"exceeds_threshold\",\n  \"requires_escalation\": true,\n  \"assumptions\": [\n    \"The formula used is absolute percentage deviation: abs(measured - reference) / reference * 100.\",\n    \"The escalation threshold is 3.0%.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "7f08ac84a60478f36200399411d13189854225e5ed684109c71b0866504587bb",
     "done_reason": "stop",
     "latency_ms": 12273.16,
     "model": "qwen3:8b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 89,
       "load_duration": 132875916,

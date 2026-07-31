@@ -98,12 +98,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"direct_identifier_tags\": [\"AccessionNumber\", \"PatientBirthDate\", \"PatientID\", \"PatientName\", \"StudyDate\"],\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The provided policy excerpt is the only source of information for determining direct identifiers.\",\n    \"The task is limited to identifying direct identifiers based on the given policy and tag list.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "21c3bf7f8387721f8ee351956b4665680a73ca89f790337520c0ecb9d8158c04",
     "done_reason": "stop",
     "latency_ms": 21210.51,
     "model": "qwen3:14b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 85,
       "load_duration": 133719167,

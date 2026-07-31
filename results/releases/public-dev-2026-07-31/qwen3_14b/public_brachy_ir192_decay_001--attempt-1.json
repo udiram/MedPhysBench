@@ -82,12 +82,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"current_activity_ci\": 5.0,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The decay formula is applied correctly with the given parameters.\",\n    \"The initial activity and half-life values are accurate for the Ir-192 source.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "c59a3e05a8934f1558ea5a13b54a7632e3ae3d0c44ad6bbca79b368bf2f1cc7c",
     "done_reason": "stop",
     "latency_ms": 24966.85,
     "model": "qwen3:14b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 65,
       "load_duration": 11929937416,

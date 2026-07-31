@@ -82,12 +82,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"decay_corrected_activity_mbq\": 2.5,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The formula provided is correct and can be used to calculate the decay-corrected activity.\",\n    \"No additional assumptions are required for this calculation.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "4bf5737fb6b4719ec244fb2a5095dc1c9e27d3d87441055206e33d4770434fc4",
     "done_reason": "stop",
     "latency_ms": 3408.34,
     "model": "qwen2.5vl:3b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 66,
       "load_duration": 475565166,

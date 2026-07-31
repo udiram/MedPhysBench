@@ -83,12 +83,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"decay_corrected_activity_mbq\": 0.0000000000000001,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"Injected activity is in MBq.\",\n    \"Elapsed time is in minutes.\",\n    \"Half-life is in minutes.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "e2b12e61319340b0ca7a0d4e660be21bf0659d5ee42a27d0a7e62871f3af7fa2",
     "done_reason": "stop",
     "latency_ms": 12631.84,
     "model": "llama3.1:8b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 65,
       "load_duration": 484412917,

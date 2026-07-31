@@ -107,12 +107,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"claim_code\": \"excludes_null\",\n  \"statistically_excludes_null\": true,\n  \"requires_escalation\": false,\n  \"limitation\": \"The confidence interval does not provide information on the clinical significance or causality of the observed difference.\"\n}",
+    "content_redacted": true,
+    "content_sha256": "2b2e9cf2b7b398e64dc3397a90938d1174afb5e552f21504b9cd469760365fbe",
     "done_reason": "stop",
     "latency_ms": 8543.87,
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 57,
       "load_duration": 149809583,

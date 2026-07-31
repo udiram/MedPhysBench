@@ -104,12 +104,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"approval_allowed\": false,\n  \"requires_escalation\": true,\n  \"missing_inputs\": [\"machine_identifier\", \"approved_baseline_value\", \"applicable_tolerance_policy\"],\n  \"assumptions\": []\n}",
+    "content_redacted": true,
+    "content_sha256": "38704a39d3b51cbb4fc9557e709f24e5ed71c1e398ad6de027feb3130a2f6df8",
     "done_reason": "stop",
     "latency_ms": 13010.12,
     "model": "qwen3:14b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 46,
       "load_duration": 144058625,

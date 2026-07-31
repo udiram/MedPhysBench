@@ -85,12 +85,14 @@
   "output": {},
   "passed": false,
   "raw_response": {
-    "content": "",
+    "content_redacted": true,
+    "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "done_reason": "stop",
     "latency_ms": 7880.26,
     "model": "qwen3-vl:8b",
     "provider": "ollama",
-    "thinking": "{\"direct_identifier_tags\":[\"AccessionNumber\",\"PatientBirthDate\",\"PatientID\",\"PatientName\",\"StudyDate\"],\"requires_escalation\":false,\"assumptions\":[\"The policy excerpt specifies that PatientBirthDate must be removed, but it is not listed in the input tag keywords. The task requires identifying direct identifiers from the provided list based on the policy.\",\"The input payload includes tags such as SliceThickness and PixelSpacing which are technical acquisition fields per the policy excerpt and may remain.\"]}",
+    "thinking_redacted": true,
+    "thinking_sha256": "4f1e84d6ba6c10e66e3c1e15fb1f0ee72fa9daaf7048d520ae9bdd96908c4573",
     "usage": {
       "eval_count": 98,
       "load_duration": 156617125,

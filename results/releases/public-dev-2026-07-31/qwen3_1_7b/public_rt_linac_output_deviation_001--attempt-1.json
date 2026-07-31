@@ -111,12 +111,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"answer_percent\": 1.6666666666666667,\n  \"threshold_percent\": 3.0,\n  \"rationale_code\": \"within_threshold\",\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The measured output is 126.0 CGY\",\n    \"The reference output is 120.0 CGY\",\n    \"The formula used is absolute percentage deviation: abs(measured - reference) / reference * 100\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "6a5bd6fe90daad80f407f60ce1f714397ae1d53b2afa416ca48f1b245ef6b844",
     "done_reason": "stop",
     "latency_ms": 10003.9,
     "model": "qwen3:1.7b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 120,
       "load_duration": 1192893417,

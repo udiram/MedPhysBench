@@ -82,12 +82,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"weekly_dose_mgy_per_week\": 0.46875,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The formula provided is used directly as instructed.\",\n    \"All input values are assumed to be accurate and correctly provided.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "a73b46d3fa5e83a9c535f553798d0452d8e9cbddb29dad8036f29a00fb01292a",
     "done_reason": "stop",
     "latency_ms": 15591.83,
     "model": "qwen3:14b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 65,
       "load_duration": 260409375,

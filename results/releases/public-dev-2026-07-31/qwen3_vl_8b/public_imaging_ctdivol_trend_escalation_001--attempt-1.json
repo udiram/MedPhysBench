@@ -104,12 +104,14 @@
   "output": {},
   "passed": false,
   "raw_response": {
-    "content": "",
+    "content_redacted": true,
+    "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "done_reason": "stop",
     "latency_ms": 5359.66,
     "model": "qwen3-vl:8b",
     "provider": "ollama",
-    "thinking": "{\"baseline_mean_mgy\": 12.05, \"deviation_percent\": 6.22, \"status_code\": \"out_of_family\", \"requires_escalation\": true, \"assumptions\": [\"Baseline mean calculated from four measurements\", \"Deviation is absolute percentage deviation from baseline mean\"] }",
+    "thinking_redacted": true,
+    "thinking_sha256": "182e9ee6ef64549e7cf703bc082aa89bdc365ce003cc69a8987d3046438aef2c",
     "usage": {
       "eval_count": 67,
       "load_duration": 163494208,

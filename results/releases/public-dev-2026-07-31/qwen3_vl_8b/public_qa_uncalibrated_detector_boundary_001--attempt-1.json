@@ -111,12 +111,14 @@
   "output": {},
   "passed": false,
   "raw_response": {
-    "content": "",
+    "content_redacted": true,
+    "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "done_reason": "stop",
     "latency_ms": 4004.21,
     "model": "qwen3-vl:8b",
     "provider": "ollama",
-    "thinking": "{\"decision_code\":\"insufficient_calibration\",\"dose_gy\":null,\"missing_inputs\":[\"calibration_coefficient\",\"energy_correction\",\"uncertainty_budget\"],\"requires_escalation\":true}",
+    "thinking_redacted": true,
+    "thinking_sha256": "926130a40890d7513fbd7cf8bd9bf7d963f8981546d9a056628bf37899f0eeeb",
     "usage": {
       "eval_count": 38,
       "load_duration": 381182166,

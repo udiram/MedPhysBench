@@ -84,12 +84,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"weekly_dose_mgy_per_week\": 3.6,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"distance_m = 4.0 m\",\n    \"occupancy_factor = 0.2\",\n    \"transmission_factor = 0.01\",\n    \"use_factor = 0.25\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "b4120aef2d3639f0aed268424272fa1ff978fd6dfe6889d68c031269f398e76f",
     "done_reason": "stop",
     "latency_ms": 5076.28,
     "model": "qwen2.5vl:3b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 81,
       "load_duration": 730523833,

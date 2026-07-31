@@ -82,12 +82,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"current_activity_ci\": 5.0,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The Ir-192 source has a half-life of 73.83 days.\",\n    \"The initial activity is 10 Ci.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "75183b4890ed9831a0ffe4552a168106e8d60c7f600df21e54d56b04a3c14e01",
     "done_reason": "stop",
     "latency_ms": 3498.1,
     "model": "qwen2.5vl:3b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 65,
       "load_duration": 238911208,

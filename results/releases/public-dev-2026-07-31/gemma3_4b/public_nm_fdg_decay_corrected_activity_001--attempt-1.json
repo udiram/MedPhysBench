@@ -79,12 +79,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\"decay_corrected_activity_mbq\": 234.57,\"requires_escalation\":false,\"assumptions\":[]}",
+    "content_redacted": true,
+    "content_sha256": "8ef0922bb94e1b070b8ca0d54dcfa99add68cf0b973521be454cdf81b566556e",
     "done_reason": "stop",
     "latency_ms": 4644.93,
     "model": "gemma3:4b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 30,
       "load_duration": 1015389834,

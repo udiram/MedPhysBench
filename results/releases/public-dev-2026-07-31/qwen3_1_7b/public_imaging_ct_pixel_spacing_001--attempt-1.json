@@ -93,12 +93,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"row_spacing_mm\": 0.360,\n  \"column_spacing_mm\": 0.360,\n  \"requires_escalation\": false\n}",
+    "content_redacted": true,
+    "content_sha256": "06c60604a723e308a081aea0259c38be1c79763c542b987e716d8a34d02beee7",
     "done_reason": "stop",
     "latency_ms": 1678.69,
     "model": "qwen3:1.7b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 38,
       "load_duration": 191267458,

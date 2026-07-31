@@ -78,12 +78,14 @@
   "output": {},
   "passed": false,
   "raw_response": {
-    "content": "",
+    "content_redacted": true,
+    "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "done_reason": "stop",
     "latency_ms": 3957.49,
     "model": "qwen3-vl:8b",
     "provider": "ollama",
-    "thinking": "{\"current_activity_ci\": 5.0, \"requires_escalation\": false, \"assumptions\": [\"The formula provided is used for the calculation\", \"Decay follows first-order kinetics with constant half-life\"]}",
+    "thinking_redacted": true,
+    "thinking_sha256": "581a477cb214476ce47c7ddae8d0ee960e914f30e70f4395ebca28418b9a13d3",
     "usage": {
       "eval_count": 46,
       "load_duration": 160045750,

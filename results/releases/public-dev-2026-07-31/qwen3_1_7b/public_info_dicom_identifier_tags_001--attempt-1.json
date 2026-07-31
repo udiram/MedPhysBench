@@ -99,12 +99,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"direct_identifier_tags\": [\"AccessionNumber\", \"PatientBirthDate\", \"PatientID\", \"PatientName\", \"StudyDate\"],\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The policy excerpt specifies that PatientName, PatientID, PatientBirthDate, AccessionNumber, and StudyDate are direct identifiers that must be removed.\",\n    \"The tag list includes SliceThickness, PixelSpacing, and ManufacturerModelName, which are not considered direct identifiers.\",\n    \"The task requires sorting the direct identifier tags in ascending alphabetical order.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "691e828867026ad45a24ba0066aed8b551084dd705c62b1c143ff8e24a4126a0",
     "done_reason": "stop",
     "latency_ms": 7208.39,
     "model": "qwen3:1.7b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 120,
       "load_duration": 424177250,

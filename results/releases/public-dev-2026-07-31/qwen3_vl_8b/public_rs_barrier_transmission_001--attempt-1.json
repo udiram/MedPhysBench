@@ -78,12 +78,14 @@
   "output": {},
   "passed": false,
   "raw_response": {
-    "content": "",
+    "content_redacted": true,
+    "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "done_reason": "stop",
     "latency_ms": 4691.8,
     "model": "qwen3-vl:8b",
     "provider": "ollama",
-    "thinking": "{\"weekly_dose_mgy_per_week\": 0.03, \"requires_escalation\": false, \"assumptions\": [\"The formula provided is used as specified\", \"All input values are assumed to be correct and within expected ranges\"] }",
+    "thinking_redacted": true,
+    "thinking_sha256": "b7150bec0fe8f7850efb783801b1aa057c53682891ec424d0501ed5720a4c9df",
     "usage": {
       "eval_count": 53,
       "load_duration": 161786125,

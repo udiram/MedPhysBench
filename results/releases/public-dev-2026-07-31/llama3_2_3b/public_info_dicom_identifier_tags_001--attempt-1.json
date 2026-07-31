@@ -97,12 +97,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"direct_identifier_tags\": [\n    \"AccessionNumber\",\n    \"ManufacturerModelName\",\n    \"PatientBirthDate\",\n    \"PatientID\",\n    \"PatientName\",\n    \"StudyDate\"\n  ],\n  \"requires_escalation\": false,\n  \"assumptions\": []\n}",
+    "content_redacted": true,
+    "content_sha256": "cebe96339aac0ad6f6c0844ae9a1226ca98d848991b2413f6a8eb8fa41105a7f",
     "done_reason": "stop",
     "latency_ms": 4633.2,
     "model": "llama3.2:3b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 61,
       "load_duration": 325635083,

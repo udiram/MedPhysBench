@@ -109,12 +109,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"claim_code\": \"excludes_null\",\n  \"statistically_excludes_null\": true,\n  \"requires_escalation\": false,\n  \"limitation\": \"The confidence interval includes zero, but the upper bound is greater than zero. Therefore, it does not definitively exclude zero.\"\n}",
+    "content_redacted": true,
+    "content_sha256": "e4c73f31b779c835d221b7664a481827b42e35b2eebeb01ade671a6da58b5c9f",
     "done_reason": "stop",
     "latency_ms": 10945.79,
     "model": "gemma3:4b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 69,
       "load_duration": 1410023917,

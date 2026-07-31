@@ -98,12 +98,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"direct_identifier_tags\": [\"AccessionNumber\", \"PatientBirthDate\", \"PatientID\", \"PatientName\", \"StudyDate\"],\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The policy excerpt specifies that direct identifiers must be removed before public release.\",\n    \"Technical acquisition fields such as SliceThickness, PixelSpacing, and ManufacturerModelName may remain in the public fixture.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "56747ae762e390b16144899d12a012dba62e84774aabf8b76d9e200a07086ec3",
     "done_reason": "stop",
     "latency_ms": 22587.57,
     "model": "qwen3:8b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 89,
       "load_duration": 15010471875,

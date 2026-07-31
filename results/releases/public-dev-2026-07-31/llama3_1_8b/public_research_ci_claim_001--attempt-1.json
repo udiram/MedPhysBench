@@ -109,12 +109,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"claim_code\": \"excludes_null\",\n  \"statistically_excludes_null\": true,\n  \"requires_escalation\": false,\n  \"limitation\": \"The null value of zero is within the two-sided 95% confidence interval, but the estimated difference is statistically significant.\"\n}",
+    "content_redacted": true,
+    "content_sha256": "d939033eee94b369acf18a408fd06398d859a5dffc3e30165f1f4bcbddbb8c28",
     "done_reason": "stop",
     "latency_ms": 19533.85,
     "model": "llama3.1:8b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 62,
       "load_duration": 1093049167,

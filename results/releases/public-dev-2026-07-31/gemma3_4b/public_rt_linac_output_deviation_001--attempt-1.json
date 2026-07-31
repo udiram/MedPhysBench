@@ -110,12 +110,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\"answer_percent\": 7.5, \"threshold_percent\": 3.0, \"rationale_code\": \"exceeds_threshold\", \"requires_escalation\": true, \"assumptions\": [\"The reference output is the approved dose.\", \"The measured output is the actual delivered dose.\"]}",
+    "content_redacted": true,
+    "content_sha256": "8e6608b1a64809fc791116ed02316c908469d3061842601c9ba78f6041169fc0",
     "done_reason": "stop",
     "latency_ms": 4746.49,
     "model": "gemma3:4b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 66,
       "load_duration": 479639958,

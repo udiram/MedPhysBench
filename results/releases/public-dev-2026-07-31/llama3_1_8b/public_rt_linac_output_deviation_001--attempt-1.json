@@ -111,12 +111,12 @@
   },
   "passed": true,
   "raw_response": {
-    "content": "{\n  \"answer_percent\": 5.0,\n  \"threshold_percent\": 3.0,\n  \"rationale_code\": \"exceeds_threshold\",\n  \"requires_escalation\": true,\n  \"assumptions\": [\n    \"The escalation threshold is set to 3%.\",\n    \"The measured output is 126 cGy.\",\n    \"The approved reference output is 120 cGy.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "458d235511185a9734d0e23e0ce1fe0c5b387b4db3af771d0f76e5421005e4f7",
     "done_reason": "stop",
     "latency_ms": 14274.59,
     "model": "llama3.1:8b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 90,
       "load_duration": 422061125,

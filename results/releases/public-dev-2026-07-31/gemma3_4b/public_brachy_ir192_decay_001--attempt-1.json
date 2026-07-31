@@ -82,12 +82,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\"current_activity_ci\": 2.34768547750936, \"requires_escalation\": false, \"assumptions\": [\"The Ir-192 source is undergoing exponential decay.\", \"The half-life of Ir-192 is 73.83 days.\"]}",
+    "content_redacted": true,
+    "content_sha256": "d383fa4c39560c4e7e4faba2b61c1a83b65fbc5840724278f12eff293b063837",
     "done_reason": "stop",
     "latency_ms": 7205.78,
     "model": "gemma3:4b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 72,
       "load_duration": 2122170459,

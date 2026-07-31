@@ -81,12 +81,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"current_activity_ci\": 2.111,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"Assuming the formula is correct and all input values are accurate.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "e69687ef0557cf66a0329e36ca6e0621f1c5465157b74e2245f29e23252920c1",
     "done_reason": "stop",
     "latency_ms": 4507.37,
     "model": "llama3.2:3b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 47,
       "load_duration": 273186292,

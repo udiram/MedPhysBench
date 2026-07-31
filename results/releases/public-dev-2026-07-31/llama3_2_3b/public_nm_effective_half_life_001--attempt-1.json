@@ -79,12 +79,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"effective_half_life_h\": 8.0,\n  \"requires_escalation\": false,\n  \"equation_used\": \"1 / effective = 1 / physical + 1 / biological\"\n}",
+    "content_redacted": true,
+    "content_sha256": "dc8bf0e158de2e452ffeae22bc5673d869724a3d496b3c85b4188b917b2a70dc",
     "done_reason": "stop",
     "latency_ms": 4003.06,
     "model": "llama3.2:3b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 45,
       "load_duration": 336709500,

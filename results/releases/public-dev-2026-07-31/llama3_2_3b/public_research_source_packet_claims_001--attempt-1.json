@@ -107,12 +107,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"supported_claim_ids\": [\n    \"A\",\n    \"B\",\n    \"C\",\n    \"D\"\n  ],\n  \"unsupported_claim_ids\": [],\n  \"requires_escalation\": false\n}",
+    "content_redacted": true,
+    "content_sha256": "4e7918b354616bee58d59ae0d7edac26279df38758ce64db0f2c99b663598d7d",
     "done_reason": "stop",
     "latency_ms": 4311.53,
     "model": "llama3.2:3b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 44,
       "load_duration": 295749292,

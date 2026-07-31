@@ -93,12 +93,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"dose_per_fraction_gy\": 6.0,\n  \"eqd2_gy\": 15.0,\n  \"requires_escalation\": false\n}",
+    "content_redacted": true,
+    "content_sha256": "2630abee0be0e9d43be49f913a787451e40e9bbf30461ed5c3aa52493afea5df",
     "done_reason": "stop",
     "latency_ms": 3251.63,
     "model": "llama3.2:3b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 39,
       "load_duration": 201945459,

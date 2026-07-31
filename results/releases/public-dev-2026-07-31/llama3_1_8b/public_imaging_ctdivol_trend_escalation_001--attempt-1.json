@@ -111,12 +111,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"baseline_mean_mgy\": 12.1,\n  \"deviation_percent\": 5.26,\n  \"status_code\": \"out_of_family\",\n  \"requires_escalation\": true,\n  \"assumptions\": [\n    \"The escalation threshold is 5.0 percent.\",\n    \"The new measurement is considered out-of-family if its deviation from the mean exceeds this threshold.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "6b3b638a6a35b500ca2bcb0b1af98c547180e22a07ed8a1b9fa295f9f8e37db6",
     "done_reason": "stop",
     "latency_ms": 41735.84,
     "model": "llama3.1:8b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 86,
       "load_duration": 1387612791,

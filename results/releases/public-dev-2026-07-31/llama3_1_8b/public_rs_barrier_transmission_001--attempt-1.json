@@ -82,12 +82,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"weekly_dose_mgy_per_week\": 0.024,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The workload at 1m is assumed to be uniformly distributed.\",\n    \"The transmission factor accounts for all barriers between the source and the point of interest.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "a55c1143e6c9b5ecf7ab497deef41cd7678b1bbc675fd5b4098c53321fbd0a20",
     "done_reason": "stop",
     "latency_ms": 35935.3,
     "model": "llama3.1:8b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 69,
       "load_duration": 1955768375,

@@ -79,12 +79,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"dose_rate_mgy_per_min\": 2.4,\n  \"requires_escalation\": false,\n  \"method\": \"inverse_square_relationship\"\n}",
+    "content_redacted": true,
+    "content_sha256": "dc602f13e4e883b07f5a301721e6f92e03e5f3837dca7150f926e24722428e6a",
     "done_reason": "stop",
     "latency_ms": 6977.32,
     "model": "qwen2.5vl:3b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 36,
       "load_duration": 4035550375,

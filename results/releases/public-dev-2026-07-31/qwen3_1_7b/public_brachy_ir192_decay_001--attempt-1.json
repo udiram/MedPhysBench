@@ -83,12 +83,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"current_activity_ci\": 10.0,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The decay follows first-order kinetics with a constant half-life.\",\n    \"The initial activity is provided and is assumed to be accurate.\",\n    \"The elapsed days and half-life are given and are assumed to be correct.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "7bd9d1363951c7cc9c471a839da19da9037a4c3e0eda0f1e55fb83dbcddc1bc6",
     "done_reason": "stop",
     "latency_ms": 21310.64,
     "model": "qwen3:1.7b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 78,
       "load_duration": 751519709,

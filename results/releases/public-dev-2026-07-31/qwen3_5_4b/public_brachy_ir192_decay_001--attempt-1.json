@@ -83,12 +83,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"current_activity_ci\": 3.54,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The initial activity is exactly 10.0 Ci.\",\n    \"The elapsed time is exactly 28 days.\",\n    \"The half-life of Ir-192 is treated as the supplied value of 73.83 days for this calculation.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "81405a23664fd07654728aa418b13d87b0e793bf9cacc79d1e166a73ab0c8494",
     "done_reason": "stop",
     "latency_ms": 10883.82,
     "model": "qwen3.5:4b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 96,
       "load_duration": 1848660833,

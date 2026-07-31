@@ -111,12 +111,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"baseline_mean_mgy\": 12.075,\n  \"deviation_percent\": 6.25,\n  \"status_code\": \"out_of_family\",\n  \"requires_escalation\": true,\n  \"assumptions\": [\n    \"Assumed the baseline measurements are valid and representative.\",\n    \"Assumed no significant changes in patient population or scanning protocols.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "b4f8185f0404751f101a14e8780543c2fb187521e630bd7dc5ad1facf2e89d86",
     "done_reason": "stop",
     "latency_ms": 11490.53,
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 84,
       "load_duration": 147284333,

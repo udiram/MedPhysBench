@@ -20,6 +20,7 @@ package, or evidence of autonomous clinical competence.
 - Public tasks: `16`
 - Scored models on Friday, July 31, 2026: `11` locally reachable Ollama models
 - Leaderboard artifact: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
+- Complete public run package: [`results/releases/public-dev-2026-07-31/`](results/releases/public-dev-2026-07-31/)
 - Release writeup: [`docs/RESULTS.md`](docs/RESULTS.md)
 - Public site source: [`web/`](web/)
 
@@ -37,14 +38,15 @@ package, or evidence of autonomous clinical competence.
 ## Quick start
 
 ```bash
-uv run --with pyyaml --with pytest pytest
-uv run --with pyyaml python -m medphys_agentbench.cli validate-release releases/public_dev_2026_07_31.yaml
-uv run --with pyyaml python -m medphys_agentbench.cli run-release \
+uv sync --extra dev
+uv run pytest
+uv run medphys-bench validate-release releases/public_dev_2026_07_31.yaml
+uv run medphys-bench run-release \
   releases/public_dev_2026_07_31.yaml \
   --adapter ollama \
   --model qwen3.5:4b \
   --results-dir runs
-uv run --with pyyaml python -m medphys_agentbench.cli summarize \
+uv run medphys-bench summarize \
   releases/public_dev_2026_07_31.yaml \
   --results-dir runs \
   --output web/public/data/leaderboard.json

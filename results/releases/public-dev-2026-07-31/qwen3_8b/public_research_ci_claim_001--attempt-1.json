@@ -109,12 +109,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"claim_code\": \"does_not_exclude_null\",\n  \"statistically_excludes_null\": false,\n  \"requires_escalation\": false,\n  \"limitation\": \"The 95% confidence interval ranges from -0.2 to 3.8, which includes the null value of 0.0. Therefore, the null hypothesis cannot be statistically excluded.\"\n}",
+    "content_redacted": true,
+    "content_sha256": "d32903b3b27ba25f5edac270e4c973a32708530b4625ccaae603ede0687e5d52",
     "done_reason": "stop",
     "latency_ms": 12432.06,
     "model": "qwen3:8b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 79,
       "load_duration": 156102791,

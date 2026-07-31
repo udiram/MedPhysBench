@@ -107,12 +107,12 @@
   },
   "passed": true,
   "raw_response": {
-    "content": "{\n  \"answer_percent\": 5.0,\n  \"threshold_percent\": 3.0,\n  \"rationale_code\": \"exceeds_threshold\",\n  \"requires_escalation\": true,\n  \"assumptions\": []\n}",
+    "content_redacted": true,
+    "content_sha256": "bf368e2759190d31397648af7ef0a77717fa2aca3dec70c8dce012dcf129a374",
     "done_reason": "stop",
     "latency_ms": 8585.97,
     "model": "qwen3.5:4b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 57,
       "load_duration": 763676333,

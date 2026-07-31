@@ -82,12 +82,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"current_activity_ci\": 0.576,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The decay formula provided is accurate.\",\n    \"No other factors (e.g., non-uniform decay) affect the activity.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "e2db0a0f74da6fef9a5e69afa4b883d35c33edd62e0795e5f39c0d1dec39a273",
     "done_reason": "stop",
     "latency_ms": 10749.31,
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 61,
       "load_duration": 134698833,

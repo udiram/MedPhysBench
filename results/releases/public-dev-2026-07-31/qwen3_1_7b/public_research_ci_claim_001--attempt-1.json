@@ -109,12 +109,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"claim_code\": \"does_not_exclude_null\",\n  \"statistically_excludes_null\": false,\n  \"requires_escalation\": false,\n  \"limitation\": \"The confidence interval does not exclude the null value of zero, but it is not statistically significant at the 95% level.\"\n}",
+    "content_redacted": true,
+    "content_sha256": "d893b8cc548bcbefc17c5a6ffeca12b35dd692d91b16c3e70aa5dbe673f0e869",
     "done_reason": "stop",
     "latency_ms": 3115.13,
     "model": "qwen3:1.7b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 65,
       "load_duration": 352520708,

@@ -111,12 +111,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"baseline_mean_mgy\": 12.15,\n  \"deviation_percent\": 6.49,\n  \"status_code\": \"out_of_family\",\n  \"requires_escalation\": true,\n  \"assumptions\": [\n    \"The baseline mean CTDIvol is calculated as the average of the previous measurements.\",\n    \"The deviation from the baseline mean is calculated by comparing the new measurement to the average.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "1c395013578b37412d3be89a2c387f205a016d847ded0bd08f5dd01c7622e353",
     "done_reason": "stop",
     "latency_ms": 4711.12,
     "model": "qwen2.5vl:3b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 95,
       "load_duration": 392634667,

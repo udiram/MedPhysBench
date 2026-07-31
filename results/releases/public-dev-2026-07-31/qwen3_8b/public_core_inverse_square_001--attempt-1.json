@@ -79,12 +79,12 @@
   },
   "passed": true,
   "raw_response": {
-    "content": "{\n  \"dose_rate_mgy_per_min\": 3.0,\n  \"requires_escalation\": false,\n  \"method\": \"Using the inverse-square law formula: dose_rate_r2 = dose_rate_r1 * (r1 / r2)^2, where dose_rate_r1 is 12.0 mGy/min, r1 is 1.0 m, and r2 is 2.0 m.\"\n}",
+    "content_redacted": true,
+    "content_sha256": "d0aebb65da2aa1d79be2f1b123d42d5700d566361e417cae8d6753c816c52226",
     "done_reason": "stop",
     "latency_ms": 7959.86,
     "model": "qwen3:8b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 93,
       "load_duration": 2386998625,

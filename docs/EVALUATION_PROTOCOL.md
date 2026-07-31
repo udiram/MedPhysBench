@@ -270,6 +270,12 @@ Every model/release report should include:
 11. Reproducibility class and artifacts available to reproduce the result.
 12. Known gaps, conflicts, limitations, and any task retirement/correction.
 
+Public run packages retain the parsed candidate output, deterministic grades,
+hashes, latency, provider identity, and token/usage metadata. Provider-supplied
+hidden reasoning fields are excluded from the public package; their SHA-256
+digests may be retained solely to make redaction and artifact identity
+auditable.
+
 ## 11. Regression and release gates
 
 Use three evaluation cadences:

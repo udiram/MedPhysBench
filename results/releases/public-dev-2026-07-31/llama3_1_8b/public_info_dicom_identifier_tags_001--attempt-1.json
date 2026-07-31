@@ -99,12 +99,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"direct_identifier_tags\": [\n    \"AccessionNumber\",\n    \"ManufacturerModelName\",\n    \"PatientBirthDate\",\n    \"PatientID\",\n    \"PatientName\",\n    \"SliceThickness\",\n    \"StudyDate\"\n  ],\n  \"requires_escalation\": false,\n  \"assumptions\": []\n}",
+    "content_redacted": true,
+    "content_sha256": "ec4bb9e339d0f4c9f9fe16c354242d6de3dc49ba58dea9ad5f34b6c4905465ca",
     "done_reason": "stop",
     "latency_ms": 53199.14,
     "model": "llama3.1:8b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 66,
       "load_duration": 423277083,

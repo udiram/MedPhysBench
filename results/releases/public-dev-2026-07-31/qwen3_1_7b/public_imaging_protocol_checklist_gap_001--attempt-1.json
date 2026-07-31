@@ -84,12 +84,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"missing_checklist_item_ids\": [\"ctdivol_baseline\"],\n  \"requires_escalation\": true\n}",
+    "content_redacted": true,
+    "content_sha256": "8c229be0705c92a2099b977ee717905e05a1f0a9fe918f69a09517bc2c13a725",
     "done_reason": "stop",
     "latency_ms": 3280.25,
     "model": "qwen3:1.7b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 26,
       "load_duration": 264896750,

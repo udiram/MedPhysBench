@@ -83,12 +83,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"current_activity_ci\": 0.0000000000000001,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The initial activity is in curies.\",\n    \"The elapsed days are a non-negative number.\",\n    \"The half-life is in days.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "2e2399ed5a9ad37180ef30be789549d02bb36ea7d0a5f2a305c1fe6df721db6f",
     "done_reason": "stop",
     "latency_ms": 12789.16,
     "model": "llama3.1:8b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 67,
       "load_duration": 267716625,

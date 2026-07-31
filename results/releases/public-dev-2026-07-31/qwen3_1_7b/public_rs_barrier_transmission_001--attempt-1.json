@@ -83,12 +83,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"weekly_dose_mgy_per_week\": 1200.0,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The transmission factor is given as 0.01, and the distance is 4.0 meters.\",\n    \"The occupancy factor is 0.2, and the use factor is 0.25.\",\n    \"The workload at 1 meter is 1200 mGy per week.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "5774728ace11ee1c2324d22d6c2b1c45f118fd8aaa6c3ecbeceadd42a4f68d09",
     "done_reason": "stop",
     "latency_ms": 6610.4,
     "model": "qwen3:1.7b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 105,
       "load_duration": 276694208,

@@ -22,11 +22,13 @@ jobs:
       - name: Run contract and demo tests
         run: uv run --extra dev pytest
       - name: Lint public harness code
-        run: uv run --extra dev ruff check src tests
+        run: uv run --extra dev ruff check src tests scripts
       - name: Validate public development task
         run: uv run python -m medphys_agentbench.cli validate tasks/dev/physics_units_001/task.yaml >/dev/null
       - name: Validate the complete public release
         run: uv run medphys-bench validate-release releases/public_dev_2026_07_31.yaml
+      - name: Verify public artifacts exclude provider reasoning
+        run: uv run python scripts/sanitize_public_results.py --check results/releases/public-dev-2026-07-31
 
   build-public-site:
     runs-on: ubuntu-latest

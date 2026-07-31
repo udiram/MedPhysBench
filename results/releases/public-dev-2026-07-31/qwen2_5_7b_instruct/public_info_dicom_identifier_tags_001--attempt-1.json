@@ -98,12 +98,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"direct_identifier_tags\": [\n    \"AccessionNumber\",\n    \"PatientBirthDate\",\n    \"PatientID\",\n    \"PatientName\",\n    \"StudyDate\"\n  ],\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The provided policy excerpt is the only de-identification guideline for this task.\",\n    \"Tags not explicitly listed as direct identifiers can be assumed to be non-direct identifiers.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "66f7763f13cfd8043cd4e09034269c6cd385380de5bcdc214f07513926b219e2",
     "done_reason": "stop",
     "latency_ms": 15502.25,
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 92,
       "load_duration": 159370125,

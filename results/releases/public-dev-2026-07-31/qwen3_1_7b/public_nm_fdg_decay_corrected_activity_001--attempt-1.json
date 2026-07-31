@@ -83,12 +83,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"decay_corrected_activity_mbq\": 370.0,\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The formula provided is accurate for calculating decay-corrected activity.\",\n    \"The elapsed time and half-life values are correctly input.\",\n    \"The injected activity is measured in MBq and is valid for the given context.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "49fa55a8bdb2f28bb7e1a39c8bda195c6a0bc584a6bb9a8a4d29cc54979c6975",
     "done_reason": "stop",
     "latency_ms": 4271.32,
     "model": "qwen3:1.7b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 83,
       "load_duration": 1570388333,

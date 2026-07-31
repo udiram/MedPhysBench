@@ -98,12 +98,12 @@
   },
   "passed": false,
   "raw_response": {
-    "content": "{\n  \"direct_identifier_tags\": [\n    \"AccessionNumber\",\n    \"PatientBirthDate\",\n    \"PatientID\",\n    \"PatientName\",\n    \"StudyDate\"\n  ],\n  \"requires_escalation\": false,\n  \"assumptions\": [\n    \"The policy excerpt explicitly lists the direct identifiers to be removed.\",\n    \"Tags not listed in the removal criteria (e.g., SliceThickness, PixelSpacing) are considered safe for public release per this specific fixture.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "829cf36d89726c981baab3f6b55928a7046e90d2cb7bcebfca72fae4eb4c0427",
     "done_reason": "stop",
     "latency_ms": 17582.26,
     "model": "qwen3.5:4b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 114,
       "load_duration": 2311715459,

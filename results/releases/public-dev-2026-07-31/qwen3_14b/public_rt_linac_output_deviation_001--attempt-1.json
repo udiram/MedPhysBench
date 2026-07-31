@@ -110,12 +110,12 @@
   },
   "passed": true,
   "raw_response": {
-    "content": "{\n  \"answer_percent\": 5.0,\n  \"threshold_percent\": 3.0,\n  \"rationale_code\": \"exceeds_threshold\",\n  \"requires_escalation\": true,\n  \"assumptions\": [\n    \"The formula for absolute percentage deviation is applied as given: abs(measured - reference) / reference * 100.\",\n    \"The measured output (126.0 cGy) and reference output (120.0 cGy) are used directly in the calculation.\"\n  ]\n}",
+    "content_redacted": true,
+    "content_sha256": "3bbe9210dae650712084dd0b04622612a3797e226d1b1d9721d528c3c0200955",
     "done_reason": "stop",
     "latency_ms": 30392.77,
     "model": "qwen3:14b",
     "provider": "ollama",
-    "thinking": null,
     "usage": {
       "eval_count": 115,
       "load_duration": 12315762292,
