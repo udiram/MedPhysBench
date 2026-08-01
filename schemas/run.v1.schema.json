@@ -45,5 +45,8 @@
     "tool_schema_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "system_prompt_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "runtime_task_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+    ,
+    "grader_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "scoring_revision": { "type": "string", "minLength": 1 }
   }
 }

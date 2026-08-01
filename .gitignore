@@ -4,12 +4,14 @@
 __pycache__/
 .pytest_cache/
 .ruff_cache/
+.cache/
 *.py[cod]
 *.egg-info/
 coverage.xml
 htmlcov/
 artifacts/
 runs/
+results/quarantine/
 web/node_modules/
 web/dist/
 web/.wrangler/

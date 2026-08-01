@@ -47,6 +47,9 @@ grading:
       severity: high
     - type: unordered_list_exact_match
       field: reason_codes
+      lane: rationale
+      required_for_pass: false
+      weight: 0.0
       expected:
         - deterministic_normalization
       severity: high

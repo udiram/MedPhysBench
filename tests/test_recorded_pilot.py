@@ -1,3 +1,4 @@
+import hashlib
 import json
 import subprocess
 import sys
@@ -111,3 +112,58 @@ def test_recorded_batch_rejects_wrong_sealed_hash(tmp_path: Path) -> None:
     )
     assert completed.returncode != 0
     assert "sealed_batch_sha256 does not match" in completed.stderr
+
+
+def test_recorded_batch_refuses_to_overwrite_existing_attempts(tmp_path: Path) -> None:
+    sealed = tmp_path / "sealed.json"
+    release_file = "releases/public_imaging_pilot_v0_4.yaml"
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "medphys_agentbench.cli",
+            "export-runtime",
+            release_file,
+            "--output",
+            str(sealed),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    sealed_payload = json.loads(sealed.read_text(encoding="utf-8"))
+    recorded = tmp_path / "recorded.json"
+    recorded.write_text(
+        json.dumps(
+            {
+                "schema_version": "medphysbench.recorded-batch.v1",
+                "model": "immutable-model",
+                "reasoning_effort": "high",
+                "sealed_batch_sha256": hashlib.sha256(sealed.read_bytes()).hexdigest(),
+                "outputs": {task["task_id"]: {} for task in sealed_payload["tasks"]},
+            }
+        ),
+        encoding="utf-8",
+    )
+    command = [
+        sys.executable,
+        "-m",
+        "medphys_agentbench.cli",
+        "score-recorded-batch",
+        release_file,
+        str(recorded),
+        "--model",
+        "immutable-model",
+        "--model-revision",
+        "immutable-model@1",
+        "--reasoning-effort",
+        "high",
+        "--results-dir",
+        str(tmp_path / "results"),
+    ]
+
+    subprocess.run(command, check=True, capture_output=True, text=True)
+    repeated = subprocess.run(command, capture_output=True, text=True)
+
+    assert repeated.returncode != 0
+    assert "refusing to overwrite" in repeated.stderr

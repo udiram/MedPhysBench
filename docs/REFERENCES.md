@@ -54,6 +54,19 @@ grading, and safety/escalation measurement. There are important adjacent efforts
 - [gVisor](https://gvisor.dev/docs/user_guide/production/) and [Firecracker](https://firecracker-microvm.github.io/) — sandbox isolation options.
 - [vLLM OpenAI-compatible serving](https://docs.vllm.ai/en/latest/serving/online_serving/openai_compatible_server/) — local model-serving option.
 
+## Open radiation-therapy research tools
+
+- [matRad documentation](https://matrad.readthedocs.io/en/dev/) and [official project](https://e0404.github.io/matRad/) — multimodality research planning and optimization.
+- [OpenTPS](https://www.opentps.org/) and [official license page](https://opentps.org/about/licence.html) — Python research TPS with proton-focused planning, dose, imaging, registration, and QA capabilities.
+- [OpenKBP-Opt](https://github.com/ababier/open-kbp-opt) — reproducible knowledge-based planning optimization code and data.
+- [CERR](https://github.com/cerr/CERR) — MATLAB/Octave radiological-research environment.
+- [SlicerRT](https://github.com/SlicerRt/SlicerRT) — DICOM-RT, visualization, analysis, contour, dose, and research-planning extension for 3D Slicer.
+- [Plastimatch](https://plastimatch.org/) — registration, DICOM-RT, image conversion, gamma, and segmentation metrics.
+- [OpenTOPAS](https://opentopas.github.io/) and [GATE 10](https://github.com/OpenGATE/opengate) — open Monte Carlo platforms applicable to therapy, imaging, and dosimetry research.
+
+The executable-adapter scope and resource limits are specified in
+[PLANNING_SANDBOX.md](PLANNING_SANDBOX.md).
+
 ## Hardware and data operations
 
 - [NVIDIA RTX PRO 6000 Blackwell Workstation Edition datasheet](https://www.nvidia.com/content/dam/en-zz/Solutions/data-center/rtx-pro-6000-blackwell-workstation-edition/workstation-blackwell-rtx-pro-6000-workstation-edition-nvidia-us-3519208-web.pdf)

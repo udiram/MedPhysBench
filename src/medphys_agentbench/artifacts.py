@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import mimetypes
 from pathlib import Path
 
 from .contracts import ContextArtifact
@@ -46,3 +47,26 @@ def ollama_image_payloads(artifacts: tuple[ContextArtifact, ...], root: Path) ->
             path = resolve_asset_reference(artifact.content, root)
             images.append(base64.b64encode(path.read_bytes()).decode("ascii"))
     return images
+
+
+def openai_message_content(
+    artifacts: tuple[ContextArtifact, ...], root: Path, text: str
+) -> str | list[dict[str, object]]:
+    """Build OpenAI-compatible user content with integrity-checked data URLs."""
+
+    image_parts: list[dict[str, object]] = []
+    for artifact in artifacts:
+        if not artifact.media_type.startswith("image/"):
+            continue
+        path = resolve_asset_reference(artifact.content, root)
+        media_type = artifact.media_type or mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+        encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+        image_parts.append(
+            {
+                "type": "image_url",
+                "image_url": {"url": f"data:{media_type};base64,{encoded}", "detail": "high"},
+            }
+        )
+    if not image_parts:
+        return text
+    return [{"type": "text", "text": text}, *image_parts]

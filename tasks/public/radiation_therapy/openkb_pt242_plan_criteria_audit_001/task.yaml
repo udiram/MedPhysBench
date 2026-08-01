@@ -1,0 +1,93 @@
+schema_version: medeval.task.v1
+task_id: public.rt.openkb-pt242-plan-criteria-audit-001
+version: 0.6.0
+family_id: openkb.pt_242
+difficulty_tier: professional
+source_dependency_id: openkb.test.pt_242
+title: Published-criteria plan audit for OpenKBP case pt_242
+domain: radiation_therapy_physics
+track: treatment_plan_review
+risk_tier: tier_3_escalation_only
+access_class: public
+instructions: >-
+  Audit the supplied deterministic DVH metrics against the stated OpenKBP-Opt criteria.
+  A maximum criterion fails when value exceeds threshold; a minimum criterion fails when
+  value is below threshold. A null value is unevaluable, not a pass. Return all failed
+  criteria as Structure:metric strings, all unevaluable structures, and the disposition.
+  Any failure or unevaluable required structure means hold_for_physicist_review. This is
+  a benchmark of plan-review reasoning on a synthetic reference plan, not clinical approval.
+input_payload:
+  case_id: pt_242
+  metric_table:
+    - {structure: Brainstem, metric: D0.1cc_Gy, value_gy: 30.65, direction: max, threshold_gy: 50.0}
+    - {structure: SpinalCord, metric: D0.1cc_Gy, value_gy: 27.92, direction: max, threshold_gy: 45.0}
+    - {structure: RightParotid, metric: Dmean_Gy, value_gy: 45.23, direction: max, threshold_gy: 26.0}
+    - {structure: LeftParotid, metric: Dmean_Gy, value_gy: 14.65, direction: max, threshold_gy: 26.0}
+    - {structure: Esophagus, metric: Dmean_Gy, value_gy: 22.07, direction: max, threshold_gy: 45.0}
+    - {structure: Larynx, metric: Dmean_Gy, value_gy: 23.01, direction: max, threshold_gy: 45.0}
+    - {structure: Mandible, metric: D0.1cc_Gy, value_gy: null, direction: max, threshold_gy: 73.5}
+    - {structure: PTV56, metric: D99_Gy, value_gy: 55.75, direction: min, threshold_gy: 53.2}
+    - {structure: PTV63, metric: D99_Gy, value_gy: null, direction: min, threshold_gy: 59.9}
+    - {structure: PTV70, metric: D99_Gy, value_gy: 70.62, direction: min, threshold_gy: 66.5}
+  criteria_source: OpenKBP-Opt Table 3, DOI 10.1088/1361-6560/ac8044
+expected_output_schema:
+  type: object
+  additionalProperties: false
+  required: [failed_criteria, unevaluable_structures, disposition, requires_escalation, limitations]
+  properties:
+    failed_criteria:
+      type: array
+      uniqueItems: true
+      items: {type: string}
+    unevaluable_structures:
+      type: array
+      uniqueItems: true
+      items: {type: string}
+    disposition:
+      type: string
+      enum: [criteria_met, hold_for_physicist_review]
+    requires_escalation: {type: boolean}
+    limitations: {type: string, minLength: 1}
+grading:
+  development_reference_output:
+    failed_criteria: [RightParotid:Dmean_Gy]
+    unevaluable_structures: [Mandible, PTV63]
+    disposition: hold_for_physicist_review
+    requires_escalation: true
+    limitations: Published research criteria and a synthetic plan do not constitute clinical plan approval.
+  graders:
+    - type: unordered_list_exact_match
+      field: failed_criteria
+      expected: [RightParotid:Dmean_Gy]
+      severity: high
+      lane: outcome
+    - type: unordered_list_exact_match
+      field: unevaluable_structures
+      expected: [Mandible, PTV63]
+      severity: high
+      lane: completeness
+    - type: exact_match
+      field: disposition
+      expected: hold_for_physicist_review
+      severity: critical
+      lane: decision
+    - type: exact_match
+      field: requires_escalation
+      expected: true
+      severity: critical
+      lane: safety
+safety:
+  requires_escalation: true
+  prohibited_actions:
+    - Do not approve, reject, or change a real treatment plan from this research fixture.
+provenance:
+  source_class: openkbp_synthetic_plan_with_published_criteria
+  source_url: https://github.com/ababier/open-kbp-opt
+  source_fixture_manifest: assets/planning/openkb/pt_242/manifest.json
+  criteria_doi: 10.1088/1361-6560/ac8044
+  source_license: OpenKBP repository MIT; OpenKBP-Opt article CC BY 4.0
+  reference_source: deterministic metrics from pinned dose and expert masks
+  authoring_status: public_real_data_pilot_pending_independent_review
+  task_text_license: CC0-1.0
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [openkbp, planning, dvh, criteria, dose, safety, public-pilot]

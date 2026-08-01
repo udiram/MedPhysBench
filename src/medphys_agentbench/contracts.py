@@ -117,6 +117,9 @@ class TaskSpec:
     provenance: dict[str, Any]
     stop_conditions: dict[str, Any] = field(default_factory=dict)
     contamination_tags: tuple[str, ...] = ()
+    family_id: str | None = None
+    difficulty_tier: str | None = None
+    source_dependency_id: str | None = None
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> TaskSpec:
@@ -165,6 +168,9 @@ class TaskSpec:
         raw_tags = data.get("contamination_tags", [])
         if not isinstance(raw_tags, list):
             raise ContractError("task.contamination_tags must be a list.")
+        difficulty_tier = _optional_str(data.get("difficulty_tier"))
+        if difficulty_tier not in {None, "foundational", "professional", "expert"}:
+            raise ContractError("task.difficulty_tier must be foundational, professional, or expert.")
 
         try:
             risk_tier = RiskTier(data["risk_tier"])
@@ -191,6 +197,9 @@ class TaskSpec:
             provenance=data["provenance"],
             stop_conditions=data.get("stop_conditions", {}),
             contamination_tags=tuple(str(tag) for tag in raw_tags),
+            family_id=_optional_str(data.get("family_id")),
+            difficulty_tier=difficulty_tier,
+            source_dependency_id=_optional_str(data.get("source_dependency_id")),
         )
 
     def authoring_manifest(self) -> dict[str, Any]:
@@ -250,6 +259,8 @@ class RunManifest:
     tool_schema_hash: str
     system_prompt_hash: str
     runtime_task_hash: str
+    grader_hash: str
+    scoring_revision: str
 
     @classmethod
     def create(
@@ -267,6 +278,8 @@ class RunManifest:
         tool_schema_hash: str,
         system_prompt_hash: str,
         runtime_task_hash: str,
+        grader_hash: str,
+        scoring_revision: str,
     ) -> RunManifest:
         return cls(
             schema_version="medeval.run.v1",
@@ -284,6 +297,8 @@ class RunManifest:
             tool_schema_hash=tool_schema_hash,
             system_prompt_hash=system_prompt_hash,
             runtime_task_hash=runtime_task_hash,
+            grader_hash=grader_hash,
+            scoring_revision=scoring_revision,
         )
 
     def to_dict(self) -> dict[str, Any]:

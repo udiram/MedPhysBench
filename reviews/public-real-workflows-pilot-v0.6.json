@@ -1,0 +1,50 @@
+{
+  "schema_version": "medphysbench.review-evidence.v1",
+  "release_id": "public-real-workflows-pilot-v0.6",
+  "release_status": "provisional",
+  "reference_feasibility": {
+    "status": "passed",
+    "method": "Repository validation constructs a schema-valid reference output for every task and deterministically regrades it."
+  },
+  "independent_domain_review": {
+    "status": "pending",
+    "completed": 0,
+    "target": 2,
+    "note": "Two qualified radiation-therapy physicists must independently review every task before the release may be described as domain-reviewed."
+  },
+  "human_baseline": {
+    "status": "recruiting",
+    "completed": 0,
+    "target": 30,
+    "note": "No human performance score is published. The preregistered collection protocol is in docs/HUMAN_BASELINE_PROTOCOL.md."
+  },
+  "data_rights_review": {
+    "status": "pending_independent_confirmation",
+    "note": "The official OpenKBP code/data repository and pinned dataset mirror declare MIT terms; CT origin and upstream challenge attribution are retained. Independent publication-rights review remains required before promoting the pilot beyond provisional status."
+  },
+  "task_reviews": [
+    {"task_id": "public.rt.openkb-pt289-parotid-segmentation-001", "reference_feasibility": "automated_pass", "domain_review": "pending"},
+    {"task_id": "public.rt.openkb-pt289-high-dose-segmentation-001", "reference_feasibility": "automated_pass", "domain_review": "pending"},
+    {"task_id": "public.rt.openkb-pt289-plan-criteria-audit-001", "reference_feasibility": "automated_pass", "domain_review": "pending"},
+    {"task_id": "public.rt.openkb-pt289-structure-inventory-001", "reference_feasibility": "automated_pass", "domain_review": "pending"},
+    {"task_id": "public.rt.openkb-pt289-tg263-naming-audit-001", "reference_feasibility": "automated_pass", "domain_review": "pending"},
+    {"task_id": "public.rt.openkb-pt242-parotid-segmentation-001", "reference_feasibility": "automated_pass", "domain_review": "pending"},
+    {"task_id": "public.rt.openkb-pt242-high-dose-segmentation-001", "reference_feasibility": "automated_pass", "domain_review": "pending"},
+    {"task_id": "public.rt.openkb-pt242-plan-criteria-audit-001", "reference_feasibility": "automated_pass", "domain_review": "pending"},
+    {"task_id": "public.rt.openkb-pt242-structure-inventory-001", "reference_feasibility": "automated_pass", "domain_review": "pending"},
+    {"task_id": "public.rt.openkb-pt242-tg263-naming-audit-001", "reference_feasibility": "automated_pass", "domain_review": "pending"}
+  ],
+  "claim_boundary": {
+    "allowed": [
+      "Provisional common-harness model comparison on two pinned OpenKBP patient families",
+      "Deterministic feasibility and artifact-provenance evidence",
+      "Research-only evidence about bounded assistance and escalation behavior"
+    ],
+    "prohibited": [
+      "Human-level or superhuman performance claim",
+      "Clinical validation or treatment-planning competence claim",
+      "Ten independent patient cases claim",
+      "Independent physicist review claim"
+    ]
+  }
+}

@@ -108,6 +108,38 @@ constructs a reference output from those declared graders and proves that each
 task's own deterministic graders accept it. `tests/test_tg263.py` additionally
 checks that task gold actions agree with the rule engine.
 
+## Pilot validity audit on Saturday, August 1, 2026
+
+After publishing the first native GPT-5.6 pilot, MedPhysBench audited the 18
+stored outputs because the strict score looked implausibly low relative to the
+observed actions and canonical names. The audit separated:
+
+- primary decision correctness: valid JSON, correct escalation state, correct
+  `action`, and correct `canonical_name`;
+- rationale-label exactness: whether `reason_codes` matched the benchmark's own
+  internal label vocabulary exactly.
+
+For both GPT-5.6 effort settings evaluated on the pilot, primary decision
+correctness was `17/18` (`94.44%`), while strict pass was only `5/18` for high
+and `4/18` for ultra. Most misses were therefore label mismatches, not naming
+failures. The dominant pattern was a medically and computationally equivalent
+reason expressed under a different label family:
+
+- `alias_normalized` plus `laterality_suffix_applied` versus the benchmark's
+  single code `deterministic_normalization`;
+- `valid_target_open_grammar` versus `valid_target_grammar`;
+- `segmented_volume_unconfirmed` versus `ptv_bang_semantics_unconfirmed`.
+
+One primary-decision miss remained in the collision task because the benchmark's
+contract expects escalation **and** retention of the proposed colliding canonical
+name for review, while the model escalated with `canonical_name: null`.
+
+This audit means the v0.5 TG-263 pilot should be interpreted as a strict,
+benchmark-specific contract check, not as a pure measure of structure-naming
+competence. Public reporting should keep the strict pilot result, but pair it
+with the audited decision view until a harder release reduces dependence on one
+benchmark-authored rationale taxonomy.
+
 Metamorphic tests cover:
 
 - input-order invariance when results are keyed by ROI number;

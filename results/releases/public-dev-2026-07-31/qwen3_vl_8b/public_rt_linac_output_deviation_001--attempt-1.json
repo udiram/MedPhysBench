@@ -141,7 +141,8 @@
     },
     {
       "event": "structured_output_parse_failed",
-      "raw_preview": "",
+      "raw_preview_redacted": true,
+      "raw_preview_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "reason": "empty_response"
     }
   ]

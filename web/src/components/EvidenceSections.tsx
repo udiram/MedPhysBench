@@ -1,108 +1,132 @@
 import { ExternalLink } from "lucide-react";
-import { DOC_LINKS } from "../content";
+import { DOC_LINKS, domainDescriptions, workflow } from "../content";
 import { domainLabel, shortHash } from "../lib/format";
-import type { AccessStatus, Leaderboard } from "../types";
+import type { AccessStatus, Leaderboard, ReleaseView } from "../types";
 
 type EvidenceSectionsProps = {
-  data: Leaderboard | null;
   accessStatus: AccessStatus[];
+  data: Leaderboard | null;
+  releaseView: ReleaseView;
 };
 
-export function EvidenceSections({ data, accessStatus }: EvidenceSectionsProps) {
+export function EvidenceSections({ accessStatus, data, releaseView }: EvidenceSectionsProps) {
   const coverage = data?.coverage ?? buildCoverage(data?.tasks ?? []);
-  const blocked = accessStatus.filter((item) => item.status !== "available");
   const integrity = data?.integrity;
+  const blocked = accessStatus.filter((item) => item.status !== "available");
+  const rankedCount = data ? integrity?.ranked_model_count ?? data.models.length : null;
+  const reviewCount = data ? integrity?.unranked_model_count ?? data.unranked_models?.length ?? 0 : null;
+  const trackMix = buildTrackMix(data?.tasks ?? []);
 
   return (
     <>
+      <section className="coverage-section" id="coverage">
+        <div className="section-heading section-heading-row">
+          <div>
+            <h2>Task surface and contract</h2>
+            <p>Selected-release composition, task mix, and reproducibility boundaries from the live JSON package.</p>
+          </div>
+          <p className="coverage-summary">
+            {data?.tasks.length ?? "—"} public tasks · {data?.release.release_id ?? fallbackReleaseId(releaseView)}
+          </p>
+        </div>
+
+        <div className="board-grid">
+          <article className="board-panel">
+            <h3>Benchmark composition</h3>
+            <ul className="board-list">
+              <li><strong>{data?.tasks.length ?? "—"}</strong> public tasks in the selected release</li>
+              <li><strong>{rankedCount ?? "—"}</strong> ranked common-harness row{rankedCount === 1 ? "" : "s"}</li>
+              <li><strong>{reviewCount ?? "—"}</strong> native audit / review row{reviewCount === 1 ? "" : "s"}</li>
+              {data?.release.family_count != null && <li><strong>{data.release.family_count}</strong> independent patient/task families</li>}
+              <li><strong>Human baseline</strong> recruiting medical physicists</li>
+              {releaseView === "real" && <li><strong>Provisional</strong> independent domain and publication-rights review pending</li>}
+            </ul>
+          </article>
+
+          <article className="board-panel board-panel-wide">
+            <h3>Domain matrix</h3>
+            <div className="domain-matrix">
+              <div className="domain-matrix-head">
+                <span>Domain</span>
+                <span>Tasks</span>
+                <span>Escalation</span>
+                <span>Focus</span>
+              </div>
+              {coverage.map((row) => (
+                <div className="domain-matrix-row" key={row.domain}>
+                  <span>{domainLabel(row.domain)}</span>
+                  <span>{row.task_count}</span>
+                  <span>{row.expected_escalation_count}</span>
+                  <span>{domainDescriptions[row.domain] ?? "Release-defined benchmark tasks."}</span>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="board-panel">
+            <h3>Track mix</h3>
+            <div className="stack-list">
+              {trackMix.slice(0, 6).map((item) => (
+                <div className="stack-row" key={item.track}>
+                  <span>{formatTrackLabel(item.track)}</span>
+                  <strong>{item.count}</strong>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="board-panel">
+            <h3>Methods & reproducibility</h3>
+            <ul className="board-list">
+              <li>Primary metric: <strong>{data?.methodology.primary_metric ?? "safe task success rate"}</strong></li>
+              <li>Ranking rule: <strong>{data?.methodology.ranking_rule ?? "complete and internally consistent runs only"}</strong></li>
+              <li>Release hash: <strong className="mono-copy">{shortHash(integrity?.release_contract_hash)}</strong></li>
+              {data?.methodology.family_dependence && <li>Family analysis: <strong>{data.methodology.family_dependence}</strong></li>}
+              <li>Blocked access handles remain listed separately from scored rows.</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
       <section className="evidence-section" id="methodology">
         <div className="section-heading">
           <h2>How a score is made</h2>
           <p>
-            The benchmark asks whether a model can finish task work under professional constraints
-            and escalate when it should. It is not a claim of autonomous clinical competence.
+            The benchmark asks whether a model can finish bounded task work, produce valid artifacts, and escalate when it should.
+            It does not authorize treatment, planning, or patient-specific action.
           </p>
         </div>
         <div className="boundary-grid">
           <article>
             <h3>Runtime boundary</h3>
-            <p>Models receive instructions, inputs, tool contracts, and an output schema. Gold answers and graders stay outside the sandbox.</p>
+            <p>Models receive instructions, inputs, tools, and an output schema. Gold answers and graders stay outside the sandbox.</p>
           </article>
           <article>
             <h3>Deterministic regrading</h3>
-            <p>Stored pass labels are rechecked from the output artifact so a tampered result file cannot silently improve a public score.</p>
+            <p>Stored pass labels are rechecked from artifacts so a tampered result file cannot silently improve a public score.</p>
           </article>
           <article>
-            <h3>Ranking rule</h3>
-            <p>Only release-complete, internally consistent run sets are ranked. Review rows remain visible beside the public table.</p>
+            <h3>Harder by construction</h3>
+            <p>Saturated public lanes trigger protected holdouts, counterfactual variants, and state-graded workflow tasks rather than more headline ranking.</p>
           </article>
         </div>
         <ol className="workflow-rail">
-          <li>Author task and reference solution</li>
-          <li>Seal the model-visible runtime packet</li>
-          <li>Run one fixed harness per model</li>
-          <li>Regrade outputs and safety gates deterministically</li>
-          <li>Publish hashes, metrics, and integrity notes</li>
-        </ol>
-      </section>
-
-      <section className="coverage-section" id="coverage">
-        <div className="section-heading section-heading-row">
-          <div>
-            <h2>Task coverage</h2>
-          </div>
-          <p className="coverage-summary">
-            {data?.tasks.length ?? 0} public tasks across {coverage.length} medical-physics domains.
-          </p>
-        </div>
-        <div className="coverage-table">
-          <div className="coverage-header">
-            <span>Domain</span>
-            <span>Tasks</span>
-            <span>Escalation-boundary tasks</span>
-          </div>
-          {coverage.map((row) => (
-            <div className="coverage-row" key={row.domain}>
-              <span>{domainLabel(row.domain)}</span>
-              <span>{row.task_count}</span>
-              <span>{row.expected_escalation_count}</span>
-            </div>
+          {workflow.map((step) => (
+            <li key={step.number}>
+              <strong>{step.number}</strong>
+              <span>{step.title}</span>
+              <p>{step.description}</p>
+            </li>
           ))}
-        </div>
-      </section>
-
-      <section className="evidence-section" id="hardening">
-        <div className="section-heading">
-          <h2>Harder by construction</h2>
-          <p>
-            The v0.5 candidate expands the public core to 82 tasks and adds an 18-task
-            TG-263-aligned structure-naming lane. Saturated lanes trigger retirement or
-            promotion to protected, counterfactual, multi-step, and state-graded evaluations.
-          </p>
-        </div>
-        <div className="boundary-grid">
-          <article>
-            <h3>Freshness and contamination</h3>
-            <p>Family-level splits, rotating protected holdouts, task fingerprints, and release timestamps separate development evidence from durable claims.</p>
-          </article>
-          <article>
-            <h3>Radiotherapy workflow depth</h3>
-            <p>A 20-phase competency map spans data intake, contour review, planning, calculation checks, delivery QA, incident learning, and safe escalation.</p>
-          </article>
-          <article>
-            <h3>Beyond a single percentage</h3>
-            <p>Confidence intervals, safety gates, pass consistency, latency, token use, and Pareto efficiency accompany outcome performance.</p>
-          </article>
-        </div>
+        </ol>
       </section>
 
       <section className="governance-section" id="governance">
         <div className="boundary">
           <h2>Research benchmark, not clinical authority</h2>
           <p>
-            MedPhysBench evaluates research-grade assistance and escalation behavior. It is not a
-            medical device, a release-to-treat system, or evidence of autonomous patient-specific
-            decision-making.
+            MedPhysBench evaluates research-grade assistance and escalation behavior. It is not a medical device,
+            a release-to-treat system, or evidence of autonomous patient-specific decision-making.
           </p>
           <div className="boundary-rule">
             No live clinical systems. No hidden gold in runtime context. No autonomous release-to-treat claims.
@@ -129,7 +153,7 @@ export function EvidenceSections({ data, accessStatus }: EvidenceSectionsProps) 
         <div className="integrity-grid">
           <article>
             <h3>Release contract</h3>
-            <p>{data?.release.release_id ?? "public-core-v0.4"}</p>
+            <p>{data?.release.release_id ?? fallbackReleaseId(releaseView)}</p>
             <p>{data?.release.description ?? ""}</p>
           </article>
           <article>
@@ -138,20 +162,19 @@ export function EvidenceSections({ data, accessStatus }: EvidenceSectionsProps) 
           </article>
           <article>
             <h3>Ranked / review</h3>
-            <p>{integrity?.ranked_model_count ?? data?.models.length ?? 0} ranked and {integrity?.unranked_model_count ?? data?.unranked_models?.length ?? 0} review rows currently visible.</p>
+            <p>{rankedCount} ranked and {reviewCount} review rows currently visible.</p>
           </article>
+          {data?.release.family_count != null && (
+            <article>
+              <h3>Independence unit</h3>
+              <p>{data.release.family_count} declared families; task views are not counted as independent patients.</p>
+            </article>
+          )}
           <article>
-            <h3>Release hash</h3>
-            <p className="mono-copy">{shortHash(integrity?.release_contract_hash)}</p>
-            <p>Frozen task list and prompt/tool contract for this release package.</p>
+            <h3>Access status</h3>
+            <p>{blocked.length} blocked or retired handles kept separate from scored results.</p>
           </article>
         </div>
-        {blocked.length > 0 && (
-          <p className="integrity-note">
-            {blocked.length} blocked or retired access handles are listed separately from scored
-            results so provider availability does not quietly disappear from the public record.
-          </p>
-        )}
       </section>
     </>
   );
@@ -170,4 +193,24 @@ function buildCoverage(tasks: Leaderboard["tasks"]) {
     buckets.set(task.domain, current);
   }
   return [...buckets.values()].sort((left, right) => left.domain.localeCompare(right.domain));
+}
+
+function buildTrackMix(tasks: Leaderboard["tasks"]) {
+  const counts = new Map<string, number>();
+  for (const task of tasks) {
+    counts.set(task.track, (counts.get(task.track) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([track, count]) => ({ track, count }))
+    .sort((left, right) => right.count - left.count || left.track.localeCompare(right.track));
+}
+
+function formatTrackLabel(value: string) {
+  return value.replaceAll("_", " ").replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function fallbackReleaseId(releaseView: ReleaseView) {
+  if (releaseView === "core") return "public-core-v0.4";
+  if (releaseView === "tg263") return "public-tg263-pilot-v0.5";
+  return "public-real-workflows-pilot-v0.6";
 }

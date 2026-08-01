@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "medphysbench"
-version = "0.5.0"
+version = "0.6.0"
 description = "Reproducible, safety-aware benchmark for medical-physics AI systems"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -21,6 +21,7 @@ imaging = [
   "pydicom>=3.0",
   "scipy>=1.14",
 ]
+fixtures = ["numpy>=2.0", "pillow>=11.0", "pyarrow>=19.0"]
 platform = [
   "fastapi>=0.115",
   "uvicorn[standard]>=0.34",

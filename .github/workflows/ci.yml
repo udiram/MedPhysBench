@@ -20,7 +20,7 @@ jobs:
         with:
           enable-cache: true
       - name: Run contract and demo tests
-        run: uv run --extra dev pytest
+        run: uv run --extra dev --extra fixtures --extra api pytest
       - name: Lint public harness code
         run: uv run --extra dev ruff check src tests scripts
       - name: Validate public development task
@@ -29,12 +29,14 @@ jobs:
         run: |
           uv run medphys-bench validate-release releases/public_core_v0_4.yaml
           uv run medphys-bench validate-release releases/public_imaging_pilot_v0_4.yaml
+          uv run medphys-bench validate-release releases/public_real_workflows_pilot_v0_6.yaml
       - name: Validate schemas, tasks, runtime projections, and result artifacts
         run: uv run python scripts/validate_repository.py
       - name: Verify public artifacts exclude provider reasoning
         run: |
           uv run python scripts/sanitize_public_results.py --check results/releases/public-core-v0.4
           uv run python scripts/sanitize_public_results.py --check results/releases/public-imaging-pilot-v0.4
+          uv run python scripts/sanitize_public_results.py --check results/releases/public-real-workflows-pilot-v0.6
 
   build-public-site:
     runs-on: ubuntu-latest

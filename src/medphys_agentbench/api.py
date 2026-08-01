@@ -11,6 +11,7 @@ from fastapi.responses import FileResponse
 
 
 def create_app(results_root: Path = Path("results/releases")) -> FastAPI:
+    resolved_results_root = results_root.resolve()
     app = FastAPI(
         title="MedPhysBench API",
         version="0.2.0",
@@ -38,14 +39,14 @@ def create_app(results_root: Path = Path("results/releases")) -> FastAPI:
 
     @app.get("/v1/releases/{release}/leaderboard")
     def leaderboard(release: str) -> dict[str, Any]:
-        path = results_root / release / "leaderboard.json"
+        path = _release_leaderboard_path(resolved_results_root, release)
         if not path.is_file():
             raise HTTPException(status_code=404, detail="Release not found.")
         return json.loads(path.read_text(encoding="utf-8"))
 
     @app.get("/v1/releases/{release}/download")
     def download(release: str) -> FileResponse:
-        path = results_root / release / "leaderboard.json"
+        path = _release_leaderboard_path(resolved_results_root, release)
         if not path.is_file():
             raise HTTPException(status_code=404, detail="Release not found.")
         return FileResponse(
@@ -55,6 +56,13 @@ def create_app(results_root: Path = Path("results/releases")) -> FastAPI:
         )
 
     return app
+
+
+def _release_leaderboard_path(results_root: Path, release: str) -> Path:
+    path = (results_root / release / "leaderboard.json").resolve()
+    if not path.is_relative_to(results_root):
+        raise HTTPException(status_code=404, detail="Release not found.")
+    return path
 
 
 app = create_app()

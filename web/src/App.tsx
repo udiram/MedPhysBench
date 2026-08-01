@@ -1,40 +1,57 @@
 "use client";
 
 import { startTransition, useEffect, useState } from "react";
+import { REPO_URL } from "./content";
 import { EvidenceSections } from "./components/EvidenceSections";
 import { EfficiencyExplorer } from "./components/EfficiencyExplorer";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { LeaderboardExplorer } from "./components/LeaderboardExplorer";
 import { useLeaderboard } from "./hooks/useLeaderboard";
-import type { AccessStatus, ReleaseView } from "./types";
+import type { AccessStatus, ReleaseView, Tg263Audit } from "./types";
 
 const LEADERBOARD_URL = "/data/leaderboard.json";
-const IMAGING_LEADERBOARD_URL = "/data/imaging_leaderboard.json";
+const REAL_WORKFLOWS_LEADERBOARD_URL = "/data/public-real-workflows-pilot-v0.6.json";
 const TG263_LEADERBOARD_URL = "/data/tg263_leaderboard.json";
+const TG263_AUDIT_URL = "/data/public-tg263-pilot-v0.5-audit.json";
 const ACCESS_STATUS_URL = "/data/access_status.json";
-const REPO_URL = "https://github.com/udiram/MedPhysBench";
 
 function App() {
   const core = useLeaderboard(LEADERBOARD_URL);
-  const imaging = useLeaderboard(IMAGING_LEADERBOARD_URL);
+  const realWorkflows = useLeaderboard(REAL_WORKFLOWS_LEADERBOARD_URL);
   const tg263 = useLeaderboard(TG263_LEADERBOARD_URL);
+  const [tg263Audit, setTg263Audit] = useState<Tg263Audit | null>(null);
   const [accessStatus, setAccessStatus] = useState<AccessStatus[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [releaseView, setReleaseView] = useState<ReleaseView>("core");
-  const selected = releaseView === "core" ? core : releaseView === "tg263" ? tg263 : imaging;
+  const selected = releaseView === "core" ? core : releaseView === "tg263" ? tg263 : realWorkflows;
 
   useEffect(() => {
-    fetch(ACCESS_STATUS_URL)
+    const controller = new AbortController();
+    fetch(TG263_AUDIT_URL, { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<Tg263Audit>) : null))
+      .then((payload) => {
+        if (payload) {
+          startTransition(() => setTg263Audit(payload));
+        }
+      })
+      .catch(() => setTg263Audit(null));
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(ACCESS_STATUS_URL, { signal: controller.signal })
       .then((response) => (response.ok ? (response.json() as Promise<AccessStatus[]>) : []))
       .then((payload) => {
         startTransition(() => setAccessStatus(payload));
       })
       .catch(() => setAccessStatus([]));
+    return () => controller.abort();
   }, []);
 
   return (
-    <div className="site-shell">
+    <div className="site-shell" id="top">
       <a className="skip-link" href="#leaderboard">
         Skip to leaderboard
       </a>
@@ -45,22 +62,33 @@ function App() {
         repoUrl={REPO_URL}
       />
       <main>
-        <Hero coreData={core.data} imagingData={imaging.data} repoUrl={REPO_URL} />
+        <Hero
+          data={selected.data}
+          onReleaseViewChange={setReleaseView}
+          releaseView={releaseView}
+          repoUrl={REPO_URL}
+        />
         <LeaderboardExplorer
           data={selected.data}
-          accessStatus={releaseView === "core" ? accessStatus : []}
+          accessStatus={accessStatus}
           loadError={selected.loadError}
           releaseView={releaseView}
-          onReleaseViewChange={setReleaseView}
+          tg263Audit={tg263Audit}
         />
         <EfficiencyExplorer data={selected.data} releaseView={releaseView} />
-        <EvidenceSections data={core.data} accessStatus={accessStatus} />
+        <EvidenceSections
+          accessStatus={accessStatus}
+          data={selected.data}
+          releaseView={releaseView}
+        />
       </main>
       <footer className="site-footer">
         <p>MedPhysBench is a research and evaluation platform. It is not a clinical decision-support system.</p>
         <p>
           Release artifacts, writeups, and contribution guidance live in{" "}
-          <a href={`${REPO_URL}/tree/main/docs`} target="_blank" rel="noreferrer">the repository documentation</a>.
+          <a href={`${REPO_URL}/tree/main/docs`} target="_blank" rel="noreferrer">
+            the repository documentation
+          </a>.
         </p>
       </footer>
     </div>

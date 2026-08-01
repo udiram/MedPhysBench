@@ -35,6 +35,33 @@ Before treating the run as comparable:
 Local execution avoids a hosted inference bill, but the operator bears compute and energy costs. Ollama Cloud is a
 different service and must not be described as free based on the local route.
 
+For a memory-constrained workstation, run one model campaign at a time, set
+`OLLAMA_MAX_LOADED_MODELS=1`, `OLLAMA_NUM_PARALLEL=1`, and `OLLAMA_MAX_QUEUE=1`,
+use a declared context window, and set `--ollama-keep-alive 0` or explicitly
+`ollama stop <exact-model-id>` between campaigns. The v0.6 public runs used a
+4,096-token context and were monitored with a 30% free-memory stop threshold.
+
+### Groq and generic OpenAI-compatible APIs
+
+The repository now ships a strict OpenAI-compatible Chat Completions adapter and
+a Groq preset. It preserves the exact provider/model ID, response format,
+reasoning setting when supported, usage metadata, request IDs, and errors. A
+Groq run requires `GROQ_API_KEY`; the [official free-plan limits](https://console.groq.com/docs/rate-limits)
+are model-specific and mutable. No credential was present during the 2026-07-31
+access check, so the repository publishes no Groq score from that check.
+
+```bash
+GROQ_API_KEY=... medphys-bench run-release \
+  releases/public_real_workflows_pilot_v0_6.yaml \
+  --adapter groq \
+  --model <exact-groq-model-id> \
+  --attempts 3 \
+  --results-dir runs
+```
+
+The benchmark never stores the key. A free-plan quota that cannot complete the
+declared attempt matrix yields an unranked partial package, not a shortened rank.
+
 ## Current hosted allowances that require adapter work
 
 The repository does not currently ship adapters for the services below. They are candidate execution routes, not
@@ -73,13 +100,6 @@ request limits ([official free-variant guide](https://openrouter.ai/docs/guides/
 [official limits reference](https://openrouter.ai/docs/api/reference/limits)). An adapter must pin the exact resolved
 model and upstream provider rather than publishing the rotating router alias as if it were one stable system. Treat
 rate-limit exhaustion and upstream substitution as provenance events, and do not combine them into one model row.
-
-### Groq free-plan inference
-
-Groq publishes model-specific request and token limits for its Free plan
-([official rate-limit table](https://console.groq.com/docs/rate-limits)). The available catalog and quotas can change,
-so capture the exact model ID and run date. A full-release run is publishable only if one immutable configuration
-completes every expected attempt; a partial run stopped by daily or token limits remains an error package, not a rank.
 
 ## Credential and quota rules
 

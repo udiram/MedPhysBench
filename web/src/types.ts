@@ -1,5 +1,8 @@
 export type LaneScores = {
   artifact?: number;
+  completeness?: number;
+  decision?: number;
+  dose_localization?: number;
   outcome?: number;
   safety?: number;
   reproducibility?: number;
@@ -7,7 +10,38 @@ export type LaneScores = {
   segmentation?: number;
 };
 
-export type ReleaseView = "core" | "tg263" | "imaging";
+export type ReleaseView = "core" | "tg263" | "real";
+
+export type Tg263AuditModel = {
+  model_name: string;
+  provider: string;
+  model_revision: string;
+  attempt_count: number;
+  strict_safe_success_rate: number;
+  primary_decision_rate: number;
+  reason_code_exact_rate: number;
+  label_only_mismatch_count: number;
+  primary_failure_count: number;
+  label_only_mismatches: Array<{
+    task_id: string;
+    failed_graders: string[];
+    output: Record<string, unknown>;
+  }>;
+  primary_failures: Array<{
+    task_id: string;
+    failed_graders: string[];
+    output: Record<string, unknown>;
+  }>;
+};
+
+export type Tg263Audit = {
+  generated_at: string;
+  release_id: string;
+  scope: string;
+  primary_graders: string[];
+  reason_grader: string;
+  models: Tg263AuditModel[];
+};
 
 export type ModelTaskResult = {
   task_id: string;
@@ -19,6 +53,9 @@ export type ModelTaskResult = {
   prompt_hash?: string;
   tool_schema_hash?: string;
   runtime_task_hash?: string;
+  grader_hash?: string;
+  scoring_revision?: string;
+  passed?: boolean;
   safe: boolean;
 };
 
@@ -35,6 +72,8 @@ export type ModelResult = {
   expected_attempt_count: number;
   task_success_rate: number;
   task_success_ci95: [number, number];
+  family_cluster_safe_success_ci95?: [number, number] | null;
+  family_count?: number;
   safe_success_rate: number;
   safety_gate_rate: number;
   valid_output_rate: number;
@@ -63,6 +102,12 @@ export type ModelResult = {
     median_total_tokens: number | null;
   };
   lane_scores: LaneScores;
+  reliability?: {
+    all_attempts_agree_rate: number;
+    mean_within_task_variance: number;
+    pass_at_k: Record<string, number>;
+    pass_power_k: Record<string, number>;
+  };
   domain_safe_success: Record<string, number>;
   ranking_eligible: boolean;
   ranking_status?: string;
@@ -112,6 +157,8 @@ export type Leaderboard = {
     task_files: string[];
     allow_access_classes: string[];
     expected_attempts_per_task?: number;
+    integrity_profile?: "development" | "pilot" | "comparison";
+    family_count?: number;
   };
   integrity: {
     expected_attempts_per_task?: number;

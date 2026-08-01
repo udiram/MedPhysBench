@@ -24,15 +24,11 @@
           "rationale": { "type": "string" },
           "evidence": { "type": "object" },
           "lane": {
-            "enum": [
-              "outcome",
-              "artifact",
-              "safety",
-              "reproducibility",
-              "localization",
-              "segmentation"
-            ]
-          }
+            "type": "string",
+            "minLength": 1
+          },
+          "required_for_pass": { "type": "boolean" },
+          "weight": { "type": "number", "minimum": 0 }
         }
       }
     },

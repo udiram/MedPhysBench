@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+import random
 import statistics
 from collections import defaultdict
 from datetime import UTC, datetime
@@ -12,8 +13,15 @@ from typing import Any
 
 from .json_utils import stable_hash
 from .release_loader import BenchmarkRelease
-from .runner import prompt_hash_for_task, runtime_task_hash_for_task, system_prompt_hash, tool_schema_hash_for_task
-from .scoring import score_attempt
+from .runner import (
+    SCORING_REVISION,
+    grader_hash_for_task,
+    prompt_hash_for_task,
+    runtime_task_hash_for_task,
+    system_prompt_hash,
+    tool_schema_hash_for_task,
+)
+from .scoring import grades_pass, grades_safe, score_attempt, weighted_grade_score
 
 
 def summarize_release(
@@ -36,6 +44,7 @@ def summarize_release(
             "tool_schema_hash": tool_schema_hash_for_task(task),
             "runtime_task_hash": runtime_task_hash_for_task(task),
             "system_prompt_hash": system_prompt_hash(),
+            "grader_hash": grader_hash_for_task(task),
         }
         for task in tasks
     }
@@ -86,6 +95,8 @@ def summarize_release(
             "task_files": [_portable_task_path(path) for path in release.task_files],
             "allow_access_classes": [value.value for value in release.allow_access_classes],
             "expected_attempts_per_task": expected_attempts,
+            "integrity_profile": release.integrity_profile,
+            "family_count": len({task.family_id or task.task_id for task in tasks}),
         },
         "integrity": {
             "expected_attempts_per_task": expected_attempts,
@@ -114,11 +125,18 @@ def summarize_release(
         "coverage": _build_coverage(task_rows),
         "methodology": {
             "primary_metric": "safe task success rate",
-            "confidence_interval": "Wilson 95% interval over attempts",
-            "any_pass": "fraction of tasks with at least one successful attempt",
-            "all_pass": "fraction of tasks where every attempt succeeded",
+            "confidence_interval": (
+                "Wilson 95% interval over attempts plus deterministic family-cluster bootstrap "
+                "when family IDs are available"
+            ),
+            "pass_at_k": "unbiased probability that at least one of k sampled attempts safely passes",
+            "pass_power_k": "unbiased probability that all k sampled attempts safely pass",
             "ranking_rule": "Only complete and internally consistent model runs are ranked.",
-            "status": "public development set; not clinical validation",
+            "family_dependence": (
+                "Tasks sharing family_id are correlated. The reported family-cluster interval resamples "
+                "whole families; task-level Wilson intervals remain descriptive."
+            ),
+            "status": "public research pilot; provisional and not clinical validation",
         },
     }
 
@@ -170,12 +188,18 @@ def _summarize_model_dir(
     critical_failures = sum(
         1
         for item in verified_results
-        if any((not grade.get("passed")) and grade.get("severity") == "critical" for grade in item.get("grades", []))
+        if any(
+            (not grade.get("passed"))
+            and grade.get("severity") == "critical"
+            and (grade.get("lane") == "safety" or str(grade.get("grader_id", "")).startswith("safety."))
+            for grade in item.get("grades", [])
+        )
     )
 
     by_domain: dict[str, list[bool]] = defaultdict(list)
     lane_scores: dict[str, list[float]] = defaultdict(list)
     by_task: dict[str, list[bool]] = defaultdict(list)
+    by_task_safe: dict[str, list[bool]] = defaultdict(list)
     for item in verified_results:
         task_id = item.get("manifest", {}).get("task_id")
         if task_id not in task_catalog:
@@ -183,14 +207,21 @@ def _summarize_model_dir(
         task = task_catalog[task_id]
         by_domain[task.domain].append(bool(item.get("passed") and item.get("safe")))
         by_task[task_id].append(bool(item.get("passed")))
+        by_task_safe[task_id].append(bool(item.get("passed") and item.get("safe")))
         for grade in item.get("grades", []):
             lane_scores[str(grade.get("lane", "outcome"))].append(float(grade.get("score", 0.0)))
 
     any_pass = sum(any(attempts) for attempts in by_task.values())
     all_pass = sum(all(attempts) for attempts in by_task.values())
     ci_low, ci_high = _wilson_interval(task_successes, attempt_count)
+    family_outcomes: dict[str, list[bool]] = defaultdict(list)
+    for task_id, attempts in by_task_safe.items():
+        family_id = task_catalog[task_id].family_id or task_id
+        family_outcomes[family_id].extend(attempts)
+    cluster_low, cluster_high = _family_cluster_bootstrap_interval(family_outcomes)
+    reliability = _reliability_summary(by_task_safe)
     usage = _usage_summary(verified_results)
-    is_recorded_native = integrity["provider"] == "codex-native"
+    is_common_harness = integrity["is_common_harness"]
     durations = [
         float(item["duration_seconds"]) for item in verified_results if item.get("duration_seconds") is not None
     ]
@@ -199,6 +230,13 @@ def _summarize_model_dir(
         "model_name": integrity["model_name"],
         "provider": integrity["provider"],
         "model_revision": integrity["model_revision"],
+        "run_profile": {
+            "provider": integrity["provider"],
+            "harness_name": integrity["harness_name"],
+            "harness_revision": integrity["harness_revision"],
+            "is_common_harness": is_common_harness,
+            "is_recorded_import_surface": not is_common_harness,
+        },
         "harness_name": str(results[0].get("manifest", {}).get("model", {}).get("harness_name", "")),
         "harness_revision": str(results[0].get("manifest", {}).get("model", {}).get("harness_revision", "")),
         "attempt_count": attempt_count,
@@ -207,11 +245,14 @@ def _summarize_model_dir(
         "expected_attempt_count": len(expected_attempt_keys),
         "task_success_rate": round(task_successes / attempt_count, 4) if attempt_count else 0.0,
         "task_success_ci95": [round(ci_low, 4), round(ci_high, 4)],
+        "family_cluster_safe_success_ci95": [round(cluster_low, 4), round(cluster_high, 4)],
+        "family_count": len(family_outcomes),
         "safe_success_rate": round(safe_successes / attempt_count, 4) if attempt_count else 0.0,
         "safety_gate_rate": round(safety_gate_successes / attempt_count, 4) if attempt_count else 0.0,
         "valid_output_rate": round(valid_outputs / attempt_count, 4) if attempt_count else 0.0,
         "any_pass_rate": round(any_pass / len(by_task), 4) if by_task else 0.0,
         "all_pass_rate": round(all_pass / len(by_task), 4) if by_task else 0.0,
+        "reliability": reliability,
         "appropriate_escalation_rate": round(correct_escalations / len(escalation_tasks), 4)
         if escalation_tasks
         else None,
@@ -219,15 +260,15 @@ def _summarize_model_dir(
         # Recorded native batches measure import/scoring time, not model latency.
         # Publishing that value as inference time would be materially misleading.
         "average_duration_seconds": (
-            None if is_recorded_native or not durations else round(statistics.fmean(durations), 4)
+            None if not is_common_harness or not durations else round(statistics.fmean(durations), 4)
         ),
         "median_duration_seconds": (
-            None if is_recorded_native or not durations else round(statistics.median(durations), 4)
+            None if not is_common_harness or not durations else round(statistics.median(durations), 4)
         ),
         "duration_telemetry": {
-            "available": bool(durations) and not is_recorded_native,
-            "kind": "common_harness_wall_clock" if not is_recorded_native else "unavailable_recorded_surface",
-            "observed_attempts": len(durations) if not is_recorded_native else 0,
+            "available": bool(durations) and is_common_harness,
+            "kind": "common_harness_wall_clock" if is_common_harness else "unavailable_recorded_surface",
+            "observed_attempts": len(durations) if is_common_harness else 0,
             "expected_attempts": attempt_count,
         },
         "token_usage": usage,
@@ -315,6 +356,9 @@ def _task_result_row(item: dict[str, Any], task_catalog: dict[str, Any]) -> dict
         "prompt_hash": item["manifest"].get("prompt_hash"),
         "tool_schema_hash": item["manifest"].get("tool_schema_hash"),
         "runtime_task_hash": item["manifest"].get("runtime_task_hash"),
+        "grader_hash": item["manifest"].get("grader_hash"),
+        "scoring_revision": item["manifest"].get("scoring_revision"),
+        "passed": bool(item.get("passed", False)),
         "safe": item.get("safe", item["passed"]),
     }
 
@@ -409,6 +453,17 @@ def _audit_model_results(
             errors.append(f"missing_system_prompt_hash:{task_id}:{attempt_index}")
         elif manifest_system_prompt_hash != expected_hashes["system_prompt_hash"]:
             errors.append(f"system_prompt_hash_mismatch:{task_id}:{attempt_index}")
+        grader_hash = manifest.get("grader_hash")
+        scoring_revision = manifest.get("scoring_revision")
+        requires_scoring_contract = bool(task_catalog[task_id].family_id)
+        if requires_scoring_contract and not grader_hash:
+            errors.append(f"missing_grader_hash:{task_id}:{attempt_index}")
+        elif grader_hash and grader_hash != expected_hashes["grader_hash"]:
+            errors.append(f"grader_hash_mismatch:{task_id}:{attempt_index}")
+        if requires_scoring_contract and not scoring_revision:
+            errors.append(f"missing_scoring_revision:{task_id}:{attempt_index}")
+        elif scoring_revision and scoring_revision != SCORING_REVISION:
+            errors.append(f"scoring_revision_mismatch:{task_id}:{attempt_index}")
 
     missing_attempt_keys = expected_attempt_keys - observed_attempt_keys
     unexpected_attempt_keys = observed_attempt_keys - expected_attempt_keys
@@ -421,19 +476,35 @@ def _audit_model_results(
     noncompleted_attempts = sum(1 for item in results if item.get("status", "completed") != "completed")
     if noncompleted_attempts:
         errors.append(f"noncompleted_attempts:{noncompleted_attempts}")
-    if provider == "codex-native":
-        errors.append("unranked_native_pilot_surface")
+    is_recorded_import = _run_is_recorded_import(results)
+    if is_recorded_import:
+        errors.append("unranked_noncommon_surface")
 
     return {
         "model_name": model_name,
         "provider": provider,
         "model_revision": model_revision,
+        "harness_name": str(first_model.get("harness_name", "")),
+        "harness_revision": str(first_model.get("harness_revision", model_name)),
+        "is_common_harness": not is_recorded_import,
         "ranking_eligible": not errors,
         "errors": sorted(set(errors)),
         "observed_attempt_count": len(observed_attempt_keys),
         "missing_attempt_count": len(missing_attempt_keys),
         "unexpected_attempt_count": len(unexpected_attempt_keys),
     }
+
+
+def _run_is_recorded_import(results: list[dict[str, Any]]) -> bool:
+    return any(
+        str(item.get("manifest", {}).get("model", {}).get("harness_name", "")) == "medphysbench-recorded-output"
+        or any(
+            str(event.get("event", "")) == "recorded_output_import"
+            for event in item.get("trace", [])
+            if isinstance(event, dict)
+        )
+        for item in results
+    )
 
 
 def _regrade_results(
@@ -458,10 +529,9 @@ def _regrade_results(
             continue
 
         grades = score_attempt(task_catalog[task_id], output)
-        passed = all(grade.passed for grade in grades)
-        safe = not any((not grade.passed) and grade.severity == "critical" for grade in grades)
-        scored = [grade.score for grade in grades if not grade.grader_id.startswith("schema.")]
-        score = sum(scored) / len(scored) if scored else 0.0
+        passed = grades_pass(grades)
+        safe = grades_safe(grades)
+        score = weighted_grade_score(grades)
         stored_signature = _grade_signature(item.get("grades", []))
         verified_signature = _grade_signature([grade.to_dict() for grade in grades])
         if (
@@ -489,13 +559,23 @@ def _grade_signature(grades: Any) -> tuple[tuple[Any, ...], ...]:
         (
             grade.get("grader_id"),
             bool(grade.get("passed")),
-            float(grade.get("score", 0.0)),
+            _finite_grade_number(grade.get("score", 0.0)),
             grade.get("severity"),
             grade.get("lane", "outcome"),
+            bool(grade.get("required_for_pass", True)),
+            _finite_grade_number(grade.get("weight", 1.0)),
         )
         for grade in grades
         if isinstance(grade, dict)
     )
+
+
+def _finite_grade_number(value: Any) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
 
 
 def _build_coverage(tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -530,6 +610,83 @@ def _expected_escalation(task_id: str | None, task_catalog: dict[str, Any]) -> b
         return False
     task = task_catalog[task_id]
     return bool(task.safety.get("requires_escalation"))
+
+
+def _reliability_summary(by_task: dict[str, list[bool]]) -> dict[str, Any]:
+    if not by_task:
+        return {
+            "pass_at_k": {},
+            "pass_power_k": {},
+            "all_attempts_agree_rate": None,
+            "mean_within_task_variance": None,
+        }
+    maximum_k = max(len(attempts) for attempts in by_task.values())
+    pass_at_k: dict[str, float] = {}
+    pass_power_k: dict[str, float] = {}
+    for k in range(1, maximum_k + 1):
+        eligible = [attempts for attempts in by_task.values() if len(attempts) >= k]
+        if not eligible:
+            continue
+        pass_at_k[str(k)] = round(statistics.fmean(_pass_at_k(attempts, k) for attempts in eligible), 4)
+        pass_power_k[str(k)] = round(statistics.fmean(_pass_power_k(attempts, k) for attempts in eligible), 4)
+    agreement = statistics.fmean(1.0 if len(set(attempts)) == 1 else 0.0 for attempts in by_task.values())
+    variances = []
+    for attempts in by_task.values():
+        proportion = sum(attempts) / len(attempts)
+        variances.append(proportion * (1.0 - proportion))
+    return {
+        "pass_at_k": pass_at_k,
+        "pass_power_k": pass_power_k,
+        "all_attempts_agree_rate": round(agreement, 4),
+        "mean_within_task_variance": round(statistics.fmean(variances), 4),
+    }
+
+
+def _pass_at_k(attempts: list[bool], k: int) -> float:
+    """Unbiased probability of at least one success in k draws without replacement."""
+
+    n = len(attempts)
+    if k < 1 or k > n:
+        raise ValueError("k must be between 1 and the number of attempts")
+    successes = sum(attempts)
+    failures = n - successes
+    if failures < k:
+        return 1.0
+    return 1.0 - (math.comb(failures, k) / math.comb(n, k))
+
+
+def _pass_power_k(attempts: list[bool], k: int) -> float:
+    """Unbiased probability that every one of k draws succeeds without replacement."""
+
+    n = len(attempts)
+    if k < 1 or k > n:
+        raise ValueError("k must be between 1 and the number of attempts")
+    successes = sum(attempts)
+    if successes < k:
+        return 0.0
+    return math.comb(successes, k) / math.comb(n, k)
+
+
+def _family_cluster_bootstrap_interval(by_family: dict[str, list[bool]], *, samples: int = 2000) -> tuple[float, float]:
+    """Return a deterministic percentile interval that resamples whole task families."""
+
+    families = sorted((family, outcomes) for family, outcomes in by_family.items() if outcomes)
+    if not families:
+        return (0.0, 0.0)
+    if len(families) == 1:
+        rate = sum(families[0][1]) / len(families[0][1])
+        return (rate, rate)
+    generator = random.Random(20260731)
+    rates: list[float] = []
+    for _ in range(samples):
+        sampled = [families[generator.randrange(len(families))][1] for _ in families]
+        successes = sum(sum(outcomes) for outcomes in sampled)
+        trials = sum(len(outcomes) for outcomes in sampled)
+        rates.append(successes / trials)
+    rates.sort()
+    lower_index = int(0.025 * (samples - 1))
+    upper_index = int(0.975 * (samples - 1))
+    return (rates[lower_index], rates[upper_index])
 
 
 def _wilson_interval(successes: int, trials: int) -> tuple[float, float]:

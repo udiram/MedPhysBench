@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from medphys_agentbench.scoring import score_attempt
+from medphys_agentbench.scoring import grades_pass, score_attempt, weighted_grade_score
 from medphys_agentbench.task_loader import load_task
 from medphys_agentbench.tg263 import (
     StructureAction,
@@ -150,6 +150,36 @@ def test_all_public_tg263_tasks_load_and_have_reference_graders() -> None:
         assert task.access_class.value == "public"
         assert task.grading.get("graders")
         assert task.provenance["source_class"] == "synthetic"
+
+
+def test_tg263_primary_outcome_is_not_failed_by_undocumented_reason_vocabulary() -> None:
+    task = load_task("tasks/public/structure_naming/bilateral_kidneys_001/task.yaml")
+    output = {
+        "action": "rename",
+        "canonical_name": "Kidneys",
+        "reason_codes": ["canonical_collective_name"],
+        "requires_escalation": False,
+    }
+
+    grades = score_attempt(task, output)
+    rationale = next(grade for grade in grades if grade.lane == "rationale")
+
+    assert rationale.passed is False
+    assert rationale.required_for_pass is False
+    assert grades_pass(grades) is True
+    assert weighted_grade_score(grades) == 1.0
+
+
+def test_tg263_wrong_canonical_name_remains_a_blocking_failure() -> None:
+    task = load_task("tasks/public/structure_naming/bilateral_kidneys_001/task.yaml")
+    output = {
+        "action": "rename",
+        "canonical_name": "Kidney",
+        "reason_codes": ["deterministic_normalization"],
+        "requires_escalation": False,
+    }
+
+    assert grades_pass(score_attempt(task, output)) is False
 
 
 def test_each_task_has_an_executable_reference_solution() -> None:

@@ -24,13 +24,20 @@ package, or evidence of autonomous clinical competence.
 - Scored core snapshot: `public-core-v0.4` (`64` tasks; five comparable local models)
 - Hardening candidate: `public-core-v0.5` (`82` tasks, including `18` TG-263-aligned structure-naming tasks)
 - TG-263 pilot: `public-tg263-pilot-v0.5` (`18` synthetic ambiguity, collision, normalization, and escalation tasks)
+- TG-263 audit: `public-tg263-pilot-v0.5-audit` (separates primary naming decisions from exact benchmark reason-code labels)
 - Real-image pilot: `public-imaging-pilot-v0.4` (`5` real MRI, CT, and PET tasks)
-- Scored configurations on Friday, July 31, 2026: five common-harness local core models,
+- OpenKBP real-workflow pilot: `public-real-workflows-pilot-v0.6` (`10` tasks from
+  `2` patient families; `4` ranked common-harness local models with `120` attempts;
+  `3` unranked GPT-5.6 native audits with `30` additional recorded outputs)
+- Scored configurations through Saturday, August 1, 2026: five common-harness local core models,
   six explicitly unranked GPT-5.6 core-effort pilots, two harder TG-263 native pilots,
-  and three local vision models
+  three local models on the original image pilot, four local models on the OpenKBP pilot,
+  and three explicitly unranked GPT-5.6 OpenKBP effort audits
 - Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
 - Core run package: [`results/releases/public-core-v0.4/`](results/releases/public-core-v0.4/)
 - Imaging run package: [`results/releases/public-imaging-pilot-v0.4/`](results/releases/public-imaging-pilot-v0.4/)
+- OpenKBP run package: [`results/releases/public-real-workflows-pilot-v0.6/`](results/releases/public-real-workflows-pilot-v0.6/)
+- OpenKBP review ledger: [`reviews/public-real-workflows-pilot-v0.6.json`](reviews/public-real-workflows-pilot-v0.6.json)
 - Release writeup: [`docs/RESULTS.md`](docs/RESULTS.md)
 - Benchmark card: [`docs/BENCHMARK_CARD.md`](docs/BENCHMARK_CARD.md)
 - Changelog: [`CHANGELOG.md`](CHANGELOG.md)
@@ -45,7 +52,8 @@ package, or evidence of autonomous clinical competence.
 | Inspect what could invalidate a score | [Threat model](docs/THREAT_MODEL.md) · [Data statement](docs/DATA_STATEMENT.md) |
 | Add a provider or model | [Adapter contract](docs/ADAPTER_CONTRACT.md) · [Model onboarding](docs/MODEL_ONBOARDING.md) |
 | Propose a task | [Contribution guide](CONTRIBUTING.md) · [Task catalog](docs/TASK_CATALOG.md) |
-| Understand the harder RT roadmap | [Benchmark hardening](docs/BENCHMARK_HARDENING.md) · [RT competency map](docs/RT_COMPETENCY_MAP.md) · [TG-263 lane](docs/TG263_BENCHMARK.md) |
+| Understand the harder RT roadmap | [Benchmark hardening](docs/BENCHMARK_HARDENING.md) · [RT competency map](docs/RT_COMPETENCY_MAP.md) · [AAPM coverage](docs/AAPM_TASK_GROUP_COVERAGE.md) · [planning sandbox](docs/PLANNING_SANDBOX.md) · [TG-263 lane](docs/TG263_BENCHMARK.md) |
+| Audit the human-grounding claim | [Human baseline protocol](docs/HUMAN_BASELINE_PROTOCOL.md) · [review ledger](reviews/public-real-workflows-pilot-v0.6.json) |
 | Run models at no software cost | [Free-model evaluation](docs/FREE_MODEL_EVALUATION.md) |
 
 ## What is already real
@@ -62,15 +70,18 @@ package, or evidence of autonomous clinical competence.
 - A runnable Ollama adapter and release runner that persist benchmark artifacts under [`runs/`](runs/).
 - Strict structured-output parsing: one exact JSON object, with no repair from Markdown wrappers,
   duplicate keys, trailing prose, or non-finite numbers.
-- An 82-task public hardening candidate spanning core physics, RT physics, brachytherapy,
+- A 97-task public catalog spanning core physics, RT physics, brachytherapy,
   imaging, nuclear medicine, radiation safety, informatics, QA, research methods, and
-  TG-263-aligned structure naming; the frozen 64-task v0.4 snapshot remains the scored comparison.
-- Hash-pinned, attributed MRI, CT, and PET fixtures with a separately reported five-task
-  real-image pilot; image assets never carry hidden grader geometry into runtime.
+  TG-263-aligned structure naming; the frozen 64-task v0.4 snapshot remains the core comparison.
+- Hash-pinned, attributed MRI, CT, PET, and OpenKBP fixtures with separately reported
+  real-data pilots; image assets never carry hidden grader geometry into runtime.
+- A provisional two-patient OpenKBP lane covering parotid localization, dose-region
+  interpretation, published-criteria plan audit, structure inventory, and TG-263 naming,
+  with three attempts per task/model and family-cluster uncertainty.
 - Ranked-only release summaries: incomplete or manifest-inconsistent runs remain published but are
   excluded from leaderboard ranking.
 - Architecture, governance, evaluation, onboarding, and deployment documentation in [`docs/`](docs/).
-- Repository-wide validation of all five JSON Schemas, every authored/runtime task projection,
+- Repository-wide validation of all six JSON Schemas, every authored/runtime task projection,
   every artifact digest, constructed reference feasibility, and every published result artifact.
 - A compact browser leaderboard that exposes scores, integrity state, task labels, and contract
   hashes while keeping attempt outputs and grader evidence in the immutable release result files.
@@ -137,4 +148,8 @@ Version 0.5 is a **public hardening candidate** layered on the frozen v0.4 score
 runnable and auditable, but it is not yet a sealed multi-institution benchmark or clinical
 validation study. Native GPT-5.6 rows remain unranked until reproduced through a qualified common
 adapter; perfect scores on the earlier public core are treated as evidence of saturation, not a
-claim of autonomous competence.
+claim of autonomous competence. On Saturday, August 1, 2026, a TG-263 pilot audit further showed
+that the very low strict pilot score largely reflected benchmark-authored `reason_codes` label
+exactness rather than incorrect naming decisions; the audited decision rate was `17/18` for both
+native GPT-5.6 effort settings, while the strict label-dependent pass rate remained `5/18` and
+`4/18`.

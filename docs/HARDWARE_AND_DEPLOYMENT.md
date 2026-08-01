@@ -220,6 +220,16 @@ restricted-data workflow.
 
 ## 8. Operational discipline
 
+### Laptop memory guard
+
+The default development profile is deliberately serial. It never runs fixture
+construction, a browser build, and local inference concurrently. Ollama is
+limited to one loaded model and one parallel request, then unloaded between
+campaigns. Image/Parquet fixture construction streams one record batch at a time,
+uses memory mapping, and enforces an RSS ceiling. New work stops below 30% free
+system memory. The full-resolution cohort and Monte Carlo profiles are disabled
+on a 24–32 GB laptop and routed to the lab profile.
+
 ### SLOs and monitoring
 
 Track at least:

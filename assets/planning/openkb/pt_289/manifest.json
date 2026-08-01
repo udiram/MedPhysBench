@@ -1,0 +1,273 @@
+{
+  "artifacts": {
+    "parotid_ct_grid16.png": "d0fb98c1379cdf692a25907877208109e83622a1e350799d7be7645432c38b43",
+    "reference_dose_grid16.png": "00338490ae7e166e52ad4e3789bd6555fc061d813657a31eca2c6fc50ed5994b"
+  },
+  "data_character": {
+    "ct": "real de-identified patient image sourced from TCIA",
+    "dose": "standardized synthetic clinical-quality OpenKBP reference plan",
+    "structure_masks": "expert clinical contours from multiple institutions"
+  },
+  "grid_gold": {
+    "Parotid_L": [
+      [
+        7,
+        9
+      ],
+      [
+        7,
+        10
+      ],
+      [
+        8,
+        10
+      ]
+    ],
+    "Parotid_R": [
+      [
+        7,
+        5
+      ],
+      [
+        7,
+        6
+      ]
+    ],
+    "Parotids_bilateral": [
+      [
+        7,
+        5
+      ],
+      [
+        7,
+        6
+      ],
+      [
+        7,
+        9
+      ],
+      [
+        7,
+        10
+      ],
+      [
+        8,
+        10
+      ]
+    ],
+    "dose_ge_66p5_Gy": [
+      [
+        5,
+        8
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        6,
+        8
+      ],
+      [
+        6,
+        9
+      ],
+      [
+        7,
+        8
+      ],
+      [
+        7,
+        9
+      ],
+      [
+        8,
+        9
+      ],
+      [
+        8,
+        10
+      ]
+    ]
+  },
+  "grid_occupancy_thresholds": {
+    "Parotid_L": 0.05,
+    "Parotid_R": 0.05,
+    "Parotids_bilateral": 0.05,
+    "dose_ge_66p5_Gy": 0.25
+  },
+  "patient_id": "pt_289",
+  "plan_metrics": {
+    "Brainstem": {
+      "criterion": "D0.1cc_Gy <= 50 Gy",
+      "evaluable": true,
+      "margin_Gy": 17.48,
+      "metric": "D0.1cc_Gy",
+      "passed": true,
+      "threshold_Gy": 50.0,
+      "value_Gy": 32.52
+    },
+    "Esophagus": {
+      "evaluable": false,
+      "passed": null,
+      "reason": "structure mask is empty in the source case",
+      "value_Gy": null
+    },
+    "Larynx": {
+      "evaluable": false,
+      "passed": null,
+      "reason": "structure mask is empty in the source case",
+      "value_Gy": null
+    },
+    "LeftParotid": {
+      "criterion": "Dmean_Gy <= 26 Gy",
+      "evaluable": true,
+      "margin_Gy": -1.81,
+      "metric": "Dmean_Gy",
+      "passed": false,
+      "threshold_Gy": 26.0,
+      "value_Gy": 27.81
+    },
+    "Mandible": {
+      "evaluable": false,
+      "passed": null,
+      "reason": "structure mask is empty in the source case",
+      "value_Gy": null
+    },
+    "PTV56": {
+      "criterion": "D99_Gy >= 53.2 Gy",
+      "evaluable": true,
+      "margin_Gy": -0.61,
+      "metric": "D99_Gy",
+      "passed": false,
+      "threshold_Gy": 53.2,
+      "value_Gy": 52.59
+    },
+    "PTV63": {
+      "criterion": "D99_Gy >= 59.9 Gy",
+      "evaluable": true,
+      "margin_Gy": 1.5,
+      "metric": "D99_Gy",
+      "passed": true,
+      "threshold_Gy": 59.9,
+      "value_Gy": 61.4
+    },
+    "PTV70": {
+      "criterion": "D99_Gy >= 66.5 Gy",
+      "evaluable": true,
+      "margin_Gy": 2.3,
+      "metric": "D99_Gy",
+      "passed": true,
+      "threshold_Gy": 66.5,
+      "value_Gy": 68.8
+    },
+    "RightParotid": {
+      "criterion": "Dmean_Gy <= 26 Gy",
+      "evaluable": true,
+      "margin_Gy": 8.85,
+      "metric": "Dmean_Gy",
+      "passed": true,
+      "threshold_Gy": 26.0,
+      "value_Gy": 17.15
+    },
+    "SpinalCord": {
+      "criterion": "D0.1cc_Gy <= 45 Gy",
+      "evaluable": true,
+      "margin_Gy": 11.89,
+      "metric": "D0.1cc_Gy",
+      "passed": true,
+      "threshold_Gy": 45.0,
+      "value_Gy": 33.11
+    }
+  },
+  "schema_version": "medphysbench.fixture.v1",
+  "selected_slices": {
+    "high_dose_axial_index": 71,
+    "parotid_axial_index": 53
+  },
+  "source": {
+    "dataset": "oxkitsune/open-kbp",
+    "dataset_revision": "399a3f6d1c9aa9fd3f66677901666c670cead524",
+    "official_repository": "https://github.com/ababier/open-kbp",
+    "official_repository_revision": "ce625e62f3b04203f22bd9d1634f3e8fb0245e46",
+    "parquet_sha256": "fab82af2d334cb4eb44d385c561353cc62d64002e6d2eef9b3821dca64fdf698",
+    "parquet_url": "https://huggingface.co/datasets/oxkitsune/open-kbp/resolve/refs%2Fconvert%2Fparquet/default/test/0000.parquet",
+    "planning_criteria_source_doi": "10.1088/1361-6560/ac8044",
+    "upstream_challenge": "https://www.aapm.org/GrandChallenge/OpenKBP/",
+    "upstream_paper_doi": "10.1002/mp.14845"
+  },
+  "source_license": {
+    "dataset_mirror_card": "MIT",
+    "note": "OpenKBP CTs originated in TCIA; upstream challenge and repository attribution retained",
+    "official_repository": "MIT"
+  },
+  "structure_inventory": {
+    "Brainstem": {
+      "has_contour": true,
+      "volume_cc": 26.72,
+      "voxel_count": 709
+    },
+    "Esophagus": {
+      "has_contour": false,
+      "volume_cc": 0.0,
+      "voxel_count": 0
+    },
+    "Larynx": {
+      "has_contour": false,
+      "volume_cc": 0.0,
+      "voxel_count": 0
+    },
+    "LeftParotid": {
+      "has_contour": true,
+      "volume_cc": 24.007,
+      "voxel_count": 637
+    },
+    "Mandible": {
+      "has_contour": false,
+      "volume_cc": 0.0,
+      "voxel_count": 0
+    },
+    "PTV56": {
+      "has_contour": true,
+      "volume_cc": 170.574,
+      "voxel_count": 4526
+    },
+    "PTV63": {
+      "has_contour": true,
+      "volume_cc": 170.423,
+      "voxel_count": 4522
+    },
+    "PTV70": {
+      "has_contour": true,
+      "volume_cc": 188.324,
+      "voxel_count": 4997
+    },
+    "RightParotid": {
+      "has_contour": true,
+      "volume_cc": 22.123,
+      "voxel_count": 587
+    },
+    "SpinalCord": {
+      "has_contour": true,
+      "volume_cc": 19.447,
+      "voxel_count": 516
+    }
+  },
+  "structure_names": [
+    "Brainstem",
+    "SpinalCord",
+    "RightParotid",
+    "LeftParotid",
+    "Esophagus",
+    "Larynx",
+    "Mandible",
+    "PTV56",
+    "PTV63",
+    "PTV70"
+  ],
+  "voxel_dimensions_mm": [
+    3.75,
+    3.75,
+    2.680000066757202
+  ]
+}

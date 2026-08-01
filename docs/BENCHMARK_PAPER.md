@@ -1,8 +1,8 @@
 # MedPhysBench: Reproducible Evaluation of Medical-Physics AI Systems
 
-**Public development releases:** `public-core-v0.5`, `public-tg263-pilot-v0.5`, and `public-imaging-pilot-v0.4`
+**Public development releases:** `public-core-v0.5`, `public-tg263-pilot-v0.5`, `public-imaging-pilot-v0.4`, and `public-real-workflows-pilot-v0.6`
 
-**Benchmark version:** `0.5.0`
+**Benchmark version:** `0.6.0`
 
 **Status:** Research benchmark; not clinical validation
 
@@ -15,10 +15,11 @@ answering. MedPhysBench instead evaluates whether an AI system can complete a ve
 correctly, satisfy a machine-checkable output contract, preserve safety boundaries, and produce a
 reproducible run record.
 
-Version 0.5 contains an 82-task public-core hardening candidate, including an independently
+Version 0.6 contains an 82-task public-core hardening candidate, including an independently
 authored 18-task TG-263-aligned structure-naming lane, plus five separately reported, hash-pinned real
-MRI, CT, and PET tasks spanning localization, coarse segmentation, and retrospective source-label
-classification. The core spans radiation therapy, brachytherapy, imaging, nuclear medicine,
+MRI, CT, and PET tasks and a ten-task OpenKBP radiation-therapy pilot derived from two patient
+families. The OpenKBP lane spans structure/dose grid segmentation, published-criteria plan review,
+data-integrity audit, and TG-263 naming. The core spans radiation therapy, brachytherapy, imaging, nuclear medicine,
 radiation safety, informatics, quality assurance, and research methods. Every task has an authored view and a
 sealed runtime view; gold answers, graders, and sensitive provenance never cross the candidate
 boundary. The reference harness records model identity, prompt and tool hashes, sampling
@@ -26,9 +27,10 @@ parameters, latency, provider-response digests, grader results, and safety failu
 as task success, safe success, structured-output validity, escalation accuracy, `any_pass`,
 `all_pass`, domain results, and Wilson 95% confidence intervals.
 
-Version 0.5 retains deterministic regrading and adds reference-feasibility reconstruction,
+Version 0.6 retains deterministic regrading and adds reference-feasibility reconstruction,
 hash-verified multimodal assets, bounding-box IoU and grid-mask Dice graders, and sealed-batch
-import checks. A model is rankable only when its task/attempt matrix is complete and consistent.
+import checks. It also binds each attempt to the grader hash and scoring revision and reports
+family-cluster uncertainty for correlated patient-linked tasks. A model is rankable only when its task/attempt matrix is complete and consistent.
 Native conversation-surface pilots are published separately and cannot receive a common-harness rank.
 Difficulty governance adds family-level splits, rotating holdouts, paired counterfactuals,
 multi-seed consistency, saturation triggers, and a 20-phase radiation-therapy competency map.
@@ -80,7 +82,9 @@ assert this separation and assert that CLI validation cannot print grading mater
 The frozen scored snapshot, `public-core-v0.4`, contains 64 tasks. The `public-core-v0.5`
 candidate contains 82 tasks after adding 18 ambiguity-heavy structure-naming cases. It mixes calculation, evidence-grounding,
 checklist, informatics, and abstention boundaries. The `public-imaging-pilot-v0.4` release contains
-five licensed retrospective-image tasks and is never merged into the core rank.
+five licensed retrospective-image tasks and is never merged into the core rank. The
+`public-real-workflows-pilot-v0.6` release adds ten tasks from two pinned OpenKBP
+cases and is likewise reported separately. Its five views per case share a `family_id`.
 
 | Domain | Representative task families |
 | --- | --- |
@@ -157,6 +161,7 @@ The public leaderboard reports:
 - **`all_pass`**: fraction of tasks for which every attempt succeeds;
 - **domain safe success**;
 - **Wilson 95% confidence interval** over binary attempt success.
+- **family-cluster bootstrap interval** when patient/task family identifiers are available;
 - **median and total token use**, when the provider reports it;
 - **median common-harness wall time**, with unavailable native telemetry shown as missing;
 - **score-efficiency Pareto frontier**, reported only within one release and comparable harness.
@@ -173,7 +178,12 @@ success with a 98.44% safety-gate rate. Six GPT-5.6 effort configurations comple
 runtime batch on a native Codex conversation surface; three scored 100% and three scored 98.44%, all
 with 100% safety-gate rate. Those GPT rows are deliberately unranked because the surface was not the
 common adapter and did not provide equivalent isolation or sampling controls. Three local vision
-models also completed the separate imaging pilot. Full evidence is published in
+models also completed the separate imaging pilot. Four local vision models then completed three
+attempts on every OpenKBP v0.6 task; `qwen3.5:4b` led that provisional common-harness table at
+50.0% safe success. GPT-5.6 low, high, and ultra completed one native-surface attempt per OpenKBP
+task at 80.0%, 70.0%, and 100.0% safe success, respectively. Those three rows are unranked because
+they lack the common adapter, comparable token/time telemetry, and the required three attempts.
+Full evidence is published in
 [`RESULTS.md`](RESULTS.md) and the release directories.
 
 To probe saturation, GPT-5.6 high and ultra were also evaluated on the 18-task TG-263 pilot.
@@ -226,7 +236,7 @@ oversight, clear limits, quality assurance, and fallback behavior [7–10].
 
 The public release has deliberate limits:
 
-- 82 candidate core tasks still do not represent the breadth or prevalence of medical-physics work.
+- 97 public tasks still do not represent the breadth or prevalence of medical-physics work.
 - Most core inputs are synthetic. The imaging pilot contains reduced, de-identified public research
   images under MSD, TCIA, and AutoPET/ENHANCE.PET terms.
 - The development set is public and therefore contamination-prone.
@@ -240,6 +250,8 @@ The public release has deliberate limits:
 - The PET classification pilot contains one released negative source label and cannot estimate
   diagnostic performance, subgroup performance, or clinical utility.
 - The benchmark has not undergone external peer review or medical-device validation.
+- The OpenKBP v0.6 lane has only two patient families, pending independent domain/publication-rights
+  review, and no measured human baseline. Its ten task views are not ten independent cases.
 
 These limits are reported as part of the result, not deferred to fine print.
 

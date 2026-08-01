@@ -1,0 +1,23 @@
+schema_version: medeval.release.v1
+release_id: public-real-workflows-pilot-v0.6
+title: MedPhysBench OpenKBP Real-Workflow Pilot v0.6
+description: >-
+  Ten research-only radiation-therapy tasks derived from two pinned OpenKBP cases. The
+  lane combines real de-identified CT and expert structure masks with OpenKBP synthetic
+  reference dose, published planning criteria, data-integrity review, and independently
+  authored TG-263 naming rules. Patient-linked tasks share a family ID and results must
+  not be represented as ten independent cases or as clinical validation.
+allow_access_classes: [public]
+integrity_profile: pilot
+expected_attempts_per_task: 3
+task_files:
+  - ../tasks/public/radiation_therapy/openkb_pt289_parotid_segmentation_001/task.yaml
+  - ../tasks/public/radiation_therapy/openkb_pt289_high_dose_segmentation_001/task.yaml
+  - ../tasks/public/radiation_therapy/openkb_pt289_plan_criteria_audit_001/task.yaml
+  - ../tasks/public/radiation_therapy/openkb_pt289_structure_inventory_001/task.yaml
+  - ../tasks/public/radiation_therapy/openkb_pt289_tg263_naming_audit_001/task.yaml
+  - ../tasks/public/radiation_therapy/openkb_pt242_parotid_segmentation_001/task.yaml
+  - ../tasks/public/radiation_therapy/openkb_pt242_high_dose_segmentation_001/task.yaml
+  - ../tasks/public/radiation_therapy/openkb_pt242_plan_criteria_audit_001/task.yaml
+  - ../tasks/public/radiation_therapy/openkb_pt242_structure_inventory_001/task.yaml
+  - ../tasks/public/radiation_therapy/openkb_pt242_tg263_naming_audit_001/task.yaml
