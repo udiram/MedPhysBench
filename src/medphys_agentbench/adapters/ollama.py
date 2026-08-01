@@ -30,6 +30,8 @@ class OllamaAdapter:
     max_tokens: int = 1024
     timeout_seconds: int = 300
     artifact_root: Path = Path.cwd()
+    keep_alive: str | int | None = 0
+    context_window: int = 4096
 
     provider = "ollama"
     harness_revision = "reference-json-v1"
@@ -70,8 +72,11 @@ class OllamaAdapter:
                 "temperature": self.temperature,
                 "seed": self.seed,
                 "num_predict": self.max_tokens,
+                "num_ctx": self.context_window,
             },
         }
+        if self.keep_alive is not None:
+            request_payload["keep_alive"] = self.keep_alive
         request = urllib.request.Request(
             f"{self.base_url.rstrip('/')}/api/chat",
             data=json.dumps(request_payload).encode("utf-8"),

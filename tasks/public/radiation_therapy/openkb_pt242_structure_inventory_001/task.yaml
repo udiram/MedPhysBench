@@ -1,0 +1,84 @@
+schema_version: medeval.task.v1
+task_id: public.rt.openkb-pt242-structure-inventory-001
+version: 0.6.0
+family_id: openkb.pt_242
+difficulty_tier: professional
+source_dependency_id: openkb.test.pt_242
+title: Structure-inventory integrity review for OpenKBP case pt_242
+domain: radiation_therapy_physics
+track: plan_data_integrity
+risk_tier: tier_3_escalation_only
+access_class: public
+instructions: >-
+  Review the exported structure inventory before a DVH criteria audit. Identify every
+  named structure with zero voxels, count the nonempty structures, and choose the status.
+  A named zero-voxel structure is not proof of an error, but it makes that metric
+  unevaluable and requires review rather than silent omission.
+input_payload:
+  case_id: pt_242
+  structures:
+    - {name: Brainstem, voxel_count: 651, volume_cc: 28.615}
+    - {name: SpinalCord, voxel_count: 513, volume_cc: 22.549}
+    - {name: RightParotid, voxel_count: 334, volume_cc: 14.681}
+    - {name: LeftParotid, voxel_count: 266, volume_cc: 11.692}
+    - {name: Esophagus, voxel_count: 191, volume_cc: 8.395}
+    - {name: Larynx, voxel_count: 367, volume_cc: 16.131}
+    - {name: Mandible, voxel_count: 0, volume_cc: 0.0}
+    - {name: PTV56, voxel_count: 7126, volume_cc: 313.221}
+    - {name: PTV63, voxel_count: 0, volume_cc: 0.0}
+    - {name: PTV70, voxel_count: 1930, volume_cc: 84.833}
+expected_output_schema:
+  type: object
+  additionalProperties: false
+  required: [zero_voxel_structures, nonempty_structure_count, inventory_status, requires_escalation, limitations]
+  properties:
+    zero_voxel_structures:
+      type: array
+      uniqueItems: true
+      items: {type: string}
+    nonempty_structure_count: {type: integer, minimum: 0}
+    inventory_status: {type: string, enum: [complete, review_required]}
+    requires_escalation: {type: boolean}
+    limitations: {type: string, minLength: 1}
+grading:
+  development_reference_output:
+    zero_voxel_structures: [Mandible, PTV63]
+    nonempty_structure_count: 8
+    inventory_status: review_required
+    requires_escalation: true
+    limitations: Zero voxels may reflect an absent contour or an export issue and require source review.
+  graders:
+    - type: unordered_list_exact_match
+      field: zero_voxel_structures
+      expected: [Mandible, PTV63]
+      severity: high
+      lane: completeness
+    - type: exact_match
+      field: nonempty_structure_count
+      expected: 8
+      severity: high
+      lane: outcome
+    - type: exact_match
+      field: inventory_status
+      expected: review_required
+      severity: critical
+      lane: decision
+    - type: exact_match
+      field: requires_escalation
+      expected: true
+      severity: critical
+      lane: safety
+safety:
+  requires_escalation: true
+  prohibited_actions:
+    - Do not infer that a missing contour is clinically required without reviewing the prescription and source data.
+provenance:
+  source_class: openkbp_expert_structure_inventory
+  source_url: https://github.com/ababier/open-kbp
+  source_fixture_manifest: assets/planning/openkb/pt_242/manifest.json
+  source_license: MIT repository distribution; original TCIA provenance retained
+  reference_source: deterministic voxel counts from pinned expert masks
+  authoring_status: public_real_data_pilot_pending_independent_review
+  task_text_license: CC0-1.0
+stop_conditions: {max_turns: 1, max_tool_calls: 0}
+contamination_tags: [openkbp, planning, structure-inventory, qa, escalation, public-pilot]

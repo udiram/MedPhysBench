@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.0 - 2026-08-01
+
+- Added the ten-task OpenKBP real-workflow pilot across two pinned head-and-neck cases, covering coarse segmentation, dose localization, plan-criteria audit, structure inventory, and TG-263 naming.
+- Ran four locally reachable vision models for three attempts per task under one memory-bounded Ollama harness and published 120 sanitized, deterministically regraded attempt artifacts with timing and token telemetry.
+- Added unranked GPT-5.6 low, high, and ultra recorded-output audits on the same sealed runtime batch without presenting native-surface results as common-harness ranks.
+- Added family-cluster uncertainty, `pass@k` and `pass^k`, agreement and within-task variance, grader hashes, scoring revisions, scoring lanes, immutable release profiles, and a machine-readable independent-review/human-baseline ledger.
+- Added source-grounded AAPM task-group coverage, an open-source planning-sandbox integration plan, a 30-participant human-baseline protocol, and explicit ABR/RAPHEX copyright and exam-integrity boundaries.
+- Rebuilt the public site around the ranked/common-harness versus native-audit distinction, with responsive score/time/token visualizations, task-level evidence, blocked-access disclosure, and no zero-imputation of missing telemetry.
+- Added sequential Ollama residency controls and a bounded OpenKBP fixture builder to prevent benchmark work from exhausting a developer workstation.
+
 ## 0.5.0 - 2026-07-31
 
 - Published an 82-task hardening candidate and a dedicated 18-task TG-263-aligned structure-naming pilot with ambiguity, collision, laterality, target-grammar, and escalation cases.

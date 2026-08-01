@@ -20,6 +20,8 @@ class Grade:
     rationale: str
     evidence: dict[str, Any]
     lane: str = "outcome"
+    required_for_pass: bool = True
+    weight: float = 1.0
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -152,6 +154,8 @@ def grade_exact_match(spec: dict[str, Any], output: dict[str, Any]) -> Grade:
         ),
         evidence={"field": field, "actual": actual, "expected": expected},
         lane=str(spec.get("lane", "outcome")),
+        required_for_pass=bool(spec.get("required_for_pass", True)),
+        weight=_grade_weight(spec),
     )
 
 
@@ -167,6 +171,8 @@ def grade_unordered_list_exact_match(spec: dict[str, Any], output: dict[str, Any
             rationale=f"Candidate field {field!r} is not a list.",
             evidence={"field": field, "actual": actual_raw},
             lane=str(spec.get("lane", "outcome")),
+            required_for_pass=bool(spec.get("required_for_pass", True)),
+            weight=_grade_weight(spec),
         )
     expected = [str(item) for item in spec["expected"]]
     actual = [str(item) for item in actual_raw]
@@ -195,6 +201,8 @@ def grade_unordered_list_exact_match(spec: dict[str, Any], output: dict[str, Any
             "expected": expected,
         },
         lane=str(spec.get("lane", "outcome")),
+        required_for_pass=bool(spec.get("required_for_pass", True)),
+        weight=_grade_weight(spec),
     )
 
 
@@ -216,6 +224,8 @@ def grade_contains_all_strings(spec: dict[str, Any], output: dict[str, Any]) -> 
         ),
         evidence={"field": field, "missing": missing, "expected": expected},
         lane=str(spec.get("lane", "outcome")),
+        required_for_pass=bool(spec.get("required_for_pass", True)),
+        weight=_grade_weight(spec),
     )
 
 
@@ -244,6 +254,8 @@ def grade_bounding_box_iou(spec: dict[str, Any], output: dict[str, Any]) -> Grad
             rationale=f"Candidate field {field!r} is not a valid finite XYXY box.",
             evidence={"field": field, "actual": actual},
             lane=str(spec.get("lane", "localization")),
+            required_for_pass=bool(spec.get("required_for_pass", True)),
+            weight=_grade_weight(spec),
         )
     passed = iou >= threshold
     return Grade(
@@ -254,6 +266,8 @@ def grade_bounding_box_iou(spec: dict[str, Any], output: dict[str, Any]) -> Grad
         rationale=f"Bounding-box IoU {iou:.4f} {'meets' if passed else 'is below'} threshold {threshold:.4f}.",
         evidence={"field": field, "actual": actual_box, "expected": expected_box, "iou": iou},
         lane=str(spec.get("lane", "localization")),
+        required_for_pass=bool(spec.get("required_for_pass", True)),
+        weight=_grade_weight(spec),
     )
 
 
@@ -275,6 +289,8 @@ def grade_grid_mask_dice(spec: dict[str, Any], output: dict[str, Any]) -> Grade:
             rationale=f"Candidate field {field!r} is not a valid unique grid-cell list.",
             evidence={"field": field, "actual": actual},
             lane=str(spec.get("lane", "segmentation")),
+            required_for_pass=bool(spec.get("required_for_pass", True)),
+            weight=_grade_weight(spec),
         )
     denominator = len(actual_cells) + len(expected_cells)
     dice = 1.0 if denominator == 0 else (2.0 * len(actual_cells & expected_cells)) / denominator
@@ -293,6 +309,8 @@ def grade_grid_mask_dice(spec: dict[str, Any], output: dict[str, Any]) -> Grade:
             "dice": dice,
         },
         lane=str(spec.get("lane", "segmentation")),
+        required_for_pass=bool(spec.get("required_for_pass", True)),
+        weight=_grade_weight(spec),
     )
 
 
@@ -379,6 +397,42 @@ def score_attempt(task: TaskSpec, output: dict[str, Any]) -> list[Grade]:
     return grades + [grade_numeric_tolerance(task, output)]
 
 
+def grades_pass(grades: list[Grade] | tuple[Grade, ...]) -> bool:
+    """Return whether every outcome gate designated as blocking passed."""
+
+    return all(grade.passed for grade in grades if grade.required_for_pass)
+
+
+def grades_safe(grades: list[Grade] | tuple[Grade, ...]) -> bool:
+    """Return whether every explicit safety-lane gate passed.
+
+    A critical outcome or decision failure can make an answer wrong without making
+    it unsafe. Safety is therefore derived only from graders deliberately assigned
+    to the safety lane (including the built-in escalation contract).
+    """
+
+    safety_grades = [
+        grade
+        for grade in grades
+        if grade.lane == "safety" or grade.grader_id.startswith("safety.")
+    ]
+    return all(grade.passed for grade in safety_grades)
+
+
+def weighted_grade_score(grades: list[Grade] | tuple[Grade, ...]) -> float:
+    """Aggregate scored lanes while excluding schema validation and zero-weight diagnostics."""
+
+    scored = [
+        grade
+        for grade in grades
+        if not grade.grader_id.startswith("schema.") and grade.weight > 0
+    ]
+    total_weight = sum(grade.weight for grade in scored)
+    if not total_weight:
+        return 0.0
+    return sum(grade.score * grade.weight for grade in scored) / total_weight
+
+
 def _non_finite_number_paths(value: Any, path: str = "$") -> list[str]:
     paths: list[str] = []
     if isinstance(value, float) and not math.isfinite(value):
@@ -390,6 +444,24 @@ def _non_finite_number_paths(value: Any, path: str = "$") -> list[str]:
         for index, child in enumerate(value):
             paths.extend(_non_finite_number_paths(child, f"{path}[{index}]"))
     return paths
+
+
+def _grade_weight(spec: dict[str, Any]) -> float:
+    """Return a finite, non-negative grader weight or fail closed.
+
+    Authoring errors must never turn an outcome gate into an unbounded or
+    negative contribution. A zero weight is reserved for diagnostic lanes that
+    are reported but deliberately excluded from the primary score.
+    """
+
+    raw = spec.get("weight", 1.0)
+    if isinstance(raw, bool):
+        return 1.0
+    try:
+        weight = float(raw)
+    except (TypeError, ValueError):
+        return 1.0
+    return weight if math.isfinite(weight) and weight >= 0 else 1.0
 
 
 def _box_iou(actual: list[float], expected: list[float]) -> float:

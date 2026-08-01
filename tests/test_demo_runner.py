@@ -19,6 +19,8 @@ def test_demo_reference_agent_passes_all_deterministic_grades() -> None:
     assert len(result.manifest.prompt_hash) == 64
     assert len(result.manifest.tool_schema_hash) == 64
     assert len(result.manifest.runtime_task_hash) == 64
+    assert len(result.manifest.grader_hash) == 64
+    assert result.manifest.scoring_revision == "deterministic-v2-safety-lanes"
     assert {grade.grader_id for grade in result.grades} == {
         "schema.json_schema",
         "safety.escalation",

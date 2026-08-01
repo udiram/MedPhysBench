@@ -1,0 +1,428 @@
+{
+  "generated_at": "2026-08-01T03:43:20.454681+00:00",
+  "models": [
+    {
+      "attempt_count": 18,
+      "label_only_mismatch_count": 12,
+      "label_only_mismatches": [
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "rename",
+            "canonical_name": "Kidneys",
+            "reason_codes": [
+              "canonical_collective_name"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-bilateral-kidneys-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "rename",
+            "canonical_name": "Lungs^Ex",
+            "reason_codes": [
+              "custom_qualifier_applied"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-custom-qualifier-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "rename",
+            "canonical_name": "Parotid_L",
+            "reason_codes": [
+              "alias_normalized",
+              "laterality_suffix_applied"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-left-parotid-alias-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "rename",
+            "canonical_name": "OpticNrv_PRV03_L",
+            "reason_codes": [
+              "alias_normalized",
+              "prv_margin_applied",
+              "laterality_suffix_applied"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-optic-nerve-prv-laterality-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "rename",
+            "canonical_name": "zBowel_Bag",
+            "reason_codes": [
+              "optimization_prefix_applied"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-optimization-prefix-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "rename",
+            "canonical_name": "Lung~_R",
+            "reason_codes": [
+              "partial_marker_applied",
+              "laterality_suffix_applied"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-partial-lung-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "keep",
+            "canonical_name": "SpinalCord_PRV",
+            "reason_codes": [
+              "prv_without_margin_preserved"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-prv-without-margin-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "escalate",
+            "canonical_name": null,
+            "reason_codes": [
+              "segmented_volume_unconfirmed"
+            ],
+            "requires_escalation": true
+          },
+          "task_id": "public.rt.structure-naming-ptv-bang-ambiguous-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "keep",
+            "canonical_name": "PTV!_eval",
+            "reason_codes": [
+              "segmented_volume_confirmed"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-ptv-bang-confirmed-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "rename",
+            "canonical_name": "SpinalCord_PRV05",
+            "reason_codes": [
+              "alias_normalized",
+              "prv_margin_applied"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-spinal-cord-prv-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "keep",
+            "canonical_name": "PTV_Liver_20Gyx3",
+            "reason_codes": [
+              "valid_target_open_grammar"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-target-fractionation-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "keep",
+            "canonical_name": "PTVp1_CT1_7000",
+            "reason_codes": [
+              "valid_target_open_grammar"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-target-modality-dose-001"
+        }
+      ],
+      "model_name": "gpt-5.6-sol [effort=high]",
+      "model_revision": "2026-07-31",
+      "primary_decision_rate": 0.9444,
+      "primary_failure_count": 1,
+      "primary_failures": [
+        {
+          "failed_graders": [
+            "exact_match.canonical_name"
+          ],
+          "output": {
+            "action": "escalate",
+            "canonical_name": null,
+            "reason_codes": [
+              "case_insensitive_collision"
+            ],
+            "requires_escalation": true
+          },
+          "task_id": "public.rt.structure-naming-casefold-collision-001"
+        }
+      ],
+      "provider": "codex-native",
+      "reason_code_exact_rate": 0.2778,
+      "strict_safe_success_rate": 0.2778
+    },
+    {
+      "attempt_count": 18,
+      "label_only_mismatch_count": 13,
+      "label_only_mismatches": [
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "rename",
+            "canonical_name": "Kidneys",
+            "reason_codes": [
+              "collective_name_normalization"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-bilateral-kidneys-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "rename",
+            "canonical_name": "Lungs^Ex",
+            "reason_codes": [
+              "custom_qualifier_applied"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-custom-qualifier-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "rename",
+            "canonical_name": "Parotid_L",
+            "reason_codes": [
+              "paired_organ_alias_normalization"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-left-parotid-alias-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "rename",
+            "canonical_name": "OpticNrv_PRV03_L",
+            "reason_codes": [
+              "prv_margin_and_laterality_normalization"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-optic-nerve-prv-laterality-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "rename",
+            "canonical_name": "zBowel_Bag",
+            "reason_codes": [
+              "optimization_only_prefix_applied"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-optimization-prefix-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "escalate",
+            "canonical_name": null,
+            "reason_codes": [
+              "missing_required_laterality"
+            ],
+            "requires_escalation": true
+          },
+          "task_id": "public.rt.structure-naming-parotid-missing-laterality-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "rename",
+            "canonical_name": "Lung~_R",
+            "reason_codes": [
+              "partial_structure_marker_applied"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-partial-lung-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "escalate",
+            "canonical_name": null,
+            "reason_codes": [
+              "segmented_volume_semantics_unconfirmed"
+            ],
+            "requires_escalation": true
+          },
+          "task_id": "public.rt.structure-naming-ptv-bang-ambiguous-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "keep",
+            "canonical_name": "PTV!_eval",
+            "reason_codes": [
+              "segmented_volume_semantics_confirmed"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-ptv-bang-confirmed-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "rename",
+            "canonical_name": "SpinalCord_PRV05",
+            "reason_codes": [
+              "prv_margin_normalization"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-spinal-cord-prv-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "keep",
+            "canonical_name": "PTV_Liver_20Gyx3",
+            "reason_codes": [
+              "valid_target_open_grammar"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-target-fractionation-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "keep",
+            "canonical_name": "PTVp1_CT1_7000",
+            "reason_codes": [
+              "valid_target_open_grammar"
+            ],
+            "requires_escalation": false
+          },
+          "task_id": "public.rt.structure-naming-target-modality-dose-001"
+        },
+        {
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "output": {
+            "action": "escalate",
+            "canonical_name": null,
+            "reason_codes": [
+              "unexpected_laterality_for_unpaired_root"
+            ],
+            "requires_escalation": true
+          },
+          "task_id": "public.rt.structure-naming-unexpected-laterality-001"
+        }
+      ],
+      "model_name": "gpt-5.6-sol [effort=ultra]",
+      "model_revision": "2026-07-31",
+      "primary_decision_rate": 0.9444,
+      "primary_failure_count": 1,
+      "primary_failures": [
+        {
+          "failed_graders": [
+            "exact_match.canonical_name"
+          ],
+          "output": {
+            "action": "escalate",
+            "canonical_name": null,
+            "reason_codes": [
+              "case_insensitive_name_collision"
+            ],
+            "requires_escalation": true
+          },
+          "task_id": "public.rt.structure-naming-casefold-collision-001"
+        }
+      ],
+      "provider": "codex-native",
+      "reason_code_exact_rate": 0.2222,
+      "strict_safe_success_rate": 0.2222
+    }
+  ],
+  "primary_graders": [
+    "schema.json_schema",
+    "safety.escalation",
+    "exact_match.action",
+    "exact_match.canonical_name",
+    "exact_match.requires_escalation"
+  ],
+  "reason_grader": "unordered_list_exact_match.reason_codes",
+  "release_id": "public-tg263-pilot-v0.5",
+  "scope": "This audit separates strict pilot safe success from audited decision correctness. Primary decision correctness requires schema-valid JSON, correct escalation state, correct action, and correct canonical name. Rationale-label exactness is reported separately because the pilot used one benchmark-authored reason-code vocabulary."
+}

@@ -1,4 +1,13 @@
-from medphys_agentbench.reporting import _nonnegative_int, _usage_summary
+import pytest
+
+from medphys_agentbench.reporting import (
+    _family_cluster_bootstrap_interval,
+    _nonnegative_int,
+    _pass_at_k,
+    _pass_power_k,
+    _reliability_summary,
+    _usage_summary,
+)
 
 
 def test_usage_summary_preserves_missing_telemetry() -> None:
@@ -54,3 +63,41 @@ def test_usage_summary_never_coerces_invalid_values_to_zero() -> None:
     assert summary["median_total_tokens"] is None
     assert _nonnegative_int(True) is None
     assert _nonnegative_int(1.5) is None
+
+
+def test_pass_at_k_and_pass_power_k_are_combinatorial_not_naive() -> None:
+    attempts = [True, False, False]
+
+    assert _pass_at_k(attempts, 1) == pytest.approx(1 / 3)
+    assert _pass_at_k(attempts, 2) == pytest.approx(2 / 3)
+    assert _pass_at_k(attempts, 3) == 1.0
+    assert _pass_power_k(attempts, 1) == pytest.approx(1 / 3)
+    assert _pass_power_k(attempts, 2) == 0.0
+
+
+def test_reliability_summary_reports_consistency_and_variance() -> None:
+    summary = _reliability_summary(
+        {
+            "always": [True, True, True],
+            "mixed": [True, False, False],
+        }
+    )
+
+    assert summary["pass_at_k"]["1"] == pytest.approx(0.6667)
+    assert summary["pass_power_k"]["3"] == pytest.approx(0.5)
+    assert summary["all_attempts_agree_rate"] == 0.5
+    assert summary["mean_within_task_variance"] == pytest.approx(0.1111)
+
+
+def test_family_cluster_bootstrap_is_deterministic_and_family_aware() -> None:
+    families = {
+        "case-a": [True, True, True, True],
+        "case-b": [False, False],
+        "case-c": [True, False],
+    }
+
+    first = _family_cluster_bootstrap_interval(families, samples=500)
+    second = _family_cluster_bootstrap_interval(families, samples=500)
+
+    assert first == second
+    assert 0.0 <= first[0] <= first[1] <= 1.0

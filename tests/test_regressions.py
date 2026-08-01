@@ -16,6 +16,8 @@ from medphys_agentbench.json_utils import decode_strict_json_object
 from medphys_agentbench.release_loader import load_release
 from medphys_agentbench.reporting import summarize_release
 from medphys_agentbench.runner import (
+    SCORING_REVISION,
+    grader_hash_for_task,
     prompt_hash_for_task,
     runtime_task_hash_for_task,
     system_prompt_hash,
@@ -24,6 +26,8 @@ from medphys_agentbench.runner import (
 from medphys_agentbench.scoring import (
     grade_numeric_tolerance,
     grade_safety_gate,
+    grades_pass,
+    grades_safe,
     score_attempt,
     validate_expected_output_shape,
 )
@@ -130,8 +134,8 @@ def _write_result(
         first_grader = task.grading.get("graders", [])[0]
         output[first_grader["field"]] = "deliberately incorrect"
     grades = score_attempt(task, output)
-    verified_passed = all(grade.passed for grade in grades)
-    verified_safe = not any((not grade.passed) and grade.severity == "critical" for grade in grades)
+    verified_passed = grades_pass(grades)
+    verified_safe = grades_safe(grades)
     payload = {
         "status": "completed",
         "attempt_index": attempt_index,
@@ -160,6 +164,8 @@ def _write_result(
             "tool_schema_hash": tool_schema_hash_for_task(task) if include_hashes else "wrong",
             "system_prompt_hash": system_prompt_hash() if include_hashes else "wrong",
             "runtime_task_hash": runtime_task_hash_for_task(task) if include_hashes else "wrong",
+            "grader_hash": grader_hash_for_task(task) if include_hashes else "wrong",
+            "scoring_revision": SCORING_REVISION,
         },
         "grades": [grade.to_dict() for grade in grades],
         "output": output,
@@ -219,6 +225,26 @@ def test_release_summary_regrades_and_rejects_stored_score_tampering(tmp_path: P
     row = summary["unranked_models"][0]
     assert any("stored_grades_disagree_with_regrade" in issue for issue in row["integrity"]["integrity_errors"])
     assert row["safe_success_rate"] == 0.9375
+
+
+def test_release_summary_demotes_malformed_stored_grade_numbers(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    task = release.load_tasks()[0]
+    model_dir = tmp_path / release.release_id / "malformed-grades"
+    model_dir.mkdir(parents=True)
+    result_file = model_dir / "attempt.json"
+    _write_result(result_file, task, "malformed-grades")
+    payload = json.loads(result_file.read_text(encoding="utf-8"))
+    payload["grades"][0]["score"] = "not-a-number"
+    payload["grades"][0]["weight"] = {"invalid": True}
+    result_file.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    summary = summarize_release(release, tmp_path)
+
+    assert summary["models"] == []
+    row = summary["unranked_models"][0]
+    assert row["ranking_eligible"] is False
+    assert any("stored_grades_disagree_with_regrade" in issue for issue in row["integrity"]["integrity_errors"])
 
 
 def test_release_summary_keeps_attempt_outputs_out_of_leaderboard(tmp_path: Path) -> None:
@@ -383,10 +409,11 @@ def test_repository_contracts_and_public_artifacts_validate() -> None:
     )
     counts = json.loads(completed.stdout)
 
-    assert counts["schema_count"] == 5
+    assert counts["schema_count"] == 6
     assert counts["release_count"] >= 1
-    assert counts["task_count"] >= 17
-    assert counts["result_count"] >= 16
+    assert counts["review_evidence_count"] >= 1
+    assert counts["task_count"] >= 98
+    assert counts["result_count"] >= 120
 
 
 def test_release_summary_ranks_complete_models(tmp_path: Path) -> None:
@@ -435,3 +462,5 @@ def test_cli_sampling_contract_reaches_ollama_adapter() -> None:
     assert adapter.temperature == 0.25
     assert adapter.max_tokens == 777
     assert adapter.timeout_seconds == 99
+    assert adapter.keep_alive == 0
+    assert adapter.context_window == 4096

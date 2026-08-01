@@ -12,6 +12,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 from medphys_agentbench.artifacts import resolve_asset_reference
 from medphys_agentbench.json_utils import decode_strict_json_object
+from medphys_agentbench.release_loader import load_release
 from medphys_agentbench.scoring import score_attempt
 from medphys_agentbench.task_loader import load_task
 
@@ -55,11 +56,35 @@ def validate_repository() -> dict[str, int]:
         "run": _validator("run.v1.schema.json"),
         "result": _validator("result.v1.schema.json"),
         "release": _validator("release.v1.schema.json"),
+        "review_evidence": _validator("review-evidence.v1.schema.json"),
     }
 
     release_paths = sorted((ROOT / "releases").glob("*.yaml"))
+    releases_by_id = {}
     for path in release_paths:
-        _validate(validators["release"], _load_yaml(path), path)
+        payload = _load_yaml(path)
+        _validate(validators["release"], payload, path)
+        release_id = str(payload["release_id"])
+        if release_id in releases_by_id:
+            raise ValueError(f"Duplicate release_id {release_id!r} in {path}.")
+        releases_by_id[release_id] = load_release(path)
+
+    review_paths = sorted((ROOT / "reviews").glob("*.json"))
+    for path in review_paths:
+        payload = _load_json(path)
+        _validate(validators["review_evidence"], payload, path)
+        release_id = str(payload["release_id"])
+        release = releases_by_id.get(release_id)
+        if release is None:
+            raise ValueError(f"{path}: review evidence references unknown release {release_id!r}.")
+        expected_task_ids = {task.task_id for task in release.load_tasks()}
+        reviewed_task_ids = [str(item["task_id"]) for item in payload["task_reviews"]]
+        if len(reviewed_task_ids) != len(set(reviewed_task_ids)):
+            raise ValueError(f"{path}: task_reviews contains duplicate task IDs.")
+        if set(reviewed_task_ids) != expected_task_ids:
+            missing = sorted(expected_task_ids.difference(reviewed_task_ids))
+            extra = sorted(set(reviewed_task_ids).difference(expected_task_ids))
+            raise ValueError(f"{path}: review task coverage mismatch; missing={missing}, extra={extra}.")
 
     task_paths = sorted((ROOT / "tasks").rglob("task.yaml"))
     for path in task_paths:
@@ -86,18 +111,23 @@ def validate_repository() -> dict[str, int]:
         payload = _load_json(path)
         _validate(validators["result"], payload, path)
         _validate(validators["run"], payload.get("manifest"), path)
+        raw_response = payload.get("raw_response")
+        if isinstance(raw_response, dict) and {"content", "thinking"}.intersection(raw_response):
+            raise ValueError(f"{path}: public result contains unredacted provider output.")
+        trace = payload.get("trace")
+        if isinstance(trace, list) and any(isinstance(item, dict) and "raw_preview" in item for item in trace):
+            raise ValueError(f"{path}: public result trace contains an unredacted raw preview.")
 
     return {
         "schema_count": len(validators),
         "release_count": len(release_paths),
+        "review_evidence_count": len(review_paths),
         "task_count": len(task_paths),
         "result_count": len(result_paths),
     }
 
 
-def _reference_output(
-    schema: dict[str, Any], grading: dict[str, Any], safety: dict[str, Any]
-) -> dict[str, Any]:
+def _reference_output(schema: dict[str, Any], grading: dict[str, Any], safety: dict[str, Any]) -> dict[str, Any]:
     output = _schema_placeholder(schema)
     if not isinstance(output, dict):
         raise ValueError("Expected-output schema must construct an object.")
@@ -132,10 +162,7 @@ def _schema_placeholder(schema: dict[str, Any]) -> Any:
         schema_type = next((item for item in schema_type if item != "null"), "null")
     if schema_type == "object":
         properties = schema.get("properties", {})
-        return {
-            field: _schema_placeholder(properties.get(field, {}))
-            for field in schema.get("required", [])
-        }
+        return {field: _schema_placeholder(properties.get(field, {})) for field in schema.get("required", [])}
     if schema_type == "array":
         minimum = int(schema.get("minItems", 0))
         return [_schema_placeholder(schema.get("items", {})) for _ in range(minimum)]

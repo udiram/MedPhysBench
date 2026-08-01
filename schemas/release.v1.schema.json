@@ -26,6 +26,9 @@
       "type": "integer",
       "minimum": 1
     },
+    "integrity_profile": {
+      "enum": ["development", "pilot", "comparison"]
+    },
     "task_files": {
       "type": "array",
       "minItems": 1,

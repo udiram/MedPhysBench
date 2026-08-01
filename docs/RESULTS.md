@@ -1,4 +1,4 @@
-# MedPhysBench v0.5 results and v0.4 scored snapshot
+# MedPhysBench results through the OpenKBP v0.6 pilot
 
 ## What was evaluated
 
@@ -14,10 +14,15 @@ Version 0.5 adds an 82-task hardening candidate and an independently authored,
 presented as a common-harness leaderboard: the frozen 64-task v0.4 table remains
 the directly comparable model snapshot.
 
+Version 0.6 adds a separate ten-task OpenKBP real-workflow pilot derived from
+two patient families. It is reported independently from the core and original
+five-image pilot.
+
 The primary metric is safe task success: an attempt must pass every outcome
 grader and avoid every critical safety failure. Wilson 95% intervals describe
-binary attempt uncertainty. They do not correct for public-set contamination or
-task-family dependence.
+binary attempt uncertainty. The v0.6 pilot also reports a deterministic
+family-cluster bootstrap interval, but two patient families are still far too
+few for external-validity claims.
 
 ## Core common-harness leaderboard
 
@@ -50,7 +55,8 @@ earlier 16-task release because no single item moves the score by more than
 | `qwen3:1.7b` | 505 | 33,108 | 1.767 s |
 
 Token counts are provider-reported and tokenizer-specific. Wall time is the
-common harness duration, not provider-side compute time. The website plots score
+common-harness per-attempt duration, not total campaign duration and not
+provider-side compute time. The website plots score
 against tokens and time, shows 95% score intervals and the ranked Pareto frontier,
 and preserves a complete table for readers who cannot use hover interactions.
 
@@ -92,7 +98,7 @@ conservative normalization, target grammar, missing or contradictory laterality,
 case-insensitive collisions, unknown structures, and mandatory escalation. It uses
 an independently authored rule subset and does not redistribute AAPM's worksheet.
 
-| Native surface | Safe success | 95% CI | Safety gate | Escalation accuracy | Status |
+| Native surface | Strict pilot safe success | 95% CI | Safety gate | Escalation accuracy | Status |
 | --- | ---: | ---: | ---: | ---: | --- |
 | GPT-5.6 high | 27.78% | 12.50–50.87% | 100% | 100% | Unranked native pilot |
 | GPT-5.6 ultra | 22.22% | 9.00–45.21% | 100% | 100% | Unranked native pilot |
@@ -103,6 +109,27 @@ answers and safe abstention from exact structure-naming competence. High and ult
 both preserved every required escalation boundary, but neither achieved a high
 outcome score. The rows remain unranked because they were collected on a native
 conversation surface without comparable latency, token, or sampling telemetry.
+
+### TG-263 audit on Saturday, August 1, 2026
+
+An audit of the stored TG-263 native pilot outputs separated primary decision
+correctness from benchmark-authored `reason_codes` label exactness. Under that
+audit:
+
+- GPT-5.6 high: `17/18` primary naming decisions correct (`94.44%`)
+- GPT-5.6 ultra: `17/18` primary naming decisions correct (`94.44%`)
+- strict pilot pass remained `5/18` for high and `4/18` for ultra because the
+  pilot required one exact internal `reason_codes` vocabulary
+
+The dominant failure mode was not incorrect action, incorrect canonical name,
+or incorrect escalation. It was semantically correct but non-identical rationale
+labels such as `alias_normalized`, `laterality_suffix_applied`, or
+`valid_target_open_grammar` where the pilot expected one benchmark-authored code
+such as `deterministic_normalization` or `valid_target_grammar`. One true
+primary-decision miss remained in the case-insensitive collision task, where the
+model escalated correctly but omitted the benchmark's retained proposed canonical
+name. The public site now exposes this audit separately so the pilot can remain
+auditable without overstating a weak strict score as weak TG-263 competence.
 
 ## Real-image pilot
 
@@ -123,6 +150,64 @@ localization, and released negative PET cohort-label task. Both missed the CT
 coarse lung-air Dice threshold. With only five tasks, the GPT interval is wide
 (37.55–96.38%); this pilot tests image transport and spatial contracts, not
 diagnostic performance.
+
+## OpenKBP real-workflow pilot v0.6
+
+The v0.6 release uses two pinned OpenKBP head-and-neck cases (`pt_242` and
+`pt_289`). Each contributes five correlated tasks: bilateral-parotid grid
+segmentation, high-dose-region grid segmentation, a plan-criteria audit using
+published OpenKBP-Opt criteria, a structure-inventory audit, and a paired-parotid
+TG-263 naming audit. The CT and expert contours are derived from OpenKBP; the
+reference plan dose is OpenKBP's standardized synthetic plan. Every task requires
+qualified review or escalation and is regraded from the stored candidate output.
+
+Four local models completed three deterministic attempts per task under one
+Ollama harness (`temperature=0`, seeds `20260731`–`20260733`, 4,096-token context,
+768 output-token cap). This is 30 attempts per model and 120 total attempts.
+
+| Rank | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens | Median time |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | `qwen3.5:4b` | 50.0% | 33.15–66.85% | 100.0% | 100.0% | 1,238 | 5.393 s |
+| 2 | `gemma3:4b` | 20.0% | 9.51–37.31% | 80.0% | 80.0% | 1,301.5 | 5.143 s |
+| 3 | `qwen2.5vl:3b` | 0.0% | 0.00–11.35% | 70.0% | 100.0% | 1,396 | 2.132 s |
+| 4 | `qwen3-vl:8b` | 0.0% | 0.00–11.35% | 0.0% | 0.0% | 1,311.5 | 5.250 s |
+
+Three GPT-5.6 effort settings also completed the same sealed ten-task runtime
+batch once. These rows are deterministic regrades of real recorded outputs, but
+they are not promoted into the common-harness rank: the native surface did not
+expose comparable model latency or token telemetry, and each setting has one
+attempt per task rather than the release's required three.
+
+| Native surface | Safe success | Attempt 95% CI | Safety | Valid output | Segmentation lane | Rank status |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| GPT-5.6 low | 80.0% | 49.02–94.33% | 100.0% | 100.0% | 0.5882 | Unranked native audit |
+| GPT-5.6 high | 70.0% | 39.68–89.22% | 100.0% | 100.0% | 0.5882 | Unranked native audit |
+| GPT-5.6 ultra | 100.0% | 72.25–100.0% | 100.0% | 100.0% | 0.7179 | Unranked native audit |
+
+The non-monotonic low/high ordering is not evidence that lower effort is better:
+with ten tasks, one trial per task, two patient families, and overlapping Wilson
+intervals, it is sampling noise on a native audit surface. Ultra's 10/10 is a
+perfect result on this bounded pilot, not a claim that the model has saturated
+medical physics. It remains subject to the same independent-review and human-
+baseline gaps as the local rows.
+
+`qwen3.5:4b` passed the non-image data-integrity/naming tasks and some plan/dose
+work but remained weak on coarse segmentation (`0.3651` mean segmentation-lane
+score). Its family-cluster interval was 40–60%. All four models were perfectly
+consistent across the three attempts for each task under these deterministic
+settings; that is repeatability, not evidence that seeds are independent.
+
+The `qwen3-vl:8b` adapter responses require special interpretation. Ollama
+returned empty final `content` while placing JSON-looking text in a provider
+`thinking` field even though thinking was disabled. The harness does not promote
+hidden reasoning into an answer, so those attempts correctly count as invalid
+final outputs. This is an agent-interface failure, not proof that the model had
+no latent task knowledge.
+
+The pilot remains provisional. It has automated reference feasibility but zero
+completed independent physicist reviews and no measured human baseline. The
+review status and claim boundary are machine-readable in
+[`reviews/public-real-workflows-pilot-v0.6.json`](../reviews/public-real-workflows-pilot-v0.6.json).
 
 ## Grader audit and anti-gaming controls
 

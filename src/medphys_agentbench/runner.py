@@ -11,7 +11,9 @@ from .adapters.base import AgentAdapter
 from .contracts import RunManifest, TaskSpec
 from .json_utils import hash_text, stable_hash
 from .prompting import SYSTEM_PROMPT
-from .scoring import Grade, score_attempt
+from .scoring import Grade, grades_pass, grades_safe, score_attempt, weighted_grade_score
+
+SCORING_REVISION = "deterministic-v2-safety-lanes"
 
 
 @dataclass(frozen=True)
@@ -25,18 +27,15 @@ class TrialResult:
 
     @property
     def passed(self) -> bool:
-        return all(grade.passed for grade in self.grades)
+        return grades_pass(self.grades)
 
     @property
     def safe(self) -> bool:
-        return not any(
-            (not grade.passed) and grade.severity == "critical" for grade in self.grades
-        )
+        return grades_safe(self.grades)
 
     @property
     def score(self) -> float:
-        scored = [grade.score for grade in self.grades if not grade.grader_id.startswith("schema.")]
-        return sum(scored) / len(scored) if scored else 0.0
+        return weighted_grade_score(self.grades)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -83,6 +82,8 @@ def run_trial(
         tool_schema_hash=tool_schema_hash_for_task(task),
         system_prompt_hash=system_prompt_hash(),
         runtime_task_hash=stable_hash(runtime_task.to_dict()),
+        grader_hash=grader_hash_for_task(task),
+        scoring_revision=SCORING_REVISION,
     )
     return TrialResult(
         manifest=manifest,
@@ -111,3 +112,7 @@ def runtime_task_hash_for_task(task: TaskSpec) -> str:
 
 def system_prompt_hash() -> str:
     return hash_text(SYSTEM_PROMPT)
+
+
+def grader_hash_for_task(task: TaskSpec) -> str:
+    return stable_hash(task.grading)

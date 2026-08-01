@@ -21,17 +21,17 @@ export function EfficiencyExplorer({ data, releaseView }: Props) {
   return (
     <section className="efficiency-section" id="efficiency">
       <div className="section-heading">
-        <h2>Performance and efficiency</h2>
-        <p>Accuracy is only one axis. Compare verified token use, wall time, reliability, and safety on the same release contract.</p>
+        <h2>Telemetry detail</h2>
+        <p>Use the deeper telemetry view to compare token use, wall time, and missing-measurement boundaries on the selected release package.</p>
       </div>
       <div className="efficiency-toolbar">
-        <div className="view-switch" role="tablist" aria-label="Efficiency chart view">
+        <div className="view-switch" role="group" aria-label="Efficiency chart view">
           {([
             ["tokens", "Score vs tokens"],
             ["time", "Score vs time"],
             ["profile", "Token profile"],
           ] as const).map(([value, label]) => (
-            <button key={value} role="tab" aria-selected={mode === value} onClick={() => setMode(value)}>{label}</button>
+            <button key={value} type="button" aria-pressed={mode === value} onClick={() => setMode(value)}>{label}</button>
           ))}
         </div>
         <div className="release-context">
@@ -72,7 +72,7 @@ export function EfficiencyExplorer({ data, releaseView }: Props) {
 function fallbackRelease(view: ReleaseView) {
   if (view === "core") return "public-core-v0.4";
   if (view === "tg263") return "public-tg263-pilot-v0.5";
-  return "public-imaging-pilot-v0.4";
+  return "public-real-workflows-pilot-v0.6";
 }
 
 function EfficiencyScatter({ rows, mode, focused, onFocus }: { rows: ModelResult[]; mode: "tokens" | "time"; focused: string | null; onFocus: (value: string) => void }) {
@@ -111,7 +111,7 @@ function EfficiencyScatter({ rows, mode, focused, onFocus }: { rows: ModelResult
           const py = y(row.safe_success_rate);
           const active = focused === row.model_name;
           const labelOnLeft = index % 2 === 1;
-          return <g key={row.model_name} tabIndex={0} role="button" aria-label={`${row.model_name}, ${formatPercent(row.safe_success_rate)}, ${mode === "tokens" ? `${formatTokens(row.token_usage?.median_total_tokens)} median tokens` : formatDuration(row.median_duration_seconds)}`} onFocus={() => onFocus(row.model_name)} onMouseEnter={() => onFocus(row.model_name)} className={active ? "chart-point active" : "chart-point"}>
+          return <g key={row.model_name} aria-hidden="true" onMouseEnter={() => onFocus(row.model_name)} className={active ? "chart-point active" : "chart-point"}>
             <line x1={px} x2={px} y1={y(row.task_success_ci95[0])} y2={y(row.task_success_ci95[1])} className="confidence-line" />
             {row.ranking_eligible ? <circle cx={px} cy={py} r={active ? 8 : 6} className="ranked-point" /> : <path d={`M ${px} ${py - 7} L ${px + 7} ${py} L ${px} ${py + 7} L ${px - 7} ${py} Z`} className="native-point" />}
             <text x={px + (labelOnLeft ? -12 : 12)} y={py + (labelOnLeft ? 22 : -12)} textAnchor={labelOnLeft ? "end" : "start"} className="chart-model-label">{shortModelName(row.model_name)}</text>
@@ -133,14 +133,14 @@ function TokenProfile({ rows, focused, onFocus }: { rows: ModelResult[]; focused
     {available.map((row) => {
       const input = row.token_usage?.median_input_tokens ?? 0;
       const output = row.token_usage?.median_output_tokens ?? 0;
-      return <button key={row.model_name} className={focused === row.model_name ? "profile-row active" : "profile-row"} onFocus={() => onFocus(row.model_name)} onMouseEnter={() => onFocus(row.model_name)}><span className="profile-name">{shortModelName(row.model_name)}</span><span className="profile-bar"><i className="input-token" style={{ width: `${(input / max) * 100}%` }} /><i className="output-token" style={{ width: `${(output / max) * 100}%` }} /></span><span className="profile-value">{formatTokens(input + output)}</span></button>;
+      return <button type="button" key={row.model_name} className={focused === row.model_name ? "profile-row active" : "profile-row"} onFocus={() => onFocus(row.model_name)} onMouseEnter={() => onFocus(row.model_name)}><span className="profile-name">{shortModelName(row.model_name)}</span><span className="profile-bar"><i className="input-token" style={{ width: `${(input / max) * 100}%` }} /><i className="output-token" style={{ width: `${(output / max) * 100}%` }} /></span><span className="profile-value">{formatTokens(input + output)}</span></button>;
     })}
     {rows.length > available.length && <p className="profile-missing">{rows.length - available.length} native or provider row(s) have no comparable token telemetry.</p>}
   </div>;
 }
 
 function EfficiencyTable({ rows, focused, onFocus }: { rows: ModelResult[]; focused: string | null; onFocus: (value: string) => void }) {
-  return <div className="efficiency-table-wrap" role="region" aria-label="Efficiency evidence table" tabIndex={0}><table className="efficiency-table"><caption>Evidence table; common harness unless noted</caption><thead><tr><th>Model</th><th>Score</th><th>95% CI</th><th>Input tokens</th><th>Output tokens</th><th>Median time</th><th>Attempts</th><th>Harness status</th></tr></thead><tbody>{rows.map((row) => <tr key={row.model_name} className={focused === row.model_name ? "focused" : undefined} onMouseEnter={() => onFocus(row.model_name)}><td><button onFocus={() => onFocus(row.model_name)}>{shortModelName(row.model_name)}</button></td><td>{formatPercent(row.safe_success_rate)}</td><td>{formatPercent(row.task_success_ci95[0])}–{formatPercent(row.task_success_ci95[1])}</td><td>{formatTokens(row.token_usage?.median_input_tokens)}</td><td>{formatTokens(row.token_usage?.median_output_tokens)}</td><td>{formatDuration(row.median_duration_seconds)}</td><td>{row.completed_count}/{row.expected_attempt_count}</td><td>{row.ranking_eligible ? "Common harness · ranked" : "Native/different harness · unranked"}</td></tr>)}</tbody></table></div>;
+  return <div className="efficiency-table-wrap" role="region" aria-label="Efficiency evidence table" tabIndex={0}><table className="efficiency-table"><caption>Evidence table; common harness unless noted</caption><thead><tr><th>Model</th><th>Score</th><th>95% CI</th><th>Input tokens</th><th>Output tokens</th><th>Median time</th><th>Attempts</th><th>Harness status</th></tr></thead><tbody>{rows.map((row) => <tr key={row.model_name} className={focused === row.model_name ? "focused" : undefined} onMouseEnter={() => onFocus(row.model_name)}><td><button type="button" onFocus={() => onFocus(row.model_name)}>{shortModelName(row.model_name)}</button></td><td>{formatPercent(row.safe_success_rate)}</td><td>{formatPercent(row.task_success_ci95[0])}–{formatPercent(row.task_success_ci95[1])}</td><td>{formatTokens(row.token_usage?.median_input_tokens)}</td><td>{formatTokens(row.token_usage?.median_output_tokens)}</td><td>{formatDuration(row.median_duration_seconds)}</td><td>{row.completed_count}/{row.expected_attempt_count}</td><td>{row.ranking_eligible ? "Common harness · ranked" : "Native/different harness · unranked"}</td></tr>)}</tbody></table></div>;
 }
 
 function xValue(row: ModelResult, mode: "tokens" | "time") {

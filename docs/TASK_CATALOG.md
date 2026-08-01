@@ -53,8 +53,13 @@ The frozen `public-core-v0.4` manifest contains 64 original tasks: brachytherapy
 (7), quality assurance (7), radiation safety (6), radiation therapy (9), and
 research/leadership/statistics/informatics (8). Eighteen tasks require escalation.
 The separate five-task real-image pilot adds licensed MRI, CT, and PET localization,
-coarse segmentation, and one retrospective source-label classification case. These
-counts describe authored coverage, not workforce prevalence or clinical validity.
+coarse segmentation, and one retrospective source-label classification case. The
+`public-real-workflows-pilot-v0.6` release adds ten tasks derived from two pinned
+OpenKBP patient families: parotid and high-dose-region grid segmentation,
+published-criteria plan audit, structure-inventory integrity, and TG-263 naming.
+Across the repository this is 97 public tasks, but the two OpenKBP families must
+not be represented as ten independent patient cases. These counts describe
+authored coverage, not workforce prevalence or clinical validity.
 
 The `public-core-v0.5` hardening candidate adds 18 independently authored,
 TG-263-aligned structure-naming cases for a total of 82 tasks. The lane covers

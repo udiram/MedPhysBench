@@ -41,9 +41,14 @@ recorded output and rejects any disagreement.
 
 ## Data and task scope
 
-The current public release is a synthetic and source-grounded development suite. It is suitable
-for harness qualification and transparent baseline comparison, but it is contamination-prone and
-too small for strong generalization claims.
+The public suite combines synthetic/source-grounded development tasks with separately reported
+real-data pilots. The OpenKBP v0.6 pilot has ten tasks but only two patient families and pending
+independent domain and publication-rights review. It is suitable for harness qualification and a
+provisional baseline comparison, but it is contamination-prone and too small for generalization,
+human-parity, or clinical-performance claims.
+
+Native recorded-output audits are shown as supporting evidence only. They are excluded from ranks
+when their harness, telemetry, or attempt matrix differs from the declared common-harness release.
 
 ## Safety positioning
 
@@ -56,6 +61,8 @@ visible and cannot be averaged away by success on other graders.
 - Most current tasks are deterministic JSON-output tasks rather than full artifact or interactive tool-state tasks.
 - The public suite is open and therefore unsuitable as the sole basis for headline capability claims.
 - Published access coverage is constrained by the models actually reachable at evaluation time.
+- No measured human baseline is currently published; deterministic reference feasibility is not
+  a substitute for human performance evidence.
 
 ## Required reporting practice
 

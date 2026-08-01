@@ -5,12 +5,15 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
+from .adapters.base import AgentAdapter
 from .adapters.ollama import OllamaAdapter
+from .adapters.openai_compatible import OpenAICompatibleAdapter
 from .adapters.recorded import RecordedOutputAdapter
 from .adapters.reference import DevelopmentReferenceAgent
 from .contracts import TaskSpec
@@ -18,6 +21,8 @@ from .prompting import SYSTEM_PROMPT
 from .release_loader import load_release
 from .reporting import summarize_release, write_summary
 from .runner import (
+    SCORING_REVISION,
+    grader_hash_for_task,
     prompt_hash_for_task,
     run_trial,
     runtime_task_hash_for_task,
@@ -41,26 +46,56 @@ def main() -> None:
 
     run = subparsers.add_parser("run", help="Run a single task against an adapter/model pair.")
     run.add_argument("task_file", type=Path)
-    run.add_argument("--adapter", choices=["ollama"], required=True)
+    run.add_argument(
+        "--adapter",
+        choices=["ollama", "groq", "openai", "openai-compatible"],
+        required=True,
+    )
     run.add_argument("--model", required=True)
     run.add_argument("--output", type=Path, required=True)
-    run.add_argument("--base-url", default="http://127.0.0.1:11434")
+    run.add_argument("--base-url")
+    run.add_argument("--api-key-env")
+    run.add_argument("--provider")
+    run.add_argument("--response-format", choices=["json_schema", "json_object"], default="json_schema")
+    run.add_argument("--best-effort-schema", action="store_true")
+    run.add_argument("--reasoning-effort", choices=["low", "medium", "high"])
     run.add_argument("--timeout", type=int, default=300)
     run.add_argument("--seed", type=int, default=20260731)
     run.add_argument("--temperature", type=float, default=0.0)
     run.add_argument("--max-tokens", type=int, default=1024)
+    run.add_argument(
+        "--ollama-keep-alive",
+        default="0",
+        help="Ollama model residency after a request; 0 unloads immediately (default: 0).",
+    )
+    run.add_argument("--ollama-num-ctx", type=int, default=4096)
 
     run_release = subparsers.add_parser("run-release", help="Run every task in a release for one or more models.")
     run_release.add_argument("release_file", type=Path)
-    run_release.add_argument("--adapter", choices=["ollama"], required=True)
+    run_release.add_argument(
+        "--adapter",
+        choices=["ollama", "groq", "openai", "openai-compatible"],
+        required=True,
+    )
     run_release.add_argument("--model", action="append", required=True)
     run_release.add_argument("--results-dir", type=Path, default=Path("runs"))
     run_release.add_argument("--attempts", type=int, default=1)
-    run_release.add_argument("--base-url", default="http://127.0.0.1:11434")
+    run_release.add_argument("--base-url")
+    run_release.add_argument("--api-key-env")
+    run_release.add_argument("--provider")
+    run_release.add_argument("--response-format", choices=["json_schema", "json_object"], default="json_schema")
+    run_release.add_argument("--best-effort-schema", action="store_true")
+    run_release.add_argument("--reasoning-effort", choices=["low", "medium", "high"])
     run_release.add_argument("--timeout", type=int, default=300)
     run_release.add_argument("--seed", type=int, default=20260731)
     run_release.add_argument("--temperature", type=float, default=0.0)
     run_release.add_argument("--max-tokens", type=int, default=1024)
+    run_release.add_argument(
+        "--ollama-keep-alive",
+        default="0",
+        help="Ollama model residency after a request; 0 unloads immediately (default: 0).",
+    )
+    run_release.add_argument("--ollama-num-ctx", type=int, default=4096)
     run_release.add_argument("--fail-fast", action="store_true")
 
     summarize = subparsers.add_parser("summarize", help="Build leaderboard JSON from a completed release run.")
@@ -149,6 +184,13 @@ def main() -> None:
             seed=args.seed,
             temperature=args.temperature,
             max_tokens=args.max_tokens,
+            api_key_env=args.api_key_env,
+            provider=args.provider,
+            response_format=args.response_format,
+            strict_schema=not args.best_effort_schema,
+            reasoning_effort=args.reasoning_effort,
+            ollama_keep_alive=args.ollama_keep_alive,
+            ollama_num_ctx=args.ollama_num_ctx,
         )
         result = run_trial(
             task,
@@ -176,6 +218,13 @@ def main() -> None:
                 seed=args.seed,
                 temperature=args.temperature,
                 max_tokens=args.max_tokens,
+                api_key_env=args.api_key_env,
+                provider=args.provider,
+                response_format=args.response_format,
+                strict_schema=not args.best_effort_schema,
+                reasoning_effort=args.reasoning_effort,
+                ollama_keep_alive=args.ollama_keep_alive,
+                ollama_num_ctx=args.ollama_num_ctx,
             )
             model_slug = _slugify(model_name)
             model_dir = args.results_dir / release.release_id / model_slug
@@ -223,6 +272,8 @@ def main() -> None:
                                 "tool_schema_hash": tool_schema_hash_for_task(task),
                                 "system_prompt_hash": system_prompt_hash(),
                                 "runtime_task_hash": runtime_task_hash_for_task(task),
+                                "grader_hash": grader_hash_for_task(task),
+                                "scoring_revision": SCORING_REVISION,
                             },
                             "output": {},
                             "grades": [],
@@ -291,11 +342,18 @@ def main() -> None:
         )
         model_slug = _slugify(f"{args.model}_effort_{args.reasoning_effort}")
         model_dir = args.results_dir / release.release_id / model_slug
-        for task in tasks:
+        output_paths = [model_dir / f"{_slugify(task.task_id)}--attempt-1.json" for task in tasks]
+        existing_paths = [path for path in output_paths if path.exists()]
+        if existing_paths:
+            raise SystemExit(
+                "Recorded result artifacts are immutable; refusing to overwrite "
+                f"{len(existing_paths)} existing file(s), beginning with {existing_paths[0]}. "
+                "Use a new results directory or model revision label."
+            )
+        for task, output_path in zip(tasks, output_paths, strict=True):
             result = run_trial(task, adapter, seed=None, temperature=None, max_tokens=None)
             payload = {**result.to_dict(), "status": "completed", "attempt_index": 0}
-            output_path = model_dir / f"{_slugify(task.task_id)}--attempt-1.json"
-            _write_json(output_path, payload)
+            _write_json_exclusive(output_path, payload)
         print(json.dumps({"model": adapter.model_descriptor().model_name, "task_count": len(tasks)}, sort_keys=True))
         return
 
@@ -309,17 +367,59 @@ def _build_adapter(
     seed: int,
     temperature: float,
     max_tokens: int,
-) -> OllamaAdapter:
+    api_key_env: str | None = None,
+    provider: str | None = None,
+    response_format: str = "json_schema",
+    strict_schema: bool = True,
+    reasoning_effort: str | None = None,
+    ollama_keep_alive: str | int | None = 0,
+    ollama_num_ctx: int = 4096,
+) -> AgentAdapter:
     if adapter == "ollama":
         return OllamaAdapter(
             model_name=model_name,
-            base_url=base_url,
+            base_url=base_url or "http://127.0.0.1:11434",
             timeout_seconds=timeout,
             seed=seed,
             temperature=temperature,
             max_tokens=max_tokens,
+            keep_alive=ollama_keep_alive,
+            context_window=ollama_num_ctx,
         )
-    raise ValueError(f"Unsupported adapter {adapter!r}.")
+    presets = {
+        "groq": ("groq", "https://api.groq.com/openai/v1", "GROQ_API_KEY"),
+        "openai": ("openai", "https://api.openai.com/v1", "OPENAI_API_KEY"),
+    }
+    if adapter in presets:
+        default_provider, default_base_url, default_key_env = presets[adapter]
+    elif adapter == "openai-compatible":
+        default_provider, default_base_url, default_key_env = (
+            "openai-compatible",
+            "",
+            "OPENAI_COMPATIBLE_API_KEY",
+        )
+    else:
+        raise ValueError(f"Unsupported adapter {adapter!r}.")
+    resolved_base_url = base_url or default_base_url
+    if not resolved_base_url:
+        raise ValueError("--base-url is required for the openai-compatible adapter.")
+    key_env = api_key_env or default_key_env
+    api_key = os.environ.get(key_env, "")
+    if not api_key:
+        raise ValueError(f"Provider credential environment variable {key_env!r} is not set.")
+    return OpenAICompatibleAdapter(
+        model_name=model_name,
+        api_key=api_key,
+        base_url=resolved_base_url,
+        provider=provider or default_provider,
+        temperature=temperature,
+        seed=seed,
+        max_tokens=max_tokens,
+        timeout_seconds=timeout,
+        response_format=response_format,
+        strict_schema=strict_schema,
+        reasoning_effort=reasoning_effort,
+    )
 
 
 def _slugify(value: str) -> str:
@@ -329,6 +429,14 @@ def _slugify(value: str) -> str:
 def _write_json(path: Path, payload: dict[str, object]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, sort_keys=True)
+        handle.write("\n")
+
+
+def _write_json_exclusive(path: Path, payload: dict[str, object]) -> None:
+    """Create an immutable result artifact without replacing an existing run."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("x", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2, sort_keys=True)
         handle.write("\n")
 

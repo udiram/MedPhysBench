@@ -11,6 +11,8 @@ import yaml
 from .contracts import AccessClass, ContractError, TaskSpec
 from .task_loader import load_task
 
+REPOSITORY_TASKS_ROOT = (Path(__file__).resolve().parents[2] / "tasks").resolve()
+
 
 @dataclass(frozen=True)
 class BenchmarkRelease:
@@ -21,6 +23,7 @@ class BenchmarkRelease:
     task_files: tuple[Path, ...]
     allow_access_classes: tuple[AccessClass, ...]
     expected_attempts_per_task: int = 1
+    integrity_profile: str = "development"
 
     def load_tasks(self) -> tuple[TaskSpec, ...]:
         tasks = tuple(load_task(path) for path in self.task_files)
@@ -33,6 +36,13 @@ class BenchmarkRelease:
                 raise ContractError(
                     f"Task {task.task_id} has access_class {task.access_class.value!r}, "
                     f"which is not permitted in release {self.release_id!r}."
+                )
+        if self.integrity_profile in {"pilot", "comparison"}:
+            missing_family_ids = sorted(task.task_id for task in tasks if not task.family_id)
+            if missing_family_ids:
+                raise ContractError(
+                    f"Release {self.release_id!r} uses integrity_profile {self.integrity_profile!r} "
+                    f"but tasks lack family_id: {missing_family_ids}."
                 )
         return tasks
 
@@ -56,6 +66,12 @@ def load_release(release_file: str | Path) -> BenchmarkRelease:
     if not isinstance(task_files_raw, list) or not task_files_raw:
         raise ContractError("release.task_files must be a non-empty list.")
     task_files = tuple((path.parent / item).resolve() for item in task_files_raw)
+    escaped_task_files = [task_file for task_file in task_files if not task_file.is_relative_to(REPOSITORY_TASKS_ROOT)]
+    if escaped_task_files:
+        raise ContractError(
+            "release.task_files entries must resolve inside the repository tasks directory; "
+            f"rejected {escaped_task_files[0]}."
+        )
     if len(task_files) != len(set(task_files)):
         raise ContractError(f"Release {raw['release_id']!r} contains duplicate task_files entries.")
     allow_raw = raw.get("allow_access_classes", ["public"])
@@ -65,6 +81,15 @@ def load_release(release_file: str | Path) -> BenchmarkRelease:
     expected_attempts_per_task = int(raw.get("expected_attempts_per_task", 1))
     if expected_attempts_per_task < 1:
         raise ContractError("release.expected_attempts_per_task must be a positive integer.")
+    integrity_profile = str(raw.get("integrity_profile", "development"))
+    minimum_attempts = {"development": 1, "pilot": 3, "comparison": 5}
+    if integrity_profile not in minimum_attempts:
+        raise ContractError("release.integrity_profile must be development, pilot, or comparison.")
+    if expected_attempts_per_task < minimum_attempts[integrity_profile]:
+        raise ContractError(
+            f"release.integrity_profile {integrity_profile!r} requires at least "
+            f"{minimum_attempts[integrity_profile]} attempts per task."
+        )
 
     return BenchmarkRelease(
         schema_version=str(raw["schema_version"]),
@@ -74,4 +99,5 @@ def load_release(release_file: str | Path) -> BenchmarkRelease:
         task_files=task_files,
         allow_access_classes=allow_access_classes,
         expected_attempts_per_task=expected_attempts_per_task,
+        integrity_profile=integrity_profile,
     )
