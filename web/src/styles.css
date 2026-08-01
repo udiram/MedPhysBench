@@ -567,9 +567,15 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 .summary-table-wrap { overflow-x: auto; }
 .summary-table {
   width: 100%;
-  min-width: 760px;
+  min-width: 0;
+  table-layout: fixed;
   border-collapse: collapse;
 }
+.summary-table th:nth-child(1) { width: 22%; }
+.summary-table th:nth-child(2) { width: 46%; }
+.summary-table th:nth-child(3) { width: 14%; }
+.summary-table th:nth-child(4) { width: 18%; }
+.summary-table td:nth-child(2) { overflow-wrap: anywhere; }
 .summary-table th,
 .summary-table td {
   padding: 12px 12px;
