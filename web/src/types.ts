@@ -61,6 +61,10 @@ export type ModelTaskResult = {
 
 export type ModelResult = {
   rank?: number | null;
+  rank_group?: string | null;
+  comparison_group?: string | null;
+  outcome_rank?: number | null;
+  outcome_rank_status?: string;
   model_name: string;
   provider: string;
   model_revision: string;
@@ -72,6 +76,7 @@ export type ModelResult = {
   expected_attempt_count: number;
   task_success_rate: number;
   task_success_ci95: [number, number];
+  safe_success_ci95?: [number, number];
   family_cluster_safe_success_ci95?: [number, number] | null;
   family_count?: number;
   safe_success_rate: number;
@@ -85,6 +90,7 @@ export type ModelResult = {
   median_duration_seconds: number | null;
   duration_telemetry?: {
     available: boolean;
+    complete?: boolean;
     kind: string;
     observed_attempts: number;
     expected_attempts: number;
@@ -110,6 +116,7 @@ export type ModelResult = {
   };
   domain_safe_success: Record<string, number>;
   ranking_eligible: boolean;
+  outcome_order_eligible?: boolean;
   ranking_status?: string;
   eligible_for_ranking?: boolean;
   release_complete?: boolean;

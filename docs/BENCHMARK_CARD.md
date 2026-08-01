@@ -32,12 +32,17 @@ run is judged on:
 The public leaderboard ranks only model runs that are both:
 
 1. complete for the declared release and expected attempts; and
-2. composed of completed—not provider-error—attempts; and
+2. composed of completed attempts with no unresolved transport/provider-service errors; and
 3. internally consistent across model, harness, run configuration, task versions, and hashes.
 
+Eligible runs are ranked only within an identical provider, harness, and harness-revision group.
 Incomplete or inconsistent runs remain publishable artifacts but are omitted from ranking.
 Stored pass/safety labels are not trusted: the release summarizer reconstructs grades from each
 recorded output and rejects any disagreement.
+
+Unsupported required modalities and provider structured-output generation failures are completed
+zero-score attempts. They are model/interface outcomes, not missing attempts, and cannot disappear
+from the denominator.
 
 ## Data and task scope
 
@@ -47,8 +52,9 @@ independent domain and publication-rights review. It is suitable for harness qua
 provisional baseline comparison, but it is contamination-prone and too small for generalization,
 human-parity, or clinical-performance claims.
 
-Native recorded-output audits are shown as supporting evidence only. They are excluded from ranks
-when their harness, telemetry, or attempt matrix differs from the declared common-harness release.
+Complete native recorded-output audits receive a clearly labeled descriptive outcome order. They
+are excluded from official harness-group ranks when their harness or telemetry differs from the
+declared API/local release surface.
 
 ## Safety positioning
 

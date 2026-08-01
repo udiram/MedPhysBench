@@ -50,6 +50,10 @@ export function LeaderboardExplorer({
   const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc");
   const [expanded, setExpanded] = useState<string | null>(null);
   const deferredQuery = useDeferredValue(query);
+  const allRows = useMemo(
+    () => withDerivedOutcomeRanks(data ? [...data.models, ...(data.unranked_models ?? [])] : []),
+    [data],
+  );
 
   const domains = useMemo(() => {
     const values = new Set<string>();
@@ -58,8 +62,7 @@ export function LeaderboardExplorer({
   }, [data]);
 
   const rows = useMemo(() => {
-    if (!data) return [];
-    return [...data.models, ...(data.unranked_models ?? [])]
+    return allRows
       .filter((model) => {
         const q = deferredQuery.trim().toLowerCase();
         const matchesQuery =
@@ -73,10 +76,12 @@ export function LeaderboardExplorer({
         return matchesQuery && matchesStatus;
       })
       .sort((left, right) => compareRows(left, right, sortKey, sortDirection, domainFilter));
-  }, [data, deferredQuery, domainFilter, sortDirection, sortKey, statusFilter]);
+  }, [allRows, deferredQuery, domainFilter, sortDirection, sortKey, statusFilter]);
 
-  const rankedRows = data?.models ?? [];
-  const reviewRows = data?.unranked_models ?? [];
+  const rankedRows = allRows.filter((model) => model.ranking_eligible);
+  const reviewRows = allRows
+    .filter((model) => !model.ranking_eligible)
+    .sort((left, right) => (left.outcome_rank ?? Infinity) - (right.outcome_rank ?? Infinity));
   const blocked = accessStatus.filter((item) => item.status !== "available");
 
   return (
@@ -102,13 +107,13 @@ export function LeaderboardExplorer({
           {releaseView === "tg263" ? (
             <Tg263AuditChart audit={tg263Audit} />
           ) : (
-            <ReleaseScatter data={data} />
+            <OutcomeIntervalPlot data={data} />
           )}
         </article>
         <aside className="results-summary">
           <div className="results-summary-head">
             <div>
-              <h3>Ranked results (common harness)</h3>
+              <h3>Official harness-group ranks</h3>
               <p>{data?.tasks.length ?? 0} public tasks</p>
             </div>
           </div>
@@ -117,25 +122,19 @@ export function LeaderboardExplorer({
               <table className="summary-table">
                 <thead>
                   <tr>
-                    <th>Rank</th>
+                    <th>Official</th>
                     <th>Model</th>
                     <th>Score</th>
                     <th>95% CI</th>
-                    <th>Safety</th>
-                    <th>Tokens</th>
-                    <th>Median time</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rankedRows.slice(0, 8).map((model) => (
+                  {rankedRows.map((model) => (
                     <tr key={model.model_name}>
-                      <td>{model.rank ?? "—"}</td>
+                      <td>{model.rank ? `${rankGroupLabel(model)} #${model.rank}` : "—"}</td>
                       <td>{model.model_name}</td>
                       <td>{formatPercent(model.safe_success_rate)}</td>
-                      <td>{formatPercent(model.task_success_ci95[0])}–{formatPercent(model.task_success_ci95[1])}</td>
-                      <td>{formatPercent(model.safety_gate_rate)}</td>
-                      <td>{formatTokens(model.token_usage?.median_total_tokens)}</td>
-                      <td>{formatDuration(model.median_duration_seconds)}</td>
+                      <td>{formatPercent(safeSuccessInterval(model)[0])}–{formatPercent(safeSuccessInterval(model)[1])}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -143,18 +142,18 @@ export function LeaderboardExplorer({
             </div>
           ) : (
             <div className="summary-empty" role="status">
-              <strong>No common-harness ranking published for this release.</strong>
-              <p>Audited native rows stay visible below without being promoted into a comparable rank table.</p>
+              <strong>No official harness-group ranking published for this release.</strong>
+              <p>Complete native runs remain visible in the descriptive outcome order below.</p>
             </div>
           )}
 
           <div className="native-audit-panel">
             <div className="native-audit-copy">
-              <strong>{releaseView === "tg263" ? "Native GPT audit" : "Unranked native audit"}</strong>
+              <strong>{releaseView === "tg263" ? "Native GPT audit" : "Native-surface outcome order"}</strong>
               <p>
                 {releaseView === "tg263"
                   ? "Primary decision quality and rationale-label exactness are split. Native rows stay separate until a comparable common harness exists."
-                  : "Recorded-output native runs remain visible as review evidence. Missing latency or token telemetry is preserved as unavailable."}
+                  : "Complete native runs use the same frozen task pack but a different execution surface. They receive a descriptive outcome order, while official harness-group ranks stay separate. Missing latency or token telemetry stays unavailable."}
               </p>
             </div>
             <div className="native-audit-rows">
@@ -170,9 +169,9 @@ export function LeaderboardExplorer({
                 : reviewRows.slice(0, 3).map((model) => (
                     <div key={model.model_name} className="native-audit-row">
                       <span>{model.model_name}</span>
+                      <span>Outcome #{model.outcome_rank ?? "—"}</span>
                       <span>{formatPercent(model.safe_success_rate)} score</span>
                       <span>{formatDuration(model.median_duration_seconds)}</span>
-                      <span>{formatTokens(model.token_usage?.median_total_tokens)}</span>
                     </div>
                   ))}
             </div>
@@ -204,8 +203,8 @@ export function LeaderboardExplorer({
           <span className="select-wrap">
             <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
               <option value="all">All runs</option>
-              <option value="ranked">Ranked only</option>
-              <option value="review">Review / native only</option>
+                <option value="ranked">Official only</option>
+                <option value="review">Native outcome only</option>
             </select>
             <ChevronDown aria-hidden="true" />
           </span>
@@ -231,7 +230,8 @@ export function LeaderboardExplorer({
             </caption>
             <thead>
               <tr>
-                <th>Rank</th>
+                <th>Official</th>
+                <th>Outcome</th>
                 {SORT_KEYS.map((item) => (
                   <th
                     key={item.key}
@@ -307,104 +307,84 @@ export function LeaderboardExplorer({
   );
 }
 
-function ReleaseScatter({ data }: { data: Leaderboard | null }) {
-  const rows = data?.models.filter((row) => row.median_duration_seconds != null) ?? [];
-  const missing = (data?.unranked_models ?? []).filter((row) => row.median_duration_seconds == null);
+function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
+  const allRows = withDerivedOutcomeRanks([...(data?.models ?? []), ...(data?.unranked_models ?? [])]);
+  const rows = allRows
+    .filter((row) => row.outcome_rank != null)
+    .sort((left, right) => (left.outcome_rank ?? Infinity) - (right.outcome_rank ?? Infinity));
+  const omitted = allRows.length - rows.length;
 
   if (rows.length === 0) {
     return (
       <div className="visual-empty" role="status">
-        <strong>No comparable time telemetry</strong>
-        <p>This release currently exposes native or differently instrumented rows without comparable median wall time.</p>
+        <strong>No complete outcome evidence</strong>
+        <p>This release does not yet contain a complete, integrity-checked run matrix.</p>
       </div>
     );
   }
 
-  const width = 720;
-  const height = 430;
-  const margin = { top: 36, right: 28, bottom: 56, left: 68 };
-  const times = rows.map((row) => row.median_duration_seconds as number);
-  const scores = rows.map((row) => row.safe_success_rate);
-  const minTime = Math.min(...times);
-  const maxTime = Math.max(...times);
-  const minDomain = Math.pow(10, Math.floor(Math.log10(Math.max(0.1, minTime))));
-  const maxDomain = Math.pow(10, Math.ceil(Math.log10(Math.max(1, maxTime))));
-  const scaleX = (value: number) => {
-    const left = Math.log10(minDomain);
-    const right = Math.log10(maxDomain);
-    return margin.left + ((Math.log10(value) - left) / Math.max(0.0001, right - left)) * (width - margin.left - margin.right);
-  };
-  const lowScore = Math.max(0, Math.floor((Math.min(...scores) - 0.05) * 4) / 4);
-  const highScore = Math.min(1, Math.max(0.25, Math.ceil((Math.max(...scores) + 0.05) * 4) / 4));
-  const scaleY = (value: number) =>
-    margin.top + (1 - (value - lowScore) / Math.max(0.0001, highScore - lowScore)) * (height - margin.top - margin.bottom);
-  const yTicks = [0, 0.25, 0.5, 0.75, 1].filter((tick) => tick >= lowScore && tick <= highScore);
-  const xTicks = [0.1, 1, 10, 100, 1000].filter((tick) => tick >= minDomain && tick <= maxDomain);
+  const width = 760;
+  const rowHeight = 46;
+  const height = 82 + rows.length * rowHeight;
+  const margin = { top: 50, right: 28, bottom: 32, left: 222 };
+  const scaleX = (value: number) => margin.left + value * (width - margin.left - margin.right);
+  const intervalFor = (row: ModelResult) => row.safe_success_ci95 ?? row.task_success_ci95;
+  const leadingIntervalsOverlap = rows.length > 1 && intervalFor(rows[0])[0] <= intervalFor(rows[1])[1];
+  const insightTitle = leadingIntervalsOverlap
+    ? "The leading intervals still overlap"
+    : `${shortModelLabel(rows[0].model_name)} leads the outcome order`;
 
   return (
     <>
       <div className="results-visual-head">
         <div>
-          <h3>Decision correctness vs. median time</h3>
-          <p>Score = safe task success across all public tasks in the selected release.</p>
+          <h3>{insightTitle}</h3>
+          <p>Point estimate and Wilson 95% interval for safe task success. Direct labels replace a detached legend.</p>
         </div>
-        {missing.length > 0 && <span className="results-inline-note">{missing.length} native row(s) unplotted: latency unavailable</span>}
+        <span className="results-inline-note">Official rank and cross-surface outcome order remain distinct</span>
       </div>
-      <svg className="results-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby="results-chart-title results-chart-description">
-        <title id="results-chart-title">Safe task success compared with median time per task</title>
-        <desc id="results-chart-description">Each point is one ranked common-harness model row. Rows with unavailable latency are listed separately rather than plotted at zero.</desc>
-        {yTicks.map((tick) => (
+      <svg className="results-chart outcome-interval-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby="results-chart-title results-chart-description">
+        <title id="results-chart-title">Safe task success with 95 percent confidence intervals</title>
+        <desc id="results-chart-description">Models are ordered by their descriptive outcome rank. Circles are official harness-group rows and diamonds are complete native-surface rows. Horizontal lines show Wilson confidence intervals.</desc>
+        {[0, 0.25, 0.5, 0.75, 1].map((tick) => (
           <g key={tick}>
-            <line x1={margin.left} x2={width - margin.right} y1={scaleY(tick)} y2={scaleY(tick)} className="chart-grid" />
-            <text x={margin.left - 14} y={scaleY(tick) + 4} textAnchor="end" className="chart-axis-label">
-              {Math.round(tick * 100)}
+            <line x1={scaleX(tick)} x2={scaleX(tick)} y1={margin.top - 18} y2={height - margin.bottom} className="chart-grid" />
+            <text x={scaleX(tick)} y={margin.top - 28} textAnchor="middle" className="chart-axis-label">
+              {Math.round(tick * 100)}%
             </text>
           </g>
         ))}
-        {xTicks.map((tick) => (
-          <g key={tick}>
-            <line x1={scaleX(tick)} x2={scaleX(tick)} y1={margin.top} y2={height - margin.bottom} className="chart-grid" />
-            <text x={scaleX(tick)} y={height - margin.bottom + 22} textAnchor="middle" className="chart-axis-label">
-              {tick < 1 ? "10^-1" : tick.toString()}
-            </text>
-          </g>
-        ))}
-        {rows.map((row, index) => (
-          <g key={row.model_name}>
-            <circle cx={scaleX(row.median_duration_seconds as number)} cy={scaleY(row.safe_success_rate)} r="5.5" className="ranked-point" />
-            <text
-              x={scaleX(row.median_duration_seconds as number) + (index % 2 === 0 ? 12 : -12)}
-              y={scaleY(row.safe_success_rate) + (index % 2 === 0 ? -12 : 18)}
-              textAnchor={index % 2 === 0 ? "start" : "end"}
-              className="chart-model-label"
-            >
-              {row.model_name}
-            </text>
-            <text
-              x={scaleX(row.median_duration_seconds as number) + (index % 2 === 0 ? 12 : -12)}
-              y={scaleY(row.safe_success_rate) + (index % 2 === 0 ? 8 : 38)}
-              textAnchor={index % 2 === 0 ? "start" : "end"}
-              className="chart-percent-label"
-            >
-              {formatPercent(row.safe_success_rate)}
-            </text>
-          </g>
-        ))}
-        <text transform={`translate(18 ${height / 2}) rotate(-90)`} textAnchor="middle" className="chart-title-label">
-          Safe task success (%)
-        </text>
-        <text x={(width + margin.left - margin.right) / 2} y={height - 10} textAnchor="middle" className="chart-title-label">
-          Median time per task (s)
-        </text>
+        {rows.map((row, index) => {
+          const y = margin.top + index * rowHeight + rowHeight / 2;
+          const interval = intervalFor(row);
+          const markerX = scaleX(row.safe_success_rate);
+          return (
+            <g key={row.model_name} className={row.ranking_eligible ? "interval-row common" : "interval-row native"}>
+              <text x={margin.left - 18} y={y - 3} textAnchor="end" className="interval-model-label">{shortModelLabel(row.model_name)}</text>
+              <text x={margin.left - 18} y={y + 14} textAnchor="end" className="interval-rank-label">
+                {row.ranking_eligible ? `${rankGroupLabel(row)} #${row.rank}` : `outcome #${row.outcome_rank} · native`}
+              </text>
+              <line x1={scaleX(interval[0])} x2={scaleX(interval[1])} y1={y} y2={y} className="interval-whisker" />
+              <line x1={scaleX(interval[0])} x2={scaleX(interval[0])} y1={y - 5} y2={y + 5} className="interval-cap" />
+              <line x1={scaleX(interval[1])} x2={scaleX(interval[1])} y1={y - 5} y2={y + 5} className="interval-cap" />
+              {row.ranking_eligible ? (
+                <circle cx={markerX} cy={y} r="6" className="ranked-point" />
+              ) : (
+                <path d={`M ${markerX} ${y - 7} L ${markerX + 7} ${y} L ${markerX} ${y + 7} L ${markerX - 7} ${y} Z`} className="native-point" />
+              )}
+              <text x={Math.min(markerX + 11, width - margin.right - 2)} y={y - 10} textAnchor={markerX > width - 100 ? "end" : "start"} className="chart-percent-label">
+                {formatPercent(row.safe_success_rate)}
+              </text>
+            </g>
+          );
+        })}
       </svg>
-      {missing.length > 0 && (
-        <div className="telemetry-missing">
-          <strong>Latency unavailable</strong>
-          {missing.map((row) => (
-            <span key={row.model_name}>{row.model_name}</span>
-          ))}
-        </div>
-      )}
+      <div className="outcome-plot-key" aria-label="Plot key">
+        <span><i className="outcome-key-common" /> Official harness-group row</span>
+        <span><i className="outcome-key-native" /> Complete native-surface row</span>
+        <span>Whisker = Wilson 95% interval</span>
+        {omitted > 0 && <span>{omitted} incomplete or invalid row(s) omitted</span>}
+      </div>
     </>
   );
 }
@@ -476,7 +456,8 @@ function ModelDetailRow({
   return (
     <>
       <tr className={expanded ? "model-row expanded" : "model-row"}>
-        <td>{model.rank ?? "—"}</td>
+        <td>{model.rank ? `${rankGroupLabel(model)} #${model.rank}` : "—"}</td>
+        <td>{model.outcome_rank ? `#${model.outcome_rank}` : "—"}</td>
         <td>
           <button
             type="button"
@@ -495,13 +476,13 @@ function ModelDetailRow({
         <td>{formatPercent(model.valid_output_rate)}</td>
         <td>{formatPercent(model.appropriate_escalation_rate)}</td>
         <td>{formatDuration(model.median_duration_seconds)}</td>
-        <td>{formatPercent(model.task_success_ci95[0])} to {formatPercent(model.task_success_ci95[1])}</td>
+        <td>{formatPercent(safeSuccessInterval(model)[0])} to {formatPercent(safeSuccessInterval(model)[1])}</td>
         <td>{model.attempt_count} / {model.expected_attempt_count ?? model.attempt_count}</td>
-        <td>{model.ranking_eligible ? "Ranked" : "Native / review"}</td>
+        <td>{model.ranking_eligible ? "Official harness group" : "Native outcome order"}</td>
       </tr>
       {expanded && (
         <tr className="detail-row">
-          <td colSpan={11}>
+          <td colSpan={12}>
             <div className="detail-grid">
               <section>
                 <h4>Run summary</h4>
@@ -574,7 +555,7 @@ function releaseSummary(view: ReleaseView) {
   if (view === "tg263") {
     return "Collision-aware structure naming where audited native GPT decision correctness stays separate from strict pilot rationale-label exactness.";
   }
-  return "A two-patient, ten-task OpenKBP pilot spanning image localization, dose interpretation, plan review, data integrity, and TG-263 naming. Model ranks are provisional within this frozen harness.";
+  return "A two-patient, ten-task OpenKBP pilot spanning image localization, dose interpretation, plan review, data integrity, and TG-263 naming. Official ranks are provisional within each identical frozen harness group.";
 }
 
 function fallbackReleaseId(view: ReleaseView) {
@@ -627,4 +608,44 @@ function comparableMetric(model: ModelResult, sortKey: SortKey, domainFilter: st
 
 function metricForDomain(model: ModelResult, domainFilter: string) {
   return domainFilter === "all" ? model.safe_success_rate : model.domain_safe_success[domainFilter] ?? null;
+}
+
+function safeSuccessInterval(model: ModelResult): [number, number] {
+  return model.safe_success_ci95 ?? model.task_success_ci95;
+}
+
+function shortModelLabel(value: string) {
+  return value
+    .replace("gpt-5.6-sol", "GPT-5.6")
+    .replace("openai/", "")
+    .replace("llama-", "Llama ")
+    .replace("qwen/qwen", "Qwen ")
+    .replace("[effort=", "(")
+    .replace("]", ")");
+}
+
+function rankGroupLabel(model: ModelResult) {
+  if (model.provider === "groq") return "Groq";
+  if (model.provider === "ollama") return "Ollama";
+  return model.provider;
+}
+
+function withDerivedOutcomeRanks(rows: ModelResult[]) {
+  const eligible = rows
+    .filter((row) => {
+      if (row.outcome_order_eligible === false) return false;
+      if (row.outcome_order_eligible === true || row.ranking_eligible) return true;
+      const findings = row.integrity?.integrity_errors ?? [];
+      return findings.length > 0 && findings.every((finding) =>
+        finding === "unranked_noncommon_surface" || finding === "unranked_native_pilot_surface",
+      );
+    })
+    .sort((left, right) =>
+      right.safe_success_rate - left.safe_success_rate
+      || right.task_success_rate - left.task_success_rate
+      || right.safety_gate_rate - left.safety_gate_rate
+      || left.model_name.localeCompare(right.model_name),
+    );
+  const fallbackRanks = new Map(eligible.map((row, index) => [row.model_name, index + 1]));
+  return rows.map((row) => ({ ...row, outcome_rank: row.outcome_rank ?? fallbackRanks.get(row.model_name) ?? null }));
 }

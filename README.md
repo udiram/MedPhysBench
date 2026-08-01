@@ -27,13 +27,14 @@ package, or evidence of autonomous clinical competence.
 - TG-263 audit: `public-tg263-pilot-v0.5-audit` (separates primary naming decisions from exact benchmark reason-code labels)
 - Real-image pilot: `public-imaging-pilot-v0.4` (`5` real MRI, CT, and PET tasks)
 - OpenKBP real-workflow pilot: `public-real-workflows-pilot-v0.6` (`10` tasks from
-  `2` patient families; `4` ranked common-harness local models with `120` attempts;
-  `3` unranked GPT-5.6 native audits with `30` additional recorded outputs)
+  `2` patient families; `4` ranked Ollama configurations, `5` ranked Groq
+  configurations, and `3` GPT-5.6 native effort audits; `360` total attempts)
 - Scored configurations through Saturday, August 1, 2026: five common-harness local core models,
   six explicitly unranked GPT-5.6 core-effort pilots, two harder TG-263 native pilots,
-  three local models on the original image pilot, four local models on the OpenKBP pilot,
-  and three explicitly unranked GPT-5.6 OpenKBP effort audits
+  three local models on the original image pilot, nine API/local configurations on the
+  OpenKBP pilot, and three GPT-5.6 OpenKBP effort audits with descriptive outcome ranks
 - Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
+- Plot and rank semantics: [`docs/VISUALIZATION_METHODS.md`](docs/VISUALIZATION_METHODS.md)
 - Core run package: [`results/releases/public-core-v0.4/`](results/releases/public-core-v0.4/)
 - Imaging run package: [`results/releases/public-imaging-pilot-v0.4/`](results/releases/public-imaging-pilot-v0.4/)
 - OpenKBP run package: [`results/releases/public-real-workflows-pilot-v0.6/`](results/releases/public-real-workflows-pilot-v0.6/)
@@ -62,7 +63,7 @@ package, or evidence of autonomous clinical competence.
 - A sealed `RuntimeTask` projection that excludes authoring-only grading and provenance data.
 - A deterministic grading stack covering schema validity, safety gates, numeric tolerances,
   exact matches, unordered set matches, string constraints, bounding-box IoU, and grid-mask Dice.
-- Rank eligibility that rejects missing, duplicate, or non-completed attempts; mixed model or run
+- Rank eligibility that rejects missing, duplicate, or unresolved transport-error attempts; mixed model or run
   configurations; task-version or hash drift; malformed outputs; and stored grades that disagree
   with deterministic regrading.
 - Strict provider-output parsing with no Markdown repair, substring extraction, duplicate JSON keys,
@@ -78,8 +79,8 @@ package, or evidence of autonomous clinical competence.
 - A provisional two-patient OpenKBP lane covering parotid localization, dose-region
   interpretation, published-criteria plan audit, structure inventory, and TG-263 naming,
   with three attempts per task/model and family-cluster uncertainty.
-- Ranked-only release summaries: incomplete or manifest-inconsistent runs remain published but are
-  excluded from leaderboard ranking.
+- Harness-group release ranks plus a clearly labeled descriptive cross-surface outcome order;
+  incomplete or manifest-inconsistent runs remain published but receive neither.
 - Architecture, governance, evaluation, onboarding, and deployment documentation in [`docs/`](docs/).
 - Repository-wide validation of all six JSON Schemas, every authored/runtime task projection,
   every artifact digest, constructed reference feasibility, and every published result artifact.
@@ -139,16 +140,18 @@ web/                     Deployable benchmark website and public data bundle
 
 `summarize` does not trust stored leaderboard fields. It reconstructs grades from each recorded
 output and the release task contract, verifies the expected task/attempt matrix, checks identity
-and hash consistency, and ranks only eligible run sets. Provider errors remain in the evidence
-package and cannot silently disappear from a denominator.
+and hash consistency, and ranks only eligible run sets within identical harness groups. Unsupported
+modalities and output-contract failures count as completed zero-score attempts; unresolved transport
+errors remain in the evidence package and invalidate the official campaign rank.
 
 ## Status note
 
 Version 0.5 is a **public hardening candidate** layered on the frozen v0.4 score snapshot. It is
 runnable and auditable, but it is not yet a sealed multi-institution benchmark or clinical
-validation study. Native GPT-5.6 rows remain unranked until reproduced through a qualified common
-adapter; perfect scores on the earlier public core are treated as evidence of saturation, not a
-claim of autonomous competence. On Saturday, August 1, 2026, a TG-263 pilot audit further showed
+validation study. Native GPT-5.6 rows now receive a visible descriptive outcome order but no
+official harness-group rank until reproduced through a qualified common adapter; perfect scores on
+the earlier public core are treated as evidence of saturation, not a claim of autonomous competence.
+On Saturday, August 1, 2026, a TG-263 pilot audit further showed
 that the very low strict pilot score largely reflected benchmark-authored `reason_codes` label
 exactness rather than incorrect naming decisions; the audited decision rate was `17/18` for both
 native GPT-5.6 effort settings, while the strict label-dependent pass rate remained `5/18` and

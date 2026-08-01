@@ -85,6 +85,10 @@ def summarize_release(
         for task in tasks
     ]
 
+    ranked_models = _rank_models(ranked_rows)
+    unranked_models = sorted(unranked_rows, key=lambda row: str(row["model_name"]))
+    _assign_outcome_ranks([*ranked_models, *unranked_models])
+
     return {
         "generated_at": datetime.now(UTC).isoformat(),
         "release": {
@@ -119,8 +123,8 @@ def summarize_release(
                 }
             ),
         },
-        "models": _rank_models(ranked_rows),
-        "unranked_models": sorted(unranked_rows, key=lambda row: str(row["model_name"])),
+        "models": ranked_models,
+        "unranked_models": unranked_models,
         "tasks": task_rows,
         "coverage": _build_coverage(task_rows),
         "methodology": {
@@ -131,7 +135,14 @@ def summarize_release(
             ),
             "pass_at_k": "unbiased probability that at least one of k sampled attempts safely passes",
             "pass_power_k": "unbiased probability that all k sampled attempts safely pass",
-            "ranking_rule": "Only complete and internally consistent model runs are ranked.",
+            "ranking_rule": (
+                "Only complete and internally consistent model runs receive an official rank, and ranks are "
+                "computed within an identical provider, harness, and harness-revision group."
+            ),
+            "outcome_order_rule": (
+                "Complete, internally consistent rows also receive a descriptive cross-surface outcome order. "
+                "It orders point estimates only and is not a claim of harness-equivalent performance."
+            ),
             "family_dependence": (
                 "Tasks sharing family_id are correlated. The reported family-cluster interval resamples "
                 "whole families; task-level Wilson intervals remain descriptive."
@@ -214,6 +225,7 @@ def _summarize_model_dir(
     any_pass = sum(any(attempts) for attempts in by_task.values())
     all_pass = sum(all(attempts) for attempts in by_task.values())
     ci_low, ci_high = _wilson_interval(task_successes, attempt_count)
+    safe_ci_low, safe_ci_high = _wilson_interval(safe_successes, attempt_count)
     family_outcomes: dict[str, list[bool]] = defaultdict(list)
     for task_id, attempts in by_task_safe.items():
         family_id = task_catalog[task_id].family_id or task_id
@@ -222,8 +234,17 @@ def _summarize_model_dir(
     reliability = _reliability_summary(by_task_safe)
     usage = _usage_summary(verified_results)
     is_common_harness = integrity["is_common_harness"]
+    comparison_group = (
+        f"{integrity['provider']}::{integrity['harness_name']}::{integrity['harness_revision']}"
+        if is_common_harness
+        else None
+    )
     durations = [
-        float(item["duration_seconds"]) for item in verified_results if item.get("duration_seconds") is not None
+        float(item["duration_seconds"])
+        for item in verified_results
+        if item.get("duration_seconds") is not None
+        and not item.get("model_failure_kind")
+        and not item.get("capability_failure")
     ]
 
     return {
@@ -239,12 +260,14 @@ def _summarize_model_dir(
         },
         "harness_name": str(results[0].get("manifest", {}).get("model", {}).get("harness_name", "")),
         "harness_revision": str(results[0].get("manifest", {}).get("model", {}).get("harness_revision", "")),
+        "comparison_group": comparison_group,
         "attempt_count": attempt_count,
         "completed_count": len(completed),
         "error_count": attempt_count - len(completed),
         "expected_attempt_count": len(expected_attempt_keys),
         "task_success_rate": round(task_successes / attempt_count, 4) if attempt_count else 0.0,
         "task_success_ci95": [round(ci_low, 4), round(ci_high, 4)],
+        "safe_success_ci95": [round(safe_ci_low, 4), round(safe_ci_high, 4)],
         "family_cluster_safe_success_ci95": [round(cluster_low, 4), round(cluster_high, 4)],
         "family_count": len(family_outcomes),
         "safe_success_rate": round(safe_successes / attempt_count, 4) if attempt_count else 0.0,
@@ -267,7 +290,16 @@ def _summarize_model_dir(
         ),
         "duration_telemetry": {
             "available": bool(durations) and is_common_harness,
-            "kind": "common_harness_wall_clock" if is_common_harness else "unavailable_recorded_surface",
+            "complete": is_common_harness and len(durations) == attempt_count,
+            "kind": (
+                "unavailable_recorded_surface"
+                if not is_common_harness
+                else "common_harness_wall_clock"
+                if len(durations) == attempt_count
+                else "partial_common_harness_wall_clock"
+                if durations
+                else "unavailable_common_harness_wall_clock"
+            ),
             "observed_attempts": len(durations) if is_common_harness else 0,
             "expected_attempts": attempt_count,
         },
@@ -277,6 +309,7 @@ def _summarize_model_dir(
             domain: round(sum(values) / len(values), 4) for domain, values in sorted(by_domain.items())
         },
         "ranking_eligible": integrity["ranking_eligible"],
+        "outcome_order_eligible": integrity["outcome_order_eligible"],
         "integrity": {
             "observed_attempt_keys": integrity["observed_attempt_count"],
             "missing_attempt_keys": integrity["missing_attempt_count"],
@@ -488,6 +521,7 @@ def _audit_model_results(
         "harness_revision": str(first_model.get("harness_revision", model_name)),
         "is_common_harness": not is_recorded_import,
         "ranking_eligible": not errors,
+        "outcome_order_eligible": not [error for error in errors if error != "unranked_noncommon_surface"],
         "errors": sorted(set(errors)),
         "observed_attempt_count": len(observed_attempt_keys),
         "missing_attempt_count": len(missing_attempt_keys),
@@ -701,8 +735,39 @@ def _wilson_interval(successes: int, trials: int) -> tuple[float, float]:
 
 
 def _rank_models(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in rows:
+        if row["ranking_eligible"]:
+            grouped[str(row.get("comparison_group") or "undeclared")].append(row)
+    eligible: list[dict[str, Any]] = []
+    for group_name, group_rows in sorted(grouped.items()):
+        ordered = sorted(
+            group_rows,
+            key=lambda item: (
+                -float(item["safe_success_rate"]),
+                -float(item["task_success_rate"]),
+                -float(item["safety_gate_rate"]),
+                str(item["model_name"]),
+            ),
+        )
+        for index, row in enumerate(ordered, start=1):
+            row["rank"] = index
+            row["rank_group"] = group_name
+        eligible.extend(ordered)
+    ineligible = sorted(
+        [row for row in rows if not row["ranking_eligible"]],
+        key=lambda item: str(item["model_name"]),
+    )
+    for row in ineligible:
+        row["rank"] = None
+    return eligible + ineligible
+
+
+def _assign_outcome_ranks(rows: list[dict[str, Any]]) -> None:
+    """Add a descriptive point-estimate order without weakening official rank eligibility."""
+
     eligible = sorted(
-        [row for row in rows if row["ranking_eligible"]],
+        [row for row in rows if row.get("outcome_order_eligible")],
         key=lambda item: (
             -float(item["safe_success_rate"]),
             -float(item["task_success_rate"]),
@@ -711,11 +776,9 @@ def _rank_models(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         ),
     )
     for index, row in enumerate(eligible, start=1):
-        row["rank"] = index
-    ineligible = sorted(
-        [row for row in rows if not row["ranking_eligible"]],
-        key=lambda item: str(item["model_name"]),
-    )
-    for row in ineligible:
-        row["rank"] = None
-    return eligible + ineligible
+        row["outcome_rank"] = index
+        row["outcome_rank_status"] = "descriptive_cross_surface"
+    for row in rows:
+        if row not in eligible:
+            row["outcome_rank"] = None
+            row["outcome_rank_status"] = "ineligible_incomplete_or_invalid"

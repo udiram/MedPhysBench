@@ -35,8 +35,8 @@ export function EvidenceSections({ accessStatus, data, releaseView }: EvidenceSe
             <h3>Benchmark composition</h3>
             <ul className="board-list">
               <li><strong>{data?.tasks.length ?? "—"}</strong> public tasks in the selected release</li>
-              <li><strong>{rankedCount ?? "—"}</strong> ranked common-harness row{rankedCount === 1 ? "" : "s"}</li>
-              <li><strong>{reviewCount ?? "—"}</strong> native audit / review row{reviewCount === 1 ? "" : "s"}</li>
+              <li><strong>{rankedCount ?? "—"}</strong> official harness-group row{rankedCount === 1 ? "" : "s"}</li>
+              <li><strong>{reviewCount ?? "—"}</strong> native outcome row{reviewCount === 1 ? "" : "s"}</li>
               {data?.release.family_count != null && <li><strong>{data.release.family_count}</strong> independent patient/task families</li>}
               <li><strong>Human baseline</strong> recruiting medical physicists</li>
               {releaseView === "real" && <li><strong>Provisional</strong> independent domain and publication-rights review pending</li>}
@@ -161,8 +161,8 @@ export function EvidenceSections({ accessStatus, data, releaseView }: EvidenceSe
             <p>{data?.release.expected_attempts_per_task ?? integrity?.expected_attempts_per_task ?? "—"} per task in the current public release.</p>
           </article>
           <article>
-            <h3>Ranked / review</h3>
-            <p>{rankedCount} ranked and {reviewCount} review rows currently visible.</p>
+            <h3>Official / native</h3>
+            <p>{rankedCount} official harness-group rows and {reviewCount} native outcome rows currently visible.</p>
           </article>
           {data?.release.family_count != null && (
             <article>

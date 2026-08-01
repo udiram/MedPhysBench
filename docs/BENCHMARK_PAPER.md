@@ -165,6 +165,8 @@ The public leaderboard reports:
 - **median and total token use**, when the provider reports it;
 - **median common-harness wall time**, with unavailable native telemetry shown as missing;
 - **score-efficiency Pareto frontier**, reported only within one release and comparable harness.
+- **official harness-group rank**, computed only across identical provider, harness, and harness revision;
+- **descriptive cross-surface outcome order**, available to complete native rows but never labeled API-equivalent.
 
 Ranks are descriptive. Overlapping intervals and small public task counts make close rank
 differences unsuitable for superiority claims. Larger sealed suites should use hierarchical
@@ -178,11 +180,13 @@ success with a 98.44% safety-gate rate. Six GPT-5.6 effort configurations comple
 runtime batch on a native Codex conversation surface; three scored 100% and three scored 98.44%, all
 with 100% safety-gate rate. Those GPT rows are deliberately unranked because the surface was not the
 common adapter and did not provide equivalent isolation or sampling controls. Three local vision
-models also completed the separate imaging pilot. Four local vision models then completed three
-attempts on every OpenKBP v0.6 task; `qwen3.5:4b` led that provisional common-harness table at
-50.0% safe success. GPT-5.6 low, high, and ultra completed one native-surface attempt per OpenKBP
-task at 80.0%, 70.0%, and 100.0% safe success, respectively. Those three rows are unranked because
-they lack the common adapter, comparable token/time telemetry, and the required three attempts.
+models also completed the separate imaging pilot. Four local vision models and five Groq-hosted
+models then completed three attempts on every OpenKBP v0.6 task. `qwen3.5:4b` led the Ollama group
+at 50.0% safe success; `llama-3.3-70b-versatile` and `openai/gpt-oss-20b` tied at 60.0% in the Groq
+group. GPT-5.6 low, high, and ultra completed three native-surface attempts per OpenKBP task and
+scored 66.67%, 76.67%, and 73.33%, respectively. Their descriptive outcome order is high, ultra,
+then low, but their Wilson intervals overlap. Those native rows have no official harness-group rank
+because they lack the common adapter and comparable token/time telemetry.
 Full evidence is published in
 [`RESULTS.md`](RESULTS.md) and the release directories.
 
@@ -208,10 +212,14 @@ Each public score is backed by:
 - generated leaderboard JSON.
 
 During publication, the summarizer verifies the expected `(task_id, attempt_index)` set, rejects
-duplicates, unknown tasks, provider-error attempts, and mixed execution configurations, enforces
+duplicates, unknown tasks, unresolved transport-error attempts, and mixed execution configurations, enforces
 task/model/harness identity consistency, checks prompt/tool/runtime/system hashes, and recomputes
 deterministic grades from output. Any disagreement between stored and recomputed pass/safety fields
 makes the row unrankable and remains visible in the integrity report.
+
+Unsupported required modalities and provider JSON-generation failures are completed zero-score
+model attempts rather than transport errors. This prevents systems from escaping the denominator by
+declining difficult inputs while keeping infrastructure failures distinct from model behavior.
 
 The repository CI runs contract tests, task-release validation, repository-wide schema checks over
 all authored tasks, sealed runtime projections, run manifests, and public results, lint, public

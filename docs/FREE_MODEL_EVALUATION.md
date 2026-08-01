@@ -47,8 +47,10 @@ The repository now ships a strict OpenAI-compatible Chat Completions adapter and
 a Groq preset. It preserves the exact provider/model ID, response format,
 reasoning setting when supported, usage metadata, request IDs, and errors. A
 Groq run requires `GROQ_API_KEY`; the [official free-plan limits](https://console.groq.com/docs/rate-limits)
-are model-specific and mutable. No credential was present during the 2026-07-31
-access check, so the repository publishes no Groq score from that check.
+are model-specific and mutable. On 2026-08-01, five active chat-model IDs completed
+the public OpenKBP v0.6 matrix: `llama-3.1-8b-instant`,
+`llama-3.3-70b-versatile`, `openai/gpt-oss-20b`, `openai/gpt-oss-120b`, and
+`qwen/qwen3.6-27b`.
 
 ```bash
 GROQ_API_KEY=... medphys-bench run-release \
@@ -56,11 +58,19 @@ GROQ_API_KEY=... medphys-bench run-release \
   --adapter groq \
   --model <exact-groq-model-id> \
   --attempts 3 \
+  --response-format json_object \
+  --best-effort-schema \
   --results-dir runs
 ```
 
-The benchmark never stores the key. A free-plan quota that cannot complete the
-declared attempt matrix yields an unranked partial package, not a shortened rank.
+The shared `json_object` contract was used because structured `json_schema` mode
+was not available across all five models. The harness still applies each task's
+deterministic JSON Schema grader after parsing. HTTP 429 responses receive bounded,
+traced backoff. Unsupported required modalities and provider JSON-generation
+failures count as completed zero-score model failures; exhausted transport failures
+remain campaign-invalidating errors. The benchmark never stores the key. A free-plan
+quota that cannot complete the declared attempt matrix yields an unranked partial
+package, not a shortened rank.
 
 ## Current hosted allowances that require adapter work
 

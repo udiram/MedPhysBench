@@ -167,3 +167,64 @@ def test_recorded_batch_refuses_to_overwrite_existing_attempts(tmp_path: Path) -
 
     assert repeated.returncode != 0
     assert "refusing to overwrite" in repeated.stderr
+
+
+def test_recorded_batch_writes_declared_one_based_attempt_index(tmp_path: Path) -> None:
+    sealed = tmp_path / "sealed.json"
+    release_file = "releases/public_imaging_pilot_v0_4.yaml"
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "medphys_agentbench.cli",
+            "export-runtime",
+            release_file,
+            "--output",
+            str(sealed),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    sealed_payload = json.loads(sealed.read_text(encoding="utf-8"))
+    recorded = tmp_path / "recorded.json"
+    recorded.write_text(
+        json.dumps(
+            {
+                "schema_version": "medphysbench.recorded-batch.v1",
+                "model": "attempt-model",
+                "reasoning_effort": "low",
+                "sealed_batch_sha256": hashlib.sha256(sealed.read_bytes()).hexdigest(),
+                "outputs": {task["task_id"]: {} for task in sealed_payload["tasks"]},
+            }
+        ),
+        encoding="utf-8",
+    )
+    results_dir = tmp_path / "results"
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "medphys_agentbench.cli",
+            "score-recorded-batch",
+            release_file,
+            str(recorded),
+            "--model",
+            "attempt-model",
+            "--model-revision",
+            "attempt-model@2",
+            "--reasoning-effort",
+            "low",
+            "--attempt-index",
+            "2",
+            "--results-dir",
+            str(results_dir),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    result_files = sorted(results_dir.rglob("*--attempt-2.json"))
+    assert len(result_files) == len(sealed_payload["tasks"])
+    assert all(json.loads(path.read_text(encoding="utf-8"))["attempt_index"] == 1 for path in result_files)

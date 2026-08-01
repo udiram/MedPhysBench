@@ -8,6 +8,7 @@ credentials or silently changing output contracts.
 from __future__ import annotations
 
 import json
+import re
 import time
 import urllib.error
 import urllib.request
@@ -21,6 +22,14 @@ from ..json_utils import StrictJsonError, decode_strict_json_object
 from ..prompting import SYSTEM_PROMPT, build_user_prompt
 from .base import AgentResult
 from .ollama import AdapterError
+
+
+class UnsupportedCapabilityError(AdapterError):
+    """A declared model cannot consume a task's required input modality."""
+
+
+class ProviderOutputContractError(AdapterError):
+    """The model/provider failed to produce the declared structured output."""
 
 
 @dataclass
@@ -38,6 +47,7 @@ class OpenAICompatibleAdapter:
     reasoning_effort: str | None = None
     artifact_root: Path = Path.cwd()
     model_revision_override: str | None = None
+    max_rate_limit_retries: int = 8
 
     harness_revision = "openai-chat-json-v1"
 
@@ -96,20 +106,46 @@ class OpenAICompatibleAdapter:
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
-                "User-Agent": "MedPhysBench/openai-compatible-v1",
+                # Keep a conventional product/version prefix for provider edge
+                # compatibility while retaining an auditable benchmark label.
+                "User-Agent": "api-client/1.0 MedPhysBench/0.6.0",
             },
             method="POST",
         )
-        try:
-            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
-                raw = json.loads(response.read().decode("utf-8"))
-        except urllib.error.HTTPError as error:
-            body = error.read().decode("utf-8", errors="replace")[:1000]
-            raise AdapterError(
-                f"{self.provider} HTTP {error.code} for model {self.model_name}: {body}"
-            ) from error
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
-            raise AdapterError(f"{self.provider} request failed for {self.model_name}: {error}") from error
+        retry_trace: list[dict[str, Any]] = []
+        for retry_index in range(self.max_rate_limit_retries + 1):
+            try:
+                with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+                    raw = json.loads(response.read().decode("utf-8"))
+                break
+            except urllib.error.HTTPError as error:
+                body = error.read().decode("utf-8", errors="replace")[:1000]
+                if _is_unsupported_input_modality(error.code, body, user_content):
+                    raise UnsupportedCapabilityError(
+                        f"{self.provider} model {self.model_name} cannot consume "
+                        "this task's required artifact modality."
+                    ) from error
+                if error.code == 400 and "json_validate_failed" in body.lower():
+                    raise ProviderOutputContractError(
+                        f"{self.provider} model {self.model_name} failed the declared JSON output contract."
+                    ) from error
+                if error.code == 429 and retry_index < self.max_rate_limit_retries:
+                    delay_seconds = _rate_limit_delay(error, body, retry_index)
+                    retry_trace.append(
+                        {
+                            "event": "provider_rate_limit_retry",
+                            "provider": self.provider,
+                            "retry_index": retry_index + 1,
+                            "delay_seconds": delay_seconds,
+                        }
+                    )
+                    time.sleep(delay_seconds)
+                    continue
+                raise AdapterError(
+                    f"{self.provider} HTTP {error.code} for model {self.model_name}: {body}"
+                ) from error
+            except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
+                raise AdapterError(f"{self.provider} request failed for {self.model_name}: {error}") from error
 
         choice = _first_choice(raw)
         content = choice.get("message", {}).get("content", "")
@@ -133,6 +169,7 @@ class OpenAICompatibleAdapter:
         provider_request_id = raw.get("id")
         system_fingerprint = raw.get("system_fingerprint")
         trace = [
+            *retry_trace,
             {
                 "event": "model_response",
                 "provider": self.provider,
@@ -178,3 +215,26 @@ def _first_choice(raw: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(choices, list) or not choices or not isinstance(choices[0], dict):
         raise AdapterError("OpenAI-compatible response did not contain a first choice.")
     return choices[0]
+
+
+def _is_unsupported_input_modality(status_code: int, body: str, user_content: object) -> bool:
+    normalized = body.lower()
+    return (
+        status_code == 400
+        and isinstance(user_content, list)
+        and "messages[1].content" in normalized
+        and "must be a string" in normalized
+    )
+
+
+def _rate_limit_delay(error: urllib.error.HTTPError, body: str, retry_index: int) -> float:
+    header_value = error.headers.get("Retry-After") if error.headers else None
+    if header_value:
+        try:
+            return min(max(float(header_value), 0.25), 30.0)
+        except ValueError:
+            pass
+    match = re.search(r"try again in\s+([0-9.]+)s", body, flags=re.IGNORECASE)
+    if match:
+        return min(max(float(match.group(1)) + 0.25, 0.25), 30.0)
+    return min(2.0 ** retry_index, 30.0)

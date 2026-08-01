@@ -8,7 +8,11 @@ import urllib.request
 import pytest
 
 from medphys_agentbench.adapters.ollama import AdapterError
-from medphys_agentbench.adapters.openai_compatible import OpenAICompatibleAdapter
+from medphys_agentbench.adapters.openai_compatible import (
+    OpenAICompatibleAdapter,
+    ProviderOutputContractError,
+    UnsupportedCapabilityError,
+)
 from medphys_agentbench.cli import _build_adapter
 from medphys_agentbench.task_loader import load_task
 
@@ -34,6 +38,7 @@ def test_openai_compatible_propagates_common_harness_contract(monkeypatch: pytes
         captured["url"] = request.full_url
         captured["timeout"] = timeout
         captured["authorization"] = request.get_header("Authorization")
+        captured["user_agent"] = request.get_header("User-agent")
         captured["payload"] = json.loads(bytes(request.data or b"").decode("utf-8"))
         return _FakeResponse(
             {
@@ -74,6 +79,7 @@ def test_openai_compatible_propagates_common_harness_contract(monkeypatch: pytes
     assert captured["url"] == "https://api.example.test/v1/chat/completions"
     assert captured["timeout"] == 30
     assert captured["authorization"] == "Bearer secret-not-recorded"
+    assert captured["user_agent"] == "api-client/1.0 MedPhysBench/0.6.0"
     assert payload["seed"] == 17
     assert payload["temperature"] == 0.0
     assert payload["max_completion_tokens"] == 512
@@ -144,3 +150,107 @@ def test_cli_provider_presets_require_named_environment_variables(
             temperature=0.0,
             max_tokens=128,
         )
+
+
+def test_openai_compatible_retries_rate_limits_with_auditable_trace(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = 0
+    sleeps: list[float] = []
+
+    def fake_urlopen(*_args: object, **_kwargs: object) -> _FakeResponse:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise urllib.error.HTTPError(
+                "https://api.example.test/v1/chat/completions",
+                429,
+                "rate limited",
+                {"Retry-After": "0.25"},
+                io.BytesIO(b'{"error":{"message":"rate limited"}}'),
+            )
+        return _FakeResponse(
+            {
+                "choices": [{"finish_reason": "stop", "message": {"content": "{}"}}],
+                "usage": {},
+            }
+        )
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr("medphys_agentbench.adapters.openai_compatible.time.sleep", sleeps.append)
+    task = load_task("tasks/public/core_physics/inverse_square_001/task.yaml").runtime_task()
+    adapter = OpenAICompatibleAdapter(
+        model_name="test-model",
+        api_key="secret",
+        base_url="https://api.example.test/v1",
+        provider="test-provider",
+    )
+
+    result = adapter.execute(task)
+
+    assert calls == 2
+    assert sleeps == [0.25]
+    assert result.trace[0] == {
+        "event": "provider_rate_limit_retry",
+        "provider": "test-provider",
+        "retry_index": 1,
+        "delay_seconds": 0.25,
+    }
+
+
+def test_openai_compatible_classifies_unsupported_required_artifact(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "medphys_agentbench.adapters.openai_compatible.openai_message_content",
+        lambda *_args: [{"type": "text", "text": "task"}, {"type": "image_url", "image_url": {}}],
+    )
+
+    def reject_artifact(*_args: object, **_kwargs: object) -> None:
+        raise urllib.error.HTTPError(
+            "https://api.example.test/v1/chat/completions",
+            400,
+            "bad request",
+            {},
+            io.BytesIO(
+                b'{"error":{"message":"messages[1].content must be a string",'
+                b'"param":"messages[1].content"}}'
+            ),
+        )
+
+    monkeypatch.setattr(urllib.request, "urlopen", reject_artifact)
+    task = load_task("tasks/public/core_physics/inverse_square_001/task.yaml").runtime_task()
+    adapter = OpenAICompatibleAdapter(
+        model_name="text-only-model",
+        api_key="secret",
+        base_url="https://api.example.test/v1",
+        provider="test-provider",
+    )
+
+    with pytest.raises(UnsupportedCapabilityError, match="required artifact modality"):
+        adapter.execute(task)
+
+
+def test_openai_compatible_classifies_provider_json_generation_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def reject_json(*_args: object, **_kwargs: object) -> None:
+        raise urllib.error.HTTPError(
+            "https://api.example.test/v1/chat/completions",
+            400,
+            "bad request",
+            {},
+            io.BytesIO(b'{"error":{"code":"json_validate_failed","failed_generation":""}}'),
+        )
+
+    monkeypatch.setattr(urllib.request, "urlopen", reject_json)
+    task = load_task("tasks/public/core_physics/inverse_square_001/task.yaml").runtime_task()
+    adapter = OpenAICompatibleAdapter(
+        model_name="json-failing-model",
+        api_key="secret",
+        base_url="https://api.example.test/v1",
+        provider="test-provider",
+    )
+
+    with pytest.raises(ProviderOutputContractError, match="JSON output contract"):
+        adapter.execute(task)

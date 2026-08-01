@@ -14,7 +14,7 @@ from medphys_agentbench.adapters.ollama import _parse_json_object
 from medphys_agentbench.cli import _build_adapter
 from medphys_agentbench.json_utils import decode_strict_json_object
 from medphys_agentbench.release_loader import load_release
-from medphys_agentbench.reporting import summarize_release
+from medphys_agentbench.reporting import _assign_outcome_ranks, summarize_release
 from medphys_agentbench.runner import (
     SCORING_REVISION,
     grader_hash_for_task,
@@ -377,6 +377,42 @@ def test_release_summary_never_ranks_provider_error_attempts(tmp_path: Path) -> 
     row = summary["unranked_models"][0]
     assert row["completed_count"] == 0
     assert "noncompleted_attempts:16" in row["integrity"]["integrity_errors"]
+
+
+def test_descriptive_outcome_rank_includes_complete_native_rows_without_promoting_official_rank() -> None:
+    rows = [
+        {
+            "model_name": "common",
+            "safe_success_rate": 0.6,
+            "task_success_rate": 0.6,
+            "safety_gate_rate": 1.0,
+            "ranking_eligible": True,
+            "outcome_order_eligible": True,
+        },
+        {
+            "model_name": "native",
+            "safe_success_rate": 0.8,
+            "task_success_rate": 0.8,
+            "safety_gate_rate": 1.0,
+            "ranking_eligible": False,
+            "outcome_order_eligible": True,
+        },
+        {
+            "model_name": "incomplete",
+            "safe_success_rate": 1.0,
+            "task_success_rate": 1.0,
+            "safety_gate_rate": 1.0,
+            "ranking_eligible": False,
+            "outcome_order_eligible": False,
+        },
+    ]
+
+    _assign_outcome_ranks(rows)
+
+    assert rows[1]["outcome_rank"] == 1
+    assert rows[0]["outcome_rank"] == 2
+    assert rows[2]["outcome_rank"] is None
+    assert rows[1]["ranking_eligible"] is False
 
 
 def test_validate_release_command_reports_expected_attempt_count() -> None:

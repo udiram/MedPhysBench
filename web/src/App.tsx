@@ -23,7 +23,7 @@ function App() {
   const [tg263Audit, setTg263Audit] = useState<Tg263Audit | null>(null);
   const [accessStatus, setAccessStatus] = useState<AccessStatus[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [releaseView, setReleaseView] = useState<ReleaseView>("core");
+  const [releaseView, setReleaseView] = useState<ReleaseView>("real");
   const selected = releaseView === "core" ? core : releaseView === "tg263" ? tg263 : realWorkflows;
 
   useEffect(() => {

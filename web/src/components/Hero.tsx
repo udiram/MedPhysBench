@@ -26,7 +26,7 @@ export function Hero({ data, onReleaseViewChange, releaseView, repoUrl }: HeroPr
           aria-pressed={releaseView === "core"}
           onClick={() => onReleaseViewChange("core")}
         >
-          Core v0.5
+          Core v0.4
         </button>
         <button
           type="button"
@@ -62,11 +62,11 @@ export function Hero({ data, onReleaseViewChange, releaseView, repoUrl }: HeroPr
             <dd>{taskCount ?? "—"}</dd>
           </div>
           <div>
-            <dt>Ranked rows</dt>
+            <dt>Official rows</dt>
             <dd>{rankedCount ?? "—"}</dd>
           </div>
           <div>
-            <dt>Native audit rows</dt>
+            <dt>Native outcome rows</dt>
             <dd>{reviewCount ?? "—"}</dd>
           </div>
           <div>
@@ -76,8 +76,8 @@ export function Hero({ data, onReleaseViewChange, releaseView, repoUrl }: HeroPr
         </dl>
       </div>
       <div className="contract-note" aria-label="Benchmark contract notes">
-        <span>Ranked rows share one frozen public harness.</span>
-        <span>Native audit rows stay visible but unranked when the execution surface differs.</span>
+        <span>Official ranks compare only identical frozen harness groups.</span>
+        <span>Complete native runs receive a visible descriptive outcome order.</span>
         <span>Unavailable latency or token telemetry remains unavailable, never zero-filled.</span>
         <span>Research benchmark only. No autonomous clinical authority.</span>
       </div>

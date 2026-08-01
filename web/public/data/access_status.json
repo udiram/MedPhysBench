@@ -77,6 +77,41 @@
     "note": "Vision-capable model evaluated in text-only mode on the public development release."
   },
   {
+    "model": "llama-3.1-8b-instant",
+    "status": "available",
+    "surface": "groq_openai_compatible",
+    "date": "2026-08-01",
+    "note": "Groq-hosted model evaluated on the OpenKBP v0.6 release with three attempts per task."
+  },
+  {
+    "model": "llama-3.3-70b-versatile",
+    "status": "available",
+    "surface": "groq_openai_compatible",
+    "date": "2026-08-01",
+    "note": "Groq-hosted model evaluated on the OpenKBP v0.6 release with three attempts per task."
+  },
+  {
+    "model": "openai/gpt-oss-20b",
+    "status": "available",
+    "surface": "groq_openai_compatible",
+    "date": "2026-08-01",
+    "note": "Groq-hosted open-weight model evaluated on the OpenKBP v0.6 release with three attempts per task."
+  },
+  {
+    "model": "openai/gpt-oss-120b",
+    "status": "available",
+    "surface": "groq_openai_compatible",
+    "date": "2026-08-01",
+    "note": "Groq-hosted open-weight model evaluated on the OpenKBP v0.6 release with three attempts per task."
+  },
+  {
+    "model": "qwen/qwen3.6-27b",
+    "status": "available",
+    "surface": "groq_openai_compatible",
+    "date": "2026-08-01",
+    "note": "Groq-hosted model evaluated on the OpenKBP v0.6 release with three attempts per task."
+  },
+  {
     "model": "qwen3.5:397b-cloud",
     "status": "blocked",
     "surface": "ollama_cloud",

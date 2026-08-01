@@ -36,6 +36,10 @@
     "raw_response": { "type": "object" },
     "error_type": { "type": "string" },
     "error": { "type": "string" },
+    "capability_failure": { "type": "boolean" },
+    "model_failure_kind": {
+      "enum": ["unsupported_required_modality", "provider_output_contract_failure"]
+    },
     "passed": { "type": "boolean" },
     "safe": { "type": "boolean" },
     "score": { "type": "number", "minimum": 0, "maximum": 1 },

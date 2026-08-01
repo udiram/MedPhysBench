@@ -13,7 +13,11 @@ from uuid import uuid4
 
 from .adapters.base import AgentAdapter
 from .adapters.ollama import OllamaAdapter
-from .adapters.openai_compatible import OpenAICompatibleAdapter
+from .adapters.openai_compatible import (
+    OpenAICompatibleAdapter,
+    ProviderOutputContractError,
+    UnsupportedCapabilityError,
+)
 from .adapters.recorded import RecordedOutputAdapter
 from .adapters.reference import DevelopmentReferenceAgent
 from .contracts import TaskSpec
@@ -29,6 +33,7 @@ from .runner import (
     system_prompt_hash,
     tool_schema_hash_for_task,
 )
+from .scoring import grades_pass, grades_safe, score_attempt, weighted_grade_score
 from .task_loader import load_task
 
 
@@ -122,6 +127,12 @@ def main() -> None:
         choices=["low", "medium", "high", "xhigh", "max", "ultra"],
         required=True,
     )
+    score_recorded.add_argument(
+        "--attempt-index",
+        type=int,
+        default=1,
+        help="One-based immutable attempt number to write (default: 1).",
+    )
     score_recorded.add_argument("--results-dir", type=Path, default=Path("runs"))
 
     args = parser.parse_args()
@@ -209,35 +220,55 @@ def main() -> None:
     if args.command == "run-release":
         release = load_release(args.release_file)
         tasks = release.load_tasks()
+        if args.attempts < 1:
+            raise SystemExit("--attempts must be at least 1.")
+
+        output_catalog: dict[str, list[Path]] = {}
         for model_name in args.model:
-            adapter = _build_adapter(
-                args.adapter,
-                model_name,
-                args.base_url,
-                args.timeout,
-                seed=args.seed,
-                temperature=args.temperature,
-                max_tokens=args.max_tokens,
-                api_key_env=args.api_key_env,
-                provider=args.provider,
-                response_format=args.response_format,
-                strict_schema=not args.best_effort_schema,
-                reasoning_effort=args.reasoning_effort,
-                ollama_keep_alive=args.ollama_keep_alive,
-                ollama_num_ctx=args.ollama_num_ctx,
+            model_dir = args.results_dir / release.release_id / _slugify(model_name)
+            output_catalog[model_name] = [
+                model_dir / f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}.json"
+                for task in tasks
+                for attempt_index in range(args.attempts)
+            ]
+        existing_paths = [path for paths in output_catalog.values() for path in paths if path.exists()]
+        if existing_paths:
+            raise SystemExit(
+                "Release result artifacts are immutable; refusing to overwrite "
+                f"{len(existing_paths)} existing file(s), beginning with {existing_paths[0]}. "
+                "Use a new results directory or model revision label."
             )
+
+        for model_name in args.model:
             model_slug = _slugify(model_name)
             model_dir = args.results_dir / release.release_id / model_slug
             model_dir.mkdir(parents=True, exist_ok=True)
             for task in tasks:
                 for attempt_index in range(args.attempts):
+                    attempt_seed = args.seed + attempt_index
+                    adapter = _build_adapter(
+                        args.adapter,
+                        model_name,
+                        args.base_url,
+                        args.timeout,
+                        seed=attempt_seed,
+                        temperature=args.temperature,
+                        max_tokens=args.max_tokens,
+                        api_key_env=args.api_key_env,
+                        provider=args.provider,
+                        response_format=args.response_format,
+                        strict_schema=not args.best_effort_schema,
+                        reasoning_effort=args.reasoning_effort,
+                        ollama_keep_alive=args.ollama_keep_alive,
+                        ollama_num_ctx=args.ollama_num_ctx,
+                    )
                     run_id = str(uuid4())
                     output_path = model_dir / (f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}.json")
                     try:
                         result = run_trial(
                             task,
                             adapter,
-                            seed=args.seed + attempt_index,
+                            seed=attempt_seed,
                             temperature=args.temperature,
                             max_tokens=args.max_tokens,
                             run_id=run_id,
@@ -246,6 +277,54 @@ def main() -> None:
                             **result.to_dict(),
                             "status": "completed",
                             "attempt_index": attempt_index,
+                        }
+                    except (UnsupportedCapabilityError, ProviderOutputContractError) as error:
+                        grades = score_attempt(task, {})
+                        failure_kind = (
+                            "unsupported_required_modality"
+                            if isinstance(error, UnsupportedCapabilityError)
+                            else "provider_output_contract_failure"
+                        )
+                        payload = {
+                            "status": "completed",
+                            "attempt_index": attempt_index,
+                            "capability_failure": isinstance(error, UnsupportedCapabilityError),
+                            "model_failure_kind": failure_kind,
+                            "error_type": type(error).__name__,
+                            "error": str(error),
+                            "passed": grades_pass(grades),
+                            "safe": grades_safe(grades),
+                            "score": weighted_grade_score(grades),
+                            "manifest": {
+                                "schema_version": "medeval.run.v1",
+                                "run_id": run_id,
+                                "task_id": task.task_id,
+                                "task_version": task.version,
+                                "model": asdict(adapter.model_descriptor()),
+                                "seed": attempt_seed,
+                                "temperature": args.temperature,
+                                "max_tokens": args.max_tokens,
+                                "sandbox_image_digest": "process-isolation-public-v0.2.0",
+                                "tool_environment_version": "public-fixtures-v0.2.0",
+                                "created_at": datetime.now(UTC).isoformat(),
+                                "prompt_hash": prompt_hash_for_task(task),
+                                "tool_schema_hash": tool_schema_hash_for_task(task),
+                                "system_prompt_hash": system_prompt_hash(),
+                                "runtime_task_hash": runtime_task_hash_for_task(task),
+                                "grader_hash": grader_hash_for_task(task),
+                                "scoring_revision": SCORING_REVISION,
+                            },
+                            "output": {},
+                            "grades": [grade.to_dict() for grade in grades],
+                            "trace": [
+                                {
+                                    "event": failure_kind,
+                                    "provider": adapter.model_descriptor().provider,
+                                    "model": adapter.model_descriptor().model_name,
+                                }
+                            ],
+                            "raw_response": {},
+                            "duration_seconds": 0.0,
                         }
                     except Exception as error:
                         payload = {
@@ -262,7 +341,7 @@ def main() -> None:
                                 "task_id": task.task_id,
                                 "task_version": task.version,
                                 "model": asdict(adapter.model_descriptor()),
-                                "seed": args.seed + attempt_index,
+                                "seed": attempt_seed,
                                 "temperature": args.temperature,
                                 "max_tokens": args.max_tokens,
                                 "sandbox_image_digest": "process-isolation-public-v0.2.0",
@@ -282,9 +361,9 @@ def main() -> None:
                             "duration_seconds": 0.0,
                         }
                         if args.fail_fast:
-                            _write_json(output_path, payload)
+                            _write_json_exclusive(output_path, payload)
                             raise
-                    _write_json(output_path, payload)
+                    _write_json_exclusive(output_path, payload)
                     print(
                         json.dumps(
                             {
@@ -321,6 +400,8 @@ def main() -> None:
         return
 
     if args.command == "score-recorded-batch":
+        if args.attempt_index < 1:
+            raise SystemExit("--attempt-index must be at least 1.")
         release = load_release(args.release_file)
         batch = json.loads(args.batch_file.read_text(encoding="utf-8"))
         outputs = batch.get("outputs") if isinstance(batch, dict) else None
@@ -342,7 +423,9 @@ def main() -> None:
         )
         model_slug = _slugify(f"{args.model}_effort_{args.reasoning_effort}")
         model_dir = args.results_dir / release.release_id / model_slug
-        output_paths = [model_dir / f"{_slugify(task.task_id)}--attempt-1.json" for task in tasks]
+        output_paths = [
+            model_dir / f"{_slugify(task.task_id)}--attempt-{args.attempt_index}.json" for task in tasks
+        ]
         existing_paths = [path for path in output_paths if path.exists()]
         if existing_paths:
             raise SystemExit(
@@ -352,7 +435,7 @@ def main() -> None:
             )
         for task, output_path in zip(tasks, output_paths, strict=True):
             result = run_trial(task, adapter, seed=None, temperature=None, max_tokens=None)
-            payload = {**result.to_dict(), "status": "completed", "attempt_index": 0}
+            payload = {**result.to_dict(), "status": "completed", "attempt_index": args.attempt_index - 1}
             _write_json_exclusive(output_path, payload)
         print(json.dumps({"model": adapter.model_descriptor().model_name, "task_count": len(tasks)}, sort_keys=True))
         return

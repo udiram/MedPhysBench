@@ -161,9 +161,13 @@ TG-263 naming audit. The CT and expert contours are derived from OpenKBP; the
 reference plan dose is OpenKBP's standardized synthetic plan. Every task requires
 qualified review or escalation and is regraded from the stored candidate output.
 
-Four local models completed three deterministic attempts per task under one
-Ollama harness (`temperature=0`, seeds `20260731`–`20260733`, 4,096-token context,
-768 output-token cap). This is 30 attempts per model and 120 total attempts.
+Nine API/local configurations completed three attempts per task. Four ran under
+one memory-bounded Ollama harness (`temperature=0`, seeds
+`20260731`–`20260733`, 4,096-token context, 768 output-token cap). Five ran on
+Groq's OpenAI-compatible endpoint under one shared JSON-object contract with the
+same temperature, seeds, and output-token cap. Official ranks are computed within
+each identical provider/harness-revision group; the separate descriptive outcome
+order spans every complete row.
 
 | Rank | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens | Median time |
 | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -172,24 +176,42 @@ Ollama harness (`temperature=0`, seeds `20260731`–`20260733`, 4,096-token cont
 | 3 | `qwen2.5vl:3b` | 0.0% | 0.00–11.35% | 70.0% | 100.0% | 1,396 | 2.132 s |
 | 4 | `qwen3-vl:8b` | 0.0% | 0.00–11.35% | 0.0% | 0.0% | 1,311.5 | 5.250 s |
 
-Three GPT-5.6 effort settings also completed the same sealed ten-task runtime
-batch once. These rows are deterministic regrades of real recorded outputs, but
-they are not promoted into the common-harness rank: the native surface did not
-expose comparable model latency or token telemetry, and each setting has one
-attempt per task rather than the release's required three.
+| Groq rank | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens* | Median wall time* |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | `llama-3.3-70b-versatile` | 60.0% | 42.32–75.41% | 60.0% | 60.0% | 991.5 | 1.770 s |
+| 2 | `openai/gpt-oss-20b` | 60.0% | 42.32–75.41% | 60.0% | 60.0% | 1,338 | 9.283 s |
+| 3 | `openai/gpt-oss-120b` | 50.0% | 33.15–66.85% | 60.0% | 60.0% | 1,371.5 | 10.268 s |
+| 4 | `llama-3.1-8b-instant` | 0.0% | 0.00–11.35% | 16.67% | 60.0% | 1,002 | 8.343 s |
+| 5 | `qwen/qwen3.6-27b` | 0.0% | 0.00–11.35% | 0.0% | 0.0% | unavailable | unavailable |
 
-| Native surface | Safe success | Attempt 95% CI | Safety | Valid output | Segmentation lane | Rank status |
-| --- | ---: | ---: | ---: | ---: | ---: | --- |
-| GPT-5.6 low | 80.0% | 49.02–94.33% | 100.0% | 100.0% | 0.5882 | Unranked native audit |
-| GPT-5.6 high | 70.0% | 39.68–89.22% | 100.0% | 100.0% | 0.5882 | Unranked native audit |
-| GPT-5.6 ultra | 100.0% | 72.25–100.0% | 100.0% | 100.0% | 0.7179 | Unranked native audit |
+`*` Groq token and time medians use the 18 text attempts with observed provider
+telemetry. The four image tasks generate 12 completed zero-score modality failures
+for the text-only Llama and GPT-OSS rows; those failures are never omitted from the
+score denominator. Free-tier HTTP 429 backoff is traced and is included in observed
+end-to-end wall time, so this table is not a hardware-normalized inference-speed
+comparison. `qwen/qwen3.6-27b` failed the bounded provider JSON-object contract on
+all 30 attempts and therefore has no response usage or completion-time telemetry;
+this is reported as interface compliance failure, not as a claim about latent
+medical-physics knowledge.
 
-The non-monotonic low/high ordering is not evidence that lower effort is better:
-with ten tasks, one trial per task, two patient families, and overlapping Wilson
-intervals, it is sampling noise on a native audit surface. Ultra's 10/10 is a
-perfect result on this bounded pilot, not a claim that the model has saturated
-medical physics. It remains subject to the same independent-review and human-
-baseline gaps as the local rows.
+Three GPT-5.6 effort settings completed the same sealed ten-task runtime three
+times, producing 30 deterministically regraded attempts per effort. These are real
+model outputs and now receive a visible descriptive cross-surface outcome order.
+They are not promoted into either official harness-group rank because the native
+surface does not expose comparable API sampling, token, or latency telemetry.
+
+| Outcome order | Native surface | Safe success | Attempt 95% CI | Safety | Valid output | All-attempt agreement | Rank status |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| 1 | GPT-5.6 high | 76.67% | 59.07–88.21% | 100.0% | 100.0% | 90.0% | Native; no official harness-group rank |
+| 2 | GPT-5.6 ultra | 73.33% | 55.55–85.82% | 100.0% | 100.0% | 60.0% | Native; no official harness-group rank |
+| 3 | GPT-5.6 low | 66.67% | 48.78–80.77% | 100.0% | 100.0% | 80.0% | Native; no official harness-group rank |
+
+The repeated matrix resolves the earlier one-shot low/high reversal, but it still
+does not establish a statistically decisive effort ordering: the Wilson intervals
+overlap substantially and the release contains only two correlated patient
+families. High has the largest point estimate, while ultra has the lowest repeated-
+attempt agreement. All three remain subject to the same independent-review and
+human-baseline gaps as the API/local rows.
 
 `qwen3.5:4b` passed the non-image data-integrity/naming tasks and some plan/dose
 work but remained weak on coarse segmentation (`0.3651` mean segmentation-lane
