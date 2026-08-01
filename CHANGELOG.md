@@ -7,6 +7,7 @@
 - Split official ranks by identical provider/harness revision while retaining a clearly labeled cross-surface point-estimate order, so native evidence is visible without being misrepresented as API-equivalent.
 - Replaced the primary time scatter with a direct-labeled outcome interval plot and added frontier and reliability views grounded in SWE-bench, MLPerf, METR, and Artificial Analysis conventions.
 - Fixed safe-success confidence intervals, per-attempt seed drift, immutable result preflight, recorded attempt indexing, provider edge compatibility, and model-failure versus transport-failure classification.
+- Added a repeatable Sites release packager for the repository's nested `web/` application so the validated build and hosting metadata deploy as one exact-source archive.
 
 ## 0.6.0 - 2026-08-01
 
