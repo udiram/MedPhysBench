@@ -19,7 +19,7 @@ package, or evidence of autonomous clinical competence.
 
 ## Current public release
 
-- Live site: `https://62fd19716942a2a0f8.v2.appdeploy.ai/`
+- Live site: `https://medphysbench.xs8psvkmj6.chatgpt.site/`
 - Public repository: `https://github.com/udiram/MedPhysBench`
 - Scored core snapshot: `public-core-v0.4` (`64` tasks; five comparable local models)
 - Hardening candidate: `public-core-v0.5` (`82` tasks, including `18` TG-263-aligned structure-naming tasks)
