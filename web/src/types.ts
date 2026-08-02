@@ -199,6 +199,7 @@ export type Leaderboard = {
     ranked_model_count?: number;
     unranked_model_count?: number;
     release_contract_hash?: string;
+    release_contract_hash_v2?: string;
   };
   release_integrity?: {
     expected_attempt_count_per_model?: number;

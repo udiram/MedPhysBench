@@ -1,6 +1,7 @@
 import { ChevronDown, Search } from "lucide-react";
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { domainLabel, formatDuration, formatPercent, formatTokens, shortHash } from "../lib/format";
+import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import type {
   Leaderboard,
   ModelCatalogEntry,
@@ -40,6 +41,26 @@ type ModelGroup = {
   native_count: number;
 };
 
+function isCommonHarnessRun(run: PublicRun): boolean {
+  if (run.execution_surface) {
+    return run.execution_surface === "common_harness";
+  }
+  if (run.run_profile) {
+    return Boolean(run.run_profile.is_common_harness);
+  }
+  return run.ranking_eligible;
+}
+
+function isNativeRun(run: PublicRun): boolean {
+  if (run.execution_surface) {
+    return run.execution_surface !== "common_harness";
+  }
+  if (run.run_profile) {
+    return Boolean(run.run_profile.is_recorded_import_surface);
+  }
+  return !run.ranking_eligible;
+}
+
 export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
   const [query, setQuery] = useState("");
   const [openness, setOpenness] = useState<ModelOpenness | "all">("all");
@@ -48,6 +69,7 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
   const [surface, setSurface] = useState<"all" | "common" | "native">("all");
   const [expanded, setExpanded] = useState<string | null>(null);
   const deferredQuery = useDeferredValue(query);
+  const allDatasetsReady = datasets.every((dataset) => dataset.data !== null);
 
   const catalogMap = useMemo(
     () => new Map(catalog.map((entry) => [`${entry.provider}::${entry.model_name}`, entry])),
@@ -94,8 +116,8 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
       const matchesRelease = release === "all" || row.release_key === release;
       const matchesSurface =
         surface === "all" ||
-        (surface === "common" && row.ranking_eligible) ||
-        (surface === "native" && !row.ranking_eligible);
+        (surface === "common" && isCommonHarnessRun(row)) ||
+        (surface === "native" && isNativeRun(row));
       return matchesQuery && matchesOpenness && matchesProvider && matchesRelease && matchesSurface;
     });
   }, [catalogMap, deferredQuery, openness, provider, release, runs, surface]);
@@ -110,8 +132,8 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
         current.runs.push(row);
         current.release_count = new Set(current.runs.map((item) => item.release_id)).size;
         current.best_safe_success_rate = maxAvailable(current.best_safe_success_rate, explicitRate);
-        current.official_count += row.ranking_eligible ? 1 : 0;
-        current.native_count += row.ranking_eligible ? 0 : 1;
+        current.official_count += isCommonHarnessRun(row) ? 1 : 0;
+        current.native_count += isNativeRun(row) ? 1 : 0;
       } else {
         grouped.set(key, {
           key,
@@ -121,8 +143,8 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
           runs: [row],
           release_count: 1,
           best_safe_success_rate: explicitRate,
-          official_count: row.ranking_eligible ? 1 : 0,
-          native_count: row.ranking_eligible ? 0 : 1,
+          official_count: isCommonHarnessRun(row) ? 1 : 0,
+          native_count: isNativeRun(row) ? 1 : 0,
         });
       }
     }
@@ -135,10 +157,93 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
   }, [catalogMap, filteredRuns]);
 
   const loadedReleaseCount = datasets.filter((dataset) => dataset.data).length;
+  const verifiedBaseModelCount = new Set(
+    runs.map((run) => run.model_name.replace(/\s+\[effort=[^\]]+\]$/, "")),
+  ).size;
   const baseModelCount = new Set(groups.map((group) => group.model_name.replace(/\s+\[effort=[^\]]+\]$/, ""))).size;
   const openCount = groups.filter((group) => (group.catalog?.openness ?? "unknown") === "open").length;
   const closedCount = groups.filter((group) => (group.catalog?.openness ?? "unknown") === "closed").length;
   const groqCount = groups.filter((group) => group.provider === "groq").length;
+
+  useEffect(() => {
+    if (!allDatasetsReady || providers.length === 0) return;
+    if (provider !== "all" && !providers.includes(provider)) {
+      setProvider("all");
+    }
+  }, [allDatasetsReady, provider, providers]);
+
+  useEffect(() => {
+    if (!allDatasetsReady || loadedReleaseCount === 0) return;
+    const linkedModel = getUrlParam("model_name");
+    const linkedProvider = getUrlParam("model_provider");
+    const linkedKey = linkedModel && linkedProvider ? `${linkedProvider}::${linkedModel}` : null;
+    if (linkedKey && groups.some((group) => group.key === linkedKey)) {
+      if (expanded !== linkedKey) setExpanded(linkedKey);
+    } else if (expanded && !groups.some((group) => group.key === expanded)) {
+      setExpanded(null);
+    }
+  }, [allDatasetsReady, expanded, groups, loadedReleaseCount]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handlePopState = () => {
+      setQuery(getUrlParam("model_query") ?? "");
+      setOpenness(readEnumParam("openness", ["all", "open", "closed", "unknown"] as const, "all"));
+      setProvider(getUrlParam("provider") ?? "all");
+      setRelease(readEnumParam("model_release", ["all", "core", "imaging", "tg263", "real"] as const, "all"));
+      setSurface(readEnumParam("surface", ["all", "common", "native"] as const, "all"));
+      const model = getUrlParam("model_name");
+      const modelProvider = getUrlParam("model_provider");
+      setExpanded(model && modelProvider ? `${modelProvider}::${model}` : null);
+    };
+    handlePopState();
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const writeExplorerUrl = (overrides: {
+    query?: string;
+    openness?: ModelOpenness | "all";
+    provider?: string;
+    release?: PublicReleaseKey | "all";
+    surface?: "all" | "common" | "native";
+    expanded?: string | null;
+    runRelease?: string | null;
+    taskView?: TaskView | null;
+    taskQuery?: string | null;
+  } = {}) => {
+    const nextQuery = overrides.query ?? query;
+    const nextOpenness = overrides.openness ?? openness;
+    const nextProvider = overrides.provider ?? provider;
+    const nextRelease = overrides.release ?? release;
+    const nextSurface = overrides.surface ?? surface;
+    const hasExpandedOverride = Object.prototype.hasOwnProperty.call(overrides, "expanded");
+    const filtersChanged = ["query", "openness", "provider", "release", "surface"].some((key) =>
+      Object.prototype.hasOwnProperty.call(overrides, key),
+    );
+    const nextExpanded = hasExpandedOverride
+      ? (overrides.expanded ?? null)
+      : filtersChanged
+        ? null
+        : expanded;
+    if (filtersChanged && expanded) setExpanded(null);
+    const modelProvider = nextExpanded ? nextExpanded.split("::", 2)[0] : null;
+    const modelName = nextExpanded ? nextExpanded.slice((modelProvider?.length ?? 0) + 2) : null;
+    const selectedModelChanged =
+      getUrlParam("model_provider") !== modelProvider || getUrlParam("model_name") !== modelName;
+    setUrlParams({
+      model_query: nextQuery || null,
+      openness: nextOpenness === "all" ? null : nextOpenness,
+      provider: nextProvider === "all" ? null : nextProvider,
+      model_release: nextRelease === "all" ? null : nextRelease,
+      surface: nextSurface === "all" ? null : nextSurface,
+      model_provider: modelProvider,
+      model_name: modelName,
+      run_release: nextExpanded ? (overrides.runRelease ?? (selectedModelChanged ? null : getUrlParam("run_release"))) : null,
+      task_view: nextExpanded ? (overrides.taskView ?? (selectedModelChanged ? null : getUrlParam("task_view"))) : null,
+      task_query: nextExpanded ? (overrides.taskQuery ?? (selectedModelChanged ? null : getUrlParam("task_query"))) : null,
+    });
+  };
 
   return (
     <section className="model-index-section" id="model-index">
@@ -154,7 +259,9 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
         <article>
           <span>Model systems</span>
           <strong>{groups.length}</strong>
-          <small>{baseModelCount} base model IDs · {loadedReleaseCount} public releases loaded</small>
+          <small>
+            {baseModelCount} base IDs in this slice · {verifiedBaseModelCount}/50 fleet target verified · {loadedReleaseCount} releases loaded
+          </small>
         </article>
         <article>
           <span>Open-weight</span>
@@ -180,7 +287,11 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
             <Search aria-hidden="true" />
             <input
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                const value = event.target.value;
+                setQuery(value);
+                writeExplorerUrl({ query: value });
+              }}
               placeholder="Model, family, provider, or release"
             />
           </span>
@@ -188,7 +299,11 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
         <label className="field">
           <span>Openness</span>
           <span className="select-wrap">
-            <select value={openness} onChange={(event) => setOpenness(event.target.value as ModelOpenness | "all")}>
+            <select value={openness} onChange={(event) => {
+              const value = event.target.value as ModelOpenness | "all";
+              setOpenness(value);
+              writeExplorerUrl({ openness: value });
+            }}>
               <option value="all">All systems</option>
               <option value="open">Open weights</option>
               <option value="closed">Closed weights</option>
@@ -200,7 +315,11 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
         <label className="field">
           <span>Provider</span>
           <span className="select-wrap">
-            <select value={provider} onChange={(event) => setProvider(event.target.value)}>
+            <select value={provider} onChange={(event) => {
+              const value = event.target.value;
+              setProvider(value);
+              writeExplorerUrl({ provider: value });
+            }}>
               <option value="all">All providers</option>
               {providers.map((value) => (
                 <option key={value} value={value}>
@@ -214,7 +333,11 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
         <label className="field">
           <span>Release</span>
           <span className="select-wrap">
-            <select value={release} onChange={(event) => setRelease(event.target.value as PublicReleaseKey | "all")}>
+            <select value={release} onChange={(event) => {
+              const value = event.target.value as PublicReleaseKey | "all";
+              setRelease(value);
+              writeExplorerUrl({ release: value });
+            }}>
               <option value="all">All public releases</option>
               {datasets.map((dataset) => (
                 <option key={dataset.key} value={dataset.key}>
@@ -228,7 +351,11 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
         <label className="field">
           <span>Execution surface</span>
           <span className="select-wrap">
-            <select value={surface} onChange={(event) => setSurface(event.target.value as "all" | "common" | "native")}>
+            <select value={surface} onChange={(event) => {
+              const value = event.target.value as "all" | "common" | "native";
+              setSurface(value);
+              writeExplorerUrl({ surface: value });
+            }}>
               <option value="all">All surfaces</option>
               <option value="common">Common harness</option>
               <option value="native">Native / recorded surface</option>
@@ -259,7 +386,11 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
                   key={group.key}
                   expanded={expanded === group.key}
                   group={group}
-                  onToggle={() => setExpanded((value) => (value === group.key ? null : group.key))}
+                  onToggle={() => {
+                    const nextExpanded = expanded === group.key ? null : group.key;
+                    setExpanded(nextExpanded);
+                    writeExplorerUrl({ expanded: nextExpanded });
+                  }}
                 />
               ))}
             </tbody>
@@ -361,8 +492,8 @@ function ModelRegistryRow({
                             <p>{run.release_id}</p>
                           </div>
                           <div className="registry-run-badges">
-                            <span className={run.ranking_eligible ? "result-chip common" : "result-chip native"}>
-                              {run.ranking_eligible ? "Common harness" : "Native surface"}
+                            <span className={isCommonHarnessRun(run) ? "result-chip common" : "result-chip native"}>
+                              {isCommonHarnessRun(run) ? "Common harness" : "Native surface"}
                             </span>
                             <span className="result-chip score">{formatPercent(run.safe_success_rate)}</span>
                           </div>
@@ -388,8 +519,16 @@ function ModelRegistryRow({
                             <dd>{formatTokens(run.token_usage?.median_total_tokens)}</dd>
                           </div>
                           <div>
+                            <dt>Token coverage</dt>
+                            <dd>{telemetryCoverage(run.token_usage?.observed_attempts, run.token_usage?.expected_attempts)}</dd>
+                          </div>
+                          <div>
                             <dt>Median time</dt>
                             <dd>{formatDuration(run.median_duration_seconds)}</dd>
+                          </div>
+                          <div>
+                            <dt>Time coverage</dt>
+                            <dd>{telemetryCoverage(run.duration_telemetry?.observed_attempts, run.duration_telemetry?.expected_attempts)}</dd>
                           </div>
                           <div>
                             <dt>Tasks</dt>
@@ -419,9 +558,27 @@ function ModelRegistryRow({
 type TaskView = "all" | "safe-pass" | "safe-fail" | "unsafe" | "unknown";
 
 function RunTaskExplorer({ run }: { run: PublicRun }) {
-  const [view, setView] = useState<TaskView>("all");
-  const [query, setQuery] = useState("");
+  const isSelectedRun =
+    getUrlParam("model_provider") === run.provider &&
+    getUrlParam("model_name") === run.model_name &&
+    getUrlParam("run_release") === run.release_key;
+  const [view, setView] = useState<TaskView>(() =>
+    isSelectedRun
+      ? readEnumParam("task_view", ["all", "safe-pass", "safe-fail", "unsafe", "unknown"] as const, "all")
+      : "all",
+  );
+  const [query, setQuery] = useState(() => (isSelectedRun ? getUrlParam("task_query") ?? "" : ""));
   const normalized = query.trim().toLowerCase();
+  const counts = useMemo<Record<TaskView, number>>(
+    () => ({
+      all: run.tasks.length,
+      "safe-pass": run.tasks.filter((task) => taskOutcome(task) === "safe-pass").length,
+      "safe-fail": run.tasks.filter((task) => taskOutcome(task) === "safe-fail").length,
+      unsafe: run.tasks.filter((task) => taskOutcome(task) === "unsafe").length,
+      unknown: run.tasks.filter((task) => taskOutcome(task) === "unknown").length,
+    }),
+    [run.tasks],
+  );
   const tasks = run.tasks.filter((task) => {
     const matchesView = view === "all" || taskOutcome(task) === view;
     const matchesQuery =
@@ -433,6 +590,23 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
       task.failed_graders?.some((grader) => grader.toLowerCase().includes(normalized)) === true;
     return matchesView && matchesQuery;
   });
+
+  useEffect(() => {
+    if (!isSelectedRun) return;
+    setView(readEnumParam("task_view", ["all", "safe-pass", "safe-fail", "unsafe", "unknown"] as const, "all"));
+    setQuery(getUrlParam("task_query") ?? "");
+  }, [isSelectedRun]);
+
+  const writeRunUrl = (next: { view?: TaskView; query?: string } = {}) => {
+    if (getUrlParam("model_provider") !== run.provider || getUrlParam("model_name") !== run.model_name) return;
+    const nextView = next.view ?? view;
+    const nextQuery = next.query ?? query;
+    setUrlParams({
+      run_release: run.release_key,
+      task_view: nextView === "all" ? null : nextView,
+      task_query: nextQuery || null,
+    });
+  };
 
   return (
     <section className="run-task-explorer" aria-label={`${run.model_name} task evidence for ${run.release_title}`}>
@@ -449,9 +623,12 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
             type="button"
             role="tab"
             aria-selected={view === value}
-            onClick={() => setView(value)}
+            onClick={() => {
+              setView(value);
+              writeRunUrl({ view: value });
+            }}
           >
-            {label}
+            {label} ({counts[value]})
           </button>
         ))}
       </div>
@@ -459,7 +636,11 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
         <Search aria-hidden="true" />
         <input
           value={query}
-          onChange={(event) => setQuery(event.target.value)}
+          onChange={(event) => {
+            const value = event.target.value;
+            setQuery(value);
+            writeRunUrl({ query: value });
+          }}
           placeholder="Search task, domain, failed lane, or grader"
           aria-label="Search task evidence"
         />
@@ -541,4 +722,9 @@ function opennessLabel(value: ModelOpenness) {
   if (value === "open") return "Open";
   if (value === "closed") return "Closed";
   return "Unknown";
+}
+
+function telemetryCoverage(observed?: number, expected?: number) {
+  if (observed == null || expected == null) return "Unavailable";
+  return `${observed}/${expected}`;
 }

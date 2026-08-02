@@ -105,7 +105,8 @@ uv run medphys-bench run-release \
   releases/public_core_v0_4.yaml \
   --adapter ollama \
   --model qwen3.5:4b \
-  --results-dir runs
+  --results-dir runs \
+  --resume
 uv run medphys-bench summarize \
   releases/public_core_v0_4.yaml \
   --results-dir runs \

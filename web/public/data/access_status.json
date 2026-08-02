@@ -115,8 +115,8 @@
     "model": "qwen3.5:397b-cloud",
     "status": "blocked",
     "surface": "ollama_cloud",
-    "date": "2026-07-31",
-    "note": "Blocked by Ollama Cloud HTTP 429 weekly usage limit during live access check."
+    "date": "2026-08-02",
+    "note": "Blocked by Ollama Cloud HTTP 429 weekly usage limit; live access was reconfirmed before publication."
   },
   {
     "model": "kimi-k2.5:cloud",

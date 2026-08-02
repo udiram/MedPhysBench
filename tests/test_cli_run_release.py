@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from medphys_agentbench import cli
+from medphys_agentbench.adapters.base import AgentResult
 from medphys_agentbench.adapters.openai_compatible import UnsupportedCapabilityError
 from medphys_agentbench.contracts import ModelDescriptor
 from medphys_agentbench.release_loader import load_release
@@ -36,6 +37,50 @@ class _FakeAdapter:
             harness_name="test-harness",
             harness_revision="test-harness-v1",
         )
+
+
+class _ReferenceFakeAdapter(_FakeAdapter):
+    def __init__(self, model_name: str, seed: int, outputs: dict[str, dict[str, object]]) -> None:
+        super().__init__(model_name, seed)
+        self.outputs = outputs
+
+    def execute(self, task: object) -> AgentResult:
+        task_id = str(task.task_id)
+        return AgentResult(final_output=self.outputs[task_id], trace=[], raw_response={})
+
+
+def _reference_output(task: object) -> dict[str, object]:
+    output = task.grading.get("development_reference_output")
+    if isinstance(output, dict):
+        return output
+
+    schema = task.expected_output_schema
+    payload: dict[str, object] = {}
+    for field in schema.get("required", []):
+        field_schema = schema.get("properties", {}).get(field, {})
+        raw_types = field_schema.get("type")
+        field_types = {raw_types} if isinstance(raw_types, str) else set(raw_types or [])
+        if "const" in field_schema:
+            payload[field] = field_schema["const"]
+        elif field_schema.get("enum"):
+            payload[field] = field_schema["enum"][0]
+        elif "boolean" in field_types:
+            payload[field] = False
+        elif field_types & {"number", "integer"}:
+            payload[field] = 0
+        elif "array" in field_types:
+            payload[field] = []
+        else:
+            payload[field] = "research limitation"
+    for grader in task.grading.get("graders", []):
+        field = grader["field"]
+        if grader["type"] in {"exact_match", "numeric_tolerance", "unordered_list_exact_match", "bounding_box_iou"}:
+            payload[field] = grader["expected"]
+        elif grader["type"] == "contains_all_strings":
+            payload[field] = " ".join(grader["expected"])
+    if "requires_escalation" in payload:
+        payload["requires_escalation"] = bool(task.safety.get("requires_escalation", False))
+    return payload
 
 
 def test_run_release_uses_attempt_seed_in_adapter_and_refuses_overwrite(
@@ -127,3 +172,124 @@ def test_run_release_scores_unsupported_required_modality_as_completed_zero(
     summary = summarize_release(load_release("releases/public_imaging_pilot_v0_4.yaml"), tmp_path)
     assert summary["integrity"]["ranked_model_count"] == 1
     assert summary["models"][0]["safe_success_rate"] == 0.0
+
+
+def test_run_release_resume_validates_and_fills_only_missing_attempts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    release = load_release("releases/public_imaging_pilot_v0_4.yaml")
+    outputs = {task.task_id: _reference_output(task) for task in release.load_tasks()}
+    monkeypatch.setattr(
+        cli,
+        "_build_adapter",
+        lambda *args, seed, **_kwargs: _ReferenceFakeAdapter(str(args[1]), seed, outputs),
+    )
+    command = [
+        "medphys-bench",
+        "run-release",
+        "releases/public_imaging_pilot_v0_4.yaml",
+        "--adapter",
+        "groq",
+        "--model",
+        "resume-model",
+        "--seed",
+        "81",
+        "--results-dir",
+        str(tmp_path),
+    ]
+    monkeypatch.setattr(sys, "argv", command)
+    cli.main()
+
+    paths = sorted(tmp_path.rglob("*.json"))
+    assert len(paths) == 5
+    preserved_path = paths[0]
+    preserved_bytes = preserved_path.read_bytes()
+    missing_path = paths[-1]
+    missing_path.unlink()
+
+    monkeypatch.setattr(sys, "argv", [*command, "--resume"])
+    cli.main()
+
+    assert len(list(tmp_path.rglob("*.json"))) == 5
+    assert preserved_path.read_bytes() == preserved_bytes
+    assert missing_path.exists()
+
+
+def test_run_release_resume_rejects_mismatched_immutable_checkpoint(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    release = load_release("releases/public_imaging_pilot_v0_4.yaml")
+    outputs = {task.task_id: _reference_output(task) for task in release.load_tasks()}
+    monkeypatch.setattr(
+        cli,
+        "_build_adapter",
+        lambda *args, seed, **_kwargs: _ReferenceFakeAdapter(str(args[1]), seed, outputs),
+    )
+    command = [
+        "medphys-bench",
+        "run-release",
+        "releases/public_imaging_pilot_v0_4.yaml",
+        "--adapter",
+        "groq",
+        "--model",
+        "resume-model",
+        "--seed",
+        "91",
+        "--results-dir",
+        str(tmp_path),
+    ]
+    monkeypatch.setattr(sys, "argv", command)
+    cli.main()
+
+    artifact_path = sorted(tmp_path.rglob("*.json"))[0]
+    artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
+    artifact["manifest"]["seed"] = 999
+    artifact_path.write_text(json.dumps(artifact), encoding="utf-8")
+
+    monkeypatch.setattr(sys, "argv", [*command, "--resume"])
+    with pytest.raises(SystemExit, match="does not match the requested campaign contract.*seed"):
+        cli.main()
+
+
+def test_run_release_transport_failure_leaves_attempt_key_resumable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        cli,
+        "_build_adapter",
+        lambda *args, seed, **_kwargs: _FakeAdapter(str(args[1]), seed),
+    )
+    command = [
+        "medphys-bench",
+        "run-release",
+        "releases/public_imaging_pilot_v0_4.yaml",
+        "--adapter",
+        "groq",
+        "--model",
+        "transient-model",
+        "--results-dir",
+        str(tmp_path),
+        "--fail-fast",
+    ]
+    monkeypatch.setattr(
+        cli,
+        "run_trial",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("temporary provider outage")),
+    )
+    monkeypatch.setattr(sys, "argv", command)
+
+    with pytest.raises(RuntimeError, match="temporary provider outage"):
+        cli.main()
+
+    model_dir = tmp_path / "public-imaging-pilot-v0.4" / "transient_model"
+    error_paths = list((model_dir / "_transport_errors").glob("*.json"))
+    assert len(error_paths) == 1
+    assert list(model_dir.glob("*.json")) == []
+    error_bytes = error_paths[0].read_bytes()
+
+    monkeypatch.setattr(cli, "run_trial", lambda *_args, **_kwargs: _FakeResult())
+    monkeypatch.setattr(sys, "argv", [*command[:-1], "--resume"])
+    cli.main()
+
+    assert len(list(model_dir.glob("*.json"))) == 5
+    assert error_paths[0].read_bytes() == error_bytes

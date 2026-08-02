@@ -20,7 +20,7 @@ from .adapters.openai_compatible import (
 )
 from .adapters.recorded import RecordedOutputAdapter
 from .adapters.reference import DevelopmentReferenceAgent
-from .contracts import TaskSpec
+from .contracts import ModelDescriptor, TaskSpec
 from .prompting import SYSTEM_PROMPT
 from .release_loader import load_release
 from .reporting import summarize_release, write_summary
@@ -84,7 +84,11 @@ def main() -> None:
     )
     run_release.add_argument("--model", action="append", required=True)
     run_release.add_argument("--results-dir", type=Path, default=Path("runs"))
-    run_release.add_argument("--attempts", type=int, default=1)
+    run_release.add_argument(
+        "--attempts",
+        type=int,
+        help="Attempts per task; defaults to the frozen release contract.",
+    )
     run_release.add_argument("--base-url")
     run_release.add_argument("--api-key-env")
     run_release.add_argument("--provider")
@@ -102,6 +106,14 @@ def main() -> None:
     )
     run_release.add_argument("--ollama-num-ctx", type=int, default=4096)
     run_release.add_argument("--fail-fast", action="store_true")
+    run_release.add_argument(
+        "--resume",
+        action="store_true",
+        help=(
+            "Continue only missing immutable attempt keys. Existing artifacts are validated "
+            "against the exact task, model, settings, and scoring contract before any new request."
+        ),
+    )
 
     summarize = subparsers.add_parser("summarize", help="Build leaderboard JSON from a completed release run.")
     summarize.add_argument("release_file", type=Path)
@@ -220,7 +232,8 @@ def main() -> None:
     if args.command == "run-release":
         release = load_release(args.release_file)
         tasks = release.load_tasks()
-        if args.attempts < 1:
+        attempts = args.attempts if args.attempts is not None else release.expected_attempts_per_task
+        if attempts < 1:
             raise SystemExit("--attempts must be at least 1.")
 
         output_catalog: dict[str, list[Path]] = {}
@@ -229,23 +242,76 @@ def main() -> None:
             output_catalog[model_name] = [
                 model_dir / f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}.json"
                 for task in tasks
-                for attempt_index in range(args.attempts)
+                for attempt_index in range(attempts)
             ]
         existing_paths = [path for paths in output_catalog.values() for path in paths if path.exists()]
-        if existing_paths:
+        if existing_paths and not args.resume:
             raise SystemExit(
                 "Release result artifacts are immutable; refusing to overwrite "
                 f"{len(existing_paths)} existing file(s), beginning with {existing_paths[0]}. "
-                "Use a new results directory or model revision label."
+                "Use --resume to validate and skip exact existing attempts, or use a new "
+                "results directory/model revision label."
             )
+
+        if existing_paths:
+            for model_name in args.model:
+                descriptor = _build_adapter(
+                    args.adapter,
+                    model_name,
+                    args.base_url,
+                    args.timeout,
+                    seed=args.seed,
+                    temperature=args.temperature,
+                    max_tokens=args.max_tokens,
+                    api_key_env=args.api_key_env,
+                    provider=args.provider,
+                    response_format=args.response_format,
+                    strict_schema=not args.best_effort_schema,
+                    reasoning_effort=args.reasoning_effort,
+                    ollama_keep_alive=args.ollama_keep_alive,
+                    ollama_num_ctx=args.ollama_num_ctx,
+                ).model_descriptor()
+                model_dir = args.results_dir / release.release_id / _slugify(model_name)
+                for task in tasks:
+                    for attempt_index in range(attempts):
+                        output_path = model_dir / (
+                            f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}.json"
+                        )
+                        if output_path.exists():
+                            _validate_resumable_attempt(
+                                output_path,
+                                task=task,
+                                model_descriptor=descriptor,
+                                attempt_index=attempt_index,
+                                seed=args.seed + attempt_index,
+                                temperature=args.temperature,
+                                max_tokens=args.max_tokens,
+                            )
 
         for model_name in args.model:
             model_slug = _slugify(model_name)
             model_dir = args.results_dir / release.release_id / model_slug
             model_dir.mkdir(parents=True, exist_ok=True)
             for task in tasks:
-                for attempt_index in range(args.attempts):
+                for attempt_index in range(attempts):
                     attempt_seed = args.seed + attempt_index
+                    output_path = model_dir / (
+                        f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}.json"
+                    )
+                    if output_path.exists():
+                        print(
+                            json.dumps(
+                                {
+                                    "model": model_name,
+                                    "task_id": task.task_id,
+                                    "attempt": attempt_index + 1,
+                                    "status": "skipped_existing",
+                                    "output_file": str(output_path),
+                                },
+                                sort_keys=True,
+                            )
+                        )
+                        continue
                     adapter = _build_adapter(
                         args.adapter,
                         model_name,
@@ -263,7 +329,6 @@ def main() -> None:
                         ollama_num_ctx=args.ollama_num_ctx,
                     )
                     run_id = str(uuid4())
-                    output_path = model_dir / (f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}.json")
                     try:
                         result = run_trial(
                             task,
@@ -360,9 +425,25 @@ def main() -> None:
                             "raw_response": {},
                             "duration_seconds": 0.0,
                         }
+                        error_path = model_dir / "_transport_errors" / (
+                            f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}--{run_id}.json"
+                        )
+                        _write_json_exclusive(error_path, payload)
+                        print(
+                            json.dumps(
+                                {
+                                    "model": model_name,
+                                    "task_id": task.task_id,
+                                    "attempt": attempt_index + 1,
+                                    "status": "transport_error_uncommitted",
+                                    "error_file": str(error_path),
+                                },
+                                sort_keys=True,
+                            )
+                        )
                         if args.fail_fast:
-                            _write_json_exclusive(output_path, payload)
                             raise
+                        continue
                     _write_json_exclusive(output_path, payload)
                     print(
                         json.dumps(
@@ -522,6 +603,81 @@ def _write_json_exclusive(path: Path, payload: dict[str, object]) -> None:
     with path.open("x", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2, sort_keys=True)
         handle.write("\n")
+
+
+def _validate_resumable_attempt(
+    path: Path,
+    *,
+    task: TaskSpec,
+    model_descriptor: ModelDescriptor,
+    attempt_index: int,
+    seed: int,
+    temperature: float,
+    max_tokens: int,
+) -> None:
+    """Prove that an immutable checkpoint belongs to the requested campaign."""
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise SystemExit(f"Cannot resume from unreadable result artifact {path}: {error}") from error
+    if not isinstance(payload, dict):
+        raise SystemExit(f"Cannot resume: result artifact {path} must contain a JSON object.")
+
+    manifest = payload.get("manifest")
+    if not isinstance(manifest, dict):
+        raise SystemExit(f"Cannot resume: result artifact {path} has no run manifest.")
+    expected = {
+        "task_id": task.task_id,
+        "task_version": task.version,
+        "model": asdict(model_descriptor),
+        "seed": seed,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "prompt_hash": prompt_hash_for_task(task),
+        "tool_schema_hash": tool_schema_hash_for_task(task),
+        "system_prompt_hash": system_prompt_hash(),
+        "runtime_task_hash": runtime_task_hash_for_task(task),
+        "grader_hash": grader_hash_for_task(task),
+        "scoring_revision": SCORING_REVISION,
+    }
+    mismatches = [key for key, value in expected.items() if manifest.get(key) != value]
+    if payload.get("attempt_index") != attempt_index:
+        mismatches.append("attempt_index")
+    if payload.get("status") not in {"completed", "error"}:
+        mismatches.append("status")
+    if not isinstance(manifest.get("run_id"), str) or not manifest["run_id"].strip():
+        mismatches.append("run_id")
+    if mismatches:
+        raise SystemExit(
+            f"Cannot resume: immutable result artifact {path} does not match the requested "
+            f"campaign contract ({', '.join(sorted(set(mismatches)))})."
+        )
+
+    if payload.get("status") == "completed":
+        output = payload.get("output")
+        if not isinstance(output, dict):
+            raise SystemExit(f"Cannot resume: completed result artifact {path} has no JSON output object.")
+        grades = score_attempt(task, output)
+        expected_grades = [grade.to_dict() for grade in grades]
+        stored_score = payload.get("score")
+        score_matches = isinstance(stored_score, (int, float)) and abs(
+            float(stored_score) - weighted_grade_score(grades)
+        ) <= 1e-12
+        if (
+            payload.get("grades") != expected_grades
+            or payload.get("passed") is not grades_pass(grades)
+            or payload.get("safe") is not grades_safe(grades)
+            or not score_matches
+        ):
+            raise SystemExit(
+                f"Cannot resume: completed result artifact {path} disagrees with deterministic regrading."
+            )
+    else:
+        raise SystemExit(
+            f"Cannot resume: legacy transport-error artifact {path} occupies an immutable attempt key. "
+            "Use a new results directory for this campaign. Current runners store transport failures "
+            "in an append-only side ledger so the canonical attempt remains resumable."
+        )
 
 
 def _sealed_batch_payload(release_id: str, tasks: list[TaskSpec]) -> dict[str, object]:

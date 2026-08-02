@@ -1,10 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { domainLabel, formatPercent } from "../lib/format";
-import type { Leaderboard, ModelResult, ReleaseView } from "../types";
+import type { Leaderboard, ModelCatalogEntry, ModelResult, ReleaseView } from "../types";
 
 type ViewMode = "capability" | "failures" | "evidence";
 type ScopeMode = "official" | "native" | "all";
-type Props = { data: Leaderboard | null; loadError?: boolean; releaseView: ReleaseView };
+type SourceFilter = "all" | "open" | "closed" | "unknown";
+
+type Props = {
+  data: Leaderboard | null;
+  loadError?: boolean;
+  releaseView: ReleaseView;
+  modelCatalog: ModelCatalogEntry[];
+};
 
 type Family = {
   id: string;
@@ -13,9 +20,10 @@ type Family = {
   domain?: string;
 };
 
-export function CapabilityExplorer({ data, loadError = false, releaseView }: Props) {
+export function CapabilityExplorer({ data, loadError = false, releaseView, modelCatalog }: Props) {
   const [view, setView] = useState<ViewMode>("capability");
   const [scope, setScope] = useState<ScopeMode>("official");
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
   const effectiveScope = scope === "official" && data?.models.length === 0 && (data.unranked_models?.length ?? 0) > 0
     ? "native"
     : scope;
@@ -26,16 +34,26 @@ export function CapabilityExplorer({ data, loadError = false, releaseView }: Pro
   }, [data, releaseView]);
 
   const rows = useMemo(() => {
+    const catalogIndex = Object.fromEntries(
+      modelCatalog.map((entry) => [`${entry.provider}::${entry.model_name}`, entry]),
+    );
     const combined = data ? [...data.models, ...(data.unranked_models ?? [])] : [];
     return combined
-      .filter((row) => effectiveScope === "all" || (effectiveScope === "official" ? row.ranking_eligible : !row.ranking_eligible))
+      .filter((row) => {
+        const surfaceMatch =
+          effectiveScope === "all" ||
+          (effectiveScope === "official" ? isCommonHarnessRow(row) : !isCommonHarnessRow(row));
+        const source = modelSource(row, catalogIndex);
+        const sourceMatch = sourceFilter === "all" || source === sourceFilter;
+        return surfaceMatch && sourceMatch;
+      })
       .sort((a, b) => {
         if (effectiveScope === "official") {
           return rankGroup(a).localeCompare(rankGroup(b)) || (a.rank ?? Infinity) - (b.rank ?? Infinity);
         }
         return (a.outcome_rank ?? Infinity) - (b.outcome_rank ?? Infinity);
       });
-  }, [data, effectiveScope]);
+  }, [data, effectiveScope, modelCatalog, sourceFilter]);
   const families = useMemo(() => buildFamilies(data, rows), [data, rows]);
 
   if (!data) {
@@ -90,6 +108,17 @@ export function CapabilityExplorer({ data, loadError = false, releaseView }: Pro
             </button>
           ))}
         </div>
+        <label className="field">
+          <span>Model source</span>
+          <span className="select-wrap">
+            <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as SourceFilter)}>
+              <option value="all">Open + closed</option>
+              <option value="open">Open-source</option>
+              <option value="closed">Closed</option>
+              <option value="unknown">Unclassified</option>
+            </select>
+          </span>
+        </label>
       </div>
 
       {view === "capability" && <CapabilityMatrix rows={rows} families={families} scope={effectiveScope} />}
@@ -162,6 +191,22 @@ function CapabilityMatrix({ rows, families, scope }: { rows: ModelResult[]; fami
   );
 }
 
+function isCommonHarnessRow(row: ModelResult): boolean {
+  if (row.execution_surface) {
+    return row.execution_surface === "common_harness";
+  }
+  return row.run_profile?.is_common_harness ?? row.ranking_eligible;
+}
+
+function modelSource(
+  row: ModelResult,
+  catalogIndex: Record<string, ModelCatalogEntry>,
+): "open" | "closed" | "unknown" {
+  const modelKey = `${row.provider}::${row.model_name}`;
+  const catalog = catalogIndex[modelKey];
+  return catalog?.openness ?? "unknown";
+}
+
 function FailureBreakdown({ rows }: { rows: ModelResult[] }) {
   if (rows.length === 0) return <EmptyState title="No failure evidence in this scope" body="Choose another comparison scope or release." />;
   const completeRows = rows.filter((row) => row.tasks.length > 0 && row.tasks.every((task) => typeof task.passed === "boolean"));
@@ -208,7 +253,7 @@ function FailureBreakdown({ rows }: { rows: ModelResult[] }) {
   );
 }
 
-function EvidenceQuality({ data, releaseView }: Props) {
+function EvidenceQuality({ data, releaseView }: Pick<Props, "data" | "releaseView">) {
   const officialRows = data?.models ?? [];
   const completeRows = officialRows.filter((row) => row.completed_count === row.expected_attempt_count).length;
   const repeats = data?.release.expected_attempts_per_task ?? 1;

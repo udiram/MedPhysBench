@@ -15,6 +15,7 @@ from medphys_agentbench.json_utils import decode_strict_json_object
 from medphys_agentbench.release_loader import load_release
 from medphys_agentbench.scoring import score_attempt
 from medphys_agentbench.task_loader import load_task
+from medphys_agentbench.validation import validate_grader_mutations
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = ROOT / "schemas"
@@ -86,6 +87,7 @@ def validate_repository() -> dict[str, int]:
             extra = sorted(set(reviewed_task_ids).difference(expected_task_ids))
             raise ValueError(f"{path}: review task coverage mismatch; missing={missing}, extra={extra}.")
 
+    grader_mutation_count = 0
     task_paths = sorted((ROOT / "tasks").rglob("task.yaml"))
     for path in task_paths:
         _validate(validators["task"], _load_yaml(path), path)
@@ -105,6 +107,7 @@ def validate_repository() -> dict[str, int]:
         if failed:
             rationales = "; ".join(f"{grade.grader_id}: {grade.rationale}" for grade in failed)
             raise ValueError(f"{path}: authored graders reject their constructed reference: {rationales}")
+        grader_mutation_count += validate_grader_mutations(task, reference_output, path)
 
     result_paths = sorted((ROOT / "results" / "releases").glob("*/*/*.json"))
     for path in result_paths:
@@ -124,6 +127,7 @@ def validate_repository() -> dict[str, int]:
         "review_evidence_count": len(review_paths),
         "task_count": len(task_paths),
         "result_count": len(result_paths),
+        "grader_mutation_count": grader_mutation_count,
     }
 
 

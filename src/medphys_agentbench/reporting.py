@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from .contracts import TaskSpec
 from .json_utils import stable_hash
 from .release_loader import BenchmarkRelease
 from .runner import (
@@ -107,24 +108,17 @@ def summarize_release(
             "expected_attempt_count": len(expected_attempt_keys),
             "ranked_model_count": len(ranked_rows),
             "unranked_model_count": len(unranked_rows),
-            "release_contract_hash": stable_hash(
-                {
-                    "release_id": release.release_id,
-                    "expected_attempts_per_task": expected_attempts,
-                    "tasks": [
-                        {
-                            "task_id": task.task_id,
-                            "version": task.version,
-                            "prompt_hash": task_hash_catalog[task.task_id]["prompt_hash"],
-                            "tool_schema_hash": task_hash_catalog[task.task_id]["tool_schema_hash"],
-                            "runtime_task_hash": task_hash_catalog[task.task_id]["runtime_task_hash"],
-                            "system_prompt_hash": task_hash_catalog[task.task_id]["system_prompt_hash"],
-                            "grader_hash": task_hash_catalog[task.task_id]["grader_hash"],
-                            "scoring_revision": SCORING_REVISION,
-                        }
-                        for task in tasks
-                    ],
-                }
+            "release_contract_hash": _release_contract_hash_v1(
+                release_id=release.release_id,
+                expected_attempts=expected_attempts,
+                tasks=tasks,
+                task_hash_catalog=task_hash_catalog,
+            ),
+            "release_contract_hash_v2": _release_contract_hash(
+                release_id=release.release_id,
+                expected_attempts=expected_attempts,
+                tasks=tasks,
+                task_hash_catalog=task_hash_catalog,
             ),
         },
         "models": ranked_models,
@@ -154,6 +148,68 @@ def summarize_release(
             "status": "public research pilot; provisional and not clinical validation",
         },
     }
+
+
+def _release_contract_hash(
+    *,
+    release_id: str,
+    expected_attempts: int,
+    tasks: tuple[TaskSpec, ...],
+    task_hash_catalog: dict[str, dict[str, str]],
+) -> str:
+    return stable_hash(
+        {
+            "schema_version": "medphysbench.release-contract-hash.v2",
+            "release_id": release_id,
+            "expected_attempts_per_task": expected_attempts,
+            "tasks": [
+                {
+                    "task_id": task.task_id,
+                    "version": task.version,
+                    "prompt_hash": task_hash_catalog[task.task_id]["prompt_hash"],
+                    "tool_schema_hash": task_hash_catalog[task.task_id]["tool_schema_hash"],
+                    "runtime_task_hash": task_hash_catalog[task.task_id]["runtime_task_hash"],
+                    "system_prompt_hash": task_hash_catalog[task.task_id]["system_prompt_hash"],
+                    "grader_hash": task_hash_catalog[task.task_id]["grader_hash"],
+                    "scoring_revision": SCORING_REVISION,
+                    "family_id": task.family_id,
+                    "difficulty_tier": task.difficulty_tier,
+                    "source_dependency_id": task.source_dependency_id,
+                    "contamination_tags": sorted(task.contamination_tags),
+                }
+                for task in tasks
+            ],
+        }
+    )
+
+
+def _release_contract_hash_v1(
+    *,
+    release_id: str,
+    expected_attempts: int,
+    tasks: tuple[TaskSpec, ...],
+    task_hash_catalog: dict[str, dict[str, str]],
+) -> str:
+    """Preserve the published v1 hash while v2 pins authoring metadata."""
+    return stable_hash(
+        {
+            "release_id": release_id,
+            "expected_attempts_per_task": expected_attempts,
+            "tasks": [
+                {
+                    "task_id": task.task_id,
+                    "version": task.version,
+                    "prompt_hash": task_hash_catalog[task.task_id]["prompt_hash"],
+                    "tool_schema_hash": task_hash_catalog[task.task_id]["tool_schema_hash"],
+                    "runtime_task_hash": task_hash_catalog[task.task_id]["runtime_task_hash"],
+                    "system_prompt_hash": task_hash_catalog[task.task_id]["system_prompt_hash"],
+                    "grader_hash": task_hash_catalog[task.task_id]["grader_hash"],
+                    "scoring_revision": SCORING_REVISION,
+                }
+                for task in tasks
+            ],
+        }
+    )
 
 
 def write_summary(summary: dict[str, Any], output_file: str | Path) -> None:

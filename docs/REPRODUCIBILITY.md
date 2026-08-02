@@ -25,15 +25,24 @@ uv run medphys-bench run-release \
   --adapter ollama \
   --model qwen3.5:4b \
   --results-dir runs \
-  --attempts 1 \
+  --resume \
   --seed 20260731 \
   --temperature 0 \
   --max-tokens 1024
 ```
 
-Do not rename or remove individual attempt artifacts before summarizing. The release declares one
-expected attempt per task; incomplete, duplicate, unknown-task, mixed-identity, or hash-drifted
-sets are retained as unranked evidence.
+The attempt count defaults to the frozen release contract. `--resume` validates every existing
+checkpoint, including its model descriptor, attempt key, sampling settings, immutable hashes, and
+deterministic regrade, before requesting only missing keys. Without `--resume`, an existing artifact
+is an immutable-overwrite error. Do not rename or remove individual attempt artifacts before
+summarizing; incomplete, duplicate, unknown-task, mixed-identity, or hash-drifted sets are retained
+as unranked evidence.
+
+Provider/network failures are retained under the model's append-only
+`_transport_errors` ledger while the canonical attempt key remains absent. A
+later `--resume` can retry that key without deleting the outage record. Declared
+modality limitations and provider output-contract failures are model outcomes,
+not transport errors, and are deterministically scored in the canonical matrix.
 
 ## Recompute scores
 
@@ -55,6 +64,10 @@ uv run python scripts/sanitize_public_results.py results/releases/public-core-v0
 uv run python scripts/sanitize_public_results.py --check results/releases/public-core-v0.4
 uv run python scripts/validate_repository.py
 ```
+
+Repository validation also applies schema-removal and targeted grader mutations to every task. A
+release cannot validate when a declared grader accepts its corresponding deterministic mutation or
+when a required grader failure does not block overall success.
 
 For a non-API pilot, export the sealed runtime batch and collect strict task-ID-keyed JSON outputs:
 

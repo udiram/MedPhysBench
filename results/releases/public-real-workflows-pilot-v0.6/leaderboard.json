@@ -6,12 +6,13 @@
       "task_count": 10
     }
   ],
-  "generated_at": "2026-08-02T06:53:29.460116+00:00",
+  "generated_at": "2026-08-02T08:27:41.219412+00:00",
   "integrity": {
     "expected_attempt_count": 30,
     "expected_attempts_per_task": 3,
     "ranked_model_count": 9,
     "release_contract_hash": "900c8e2006d2735adacbd247d9aafd2e839db57f394f08922986062fa4c13d80",
+    "release_contract_hash_v2": "c8bb7a810e9598eb37132884301449c1256447c90426f769fd028d3f7237909e",
     "unranked_model_count": 3
   },
   "methodology": {

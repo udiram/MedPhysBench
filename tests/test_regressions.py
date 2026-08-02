@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -14,7 +15,7 @@ from medphys_agentbench.adapters.ollama import _parse_json_object
 from medphys_agentbench.cli import _build_adapter
 from medphys_agentbench.json_utils import decode_strict_json_object
 from medphys_agentbench.release_loader import load_release
-from medphys_agentbench.reporting import _assign_outcome_ranks, summarize_release
+from medphys_agentbench.reporting import _assign_outcome_ranks, _release_contract_hash, summarize_release
 from medphys_agentbench.runner import (
     SCORING_REVISION,
     grader_hash_for_task,
@@ -32,6 +33,7 @@ from medphys_agentbench.scoring import (
     validate_expected_output_shape,
 )
 from medphys_agentbench.task_loader import load_task
+from medphys_agentbench.validation import validate_grader_mutations
 
 
 @given(
@@ -75,6 +77,69 @@ def test_ollama_parser_accepts_exact_json_object() -> None:
 
     assert output == {"answer_percent": 5, "requires_escalation": False}
     assert trace == []
+
+
+def test_release_contract_hash_pins_statistical_and_contamination_metadata() -> None:
+    task = load_task(
+        "tasks/public/radiation_therapy/openkb_pt289_plan_criteria_audit_001/task.yaml"
+    )
+    hashes = {
+        task.task_id: {
+            "prompt_hash": prompt_hash_for_task(task),
+            "tool_schema_hash": tool_schema_hash_for_task(task),
+            "runtime_task_hash": runtime_task_hash_for_task(task),
+            "system_prompt_hash": system_prompt_hash(),
+            "grader_hash": grader_hash_for_task(task),
+        }
+    }
+    baseline = _release_contract_hash(
+        release_id="test-release",
+        expected_attempts=3,
+        tasks=(task,),
+        task_hash_catalog=hashes,
+    )
+
+    changed_family = _release_contract_hash(
+        release_id="test-release",
+        expected_attempts=3,
+        tasks=(replace(task, family_id="different-family"),),
+        task_hash_catalog=hashes,
+    )
+    changed_contamination = _release_contract_hash(
+        release_id="test-release",
+        expected_attempts=3,
+        tasks=(replace(task, contamination_tags=(*task.contamination_tags, "new-tag")),),
+        task_hash_catalog=hashes,
+    )
+
+    assert changed_family != baseline
+    assert changed_contamination != baseline
+
+
+def test_grader_mutation_audit_rejects_non_discriminating_declared_grader(tmp_path: Path) -> None:
+    task = load_task("tasks/public/core_physics/inverse_square_001/task.yaml")
+    broken = replace(
+        task,
+        expected_output_schema={
+            "type": "object",
+            "required": ["statement"],
+            "properties": {"statement": {"type": "string"}},
+            "additionalProperties": False,
+        },
+        grading={
+            "graders": [
+                {
+                    "type": "contains_all_strings",
+                    "field": "statement",
+                    "expected": [""],
+                }
+            ]
+        },
+        safety={},
+    )
+
+    with pytest.raises(ValueError, match="accepted its targeted mutation"):
+        validate_grader_mutations(broken, {"statement": ""}, tmp_path / "task.yaml")
 
 
 def test_json_schema_grade_rejects_non_finite_output() -> None:
@@ -453,6 +518,7 @@ def test_repository_contracts_and_public_artifacts_validate() -> None:
     assert counts["review_evidence_count"] >= 1
     assert counts["task_count"] >= 98
     assert counts["result_count"] >= 120
+    assert counts["grader_mutation_count"] >= 600
 
 
 def test_release_summary_ranks_complete_models(tmp_path: Path) -> None:

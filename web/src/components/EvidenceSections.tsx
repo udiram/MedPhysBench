@@ -80,7 +80,7 @@ export function EvidenceSections({ accessStatus, data, releaseView }: EvidenceSe
             <ul className="board-list">
               <li>Primary metric: <strong>{data?.methodology.primary_metric ?? "safe task success rate"}</strong></li>
               <li>Ranking rule: <strong>{data?.methodology.ranking_rule ?? "complete and internally consistent runs only"}</strong></li>
-              <li>Release hash: <strong className="mono-copy">{shortHash(integrity?.release_contract_hash)}</strong></li>
+              <li>Release hash: <strong className="mono-copy">{shortHash(integrity?.release_contract_hash_v2 ?? integrity?.release_contract_hash)}</strong></li>
               {data?.methodology.family_dependence && <li>Family analysis: <strong>{data.methodology.family_dependence}</strong></li>}
               <li>Blocked access handles remain listed separately from scored rows.</li>
             </ul>

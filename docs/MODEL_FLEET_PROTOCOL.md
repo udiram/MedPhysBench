@@ -84,13 +84,23 @@ only across isolated workers with fixed per-worker resource ceilings.
 Hosted free-tier campaigns must snapshot live quotas before dispatch. HTTP 429,
 retired handles, and weekly limits are access failures, not model failures. The
 runner must resume missing immutable attempt keys without overwriting completed
-artifacts and must never shorten the matrix to fit a quota.
+artifacts and must never shorten the matrix to fit a quota. `run-release --resume`
+validates every existing checkpoint against the frozen task, model descriptor,
+attempt index, seed, sampling settings, prompt/tool/runtime/grader hashes, scoring
+revision, and deterministic regrade before it sends any new request. A mismatched
+or tampered checkpoint aborts the campaign instead of being skipped.
+Provider/network exceptions are written to an append-only `_transport_errors`
+side ledger and do not occupy the canonical task/attempt path. A later
+`--resume` therefore retries the still-missing immutable key while preserving
+the outage evidence. Model capability failures and output-contract failures are
+scored outcomes and remain canonical attempts; they are not transport retries.
 
 ## Current state
 
-The public website currently exposes 20 model configurations across four release
-surfaces, including five completed Groq configurations and six GPT-5.6 effort
-configurations. These are not 20 unique base models. An Ollama Cloud access probe
+The public website currently exposes 20 model configurations representing 15
+unique base model identifiers across four release surfaces, including five
+completed Groq configurations and six GPT-5.6 effort configurations. These are
+not 20 unique base models. An Ollama Cloud access probe
 for `qwen3.5:397b-cloud` on 2026-08-02 returned HTTP 429 before a scored artifact
 was created. The lab-node hostname was not resolvable from the current Mac
 network context. Neither event supports a model score.

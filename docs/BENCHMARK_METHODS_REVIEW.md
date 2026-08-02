@@ -16,6 +16,7 @@ This review compares the current system with contemporary benchmark practice and
 | Private test material in [GAIA](https://arxiv.org/abs/2311.12983), [Humanity's Last Exam](https://agi.safe.ai/), and [FrontierMath](https://epoch.ai/frontiermath) | Protected answers and tasks extend the useful life of difficult evaluations. | Publish aggregate holdout results and contract metadata without task text, golds, or grader internals. |
 | Real executable environments in [OSWorld](https://osworld-v1.xlang.ai/) and [Terminal-Bench](https://www.tbench.ai/) | State-graded workflows measure completion, not merely plausible prose. | Promote read-only DICOM, planning, QA, and analysis sandboxes with deterministic final-state graders. |
 | Trajectory review and reward-hacking policy in [Terminal-Bench](https://www.tbench.ai/news/leaderboard-integrity-update) | Passing a test through leakage or a loophole is not the intended capability. | Require trajectories for protected passing trials, mutation tests, negative controls, and a documented exploit-review decision. |
+| Continuous validation and versioned repairs in [Terminal-Bench 2.1](https://www.tbench.ai/news/terminal-bench-2-1) | Expert-reviewed tasks can still reveal defects after launch, and repairs can materially change model results. | Run validation continuously, publish a new immutable release for task repairs, and retain the prior score plus defect disposition. |
 | Human task-time evidence in [METR/RE-Bench](https://metr.org/blog/2024-11-22-evaluating-r-d-capabilities-of-llms/) | Difficulty labels are stronger when tied to expert work rather than author intuition. | Publish anonymized physicist time, success, confidence, and adjudication evidence under the preregistered protocol. |
 | Scenario and metric transparency in [HELM](https://crfm.stanford.edu/helm/index.html) | A single aggregate hides capability and risk variation. | Publish task-family, domain, safety, reliability, integrity, and efficiency slices beside the primary metric. |
 | Closed/open divisions and audited system descriptions in [MLPerf](https://docs.mlcommons.org/inference/submission/) | Performance is only comparable under declared system and rule constraints. | Treat common-harness and native-system results as separate divisions; preserve exact model, provider, adapter, effort, hardware, and pricing snapshots. |
@@ -40,9 +41,15 @@ The frozen public core is useful for regression, but a single attempt per task c
 
 Static JSON answers are valuable when the target really is calculation or bounded interpretation. They should not dominate an agent benchmark. The next task wave should prioritize stateful but read-only workflows: plan-objective construction, dose/statistics extraction, structure normalization, QA trend investigation, DICOM integrity repair in a sandbox, secondary-check packets, and reproducible analysis notebooks.
 
-### P1 — negative controls are not a release gate
+### P1 — generic grader mutations are gated; authored adversarial cases remain incomplete
 
-A reference solution passing proves feasibility, not grader completeness. Promotion should also require authored near-misses, mutations, unsafe-but-plausible outputs, alternate valid solutions, leakage checks, and evidence that the grader rejects or accepts them correctly.
+A reference solution passing proves feasibility, not grader completeness. Repository validation now
+removes every required output field and applies a targeted failing mutation to every declared grader,
+then verifies that the affected grader and overall task reject the result. The current public tree
+executes 688 such deterministic probes. This catches permissive schema/grader wiring and protects the
+mechanical release path, but it is not a substitute for task-specific authored near-misses,
+unsafe-but-plausible outputs, alternate valid solutions, or leakage checks. Those richer cases remain
+a promotion requirement for protected comparison releases.
 
 ## Evidence-maturity levels
 
@@ -60,7 +67,8 @@ No level authorizes patient-specific use, clinical release, or autonomous treatm
 ## Promotion gates for the next comparison release
 
 1. Holdout families are physically absent from public task, result, and website bundles.
-2. Every task has a reference solution, feasibility test, negative controls, mutation tests, and a leakage review.
+2. Every task passes the repository-wide deterministic mutation gate and has authored near-miss,
+   unsafe-plausible, alternate-valid-when-applicable, and leakage-review evidence.
 3. D3/D4 and real-workflow tasks have two independent qualified reviewers.
 4. Every submitted row has a complete declared attempt matrix and exact system description.
 5. At least five attempts per task are collected for stochastic headline comparisons.
@@ -76,7 +84,7 @@ The highest-value sequence is:
 
 1. operate a protected qualification lane;
 2. finish independent review and a human-baseline pilot;
-3. make negative controls and mutation evidence machine-required;
+3. extend the machine-required mutation gate with authored, task-specific adversarial cases;
 4. add stateful RT workflow tasks and broader independent families;
 5. freeze pricing snapshots and publish cost per attempt and per safe success;
 6. seek external replication.

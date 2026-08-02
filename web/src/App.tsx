@@ -10,6 +10,7 @@ import { Hero } from "./components/Hero";
 import { LeaderboardExplorer } from "./components/LeaderboardExplorer";
 import { PublicModelIndex } from "./components/PublicModelIndex";
 import { useLeaderboard } from "./hooks/useLeaderboard";
+import { readEnumParam, setUrlParams } from "./lib/urlState";
 import type { AccessStatus, ModelCatalogEntry, ReleaseView, Tg263Audit } from "./types";
 
 const LEADERBOARD_URL = "/data/leaderboard.json";
@@ -53,6 +54,21 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handlePopState = () => {
+      setReleaseView(readEnumParam("release", ["core", "imaging", "tg263", "real"] as const, "core"));
+    };
+    handlePopState();
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  const handleReleaseViewChange = (value: ReleaseView) => {
+    setReleaseView(value);
+    setUrlParams({ release: value === "core" ? null : value });
+  };
+
+  useEffect(() => {
     const controller = new AbortController();
     fetch(ACCESS_STATUS_URL, { signal: controller.signal })
       .then((response) => (response.ok ? (response.json() as Promise<AccessStatus[]>) : []))
@@ -88,7 +104,7 @@ function App() {
       <main>
         <Hero
           data={selected.data}
-          onReleaseViewChange={setReleaseView}
+          onReleaseViewChange={handleReleaseViewChange}
           releaseView={releaseView}
           repoUrl={REPO_URL}
         />
@@ -113,8 +129,13 @@ function App() {
           data={selected.data}
           loadError={selected.loadError}
           releaseView={releaseView}
+          modelCatalog={modelCatalog}
         />
-        <EfficiencyExplorer data={selected.data} releaseView={releaseView} />
+        <EfficiencyExplorer
+          data={selected.data}
+          modelCatalog={modelCatalog}
+          releaseView={releaseView}
+        />
         <EvidenceSections
           accessStatus={accessStatus}
           data={selected.data}

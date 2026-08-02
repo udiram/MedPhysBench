@@ -1377,6 +1377,10 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   padding-bottom: 16px;
   border-bottom: 1px solid var(--line);
 }
+.capability-section {
+  min-width: 0;
+  overflow-x: clip;
+}
 .scope-switch { display: inline-flex; border: 1px solid var(--line); }
 .scope-switch button {
   min-height: 42px;
@@ -1392,7 +1396,15 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   background: var(--accent-soft);
   box-shadow: inset 0 -2px 0 var(--accent);
 }
-.capability-table-wrap { overflow-x: auto; border-bottom: 1px solid var(--line); }
+.capability-table-wrap {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  border-bottom: 1px solid var(--line);
+}
 .capability-table { width: 100%; min-width: 980px; border-collapse: collapse; }
 .capability-table caption {
   padding: 14px 0;
@@ -1966,6 +1978,21 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   color: var(--muted);
   text-align: center;
 }
+
+.failure-diagnostics {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.failure-diagnostics .section-heading p {
+  color: var(--muted);
+}
+
+.failure-diagnostics .detail-grid {
+  margin-bottom: 6px;
+}
+
 .run-task-boundary {
   margin: 11px 0 0;
   color: var(--muted);
@@ -1973,6 +2000,64 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 }
 
 @media (max-width: 700px) {
+  .model-index-section .table-scroll { overflow-x: visible; }
+  .model-index-table,
+  .model-index-table tbody,
+  .model-index-table .model-row,
+  .model-index-table .detail-row,
+  .model-index-table .detail-row > td {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+  .model-index-table thead { display: none; }
+  .model-index-table .model-row {
+    position: relative;
+    padding-right: 86px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .model-index-table .model-row > td {
+    display: none;
+    width: auto;
+    border: 0;
+  }
+  .model-index-table .model-row > td:first-child {
+    display: block;
+    padding: 15px 14px;
+  }
+  .model-index-table .model-row > td:nth-child(2) {
+    position: absolute;
+    top: 15px;
+    right: 14px;
+    display: block;
+    padding: 3px 7px;
+    border: 1px solid var(--line);
+    color: var(--muted-strong);
+    font-size: 10px;
+  }
+  .model-index-table .detail-row > td { padding: 0; }
+  .model-registry-detail,
+  .model-registry-detail section,
+  .registry-run-grid,
+  .registry-run-card,
+  .run-task-explorer,
+  .run-task-list,
+  .run-task-row,
+  .run-task-row > header,
+  .run-task-row > header div,
+  .run-failure-contract,
+  .run-provenance {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .registry-run-card { padding: 14px; }
+  .registry-outcome-strip span,
+  .run-task-row > header strong,
+  .run-failure-contract dd,
+  .run-provenance dd,
+  .run-task-boundary {
+    overflow-wrap: anywhere;
+  }
   .run-task-row > header { flex-direction: column; }
   .run-provenance { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .run-failure-contract div { grid-template-columns: 1fr; gap: 4px; }

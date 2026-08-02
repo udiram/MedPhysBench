@@ -53,6 +53,10 @@ raw model responses, hidden expected values, provider reasoning, or grader golds
 This follows HELM's prompt-level transparency principle while preserving the
 sealed-task boundary required by MedPhysBench.
 
+Explorer state is URL-backed. The selected release, source/provider filters,
+execution surface, expanded model row, selected release card, and task-evidence
+filters survive refresh and can be shared as a direct link for audit or review.
+
 ### Outcome interval plot
 
 The primary plot is a horizontal dot-and-whisker view. The point is safe task
