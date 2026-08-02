@@ -40,8 +40,10 @@ served by a hosted provider.
 GPT-5.6, Groq, and Ollama rows use the same table, release card, metrics, and
 task-evidence component. Execution surface and official comparison-group rank
 are row metadata rather than reasons to move a model into a separate visual
-section. A best score across different releases is a navigation summary only;
-it is not a cross-release rank.
+section. The index's `Best verified` value is recomputed only from a complete
+task projection with explicit pass labels; a legacy release aggregate remains
+visible inside its release card but cannot become that summary value. Even the
+verified summary is navigation metadata, not a cross-release rank.
 
 Each release card exposes outcome filters for safe passes, safe failures, unsafe
 attempts, and legacy outcomes whose pass label cannot be reproduced. Search can

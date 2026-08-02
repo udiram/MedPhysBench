@@ -86,6 +86,24 @@ def test_core_release_contains_expected_gpt56_native_rows() -> None:
     ]
 
 
+def test_legacy_aggregates_are_not_mistaken_for_explicit_task_outcomes() -> None:
+    core = _load_json(PUBLIC_DATA / "leaderboard.json")
+    real = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
+    assert isinstance(core, dict)
+    assert isinstance(real, dict)
+
+    core_rows = [*core["models"], *core.get("unranked_models", [])]
+    core_gpt_high = next(row for row in core_rows if row["model_name"] == "gpt-5.6-sol [effort=high]")
+    assert core_gpt_high["safe_success_rate"] == 1.0
+    assert core_gpt_high["tasks"]
+    assert all("passed" not in task for task in core_gpt_high["tasks"])
+
+    real_rows = [*real["models"], *real.get("unranked_models", [])]
+    real_gpt_high = next(row for row in real_rows if row["model_name"] == "gpt-5.6-sol [effort=high]")
+    assert len(real_gpt_high["tasks"]) == real_gpt_high["attempt_count"]
+    assert all(isinstance(task.get("passed"), bool) for task in real_gpt_high["tasks"])
+
+
 def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(payload, dict)

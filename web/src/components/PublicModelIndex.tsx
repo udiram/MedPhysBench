@@ -35,7 +35,7 @@ type ModelGroup = {
   catalog: ModelCatalogEntry | null;
   runs: PublicRun[];
   release_count: number;
-  best_safe_success_rate: number;
+  best_safe_success_rate: number | null;
   official_count: number;
   native_count: number;
 };
@@ -104,11 +104,12 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
     const grouped = new Map<string, ModelGroup>();
     for (const row of filteredRuns) {
       const key = `${row.provider}::${row.model_name}`;
+      const explicitRate = explicitSafeSuccessRate(row);
       const current = grouped.get(key);
       if (current) {
         current.runs.push(row);
         current.release_count = new Set(current.runs.map((item) => item.release_id)).size;
-        current.best_safe_success_rate = Math.max(current.best_safe_success_rate, row.safe_success_rate);
+        current.best_safe_success_rate = maxAvailable(current.best_safe_success_rate, explicitRate);
         current.official_count += row.ranking_eligible ? 1 : 0;
         current.native_count += row.ranking_eligible ? 0 : 1;
       } else {
@@ -119,7 +120,7 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
           catalog: catalogMap.get(key) ?? null,
           runs: [row],
           release_count: 1,
-          best_safe_success_rate: row.safe_success_rate,
+          best_safe_success_rate: explicitRate,
           official_count: row.ranking_eligible ? 1 : 0,
           native_count: row.ranking_eligible ? 0 : 1,
         });
@@ -127,7 +128,7 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
     }
     return [...grouped.values()].sort(
       (left, right) =>
-        right.best_safe_success_rate - left.best_safe_success_rate ||
+        (right.best_safe_success_rate ?? -1) - (left.best_safe_success_rate ?? -1) ||
         right.release_count - left.release_count ||
         left.model_name.localeCompare(right.model_name),
     );
@@ -247,7 +248,7 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
                 <th>Provider</th>
                 <th>Family</th>
                 <th>Releases</th>
-                <th>Best score</th>
+                <th>Best verified</th>
                 <th>Common runs</th>
                 <th>Other runs</th>
               </tr>
@@ -308,7 +309,7 @@ function ModelRegistryRow({
         <td>{providerLabel(group.provider)}</td>
         <td>{group.catalog?.family ?? "Unknown"}</td>
         <td>{group.release_count}</td>
-        <td>{formatPercent(group.best_safe_success_rate)}</td>
+        <td>{group.best_safe_success_rate == null ? "Unavailable" : formatPercent(group.best_safe_success_rate)}</td>
         <td>{group.official_count}</td>
         <td>{group.native_count}</td>
       </tr>
@@ -499,6 +500,18 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
       </p>
     </section>
   );
+}
+
+function explicitSafeSuccessRate(run: PublicRun): number | null {
+  if (run.tasks.length === 0 || run.tasks.length !== run.attempt_count) return null;
+  if (!run.tasks.every((task) => typeof task.passed === "boolean")) return null;
+  return run.tasks.filter((task) => task.passed === true && task.safe).length / run.tasks.length;
+}
+
+function maxAvailable(left: number | null, right: number | null): number | null {
+  if (left == null) return right;
+  if (right == null) return left;
+  return Math.max(left, right);
 }
 
 function taskOutcome(task: ModelTaskResult) {
