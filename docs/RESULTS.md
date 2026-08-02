@@ -186,11 +186,13 @@ TG-263 naming audit. The CT and expert contours are derived from OpenKBP; the
 reference plan dose is OpenKBP's standardized synthetic plan. Every task requires
 qualified review or escalation and is regraded from the stored candidate output.
 
-Ten API/local configurations completed three attempts per task. Four ran under
+Fifteen API/local configurations completed three attempts per task. Four ran under
 one memory-bounded Ollama harness (`temperature=0`, seeds
 `20260731`–`20260733`, 4,096-token context, 768 output-token cap). Five ran on
 Groq's OpenAI-compatible endpoint under one shared JSON-object contract with the
-same temperature, seeds, and output-token cap. Official ranks are computed within
+same temperature, seeds, and output-token cap. Six ran under the digest-pinned
+`reference-json-v2` Ollama contract with the same seeds, a 4,096-token context,
+and 2,048-token output cap. Official ranks are computed within
 each identical provider/harness/configuration group with at least two systems; the
 separate descriptive outcome order spans every complete valid row.
 
@@ -209,14 +211,21 @@ separate descriptive outcome order spans every complete valid row.
 | 4 | `llama-3.1-8b-instant` | 0.0% | 0.00–11.35% | 16.67% | 60.0% | 1,002 | 8.343 s |
 | 5 | `qwen/qwen3.6-27b` | 0.0% | 0.00–11.35% | 0.0% | 0.0% | unavailable | unavailable |
 
-`deepseek-r1:1.5b` completed the same 30-attempt matrix under the new
-`reference-json-v2` harness with a digest-pinned Q4 artifact, 4,096-token context,
-and 2,048-token output cap. It scored 0/30 safe successes: 12 image tasks were
-explicit unsupported-modality failures, while all 18 text attempts were schema-valid
-but failed one or more outcome/safety contracts. Provider telemetry covered those
-18 model calls (29,082 total tokens; 1,616 median tokens; 14.805 s median wall time).
-The row is visible in outcome order but receives no official rank until a second
-system shares the exact v2 configuration contract.
+| Ollama v2 rank | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens* | Median wall time* |
+| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | `qwen3:14b` | 40.0% | 24.59–57.68% | 60.0% | 60.0% | 1,025 | 30.736 s |
+| 2 | `qwen3:8b` | 40.0% | 24.59–57.68% | 60.0% | 60.0% | 1,025 | 17.580 s |
+| 3 | `qwen2.5:7b-instruct` | 30.0% | 16.66–47.88% | 60.0% | 60.0% | 1,019 | 15.604 s |
+| 4 | `qwen3:1.7b` | 0.0% | 0.00–11.35% | 60.0% | 60.0% | 1,029 | 6.420 s |
+| 5 | `deepseek-r1:1.5b` | 0.0% | 0.00–11.35% | 60.0% | 60.0% | 1,616 | 14.805 s |
+| 6 | `llama3.2:3b` | 0.0% | 0.00–11.35% | 20.0% | 60.0% | 950.5 | 7.708 s |
+
+All six v2 rows completed the same 30-attempt matrix with exact local artifact
+digests. Their 12 required-image attempts are explicit unsupported-modality
+outcomes, not omitted tasks; the token and time medians therefore cover the 18
+actual text calls. A separate three-task adapter audit produced schema-valid output,
+duration telemetry, token telemetry, and unique run IDs for all 15 qualification
+calls. Task correctness was not a Q1 requirement and remained scored only in Q2.
 
 `*` Groq token and time medians use the 18 text attempts with observed provider
 telemetry. The four image tasks generate 12 completed zero-score modality failures
@@ -278,6 +287,12 @@ The release additionally enforces:
 
 - sealed runtime projections with no grading or provenance block;
 - exact JSON objects with duplicate-key, wrapper-text, and non-finite rejection;
+
+One frozen v0.6 limitation is now explicit: every task requires a non-empty
+`limitations` field, but its task-specific meaning is not deterministically graded.
+The released task and grader hashes are immutable and were not rewritten. Repository
+validation now blocks v0.7+ tasks from requiring that field without a score-bearing
+limitations grader, and the next comparison release will add authored near-miss cases.
 - exact task-ID matrices and sealed-batch hashes for imported pilots;
 - artifact-root confinement and mandatory SHA-256 image verification;
 - reconstructed reference outputs that must pass every authored grader;

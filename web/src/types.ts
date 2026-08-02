@@ -12,6 +12,29 @@ export type LaneScores = {
 
 export type ReleaseView = "core" | "imaging" | "tg263" | "real";
 
+export type ReviewState = {
+  status: "complete" | "recruiting" | "pending" | "blocked";
+  completed: number;
+  target: number;
+  note: string;
+};
+
+export type ReviewEvidence = {
+  schema_version: "medphysbench.review-evidence.v1";
+  release_id: string;
+  release_status: "provisional" | "reviewed" | "retired";
+  independent_domain_review: ReviewState;
+  human_baseline: ReviewState;
+  data_rights_review: {
+    status: "documented" | "pending_independent_confirmation" | "blocked";
+    note: string;
+  };
+  claim_boundary: {
+    allowed: string[];
+    prohibited: string[];
+  };
+};
+
 export type PublicReleaseKey = "core" | "imaging" | "tg263" | "real";
 
 export type ModelOpenness = "open" | "closed" | "unknown";

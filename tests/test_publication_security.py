@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import sys
 from pathlib import Path
 
 import pytest
+from jsonschema import Draft202012Validator, FormatChecker
 
 
 def test_public_sanitizer_redacts_trace_raw_preview(tmp_path: Path) -> None:
@@ -61,6 +63,108 @@ def test_public_sanitizer_ignores_release_summary_json(tmp_path: Path) -> None:
     assert json.loads(leaderboard_path.read_text(encoding="utf-8")) == [
         {"model_name": "fixture"}
     ]
+
+
+def test_completed_human_review_state_requires_hashed_evidence_package() -> None:
+    schema = json.loads(
+        Path("schemas/review-evidence.v1.schema.json").read_text(encoding="utf-8")
+    )
+    payload = json.loads(
+        Path("reviews/public-real-workflows-pilot-v0.6.json").read_text(encoding="utf-8")
+    )
+    payload["human_baseline"] = {
+        **payload["human_baseline"],
+        "status": "complete",
+        "completed": payload["human_baseline"]["target"],
+    }
+
+    errors = list(
+        Draft202012Validator(schema, format_checker=FormatChecker()).iter_errors(payload)
+    )
+
+    assert errors
+    required_evidence_fields = {
+        "completed_at",
+        "matched_release_id",
+        "evidence_artifacts",
+    }
+    reported_missing_fields = {
+        field
+        for error in errors
+        for field in required_evidence_fields
+        if field in error.message
+    }
+    assert reported_missing_fields == {
+        "completed_at",
+        "matched_release_id",
+        "evidence_artifacts",
+    }
+
+
+def test_completed_review_evidence_must_match_release_count_and_artifact_hash() -> None:
+    from scripts.validate_repository import _validate_review_evidence_semantics
+
+    review_path = Path("reviews/public-real-workflows-pilot-v0.6.json")
+    payload = json.loads(review_path.read_text(encoding="utf-8"))
+    readme_path = Path("README.md")
+    payload["human_baseline"] = {
+        **payload["human_baseline"],
+        "status": "complete",
+        "completed": payload["human_baseline"]["target"],
+        "completed_at": "2026-08-02T12:00:00Z",
+        "matched_release_id": payload["release_id"],
+        "evidence_artifacts": [
+            {
+                "path": str(readme_path),
+                "sha256": hashlib.sha256(readme_path.read_bytes()).hexdigest(),
+            }
+        ],
+    }
+    _validate_review_evidence_semantics(payload, review_path)
+
+    payload["human_baseline"]["completed"] -= 1
+    with pytest.raises(ValueError, match="completed == target"):
+        _validate_review_evidence_semantics(payload, review_path)
+
+    payload["human_baseline"]["completed"] += 1
+    payload["human_baseline"]["evidence_artifacts"][0]["sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="artifact hash mismatch"):
+        _validate_review_evidence_semantics(payload, review_path)
+
+
+def test_public_review_evidence_projection_matches_canonical_ledger() -> None:
+    completed = subprocess.run(
+        [sys.executable, "scripts/build_public_review_evidence.py", "--check"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert completed.returncode == 0, completed.stderr or completed.stdout
+
+
+def test_v07_required_limitations_field_cannot_be_presence_only() -> None:
+    import yaml
+
+    from scripts.validate_repository import _validate_task_grading_semantics
+
+    task_path = Path(
+        "tasks/public/radiation_therapy/openkb_pt242_plan_criteria_audit_001/task.yaml"
+    )
+    payload = yaml.safe_load(task_path.read_text(encoding="utf-8"))
+    payload["version"] = "0.7.0"
+
+    with pytest.raises(ValueError, match="explicit limitations grader"):
+        _validate_task_grading_semantics(payload, task_path)
+
+    payload["grading"]["graders"].append(
+        {
+            "type": "contains_all_strings",
+            "field": "limitations",
+            "expected": ["research", "clinical"],
+            "required_for_pass": True,
+        }
+    )
+    _validate_task_grading_semantics(payload, task_path)
 
 
 def test_api_release_path_cannot_escape_results_root(tmp_path: Path) -> None:

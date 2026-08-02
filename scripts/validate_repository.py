@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -49,6 +50,55 @@ def _validate(validator: Draft202012Validator, payload: Any, path: Path) -> None
         location = ".".join(str(part) for part in error.absolute_path) or "<root>"
         details.append(f"{path}:{location}: {error.message}")
     raise ValueError("\n".join(details))
+
+
+def _validate_review_evidence_semantics(payload: dict[str, Any], path: Path) -> None:
+    release_id = str(payload["release_id"])
+    for field in ("independent_domain_review", "human_baseline"):
+        state = payload[field]
+        completed = int(state["completed"])
+        target = int(state["target"])
+        if completed > target:
+            raise ValueError(f"{path}:{field}: completed cannot exceed target.")
+        if state["status"] != "complete":
+            continue
+        if completed != target:
+            raise ValueError(f"{path}:{field}: complete status requires completed == target.")
+        if state["matched_release_id"] != release_id:
+            raise ValueError(f"{path}:{field}: matched_release_id must equal release_id.")
+        for artifact in state["evidence_artifacts"]:
+            artifact_path = Path(str(artifact["path"]))
+            if artifact_path.is_absolute():
+                raise ValueError(f"{path}:{field}: evidence artifact paths must be repository-relative.")
+            resolved = (ROOT / artifact_path).resolve()
+            if not resolved.is_relative_to(ROOT.resolve()) or not resolved.is_file():
+                raise ValueError(f"{path}:{field}: evidence artifact is missing or outside the repository.")
+            observed_hash = hashlib.sha256(resolved.read_bytes()).hexdigest()
+            if observed_hash != artifact["sha256"]:
+                raise ValueError(f"{path}:{field}: evidence artifact hash mismatch for {artifact_path}.")
+
+    if payload["release_status"] == "reviewed":
+        if payload["independent_domain_review"]["status"] != "complete":
+            raise ValueError(f"{path}: reviewed release requires complete independent domain review.")
+        if payload["data_rights_review"]["status"] != "documented":
+            raise ValueError(f"{path}: reviewed release requires documented data-rights review.")
+        if any(item["domain_review"] != "approved" for item in payload["task_reviews"]):
+            raise ValueError(f"{path}: reviewed release requires every task review to be approved.")
+
+
+def _validate_task_grading_semantics(payload: dict[str, Any], path: Path) -> None:
+    version_parts = tuple(int(part) for part in str(payload["version"]).split(".")[:3])
+    required_fields = set(payload["expected_output_schema"].get("required", []))
+    if version_parts < (0, 7, 0) or "limitations" not in required_fields:
+        return
+    graders = payload["grading"].get("graders", [])
+    limitations_graders = [grader for grader in graders if grader.get("field") == "limitations"]
+    if not limitations_graders:
+        raise ValueError(
+            f"{path}: v0.7+ tasks requiring limitations must declare an explicit limitations grader."
+        )
+    if not any(bool(grader.get("required_for_pass", True)) for grader in limitations_graders):
+        raise ValueError(f"{path}: at least one limitations grader must be required for pass.")
 
 
 def validate_repository() -> dict[str, int]:
@@ -99,6 +149,7 @@ def validate_repository() -> dict[str, int]:
     for path in review_paths:
         payload = _load_json(path)
         _validate(validators["review_evidence"], payload, path)
+        _validate_review_evidence_semantics(payload, path)
         release_id = str(payload["release_id"])
         release = releases_by_id.get(release_id)
         if release is None:
@@ -115,7 +166,9 @@ def validate_repository() -> dict[str, int]:
     grader_mutation_count = 0
     task_paths = sorted((ROOT / "tasks").rglob("task.yaml"))
     for path in task_paths:
-        _validate(validators["task"], _load_yaml(path), path)
+        task_payload = _load_yaml(path)
+        _validate(validators["task"], task_payload, path)
+        _validate_task_grading_semantics(task_payload, path)
         task = load_task(path)
         runtime = json.loads(json.dumps(task.runtime_task().to_dict()))
         leaked = FORBIDDEN_RUNTIME_FIELDS.intersection(runtime)

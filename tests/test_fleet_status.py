@@ -47,12 +47,12 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert rebuilt["summary"] == {
         "planned_base_models": 50,
         "access_qualified_base_models": 16,
-        "evaluated_base_models": 11,
-        "ranked_base_models": 9,
-        "workflow_qualified_base_models": 11,
-        "workflow_ranked_base_models": 9,
+        "evaluated_base_models": 15,
+        "ranked_base_models": 15,
+        "workflow_qualified_base_models": 15,
+        "workflow_ranked_base_models": 15,
         "published_system_configurations": 21,
-        "published_release_rows": 31,
+        "published_release_rows": 36,
         "open_planned_models": 31,
         "closed_planned_models": 19,
         "vision_planned_models": 31,
@@ -102,7 +102,7 @@ def test_incomplete_campaign_cannot_increment_evaluated_or_ranked_counts(tmp_pat
     assert status["summary"]["ranked_base_models"] == 0
 
 
-def test_singleton_workflow_model_is_evaluated_but_not_officially_ranked() -> None:
+def test_v2_workflow_comparison_group_is_now_officially_ranked() -> None:
     status = build_fleet_status()
     deepseek = next(
         row
@@ -112,28 +112,29 @@ def test_singleton_workflow_model_is_evaluated_but_not_officially_ranked() -> No
     assert deepseek["qualification_stage"] == "q2"
     assert deepseek["access_qualified"] is True
     assert deepseek["evaluated"] is True
-    assert deepseek["ranked"] is False
+    assert deepseek["ranked"] is True
     assert deepseek["workflow_qualified"] is True
-    assert deepseek["workflow_ranked"] is False
+    assert deepseek["workflow_ranked"] is True
 
 
-def test_workflow_qualified_counts_only_real_workflow_release() -> None:
+def test_workflow_qualified_counts_only_common_harness_real_workflow_release() -> None:
     status = build_fleet_status()
-    assert status["summary"]["workflow_qualified_base_models"] == 11
-    assert status["summary"]["workflow_ranked_base_models"] == 9
+    assert status["summary"]["workflow_qualified_base_models"] == 15
+    assert status["summary"]["workflow_ranked_base_models"] == 15
 
     gpt = next(
         row
         for row in status["models"]
         if row["base_model_id"] == "gpt-5.6-sol"
     )
-    assert gpt["evaluated"] is True
-    assert gpt["workflow_qualified"] is True
+    assert gpt["evaluated"] is False
+    assert gpt["workflow_qualified"] is False
+    assert gpt["published_row_count"] > 0
 
-    core_only = next(
+    planned_only = next(
         row
         for row in status["models"]
-        if row["base_model_id"] == "Qwen/Qwen3-14B"
+        if row["base_model_id"] == "Qwen/Qwen3-32B"
     )
-    assert core_only["evaluated"] is False
-    assert core_only["workflow_qualified"] is False
+    assert planned_only["evaluated"] is False
+    assert planned_only["workflow_qualified"] is False

@@ -13,41 +13,41 @@
     "model": "qwen3:14b",
     "provider": "ollama",
     "base_model_id": "Qwen/Qwen3-14B",
-    "qualification_stage": "q0",
+    "qualification_stage": "q2",
     "status": "available",
     "surface": "local_ollama",
-    "date": "2026-07-31",
-    "note": "Local text model; scored on the public development release."
+    "date": "2026-08-02",
+    "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
   },
   {
     "model": "qwen3:8b",
     "provider": "ollama",
     "base_model_id": "Qwen/Qwen3-8B",
-    "qualification_stage": "q0",
+    "qualification_stage": "q2",
     "status": "available",
     "surface": "local_ollama",
-    "date": "2026-07-31",
-    "note": "Local text model; scored on the public development release."
+    "date": "2026-08-02",
+    "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
   },
   {
     "model": "qwen2.5:7b-instruct",
     "provider": "ollama",
     "base_model_id": "Qwen/Qwen2.5-7B-Instruct",
-    "qualification_stage": "q0",
+    "qualification_stage": "q2",
     "status": "available",
     "surface": "local_ollama",
-    "date": "2026-07-31",
-    "note": "Local text model; scored on the public development release."
+    "date": "2026-08-02",
+    "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
   },
   {
     "model": "qwen3:1.7b",
     "provider": "ollama",
     "base_model_id": "Qwen/Qwen3-1.7B",
-    "qualification_stage": "q0",
+    "qualification_stage": "q2",
     "status": "available",
     "surface": "local_ollama",
-    "date": "2026-07-31",
-    "note": "Local text model; scored on the public development release."
+    "date": "2026-08-02",
+    "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
   },
   {
     "model": "gemma3:4b",
@@ -73,11 +73,11 @@
     "model": "llama3.2:3b",
     "provider": "ollama",
     "base_model_id": "meta-llama/Llama-3.2-3B-Instruct",
-    "qualification_stage": "q0",
+    "qualification_stage": "q2",
     "status": "available",
     "surface": "local_ollama",
-    "date": "2026-07-31",
-    "note": "Local text model; scored on the public development release."
+    "date": "2026-08-02",
+    "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
   },
   {
     "model": "deepseek-r1:1.5b",

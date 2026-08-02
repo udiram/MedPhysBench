@@ -1,15 +1,16 @@
 import { ExternalLink } from "lucide-react";
 import { DOC_LINKS, domainDescriptions, workflow } from "../content";
 import { domainLabel, shortHash } from "../lib/format";
-import type { AccessStatus, Leaderboard, ReleaseView } from "../types";
+import type { AccessStatus, Leaderboard, ReleaseView, ReviewEvidence } from "../types";
 
 type EvidenceSectionsProps = {
   accessStatus: AccessStatus[];
   data: Leaderboard | null;
   releaseView: ReleaseView;
+  reviewEvidence: ReviewEvidence | null;
 };
 
-export function EvidenceSections({ accessStatus, data, releaseView }: EvidenceSectionsProps) {
+export function EvidenceSections({ accessStatus, data, releaseView, reviewEvidence }: EvidenceSectionsProps) {
   const coverage = data?.coverage ?? buildCoverage(data?.tasks ?? []);
   const integrity = data?.integrity;
   const blocked = accessStatus.filter((item) => item.status !== "available");
@@ -38,7 +39,7 @@ export function EvidenceSections({ accessStatus, data, releaseView }: EvidenceSe
               <li><strong>{rankedCount ?? "—"}</strong> official harness-group row{rankedCount === 1 ? "" : "s"}</li>
               <li><strong>{reviewCount ?? "—"}</strong> native outcome row{reviewCount === 1 ? "" : "s"}</li>
               {data?.release.family_count != null && <li><strong>{data.release.family_count}</strong> independent patient/task families</li>}
-              <li><strong>Human baseline</strong> recruiting medical physicists</li>
+              <li><strong>Human baseline</strong> {humanBaselineSummary(releaseView, reviewEvidence)}</li>
               {releaseView === "real" && <li><strong>Provisional</strong> independent domain and publication-rights review pending</li>}
             </ul>
           </article>
@@ -178,6 +179,13 @@ export function EvidenceSections({ accessStatus, data, releaseView }: EvidenceSe
       </section>
     </>
   );
+}
+
+function humanBaselineSummary(releaseView: ReleaseView, reviewEvidence: ReviewEvidence | null) {
+  if (releaseView !== "real") return "not published";
+  if (!reviewEvidence) return "review ledger unavailable";
+  const state = reviewEvidence.human_baseline;
+  return `${state.completed}/${state.target} ${state.status}`;
 }
 
 function buildCoverage(tasks: Leaderboard["tasks"]) {

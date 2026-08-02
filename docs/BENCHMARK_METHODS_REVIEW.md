@@ -10,6 +10,7 @@ This review compares the current system with contemporary benchmark practice and
 
 | Benchmark practice | Why it matters | MedPhysBench action |
 | --- | --- | --- |
+| Datapoint-level audits in [the 2026 SWE-Bench Pro review](https://openai.com/index/separating-signal-from-noise-coding-evaluations/) | Longer, more realistic tasks can still be broken by underspecified prompts, overly strict tests, low-coverage tests, or misleading instructions; the audit estimated roughly 30% of the public set was broken. | Run automated attempt/failure-trace triage, independent investigator passes, and blinded domain-expert review; treat both false rejection and false acceptance as release-blocking defects. |
 | Human feasibility review in [SWE-bench Verified](https://openai.com/index/introducing-swe-bench-verified/) | Executable tests can still be unfair, underspecified, or reject valid solutions. | Require two independent qualified physicist reviews for D3/D4 and real-workflow families before promotion. |
 | Continuing defect audits in [SWE-bench](https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/) | A released benchmark can later prove broken or contaminated. | Maintain a public defect and invalidation ledger; never silently rewrite a released score. |
 | Fresh and delayed-release questions in [LiveBench](https://livebench.ai/) and [SWE-bench-Live](https://github.com/microsoft/swe-bench-live) | Static public tests invite memorization and optimization against labels. | Operate rotating canaries plus semi-private and private family-level holdouts. Public tasks remain development/regression data. |
@@ -21,6 +22,7 @@ This review compares the current system with contemporary benchmark practice and
 | Scenario and metric transparency in [HELM](https://crfm.stanford.edu/helm/index.html) | A single aggregate hides capability and risk variation. | Publish task-family, domain, safety, reliability, integrity, and efficiency slices beside the primary metric. |
 | Closed/open divisions and audited system descriptions in [MLPerf](https://docs.mlcommons.org/inference/submission/) | Performance is only comparable under declared system and rule constraints. | Treat common-harness and native-system results as separate divisions; preserve exact model, provider, adapter, effort, hardware, and pricing snapshots. |
 | Confidence intervals in [Chatbot Arena](https://www.lmsys.org/blog/2023-12-07-leaderboard/) | Point-estimate ranks imply distinctions that sampling evidence may not support. | Display intervals beside every score and avoid ordinal claims when intervals and family-adjusted evidence do not distinguish rows. |
+| Claim, system, budget, elicitation, and validity disclosures in [the trustworthy third-party evaluation playbook](https://openai.com/index/trustworthy-third-party-evaluations-foundations/) | A model name and score omit the harness, tools, turns, tokens, retries, time, and checks needed to interpret a result. | Treat the exact tested configuration and resource budget as part of the result; publish validity checks for contamination, reward hacking, refusals, evaluation awareness, and harness sensitivity. |
 | Real clinical-task taxonomies in [MedHELM](https://medhelm.org/) and interactive medical environments in [MedAgentBench](https://stanfordmlgroup.github.io/projects/medagentbench/) | Exam-style knowledge is not a substitute for work products and tool-mediated workflows. | Keep knowledge tasks as one lane; shift growth toward read-only artifacts, tools, multimodal evidence, and safe escalation. |
 
 ## Critical gap assessment
@@ -50,6 +52,16 @@ executes 688 such deterministic probes. This catches permissive schema/grader wi
 mechanical release path, but it is not a substitute for task-specific authored near-misses,
 unsafe-but-plausible outputs, alternate valid solutions, or leakage checks. Those richer cases remain
 a promotion requirement for protected comparison releases.
+
+### P1 — the frozen OpenKBP v0.6 limitations field is presence-graded, not meaning-graded
+
+All ten v0.6 tasks require a non-empty `limitations` string, but their deterministic graders do not
+check whether it contains the task-specific boundary stated in the authored reference. A fluent but
+irrelevant sentence can therefore satisfy that field. This does not change the already frozen v0.6
+outcome labels, and the released task or grader hashes must not be rewritten in place. The defect is
+disclosed on the provisional release; v0.7 and later tasks that require a limitations field must add
+an explicit deterministic semantic contract, authored negative cases, or a documented reason why the
+field is reported but not score-bearing.
 
 ## Evidence-maturity levels
 

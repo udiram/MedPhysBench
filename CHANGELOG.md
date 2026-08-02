@@ -2,7 +2,11 @@
 
 ## Unreleased
 
-- Froze a machine-readable 50-base-model fleet and added a deterministic public qualification funnel: 16 access-qualified, 11 validly evaluated under the current manifest contract, 9 rankable, 21 published system configurations, and no count inflation from aliases or GPT-5.6 effort settings.
+- Froze a machine-readable 50-base-model fleet and added a deterministic public qualification funnel: 16 access-qualified, 15 common-harness evaluated and rankable under the current manifest contract, 21 published system configurations, 36 release rows, and no count inflation from aliases or GPT-5.6 effort settings.
+- Completed 150 new digest-pinned OpenKBP attempts for Qwen 3 1.7B/8B/14B, Qwen 2.5 7B Instruct, and Llama 3.2 3B under the memory-bounded `reference-json-v2` harness, plus a 15-call schema/telemetry adapter audit; the six-system v2 group now receives an official within-group rank.
+- Made review completion evidence-backed: completed human/domain states require a matched release, completion timestamp, and repository-relative SHA-256 evidence package; the website now reads the canonical review ledger instead of hard-coded human-baseline and review counts.
+- Prevented seedless common-harness matrices from receiving a rank and prevented complete native/import rows from inflating the common-harness fleet funnel while preserving GPT-5.6 in the same public model and forensic views.
+- Disclosed that v0.6 requires but does not semantically grade the `limitations` field, and added a repository gate requiring v0.7+ tasks to declare a score-bearing limitations grader when that field is required.
 - Unified GPT-5.6, Groq, and Ollama discovery, provider/source filtering, efficiency plots, and task-level failure drilldowns while preserving execution surface only as a comparability annotation.
 - Added run manifest v2 with a hashed, credential-free adapter-settings contract; resume now rejects context, endpoint, schema-mode, retry, reasoning-effort, artifact-transport, or model-residency drift.
 - Made unexpected harness exceptions fatal internal campaign errors instead of misclassifying them as provider transport failures; then completed a digest-pinned 30-attempt DeepSeek R1 1.5B Q2 matrix with 12 explicit unsupported-modality outcomes and 18 schema-valid text calls.

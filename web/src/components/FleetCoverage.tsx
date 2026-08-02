@@ -12,8 +12,8 @@ type StageFilter = "all" | "workflow" | "ranked" | "evaluated" | "access" | "pla
 const FUNNEL_STAGES = [
   ["planned_base_models", "Frozen panel", "Predeclared unique base IDs"],
   ["access_qualified_base_models", "Access qualified", "Live Q0 or later evidence"],
-  ["evaluated_base_models", "Valid evaluated", "At least one complete current-contract release matrix"],
-  ["workflow_qualified_base_models", "Workflow qualified", "Complete OpenKBP real-workflow matrix"],
+  ["evaluated_base_models", "Common-harness evaluated", "Complete current-contract matrix on a common adapter"],
+  ["workflow_qualified_base_models", "Workflow qualified", "Common-harness OpenKBP real-workflow matrix"],
   ["ranked_base_models", "Rankable", "Complete common-harness evidence"],
 ] as const;
 
@@ -67,8 +67,8 @@ export function FleetCoverage({ data }: Props) {
         </div>
         <p>
           The panel counts unique base model IDs—not effort settings, providers, aliases, or partial attempts. A model advances only
-          when the evidence for that stage exists. The stricter workflow-qualified gate isolates the serious OpenKBP workflow slice from
-          smaller pilots.
+          when common-harness evidence for that stage exists. Native and recorded evaluations remain fully visible in the model index,
+          but cannot inflate the comparable fleet funnel.
         </p>
       </div>
 

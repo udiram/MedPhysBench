@@ -113,7 +113,22 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(payload, dict)
     rows = [*payload["models"], *payload.get("unranked_models", [])]
-    assert len(rows) == 13
+    assert len(rows) == 18
+    v2_rows = [
+        row
+        for row in rows
+        if row.get("harness_revision") == "reference-json-v2"
+    ]
+    assert {row["model_name"] for row in v2_rows} == {
+        "deepseek-r1:1.5b",
+        "llama3.2:3b",
+        "qwen2.5:7b-instruct",
+        "qwen3:1.7b",
+        "qwen3:8b",
+        "qwen3:14b",
+    }
+    assert all(row["ranking_eligible"] is True for row in v2_rows)
+    assert {row["rank"] for row in v2_rows} == set(range(1, 7))
     deepseek = next(row for row in rows if row["model_name"] == "deepseek-r1:1.5b")
     capability_failures = [task for task in deepseek["tasks"] if task.get("capability_failure")]
     assert len(capability_failures) == 12

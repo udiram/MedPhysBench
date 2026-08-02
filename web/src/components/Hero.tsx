@@ -1,14 +1,15 @@
 import { ExternalLink } from "lucide-react";
-import type { Leaderboard, ReleaseView } from "../types";
+import type { Leaderboard, ReleaseView, ReviewEvidence } from "../types";
 
 type HeroProps = {
   data: Leaderboard | null;
   onReleaseViewChange: (value: ReleaseView) => void;
   releaseView: ReleaseView;
+  reviewEvidence: ReviewEvidence | null;
   repoUrl: string;
 };
 
-export function Hero({ data, onReleaseViewChange, releaseView, repoUrl }: HeroProps) {
+export function Hero({ data, onReleaseViewChange, releaseView, reviewEvidence, repoUrl }: HeroProps) {
   const rankedCount = data ? data.integrity?.ranked_model_count ?? data.models.length : null;
   const reviewCount = data ? data.integrity?.unranked_model_count ?? data.unranked_models?.length ?? 0 : null;
   const taskCount = data?.tasks.length ?? null;
@@ -96,7 +97,7 @@ export function Hero({ data, onReleaseViewChange, releaseView, repoUrl }: HeroPr
           </div>
           <div>
             <dt>Human baseline</dt>
-            <dd>{releaseView === "real" ? "Recruiting" : "Not published"}</dd>
+            <dd>{humanBaselineLabel(releaseView, reviewEvidence)}</dd>
           </div>
         </dl>
       </div>
@@ -108,6 +109,14 @@ export function Hero({ data, onReleaseViewChange, releaseView, repoUrl }: HeroPr
       </div>
     </section>
   );
+}
+
+function humanBaselineLabel(releaseView: ReleaseView, reviewEvidence: ReviewEvidence | null) {
+  if (releaseView !== "real") return "Not published";
+  if (!reviewEvidence) return "Evidence unavailable";
+  const state = reviewEvidence.human_baseline;
+  if (state.status === "complete") return `${state.completed}/${state.target} complete`;
+  return `${state.completed}/${state.target} · ${state.status}`;
 }
 
 function fallbackReleaseId(releaseView: ReleaseView) {

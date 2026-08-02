@@ -5,12 +5,12 @@
   "summary": {
     "planned_base_models": 50,
     "access_qualified_base_models": 16,
-    "evaluated_base_models": 11,
-    "ranked_base_models": 9,
-    "workflow_qualified_base_models": 11,
-    "workflow_ranked_base_models": 9,
+    "evaluated_base_models": 15,
+    "ranked_base_models": 15,
+    "workflow_qualified_base_models": 15,
+    "workflow_ranked_base_models": 15,
     "published_system_configurations": 21,
-    "published_release_rows": 31,
+    "published_release_rows": 36,
     "open_planned_models": 31,
     "closed_planned_models": 19,
     "vision_planned_models": 31,
@@ -84,14 +84,14 @@
         "text"
       ],
       "access_qualified": true,
-      "qualification_stage": "q0",
-      "evaluated": false,
-      "ranked": false,
-      "workflow_qualified": false,
-      "workflow_ranked": false,
+      "qualification_stage": "q2",
+      "evaluated": true,
+      "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
-      "published_release_count": 1,
-      "published_row_count": 1
+      "published_release_count": 2,
+      "published_row_count": 2
     },
     {
       "base_model_id": "meta-llama/Llama-3.3-70B-Instruct",
@@ -162,14 +162,14 @@
         "text"
       ],
       "access_qualified": true,
-      "qualification_stage": "q0",
-      "evaluated": false,
-      "ranked": false,
-      "workflow_qualified": false,
-      "workflow_ranked": false,
+      "qualification_stage": "q2",
+      "evaluated": true,
+      "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
-      "published_release_count": 1,
-      "published_row_count": 1
+      "published_release_count": 2,
+      "published_row_count": 2
     },
     {
       "base_model_id": "Qwen/Qwen2.5-72B-Instruct",
@@ -200,14 +200,14 @@
         "text"
       ],
       "access_qualified": true,
-      "qualification_stage": "q0",
-      "evaluated": false,
-      "ranked": false,
-      "workflow_qualified": false,
-      "workflow_ranked": false,
+      "qualification_stage": "q2",
+      "evaluated": true,
+      "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
-      "published_release_count": 1,
-      "published_row_count": 1
+      "published_release_count": 2,
+      "published_row_count": 2
     },
     {
       "base_model_id": "Qwen/Qwen3-8B",
@@ -219,14 +219,14 @@
         "text"
       ],
       "access_qualified": true,
-      "qualification_stage": "q0",
-      "evaluated": false,
-      "ranked": false,
-      "workflow_qualified": false,
-      "workflow_ranked": false,
+      "qualification_stage": "q2",
+      "evaluated": true,
+      "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
-      "published_release_count": 1,
-      "published_row_count": 1
+      "published_release_count": 2,
+      "published_row_count": 2
     },
     {
       "base_model_id": "Qwen/Qwen3-14B",
@@ -238,14 +238,14 @@
         "text"
       ],
       "access_qualified": true,
-      "qualification_stage": "q0",
-      "evaluated": false,
-      "ranked": false,
-      "workflow_qualified": false,
-      "workflow_ranked": false,
+      "qualification_stage": "q2",
+      "evaluated": true,
+      "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
-      "published_release_count": 1,
-      "published_row_count": 1
+      "published_release_count": 2,
+      "published_row_count": 2
     },
     {
       "base_model_id": "Qwen/Qwen3-32B",
@@ -456,9 +456,9 @@
       "access_qualified": true,
       "qualification_stage": "q2",
       "evaluated": true,
-      "ranked": false,
+      "ranked": true,
       "workflow_qualified": true,
-      "workflow_ranked": false,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
       "published_row_count": 1
@@ -630,9 +630,9 @@
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
-      "evaluated": true,
+      "evaluated": false,
       "ranked": false,
-      "workflow_qualified": true,
+      "workflow_qualified": false,
       "workflow_ranked": false,
       "system_configuration_count": 6,
       "published_release_count": 4,

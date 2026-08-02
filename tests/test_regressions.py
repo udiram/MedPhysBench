@@ -487,6 +487,33 @@ def test_release_summary_rejects_inconsistent_seed_policy(tmp_path: Path) -> Non
     assert "mixed_seed_policy_manifest" in row["integrity"]["integrity_errors"]
 
 
+def test_release_summary_never_ranks_seedless_common_harness_rows(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    tasks = release.load_tasks()
+
+    for model_name in ("seedless-a", "seedless-b"):
+        model_dir = tmp_path / release.release_id / model_name
+        model_dir.mkdir(parents=True)
+        for task in tasks:
+            result_file = model_dir / f"{task.task_id}--attempt-1.json"
+            _write_result(result_file, task, model_name)
+            payload = json.loads(result_file.read_text(encoding="utf-8"))
+            payload["manifest"]["seed"] = None
+            result_file.write_text(
+                json.dumps(payload, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+
+    summary = summarize_release(release, tmp_path)
+
+    assert summary["models"] == []
+    assert len(summary["unranked_models"]) == 2
+    assert all(
+        "missing_seed_manifest:16" in row["integrity"]["integrity_errors"]
+        for row in summary["unranked_models"]
+    )
+
+
 def test_release_summary_never_ranks_provider_error_attempts(tmp_path: Path) -> None:
     release = load_release("releases/public_dev_2026_07_31.yaml")
     tasks = release.load_tasks()

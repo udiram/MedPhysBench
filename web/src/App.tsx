@@ -13,7 +13,7 @@ import { PublicModelIndex } from "./components/PublicModelIndex";
 import { ResultForensics } from "./components/ResultForensics";
 import { useLeaderboard } from "./hooks/useLeaderboard";
 import { readEnumParam, setUrlParams } from "./lib/urlState";
-import type { AccessStatus, FleetStatus, ModelCatalogEntry, ReleaseView, Tg263Audit } from "./types";
+import type { AccessStatus, FleetStatus, ModelCatalogEntry, ReleaseView, ReviewEvidence, Tg263Audit } from "./types";
 
 const LEADERBOARD_URL = "/data/leaderboard.json";
 const IMAGING_LEADERBOARD_URL = "/data/imaging_leaderboard.json";
@@ -23,6 +23,7 @@ const TG263_AUDIT_URL = "/data/public-tg263-pilot-v0.5-audit.json";
 const ACCESS_STATUS_URL = "/data/access_status.json";
 const MODEL_CATALOG_URL = "/data/model_catalog.json";
 const FLEET_STATUS_URL = "/data/fleet_status.json";
+const REAL_WORKFLOWS_REVIEW_URL = "/data/public-real-workflows-pilot-v0.6-review.json";
 
 function App() {
   const core = useLeaderboard(LEADERBOARD_URL);
@@ -33,8 +34,9 @@ function App() {
   const [accessStatus, setAccessStatus] = useState<AccessStatus[]>([]);
   const [modelCatalog, setModelCatalog] = useState<ModelCatalogEntry[]>([]);
   const [fleetStatus, setFleetStatus] = useState<FleetStatus | null>(null);
+  const [realWorkflowsReview, setRealWorkflowsReview] = useState<ReviewEvidence | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [releaseView, setReleaseView] = useState<ReleaseView>("core");
+  const [releaseView, setReleaseView] = useState<ReleaseView>("real");
   const selected =
     releaseView === "core"
       ? core
@@ -59,6 +61,15 @@ function App() {
 
   useEffect(() => {
     const controller = new AbortController();
+    fetch(REAL_WORKFLOWS_REVIEW_URL, { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<ReviewEvidence>) : null))
+      .then((payload) => startTransition(() => setRealWorkflowsReview(payload)))
+      .catch(() => setRealWorkflowsReview(null));
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
     fetch(FLEET_STATUS_URL, { signal: controller.signal })
       .then((response) => (response.ok ? (response.json() as Promise<FleetStatus>) : null))
       .then((payload) => startTransition(() => setFleetStatus(payload)))
@@ -69,7 +80,7 @@ function App() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handlePopState = () => {
-      setReleaseView(readEnumParam("release", ["core", "imaging", "tg263", "real"] as const, "core"));
+      setReleaseView(readEnumParam("release", ["core", "imaging", "tg263", "real"] as const, "real"));
     };
     handlePopState();
     window.addEventListener("popstate", handlePopState);
@@ -78,7 +89,7 @@ function App() {
 
   const handleReleaseViewChange = (value: ReleaseView) => {
     setReleaseView(value);
-    setUrlParams({ release: value === "core" ? null : value });
+    setUrlParams({ release: value === "real" ? null : value });
   };
 
   useEffect(() => {
@@ -119,6 +130,7 @@ function App() {
           data={selected.data}
           onReleaseViewChange={handleReleaseViewChange}
           releaseView={releaseView}
+          reviewEvidence={releaseView === "real" ? realWorkflowsReview : null}
           repoUrl={REPO_URL}
         />
         <FleetCoverage data={fleetStatus} />
@@ -144,6 +156,7 @@ function App() {
           loadError={selected.loadError}
           releaseView={releaseView}
           modelCatalog={modelCatalog}
+          reviewEvidence={releaseView === "real" ? realWorkflowsReview : null}
         />
         <ResultForensics
           data={selected.data}
@@ -159,6 +172,7 @@ function App() {
           accessStatus={accessStatus}
           data={selected.data}
           releaseView={releaseView}
+          reviewEvidence={releaseView === "real" ? realWorkflowsReview : null}
         />
       </main>
       <footer className="site-footer">

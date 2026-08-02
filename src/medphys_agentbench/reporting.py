@@ -531,6 +531,7 @@ def _audit_model_results(
     observed_run_ids: set[str] = set()
     run_configurations: set[tuple[Any, ...]] = set()
     seeds_by_attempt_index: dict[int, set[Any]] = defaultdict(set)
+    missing_seed_count = 0
 
     first_manifest = results[0].get("manifest", {})
     first_model = first_manifest.get("model", {})
@@ -585,6 +586,8 @@ def _audit_model_results(
             errors.append(f"invalid_attempt_index:{task_id}")
             continue
         seeds_by_attempt_index[attempt_index].add(manifest.get("seed"))
+        if manifest.get("seed") is None:
+            missing_seed_count += 1
 
         attempt_key = (task_id, attempt_index)
         if attempt_key in observed_attempt_keys:
@@ -643,6 +646,8 @@ def _audit_model_results(
     is_recorded_import = _run_is_recorded_import(results)
     if is_recorded_import:
         errors.append("unranked_noncommon_surface")
+    elif missing_seed_count:
+        errors.append(f"missing_seed_manifest:{missing_seed_count}")
     run_configuration_hash = stable_hash(
         {
             "run_configurations": [list(values) for values in sorted(run_configurations, key=repr)],

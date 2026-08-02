@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { domainLabel, formatPercent, providerLabel } from "../lib/format";
 import { isCommonHarnessRun } from "../lib/runSurface";
-import type { Leaderboard, ModelCatalogEntry, ModelResult, ReleaseView } from "../types";
+import type { Leaderboard, ModelCatalogEntry, ModelResult, ReleaseView, ReviewEvidence } from "../types";
 
 type ViewMode = "capability" | "failures" | "evidence";
 type ScopeMode = "official" | "native" | "all";
@@ -12,6 +12,7 @@ type Props = {
   loadError?: boolean;
   releaseView: ReleaseView;
   modelCatalog: ModelCatalogEntry[];
+  reviewEvidence: ReviewEvidence | null;
 };
 
 type Family = {
@@ -21,7 +22,7 @@ type Family = {
   domain?: string;
 };
 
-export function CapabilityExplorer({ data, loadError = false, releaseView, modelCatalog }: Props) {
+export function CapabilityExplorer({ data, loadError = false, releaseView, modelCatalog, reviewEvidence }: Props) {
   const [view, setView] = useState<ViewMode>("capability");
   const [scope, setScope] = useState<ScopeMode>("all");
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
@@ -136,7 +137,7 @@ export function CapabilityExplorer({ data, loadError = false, releaseView, model
 
       {view === "capability" && <CapabilityMatrix rows={rows} families={families} scope={effectiveScope} />}
       {view === "failures" && <FailureBreakdown rows={rows} />}
-      {view === "evidence" && <EvidenceQuality data={data} releaseView={releaseView} />}
+      {view === "evidence" && <EvidenceQuality data={data} releaseView={releaseView} reviewEvidence={reviewEvidence} />}
     </section>
   );
 }
@@ -263,12 +264,12 @@ function FailureBreakdown({ rows }: { rows: ModelResult[] }) {
   );
 }
 
-function EvidenceQuality({ data, releaseView }: Pick<Props, "data" | "releaseView">) {
+function EvidenceQuality({ data, releaseView, reviewEvidence }: Pick<Props, "data" | "releaseView" | "reviewEvidence">) {
   const officialRows = data?.models ?? [];
   const completeRows = officialRows.filter((row) => row.completed_count === row.expected_attempt_count).length;
   const repeats = data?.release.expected_attempts_per_task ?? 1;
   const families = data?.release.family_count;
-  const releaseMeta = evidenceFor(releaseView);
+  const releaseMeta = evidenceFor(releaseView, reviewEvidence);
   const rows = [
     {
       label: "Comparable harness",
@@ -353,12 +354,20 @@ function familyForTask(taskId: string, track: string): [string, string] {
   return [track, label];
 }
 
-function evidenceFor(view: ReleaseView) {
+function evidenceFor(view: ReleaseView, reviewEvidence: ReviewEvidence | null) {
   if (view === "real") {
+    if (!reviewEvidence) {
+      return [
+        { label: "Release review ledger", state: "Unavailable", tone: "bad", detail: "The signed public review ledger could not be loaded; no review or human-baseline claim is inferred." },
+      ];
+    }
+    const domainReview = reviewEvidence.independent_domain_review;
+    const humanBaseline = reviewEvidence.human_baseline;
+    const rights = reviewEvidence.data_rights_review;
     return [
-      { label: "Independent domain review", state: "0/2 complete", tone: "bad", detail: "The pilot remains provisional until two qualified radiation-therapy physicists independently review every task." },
-      { label: "Human baseline", state: "0/30 · recruiting", tone: "bad", detail: "No human-comparison claim is published; collection follows the preregistered protocol." },
-      { label: "Publication rights review", state: "Pending", tone: "warn", detail: "OpenKBP attribution is retained; independent publication-rights confirmation is still required." },
+      { label: "Independent domain review", state: `${domainReview.completed}/${domainReview.target} · ${domainReview.status}`, tone: domainReview.status === "complete" ? "good" : "bad", detail: domainReview.note },
+      { label: "Human baseline", state: `${humanBaseline.completed}/${humanBaseline.target} · ${humanBaseline.status}`, tone: humanBaseline.status === "complete" ? "good" : "bad", detail: humanBaseline.note },
+      { label: "Publication rights review", state: rights.status.replaceAll("_", " "), tone: rights.status === "documented" ? "good" : "warn", detail: rights.note },
       { label: "Protected holdout", state: "Not operating", tone: "bad", detail: "This public pilot is a development surface and is vulnerable to direct optimization." },
     ];
   }

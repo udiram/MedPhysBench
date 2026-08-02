@@ -27,11 +27,11 @@ package, or evidence of autonomous clinical competence.
 - TG-263 audit: `public-tg263-pilot-v0.5-audit` (separates primary naming decisions from exact benchmark reason-code labels)
 - Real-image pilot: `public-imaging-pilot-v0.4` (`5` real MRI, CT, and PET tasks)
 - OpenKBP real-workflow pilot: `public-real-workflows-pilot-v0.6` (`10` tasks from
-  `2` patient families; `4` ranked Ollama configurations, `5` ranked Groq
-  configurations, and `3` GPT-5.6 native effort audits; `360` total attempts)
+  `2` patient families; `10` ranked Ollama configurations, `5` ranked Groq
+  configurations, and `3` GPT-5.6 native effort audits; `540` total attempts)
 - Scored configurations through Saturday, August 1, 2026: five common-harness local core models,
   six explicitly unranked GPT-5.6 core-effort pilots, two harder TG-263 native pilots,
-  three local models on the original image pilot, nine API/local configurations on the
+  three local models on the original image pilot, fifteen API/local configurations on the
   OpenKBP pilot, and three GPT-5.6 OpenKBP effort audits with descriptive outcome ranks
 - Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
 - Frozen 50-base-model panel: [`fleet/public_fleet_v1.yaml`](fleet/public_fleet_v1.yaml)
@@ -102,7 +102,7 @@ package, or evidence of autonomous clinical competence.
   exposes per-attempt task cards, failed-lane/failed-grader tallies, and immutable hash drilldowns
   while keeping legacy manifest limitations visible and outside current-contract ranks.
 - A machine-derived qualification funnel that reports `50` frozen base IDs, `16` access-qualified,
-  `11` validly evaluated under the current manifest contract, and `9` rankable—without counting six
+  `15` validly evaluated under the current manifest contract, and `15` rankable—without counting six
   GPT-5.6 effort settings as six models, treating historical legacy rows as current-contract evidence,
   or presenting a partial local campaign as a score.
 - Workflow-qualified accounting now separately reports which planned models have actually completed

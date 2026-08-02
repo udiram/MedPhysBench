@@ -64,6 +64,11 @@ create a score row.
 Run one schema task, one calculation/artifact task, and one required-escalation
 task. Validate structured output, deterministic seeds where supported, token and
 duration capture, request IDs, bounded retries, and secret redaction.
+Q1 is a publication gate rather than a correctness threshold: a model may fail
+the clinical-physics outcome while still proving that its adapter records an
+honest, complete attempt. Normally Q1 precedes Q2. If a Q2 run is executed
+opportunistically first, it remains quarantined until an equivalent three-task
+Q1 audit passes and the out-of-order qualification is disclosed.
 
 ### Q2 — ten-task real-workflow pilot
 
@@ -114,14 +119,18 @@ network context. Neither event supports a model score.
 The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
 19 closed-weight, 31 declared vision-capable, and 11 stewards. After enforcing
 the current grader/scoring manifest contract, the derived funnel
-reports 16 access-qualified, 11 validly evaluated, and 9 officially rankable base
-models. Five older core-only bases remain visible as historical evidence but lack
-the grader hashes/scoring revision required for current-contract status.
+reports 16 access-qualified, 15 common-harness evaluated, and 15 officially
+rankable base models. GPT-5.6's complete native rows remain visible in the same
+model index and attempt forensics, but do not inflate that common-harness funnel.
 `deepseek-r1:1.5b` completed a fresh 30-attempt Q2 matrix with artifact digest
 `sha256:e0979632db5a88d1a53884cb2a941772d10ff5d055aabaa6801c4e36f3a6c2d7`.
 Its 12 required-image attempts are explicit unsupported-modality outcomes and all
-18 text attempts produced schema-valid outputs. The row receives no official rank
-because it is the only system in its exact `reference-json-v2` comparison group.
+18 text attempts produced schema-valid outputs. Five additional digest-pinned local
+models completed the identical 30-attempt contract: Qwen 3 1.7B, 8B, and 14B;
+Qwen 2.5 7B Instruct; and Llama 3.2 3B. Each also completed the three-task adapter
+audit with schema-valid output and complete duration/token telemetry. The resulting
+six-system `reference-json-v2` comparison group is officially rankable within that
+frozen configuration only.
 
 Run manifest v2 now freezes and hashes credential-free adapter runtime settings.
 Resume rejects a context-window, endpoint, strict-schema, retry-policy, reasoning-

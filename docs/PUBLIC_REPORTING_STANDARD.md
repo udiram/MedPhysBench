@@ -110,6 +110,12 @@ Every public result must link or resolve to:
 - review evidence and evidence-maturity level;
 - result bundle, changelog, and defect/invalidation record.
 
+The tested-system disclosure also reports the allowed budget: turns, tool calls, input/output tokens,
+attempts and retries, wall-clock limit, and cost when observed. A result must not be described as a
+model-only comparison when differences in scaffolding, tool access, retry policy, or context management
+could explain the difference. This follows the claim/system/budget/elicitation/validity separation in
+the [trustworthy third-party evaluation playbook](https://openai.com/index/trustworthy-third-party-evaluations-foundations/).
+
 Confirmed defects never disappear silently. The public ledger records `reported`, `confirmed`, `fixed`, `withdrawn`, or `regraded`, the affected release/result identifiers, the reason, and the replacement artifact when one exists.
 
 ## Claim boundary
