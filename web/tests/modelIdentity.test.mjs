@@ -1,0 +1,66 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import { resolveRunBaseModelId } from "../src/lib/modelIdentity.ts";
+
+const catalog = new Map([
+  [
+    "codex-native::gpt-5.6-sol [effort=high]",
+    {
+      provider: "codex-native",
+      model_name: "gpt-5.6-sol [effort=high]",
+      base_model_id: "gpt-5.6-sol",
+    },
+  ],
+  [
+    "groq::llama-3.1-8b-instant",
+    {
+      provider: "groq",
+      model_name: "llama-3.1-8b-instant",
+      base_model_id: "meta-llama/Llama-3.1-8B-Instruct",
+    },
+  ],
+]);
+
+test("catalog identity groups GPT effort variants under the frozen base model", () => {
+  const key = resolveRunBaseModelId(
+    {
+      provider: "codex-native",
+      model_name: "gpt-5.6-sol [effort=high]",
+      model_revision: "gpt-5.6-sol@2026-08-02",
+    },
+    catalog,
+  );
+
+  assert.equal(key, "gpt-5.6-sol");
+});
+
+test("catalog identity keeps Groq routes on the same public base-model axis", () => {
+  const key = resolveRunBaseModelId(
+    {
+      provider: "groq",
+      model_name: "llama-3.1-8b-instant",
+      model_revision: "llama-3.1-8b-instant@2026-08-01",
+    },
+    catalog,
+  );
+
+  assert.equal(key, "meta-llama/Llama-3.1-8B-Instruct");
+});
+
+test("uncatalogued runs use revision identity before the configuration fallback", () => {
+  assert.equal(
+    resolveRunBaseModelId(
+      { provider: "provider", model_name: "alias", model_revision: "org/base@immutable-revision" },
+      catalog,
+    ),
+    "org/base",
+  );
+  assert.equal(
+    resolveRunBaseModelId(
+      { provider: "provider", model_name: "alias", model_revision: "immutable-revision" },
+      catalog,
+    ),
+    "run::provider::alias",
+  );
+});

@@ -1237,6 +1237,24 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   font-size: 12px;
   line-height: 1.6;
 }
+.chart-provider-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 18px;
+}
+.chart-provider-list span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted-strong);
+  font-size: 11px;
+}
+.chart-provider-list i {
+  width: 9px;
+  height: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
 .focused-model { margin: 18px 0 0; font-size: 12px; }
 .focused-model strong { color: var(--accent); }
 

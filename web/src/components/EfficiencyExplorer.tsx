@@ -42,6 +42,11 @@ type ScopedRow = {
 const WIDTH = 920;
 const HEIGHT = 430;
 const MARGIN = { top: 32, right: 250, bottom: 68, left: 72 };
+const PROVIDER_SWATCHES: Record<string, string> = {
+  "codex-native": "#70b8c4",
+  groq: "#89c596",
+  ollama: "#d9a441",
+};
 
 export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
   const [mode, setMode] = useState<ViewMode>("tokens");
@@ -128,6 +133,18 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
   const filteredNativeCount = useMemo(() => rows.filter((entry) => entry.surface === "native").length, [rows]);
   const openCount = useMemo(() => rows.filter((entry) => entry.source === "open").length, [rows]);
   const closedCount = useMemo(() => rows.filter((entry) => entry.source === "closed").length, [rows]);
+  const providerLegend = useMemo(
+    () =>
+      availableProviders
+        .filter((provider) => rows.some((entry) => entry.row.provider === provider))
+        .map((provider) => ({
+          provider,
+          label: providerLabel(provider),
+          color: providerColor(provider),
+          count: rows.filter((entry) => entry.row.provider === provider).length,
+        })),
+    [availableProviders, rows],
+  );
 
   return (
     <section className="efficiency-section" id="efficiency">
@@ -238,7 +255,7 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
           {mode === "reliability" ? (
             <ReliabilityProfile rows={rows} onFocus={setFocused} />
           ) : (
-            <EfficiencyScatter rows={rows} mode={mode} onFocus={setFocused} />
+            <EfficiencyScatter rows={rows} mode={mode} onFocus={setFocused} focused={focused} />
           )}
         </div>
         <aside className="chart-guide" aria-label="Chart reading guide">
@@ -261,6 +278,16 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
               <dd>Missing telemetry rows are explicitly listed and never rendered as zero.</dd>
             </div>
           </dl>
+          {providerLegend.length > 0 ? (
+            <div className="chart-provider-list" aria-label="Providers in scope">
+              {providerLegend.map((entry) => (
+                <span key={entry.provider}>
+                  <i style={{ background: entry.color }} aria-hidden="true" />
+                  {entry.label} · {entry.count}
+                </span>
+              ))}
+            </div>
+          ) : null}
           <p className="focused-model">
             {openCount ? `Open-weight ${openCount}` : "Open-weight 0"}
             {" / "}
@@ -318,10 +345,12 @@ function EfficiencyScatter({
   rows,
   mode,
   onFocus,
+  focused,
 }: {
   rows: ScopedRow[];
   mode: "tokens" | "time";
   onFocus: (value: string) => void;
+  focused: string | null;
 }) {
   const available = rows.filter((entry) => xValue(entry.row, mode) !== null);
   const missing = rows.filter((entry) => xValue(entry.row, mode) === null);
@@ -359,6 +388,9 @@ function EfficiencyScatter({
     MARGIN.left + ((value - domain[0]) / (domain[1] - domain[0])) * (WIDTH - MARGIN.left - MARGIN.right);
   const y = (value: number) => MARGIN.top + (1 - value) * (HEIGHT - MARGIN.top - MARGIN.bottom);
   const frontiers = paretoFrontiers(available.map((entry) => entry.row), mode);
+  const frontierKeys = new Set(
+    frontiers.flatMap(({ rows: frontier }) => frontier.map((row) => modelRowKey(row))),
+  );
   const labelPositions = new Map(
     [...available]
       .sort((left, right) => right.row.safe_success_rate - left.row.safe_success_rate)
@@ -377,6 +409,7 @@ function EfficiencyScatter({
             : "Fast responses are useful only when they remain correct"}
         </h3>
         <p>Each whisker is the primary safe-success 95% interval. Labels are placed in a dedicated lane to reduce overlap.</p>
+        <p>Only frontier rows and the focused row are labeled so provider-hosted variants stay legible.</p>
       </div>
       <div className="chart-keyline">
         <span>Higher is better (y). Lower is better (x).</span>
@@ -438,6 +471,8 @@ function EfficiencyScatter({
           const intervalLabel = `${formatPercent(safeBand[0])} to ${formatPercent(safeBand[1])}`;
           const labelY = labelPositions.get(row.model_name) ?? py;
           const labelX = WIDTH - MARGIN.right + 24;
+          const pointColor = providerColor(row.provider);
+          const highlight = frontierKeys.has(modelKey) || focused === modelKey;
           return (
             <g
               key={modelKey}
@@ -446,7 +481,7 @@ function EfficiencyScatter({
               aria-label={`${pointLabel}${metricLabel}; 95% interval ${intervalLabel}`}
               onMouseEnter={() => onFocus(modelKey)}
               onFocus={() => onFocus(modelKey)}
-              className={`chart-point${hasComparableTelemetry(row, mode) ? "" : " partial-telemetry"}`}
+              className={`chart-point${hasComparableTelemetry(row, mode) ? "" : " partial-telemetry"}${focused === modelKey ? " active" : ""}`}
             >
               <line
                 x1={px}
@@ -454,6 +489,7 @@ function EfficiencyScatter({
                 y1={y(safeBand[0])}
                 y2={y(safeBand[1])}
                 className="confidence-line"
+                style={{ stroke: pointColor }}
               />
               <line
                 x1={px - 4}
@@ -461,6 +497,7 @@ function EfficiencyScatter({
                 y1={y(safeBand[0])}
                 y2={y(safeBand[0])}
                 className="confidence-line"
+                style={{ stroke: pointColor }}
               />
               <line
                 x1={px - 4}
@@ -468,22 +505,29 @@ function EfficiencyScatter({
                 y1={y(safeBand[1])}
                 y2={y(safeBand[1])}
                 className="confidence-line"
+                style={{ stroke: pointColor }}
               />
               {isCommonHarnessRun(row) ? (
-                <circle cx={px} cy={py} r={6} className="ranked-point" />
+                <circle cx={px} cy={py} r={6} className="ranked-point" style={{ fill: pointColor }} />
               ) : (
                 <path
                   d={`M ${px} ${py - 7} L ${px + 7} ${py} L ${px} ${py + 7} L ${px - 7} ${py} Z`}
                   className="native-point"
+                  style={{ fill: pointColor, stroke: pointColor }}
                 />
               )}
-              <path
-                d={`M ${px + 8} ${py} L ${labelX - 10} ${labelY}`}
-                className={isCommonHarnessRun(row) ? "label-connector" : "label-connector native"}
-              />
-              <text x={labelX} y={labelY + 4} textAnchor="start" className="chart-model-label">
-                {shortModelName(row.model_name)}
-              </text>
+              {highlight ? (
+                <>
+                  <path
+                    d={`M ${px + 8} ${py} L ${labelX - 10} ${labelY}`}
+                    className={isCommonHarnessRun(row) ? "label-connector" : "label-connector native"}
+                    style={{ stroke: pointColor }}
+                  />
+                  <text x={labelX} y={labelY + 4} textAnchor="start" className="chart-model-label">
+                    {shortModelName(row.model_name)}
+                  </text>
+                </>
+              ) : null}
             </g>
           );
         })}
@@ -605,6 +649,7 @@ function EfficiencyTable({
         <thead>
           <tr>
             <th>Model</th>
+            <th>Provider</th>
             <th>Score</th>
             <th>95% CI</th>
             <th>Input tokens</th>
@@ -631,6 +676,7 @@ function EfficiencyTable({
                     {shortModelName(row.model_name)}
                   </button>
                 </td>
+                <td>{providerLabel(row.provider)}</td>
                 <td>{formatPercent(row.safe_success_rate)}</td>
                 <td>
                   {formatPercent(safeSuccessInterval(row)[0])}–{formatPercent(safeSuccessInterval(row)[1])}
@@ -938,6 +984,10 @@ function compactNumber(value: number) {
     return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)}k`;
   }
   return Math.round(value).toString();
+}
+
+function providerColor(provider: string) {
+  return PROVIDER_SWATCHES[provider] ?? "#9aa0a7";
 }
 
 function shortModelName(value: string) {

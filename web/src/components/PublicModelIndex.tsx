@@ -1,6 +1,7 @@
 import { ChevronDown, Search } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
+import { resolveRunBaseModelId } from "../lib/modelIdentity";
 import { isCommonHarnessRun, isNativeRun } from "../lib/runSurface";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import type {
@@ -54,20 +55,6 @@ type ModelGroup = {
   has_reference_data: boolean;
 };
 
-
-function getRunBaseModelId(row: ModelResult, catalogByProviderModel: Map<string, ModelCatalogEntry>) {
-  const catalogEntry = catalogByProviderModel.get(`${row.provider}::${row.model_name}`);
-  if (catalogEntry?.base_model_id) {
-    return catalogEntry.base_model_id;
-  }
-
-  const revision = row.model_revision;
-  if (typeof revision === "string" && revision.includes("@")) {
-    return revision.split("@", 1)[0];
-  }
-
-  return `run::${row.provider}::${row.model_name}`;
-}
 
 type ModelFamilyFailure = {
   family_id: string;
@@ -174,7 +161,7 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
           release_id: dataset.data.release.release_id,
           release_title: dataset.label,
           task_count: dataset.data.tasks.length,
-          model_base_id: getRunBaseModelId(row, catalogByProviderModel),
+          model_base_id: resolveRunBaseModelId(row, catalogByProviderModel),
           catalog_entry: catalogEntry,
         });
       }
@@ -230,9 +217,9 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
       const providers = uniqueValues(catalogEntries.map((entry) => entry.provider));
       const primary = catalogEntries[0];
       const fallbackDisplay =
+        fleetEntry?.display_name ??
         primary?.family ??
         primary?.model_name ??
-        fleetEntry?.display_name ??
         inferDisplayFromBase(baseModelId);
       const fallbackProviders = providers.length > 0
         ? providers
@@ -355,7 +342,7 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
   const targetModelCount = fleetStatus?.summary.planned_base_models ?? targetBaseModels.size;
   const sliceModelCount = groups.length;
   const evaluatedModelCount = groups.filter((group) => group.has_reference_data).length;
-  const overallEvaluatedCount = allGroups.filter((group) => group.has_reference_data).length;
+  const overallEvaluatedCount = new Set(allRuns.map((run) => run.model_base_id)).size;
   const openCount = groups.filter((group) => group.openness === "open").length;
   const closedCount = groups.filter((group) => group.openness === "closed").length;
   const groqCount = groups.filter((group) => group.providers.includes("groq")).length;
@@ -506,7 +493,7 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
           </span>
         </label>
         <label className="field">
-          <span>Model source</span>
+          <span>Openness</span>
           <span className="select-wrap">
             <select value={openness} onChange={(event) => {
               const value = event.target.value as ModelOpenness | "all";
@@ -649,7 +636,7 @@ function ModelRegistryRow({
     const safeFail = allTasks.filter((task) => taskOutcome(task) === "safe-fail").length;
     const unsafe = allTasks.filter((task) => taskOutcome(task) === "unsafe").length;
     const unknown = allTasks.filter((task) => taskOutcome(task) === "unknown").length;
-      const familyFailures = aggregateModelFailures(allTasks);
+    const familyFailures = aggregateModelFailures(allTasks);
     return {
       safePass,
       safeFail,
@@ -1461,9 +1448,9 @@ function outcomeLabel(task: ModelTaskResult) {
 }
 
 function opennessLabel(value: ModelOpenness) {
-  if (value === "open") return "Open";
-  if (value === "closed") return "Closed";
-  return "Unknown";
+  if (value === "open") return "Open weights";
+  if (value === "closed") return "Closed models";
+  return "Unclassified";
 }
 
 function fleetStatusLabel(entry: FleetStatusModel | null, hasReferenceData: boolean) {
