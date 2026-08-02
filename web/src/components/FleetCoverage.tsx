@@ -61,7 +61,7 @@ export function FleetCoverage({ data }: Props) {
       <div className="section-heading fleet-heading">
         <div>
           <p className="eyebrow">Fleet integrity</p>
-          <h2>Fifty planned. Fifteen actually evaluated.</h2>
+          <h2>{target} planned. {data.summary.evaluated_base_models} actually evaluated.</h2>
         </div>
         <p>
           The panel counts unique base model IDs—not effort settings, providers, aliases, or partial attempts. A model advances only

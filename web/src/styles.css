@@ -24,7 +24,7 @@
 }
 
 * { box-sizing: border-box; }
-html { overflow-x: clip; scroll-behavior: smooth; scroll-padding-top: 96px; }
+html { overflow-x: hidden; scroll-behavior: smooth; scroll-padding-top: 96px; }
 body {
   margin: 0;
   min-width: 320px;
@@ -73,7 +73,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   border: 0;
 }
 
-.site-shell { overflow: clip; }
+.site-shell { overflow-x: hidden; }
 
 .topbar {
   position: sticky;
