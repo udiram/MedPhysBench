@@ -117,6 +117,10 @@ def summarize_release(
                             "version": task.version,
                             "prompt_hash": task_hash_catalog[task.task_id]["prompt_hash"],
                             "tool_schema_hash": task_hash_catalog[task.task_id]["tool_schema_hash"],
+                            "runtime_task_hash": task_hash_catalog[task.task_id]["runtime_task_hash"],
+                            "system_prompt_hash": task_hash_catalog[task.task_id]["system_prompt_hash"],
+                            "grader_hash": task_hash_catalog[task.task_id]["grader_hash"],
+                            "scoring_revision": SCORING_REVISION,
                         }
                         for task in tasks
                     ],
@@ -251,6 +255,12 @@ def _summarize_model_dir(
         "model_name": integrity["model_name"],
         "provider": integrity["provider"],
         "model_revision": integrity["model_revision"],
+        "execution_surface": "recorded_output_import" if integrity["is_recorded_import"] else "common_harness",
+        "execution_surface_label": (
+            "Recorded output import"
+            if integrity["is_recorded_import"]
+            else "Common harness execution"
+        ),
         "run_profile": {
             "provider": integrity["provider"],
             "harness_name": integrity["harness_name"],
@@ -383,6 +393,7 @@ def _task_result_row(item: dict[str, Any], task_catalog: dict[str, Any]) -> dict
         "task_id": task_id,
         "title": task.title,
         "domain": task.domain,
+        "track": task.track,
         "run_id": item["manifest"].get("run_id"),
         "seed": item["manifest"].get("seed"),
         "attempt_index": item.get("attempt_index"),
@@ -393,7 +404,40 @@ def _task_result_row(item: dict[str, Any], task_catalog: dict[str, Any]) -> dict
         "scoring_revision": item["manifest"].get("scoring_revision"),
         "passed": bool(item.get("passed", False)),
         "safe": item.get("safe", item["passed"]),
+        "outcome_category": _task_outcome_category(item),
+        "failed_graders": _failed_graders(item),
+        "failed_lanes": _failed_lanes(item),
     }
+
+
+def _task_outcome_category(item: dict[str, Any]) -> str:
+    if not bool(item.get("passed", False)):
+        if not bool(item.get("safe", False)):
+            return "unsafe"
+        return "safe_failure"
+    if bool(item.get("passed", False)) and bool(item.get("safe", False)):
+        return "safe_success"
+    return "inconclusive"
+
+
+def _failed_graders(item: dict[str, Any]) -> list[str]:
+    return sorted(
+        {
+            grade.get("grader_id")
+            for grade in item.get("grades", [])
+            if isinstance(grade, dict) and not bool(grade.get("passed"))
+        }
+    )
+
+
+def _failed_lanes(item: dict[str, Any]) -> list[str]:
+    return sorted(
+        {
+            str(grade.get("lane", "outcome"))
+            for grade in item.get("grades", [])
+            if isinstance(grade, dict) and not bool(grade.get("passed"))
+        }
+    )
 
 
 def _audit_model_results(
@@ -488,7 +532,10 @@ def _audit_model_results(
             errors.append(f"system_prompt_hash_mismatch:{task_id}:{attempt_index}")
         grader_hash = manifest.get("grader_hash")
         scoring_revision = manifest.get("scoring_revision")
-        requires_scoring_contract = bool(task_catalog[task_id].family_id)
+        # Every scored attempt must pin the grader contract. Older public-core
+        # artifacts predate this invariant and remain historical snapshots;
+        # they must not become eligible when regenerated under newer graders.
+        requires_scoring_contract = True
         if requires_scoring_contract and not grader_hash:
             errors.append(f"missing_grader_hash:{task_id}:{attempt_index}")
         elif grader_hash and grader_hash != expected_hashes["grader_hash"]:
@@ -519,6 +566,7 @@ def _audit_model_results(
         "model_revision": model_revision,
         "harness_name": str(first_model.get("harness_name", "")),
         "harness_revision": str(first_model.get("harness_revision", model_name)),
+        "is_recorded_import": is_recorded_import,
         "is_common_harness": not is_recorded_import,
         "ranking_eligible": not errors,
         "outcome_order_eligible": not [error for error in errors if error != "unranked_noncommon_surface"],

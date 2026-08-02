@@ -141,10 +141,10 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
   return (
     <section className="model-index-section" id="model-index">
       <div className="section-heading">
-        <h2>All public model systems</h2>
+        <h2>Explore every model</h2>
         <p>
-          Every shipped public run stays in one index. Filters change the slice; they do not hide execution-surface differences or
-          invent cross-release comparability.
+          One presentation. Explicit execution context. Every shipped public run stays in this index, with filters that change the
+          slice without inventing cross-release comparability.
         </p>
       </div>
 
@@ -157,7 +157,7 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
         <article>
           <span>Open-weight</span>
           <strong>{openCount}</strong>
-          <small>Catalogued as open source / open weight</small>
+          <small>Catalogued as open weights</small>
         </article>
         <article>
           <span>Closed</span>
@@ -188,8 +188,8 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
           <span className="select-wrap">
             <select value={openness} onChange={(event) => setOpenness(event.target.value as ModelOpenness | "all")}>
               <option value="all">All systems</option>
-              <option value="open">Open source / open weight</option>
-              <option value="closed">Closed source</option>
+              <option value="open">Open weights</option>
+              <option value="closed">Closed weights</option>
               <option value="unknown">Unclassified</option>
             </select>
             <ChevronDown aria-hidden="true" />
@@ -247,8 +247,8 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
                 <th>Family</th>
                 <th>Releases</th>
                 <th>Best score</th>
-                <th>Official</th>
-                <th>Native</th>
+                <th>Common runs</th>
+                <th>Other runs</th>
               </tr>
             </thead>
             <tbody>
@@ -335,11 +335,11 @@ function ModelRegistryRow({
                     <dd>{group.release_count}</dd>
                   </div>
                   <div>
-                    <dt>Official rows</dt>
+                    <dt>Common-harness rows</dt>
                     <dd>{group.official_count}</dd>
                   </div>
                   <div>
-                    <dt>Native rows</dt>
+                    <dt>Other recorded rows</dt>
                     <dd>{group.native_count}</dd>
                   </div>
                 </dl>
@@ -348,8 +348,9 @@ function ModelRegistryRow({
                 <h4>Release-by-release evidence</h4>
                 <div className="registry-run-grid">
                   {sortedRuns.map((run) => {
-                    const failures = run.tasks.filter((task) => taskOutcome(task) !== "safe-pass");
-                    const safePasses = run.tasks.length - failures.length;
+                    const safePasses = run.tasks.filter((task) => taskOutcome(task) === "safe-pass").length;
+                    const failures = run.tasks.filter((task) => ["safe-fail", "unsafe"].includes(taskOutcome(task))).length;
+                    const unknown = run.tasks.filter((task) => taskOutcome(task) === "unknown").length;
                     return (
                       <article key={`${run.release_id}-${run.model_name}`} className="registry-run-card">
                         <header>
@@ -395,42 +396,11 @@ function ModelRegistryRow({
                         </dl>
                         <div className="registry-outcome-strip">
                           <span>{safePasses} safe passes</span>
-                          <span>{failures.length} non-pass outcomes</span>
+                          <span>{failures} explicit failures</span>
+                          {unknown > 0 && <span>{unknown} legacy outcomes unavailable</span>}
                           <span>{run.comparison_group ?? run.harness_revision ?? "Recorded native surface"}</span>
                         </div>
-                        {failures.length === 0 ? (
-                          <p className="integrity-clean">All published tasks safely passed in this run.</p>
-                        ) : (
-                          <div className="registry-failure-list">
-                            {failures.map((task) => (
-                              <article key={`${run.release_id}-${task.task_id}-${task.attempt_index ?? 0}`}>
-                                <header>
-                                  <strong>{task.title}</strong>
-                                  <span>{outcomeLabel(task)}</span>
-                                </header>
-                                <p>{domainLabel(task.domain)}</p>
-                                <dl>
-                                  <div>
-                                    <dt>Task</dt>
-                                    <dd>{task.task_id}</dd>
-                                  </div>
-                                  <div>
-                                    <dt>Run</dt>
-                                    <dd>{shortHash(task.run_id)}</dd>
-                                  </div>
-                                  <div>
-                                    <dt>Prompt</dt>
-                                    <dd>{shortHash(task.prompt_hash)}</dd>
-                                  </div>
-                                  <div>
-                                    <dt>Tools</dt>
-                                    <dd>{shortHash(task.tool_schema_hash)}</dd>
-                                  </div>
-                                </dl>
-                              </article>
-                            ))}
-                          </div>
-                        )}
+                        <RunTaskExplorer run={run} />
                       </article>
                     );
                   })}
@@ -444,8 +414,95 @@ function ModelRegistryRow({
   );
 }
 
+type TaskView = "all" | "safe-pass" | "safe-fail" | "unsafe" | "unknown";
+
+function RunTaskExplorer({ run }: { run: PublicRun }) {
+  const [view, setView] = useState<TaskView>("all");
+  const [query, setQuery] = useState("");
+  const normalized = query.trim().toLowerCase();
+  const tasks = run.tasks.filter((task) => {
+    const matchesView = view === "all" || taskOutcome(task) === view;
+    const matchesQuery =
+      !normalized ||
+      task.title.toLowerCase().includes(normalized) ||
+      task.task_id.toLowerCase().includes(normalized) ||
+      task.domain.toLowerCase().includes(normalized) ||
+      task.failed_lanes?.some((lane) => lane.toLowerCase().includes(normalized)) === true ||
+      task.failed_graders?.some((grader) => grader.toLowerCase().includes(normalized)) === true;
+    return matchesView && matchesQuery;
+  });
+
+  return (
+    <section className="run-task-explorer" aria-label={`${run.model_name} task evidence for ${run.release_title}`}>
+      <div className="run-task-tabs" role="tablist" aria-label="Task outcome filter">
+        {([
+          ["all", "All attempts"],
+          ["safe-pass", "Passes"],
+          ["safe-fail", "Safe failures"],
+          ["unsafe", "Unsafe"],
+          ["unknown", "Unavailable"],
+        ] as Array<[TaskView, string]>).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            role="tab"
+            aria-selected={view === value}
+            onClick={() => setView(value)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      <label className="run-task-search">
+        <Search aria-hidden="true" />
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search task, domain, failed lane, or grader"
+          aria-label="Search task evidence"
+        />
+      </label>
+      <div className="run-task-list">
+        {tasks.map((task) => (
+          <article key={`${run.release_id}-${task.task_id}-${task.attempt_index ?? 0}`} className={`run-task-row ${taskOutcome(task)}`}>
+            <header>
+              <div>
+                <strong>{task.title}</strong>
+                <span>{task.task_id}</span>
+              </div>
+              <span className="task-outcome-chip">{outcomeLabel(task)}</span>
+            </header>
+            <div className="run-task-meta">
+              <span>{domainLabel(task.domain)}</span>
+              <span>Attempt {(task.attempt_index ?? 0) + 1}</span>
+              <span>Seed {task.seed ?? "unavailable"}</span>
+            </div>
+            {(task.failed_lanes?.length || task.failed_graders?.length) ? (
+              <dl className="run-failure-contract">
+                <div><dt>Failed lanes</dt><dd>{task.failed_lanes?.join(", ") || "None recorded"}</dd></div>
+                <div><dt>Failed graders</dt><dd>{task.failed_graders?.join(", ") || "None recorded"}</dd></div>
+              </dl>
+            ) : null}
+            <dl className="run-provenance">
+              <div><dt>Run</dt><dd>{shortHash(task.run_id)}</dd></div>
+              <div><dt>Prompt</dt><dd>{shortHash(task.prompt_hash)}</dd></div>
+              <div><dt>Runtime</dt><dd>{shortHash(task.runtime_task_hash)}</dd></div>
+              <div><dt>Grader</dt><dd>{shortHash(task.grader_hash)}</dd></div>
+            </dl>
+          </article>
+        ))}
+        {tasks.length === 0 && <p className="run-task-empty">No task attempts match this view.</p>}
+      </div>
+      <p className="run-task-boundary">
+        Failure labels expose deterministic grader contracts only. Raw model output, hidden expected values, and reasoning traces are excluded.
+      </p>
+    </section>
+  );
+}
+
 function taskOutcome(task: ModelTaskResult) {
-  if (task.safe && task.passed !== false) return "safe-pass";
+  if (task.passed == null) return task.safe === false ? "unsafe" : "unknown";
+  if (task.passed === true && task.safe) return "safe-pass";
   if (task.safe === false) return "unsafe";
   if (task.passed === false) return "safe-fail";
   return "unknown";

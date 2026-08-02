@@ -262,6 +262,9 @@ def test_release_summary_keeps_attempt_outputs_out_of_leaderboard(tmp_path: Path
     assert "score" not in task_row
     assert task_row["task_id"] == task.task_id
     assert task_row["runtime_task_hash"]
+    assert task_row["outcome_category"] in {"safe_success", "safe_failure", "unsafe", "inconclusive"}
+    assert isinstance(task_row["failed_graders"], list)
+    assert isinstance(task_row["failed_lanes"], list)
 
 
 def test_release_summary_marks_incomplete_run_ineligible(tmp_path: Path) -> None:

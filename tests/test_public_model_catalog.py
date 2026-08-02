@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_DATA = REPO_ROOT / "web" / "public" / "data"
 CATALOG_PATH = PUBLIC_DATA / "model_catalog.json"
@@ -43,7 +42,7 @@ def test_public_model_catalog_declares_valid_openness_values() -> None:
     assert isinstance(catalog, list)
     allowed = {"open", "closed", "unknown"}
     for entry in catalog:
-      assert entry["openness"] in allowed
+        assert entry["openness"] in allowed
 
 
 def test_real_workflow_release_contains_expected_groq_rows() -> None:
@@ -77,3 +76,36 @@ def test_core_release_contains_expected_gpt56_native_rows() -> None:
         "gpt-5.6-sol [effort=ultra]",
         "gpt-5.6-sol [effort=xhigh]",
     ]
+
+
+def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
+    payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
+    assert isinstance(payload, dict)
+    rows = [*payload["models"], *payload.get("unranked_models", [])]
+    assert len(rows) == 12
+
+    forbidden = {"output", "grades", "raw_response", "trace", "error", "expected"}
+    for row in rows:
+        task_rows = row["tasks"]
+        assert len(task_rows) == row["attempt_count"]
+        recomputed_safe_success = sum(bool(task["passed"] and task["safe"]) for task in task_rows) / len(task_rows)
+        assert round(recomputed_safe_success, 4) == row["safe_success_rate"]
+        for task in task_rows:
+            assert forbidden.isdisjoint(task)
+            assert task["outcome_category"] in {"safe_success", "safe_failure", "unsafe", "inconclusive"}
+            assert isinstance(task["failed_graders"], list)
+            assert isinstance(task["failed_lanes"], list)
+            assert task["track"]
+            if task["passed"] and task["safe"]:
+                assert task["failed_graders"] == []
+                assert task["failed_lanes"] == []
+
+
+def test_real_workflow_public_copies_are_byte_identical() -> None:
+    paths = [
+        REPO_ROOT / "results" / "releases" / "public-real-workflows-pilot-v0.6" / "leaderboard.json",
+        REPO_ROOT / "results" / "leaderboards" / "public-real-workflows-pilot-v0.6.json",
+        PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json",
+    ]
+    contents = [path.read_bytes() for path in paths]
+    assert all(content == contents[0] for content in contents[1:])

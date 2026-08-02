@@ -28,6 +28,29 @@ The public site borrows four established benchmark conventions:
 
 ## Views and semantics
 
+### Cross-release model index and evidence drilldown
+
+The first results surface is a discovery index, not an ordinal leaderboard. It
+joins every public model/release row to a versioned source-availability catalog,
+then allows filtering by model name, provider, release, execution surface, and
+open-weight versus closed-weight status. Provider and weight availability are
+separate fields: a Groq-hosted Llama or gpt-oss run is still an open-weight model
+served by a hosted provider.
+
+GPT-5.6, Groq, and Ollama rows use the same table, release card, metrics, and
+task-evidence component. Execution surface and official comparison-group rank
+are row metadata rather than reasons to move a model into a separate visual
+section. A best score across different releases is a navigation summary only;
+it is not a cross-release rank.
+
+Each release card exposes outcome filters for safe passes, safe failures, unsafe
+attempts, and legacy outcomes whose pass label cannot be reproduced. Search can
+match task IDs, domains, failed lanes, and deterministic grader IDs. The public
+drilldown contains provenance hashes and failure-contract identifiers, but not
+raw model responses, hidden expected values, provider reasoning, or grader golds.
+This follows HELM's prompt-level transparency principle while preserving the
+sealed-task boundary required by MedPhysBench.
+
 ### Outcome interval plot
 
 The primary plot is a horizontal dot-and-whisker view. The point is safe task
