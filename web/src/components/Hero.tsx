@@ -33,6 +33,13 @@ export function Hero({ data, onReleaseViewChange, releaseView, repoUrl }: HeroPr
         </button>
         <button
           type="button"
+          aria-pressed={releaseView === "imaging"}
+          onClick={() => onReleaseViewChange("imaging")}
+        >
+          Imaging
+        </button>
+        <button
+          type="button"
           aria-pressed={releaseView === "tg263"}
           onClick={() => onReleaseViewChange("tg263")}
         >
@@ -58,7 +65,8 @@ export function Hero({ data, onReleaseViewChange, releaseView, repoUrl }: HeroPr
           <p className="hero-body">{boundary.allowed}</p>
           <p className="claim-prohibited"><strong>Cannot support:</strong> {boundary.prohibited}</p>
           <div className="hero-links" aria-label="Primary benchmark links">
-            <a href="#leaderboard">Results</a>
+            <a href="#model-index">All models</a>
+            <a href="#leaderboard">Release results</a>
             <a href="#methodology">Methods</a>
             <a href={`${repoUrl}/tree/main/docs`} target="_blank" rel="noreferrer">
               Docs <ExternalLink aria-hidden="true" />
@@ -104,12 +112,14 @@ export function Hero({ data, onReleaseViewChange, releaseView, repoUrl }: HeroPr
 
 function fallbackReleaseId(releaseView: ReleaseView) {
   if (releaseView === "core") return "public-core-v0.4";
+  if (releaseView === "imaging") return "public-imaging-pilot-v0.4";
   if (releaseView === "tg263") return "public-tg263-pilot-v0.5";
   return "public-real-workflows-pilot-v0.6";
 }
 
 function fallbackReleaseTitle(releaseView: ReleaseView) {
   if (releaseView === "core") return "MedPhysBench Public Core v0.4";
+  if (releaseView === "imaging") return "MedPhysBench Imaging Pilot";
   if (releaseView === "tg263") return "MedPhysBench Public TG-263 Pilot v0.5";
   return "MedPhysBench OpenKBP Real-Workflow Pilot v0.6";
 }
@@ -126,6 +136,12 @@ function releaseBoundary(releaseView: ReleaseView) {
     tone: "warn",
     allowed: "Public development evidence for collision-aware TG-263 decisions and grader-contract auditing.",
     prohibited: "cross-surface native ranking, clinical naming approval, or treatment-system validation.",
+  };
+  if (releaseView === "imaging") return {
+    status: "public-pilot",
+    tone: "neutral",
+    allowed: "Research-only imaging and segmentation evidence on frozen public fixtures and native-image task contracts.",
+    prohibited: "diagnostic validation, clinical contouring authority, or claims of prospective reader performance.",
   };
   return {
     status: "public-development",

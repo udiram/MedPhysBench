@@ -76,6 +76,7 @@ export function EfficiencyExplorer({ data, releaseView }: Props) {
 
 function fallbackRelease(view: ReleaseView) {
   if (view === "core") return "public-core-v0.4";
+  if (view === "imaging") return "public-imaging-pilot-v0.4";
   if (view === "tg263") return "public-tg263-pilot-v0.5";
   return "public-real-workflows-pilot-v0.6";
 }

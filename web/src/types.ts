@@ -10,7 +10,20 @@ export type LaneScores = {
   segmentation?: number;
 };
 
-export type ReleaseView = "core" | "tg263" | "real";
+export type ReleaseView = "core" | "imaging" | "tg263" | "real";
+
+export type PublicReleaseKey = "core" | "imaging" | "tg263" | "real";
+
+export type ModelOpenness = "open" | "closed" | "unknown";
+
+export type ModelCatalogEntry = {
+  provider: string;
+  model_name: string;
+  openness: ModelOpenness;
+  steward: string;
+  family: string;
+  notes?: string;
+};
 
 export type Tg263AuditModel = {
   model_name: string;
@@ -47,6 +60,7 @@ export type ModelTaskResult = {
   task_id: string;
   title: string;
   domain: string;
+  track: string;
   run_id?: string;
   seed?: number;
   attempt_index?: number;
@@ -57,6 +71,9 @@ export type ModelTaskResult = {
   scoring_revision?: string;
   passed?: boolean;
   safe: boolean;
+  outcome_category?: string;
+  failed_graders?: string[];
+  failed_lanes?: string[];
 };
 
 export type ModelResult = {
@@ -68,6 +85,15 @@ export type ModelResult = {
   model_name: string;
   provider: string;
   model_revision: string;
+  execution_surface?: string;
+  execution_surface_label?: string;
+  run_profile?: {
+    provider: string;
+    harness_name: string;
+    harness_revision: string;
+    is_common_harness: boolean;
+    is_recorded_import_surface: boolean;
+  };
   harness_name?: string;
   harness_revision?: string;
   attempt_count: number;

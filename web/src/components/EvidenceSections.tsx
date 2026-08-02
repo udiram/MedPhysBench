@@ -211,6 +211,7 @@ function formatTrackLabel(value: string) {
 
 function fallbackReleaseId(releaseView: ReleaseView) {
   if (releaseView === "core") return "public-core-v0.4";
+  if (releaseView === "imaging") return "public-imaging-pilot-v0.4";
   if (releaseView === "tg263") return "public-tg263-pilot-v0.5";
   return "public-real-workflows-pilot-v0.6";
 }

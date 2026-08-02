@@ -1,6 +1,6 @@
 import { ArrowDownToLine, ChevronDown, Search } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
-import type { AccessStatus, Leaderboard, ModelResult, ReleaseView, Tg263Audit } from "../types";
+import type { AccessStatus, Leaderboard, ModelCatalogEntry, ModelResult, ReleaseView, Tg263Audit } from "../types";
 import { domainLabel, formatDuration, formatPercent, formatTokens, shortHash } from "../lib/format";
 
 type SortKey =
@@ -15,6 +15,7 @@ type SortKey =
 type LeaderboardExplorerProps = {
   data: Leaderboard | null;
   accessStatus: AccessStatus[];
+  modelCatalog: ModelCatalogEntry[];
   loadError: boolean;
   releaseView: ReleaseView;
   tg263Audit: Tg263Audit | null;
@@ -32,13 +33,52 @@ const SORT_KEYS: Array<{ key: SortKey; label: string }> = [
 
 const RELEASE_DOWNLOAD: Record<ReleaseView, string> = {
   core: "/data/leaderboard.json",
+  imaging: "/data/imaging_leaderboard.json",
   tg263: "/data/tg263_leaderboard.json",
   real: "/data/public-real-workflows-pilot-v0.6.json",
+};
+
+type ModelOpenness = "open" | "closed" | "unknown";
+
+function catalogIndexForModelRow(model: ModelResult, catalogIndex: Record<string, ModelCatalogEntry>) {
+  return catalogIndex[`${model.provider}::${model.model_name}`] ?? null;
+}
+
+function modelSourceRow(model: ModelResult, catalogEntry: ModelCatalogEntry | null): ModelOpenness {
+  return catalogEntry?.openness ?? "unknown";
+}
+
+function modelSourceLabel(value: ModelOpenness) {
+  if (value === "open") return "Open";
+  if (value === "closed") return "Closed";
+  return "Unknown";
+}
+
+function failureLanes(tasks: readonly LeaderboardExplorerTask[]) {
+  const laneCounts = new Map<string, number>();
+  for (const task of tasks) {
+    for (const lane of task.failed_lanes ?? []) {
+      laneCounts.set(lane, (laneCounts.get(lane) ?? 0) + 1);
+    }
+  }
+  if (laneCounts.size === 0) {
+    return "No recorded lane-level failures.";
+  }
+  return [...laneCounts.entries()]
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .map(([lane, count]) => `${lane}: ${count}`)
+    .join(", ");
+}
+
+type LeaderboardExplorerTask = {
+  failed_lanes?: string[];
+  failed_graders?: string[];
 };
 
 export function LeaderboardExplorer({
   data,
   accessStatus,
+  modelCatalog,
   loadError,
   releaseView,
   tg263Audit,
@@ -46,6 +86,7 @@ export function LeaderboardExplorer({
   const [query, setQuery] = useState("");
   const [domainFilter, setDomainFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState<"all" | "open" | "closed" | "unknown">("all");
   const [sortKey, setSortKey] = useState<SortKey>("safe_success_rate");
   const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc");
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -53,6 +94,13 @@ export function LeaderboardExplorer({
   const allRows = useMemo(
     () => withDerivedOutcomeRanks(data ? [...data.models, ...(data.unranked_models ?? [])] : []),
     [data],
+  );
+  const catalogIndex = useMemo(
+    () =>
+      Object.fromEntries(
+        modelCatalog.map((entry) => [`${entry.provider}::${entry.model_name}`, entry]),
+      ) as Record<string, ModelCatalogEntry>,
+    [modelCatalog],
   );
 
   const domains = useMemo(() => {
@@ -73,15 +121,18 @@ export function LeaderboardExplorer({
           statusFilter === "all" ||
           (statusFilter === "ranked" && model.ranking_eligible) ||
           (statusFilter === "review" && !model.ranking_eligible);
-        return matchesQuery && matchesStatus;
+        const source = modelSourceRow(model, catalogIndexForModelRow(model, catalogIndex));
+        const matchesSource = sourceFilter === "all" || source === sourceFilter;
+        return matchesQuery && matchesStatus && matchesSource;
       })
       .sort((left, right) => compareRows(left, right, sortKey, sortDirection, domainFilter));
-  }, [allRows, deferredQuery, domainFilter, sortDirection, sortKey, statusFilter]);
+  }, [allRows, catalogIndex, deferredQuery, domainFilter, sortDirection, sortKey, statusFilter, sourceFilter]);
 
-  const rankedRows = allRows.filter((model) => model.ranking_eligible);
-  const reviewRows = allRows
-    .filter((model) => !model.ranking_eligible)
-    .sort((left, right) => (left.outcome_rank ?? Infinity) - (right.outcome_rank ?? Infinity));
+  const summaryRows = [...allRows].sort(
+    (left, right) =>
+      (left.outcome_rank ?? Infinity) - (right.outcome_rank ?? Infinity) ||
+      left.model_name.localeCompare(right.model_name),
+  );
   const blocked = accessStatus.filter((item) => item.status !== "available");
 
   return (
@@ -113,8 +164,8 @@ export function LeaderboardExplorer({
         <aside className="results-summary">
           <div className="results-summary-head">
             <div>
-              <h3>Official harness-group ranks</h3>
-              <p>{data ? `${data.tasks.length} public tasks` : "Loading release contract"}</p>
+              <h3>Published outcomes</h3>
+              <p>{data ? `${summaryRows.length} run sets · ${data.tasks.length} public tasks` : "Loading release contract"}</p>
             </div>
           </div>
           {!data ? (
@@ -122,22 +173,25 @@ export function LeaderboardExplorer({
               <strong>Loading the signed release bundle…</strong>
               <p>Release identity is known; scored rows appear after integrity-checked JSON is available.</p>
             </div>
-          ) : rankedRows.length > 0 ? (
-            <div className="summary-table-wrap" role="region" aria-label="Ranked summary table" tabIndex={0}>
+          ) : summaryRows.length > 0 ? (
+            <div className="summary-table-wrap" role="region" aria-label="Published outcome summary" tabIndex={0}>
               <table className="summary-table">
                 <thead>
-                  <tr>
-                    <th>Official</th>
-                    <th>Model</th>
-                    <th>Score</th>
-                    <th>95% CI</th>
+                <tr>
+                  <th>Outcome</th>
+                  <th>Model</th>
+                  <th>Score</th>
+                  <th>95% CI</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rankedRows.map((model) => (
+                  {summaryRows.map((model) => (
                     <tr key={model.model_name}>
-                      <td>{model.rank ? `${rankGroupLabel(model)} #${model.rank}` : "—"}</td>
-                      <td>{model.model_name}</td>
+                      <td>#{model.outcome_rank ?? "—"}</td>
+                      <td>
+                        {model.model_name}
+                        <small>{model.rank ? `${rankGroupLabel(model)} official #${model.rank}` : "No official group rank"}</small>
+                      </td>
                       <td>{formatPercent(model.safe_success_rate)}</td>
                       <td>{formatPercent(safeSuccessInterval(model)[0])}–{formatPercent(safeSuccessInterval(model)[1])}</td>
                     </tr>
@@ -147,43 +201,13 @@ export function LeaderboardExplorer({
             </div>
           ) : (
             <div className="summary-empty" role="status">
-              <strong>No official harness-group ranking published for this release.</strong>
-              <p>Complete native runs remain visible in the descriptive outcome order below.</p>
+              <strong>No complete outcome rows are published for this release.</strong>
+              <p>Incomplete or integrity-invalid runs remain outside the descriptive outcome order.</p>
             </div>
           )}
 
-          <div className="native-audit-panel">
-            <div className="native-audit-copy">
-              <strong>{releaseView === "tg263" ? "Native GPT audit" : "Native-surface outcome order"}</strong>
-              <p>
-                {releaseView === "tg263"
-                  ? "Primary decision quality and rationale-label exactness are split. Native rows stay separate until a comparable common harness exists."
-                  : "Complete native runs use the same frozen task pack but a different execution surface. They receive a descriptive outcome order, while official harness-group ranks stay separate. Missing latency or token telemetry stays unavailable."}
-              </p>
-            </div>
-            <div className="native-audit-rows">
-              {releaseView === "tg263" && tg263Audit
-                ? tg263Audit.models.map((model) => (
-                    <div key={model.model_name} className="native-audit-row">
-                      <span>{model.model_name}</span>
-                      <span>{formatPercent(model.primary_decision_rate)} audited</span>
-                      <span>{formatPercent(model.strict_safe_success_rate)} strict</span>
-                      <span>{model.label_only_mismatch_count} label-only mismatches</span>
-                    </div>
-                  ))
-                : reviewRows.slice(0, 3).map((model) => (
-                    <div key={model.model_name} className="native-audit-row">
-                      <span>{model.model_name}</span>
-                      <span>Outcome #{model.outcome_rank ?? "—"}</span>
-                      <span>{formatPercent(model.safe_success_rate)} score</span>
-                      <span>{formatDuration(model.median_duration_seconds)}</span>
-                    </div>
-                  ))}
-            </div>
-          </div>
-
           <p className="summary-footnote">
-            Score is safe task success from the current release artifact. Unavailable telemetry is left unavailable and is not imputed for charts or tables.
+            Outcome order is descriptive across complete rows. Official rank is shown as row metadata only when an identical frozen harness group exists; unavailable telemetry is never imputed.
           </p>
         </aside>
       </div>
@@ -204,12 +228,24 @@ export function LeaderboardExplorer({
           </span>
         </label>
         <label className="field">
-          <span>Ranking state</span>
+          <span>Run set</span>
           <span className="select-wrap">
             <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
               <option value="all">All runs</option>
-                <option value="ranked">Official only</option>
-                <option value="review">Native outcome only</option>
+                <option value="ranked">Comparable runs</option>
+                <option value="review">Outcome-only runs</option>
+            </select>
+            <ChevronDown aria-hidden="true" />
+          </span>
+        </label>
+        <label className="field">
+          <span>Model source</span>
+          <span className="select-wrap">
+            <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as typeof sourceFilter)}>
+              <option value="all">Open + closed</option>
+              <option value="open">Open-source</option>
+              <option value="closed">Closed</option>
+              <option value="unknown">Unclassified</option>
             </select>
             <ChevronDown aria-hidden="true" />
           </span>
@@ -235,8 +271,8 @@ export function LeaderboardExplorer({
             </caption>
             <thead>
               <tr>
-                <th>Official</th>
-                <th>Outcome</th>
+                <th>Comparable rank</th>
+                <th>Outcome rank</th>
                 {SORT_KEYS.map((item) => (
                   <th
                     key={item.key}
@@ -263,7 +299,8 @@ export function LeaderboardExplorer({
                 ))}
                 <th>95% CI</th>
                 <th>Attempts</th>
-                <th>Status</th>
+                <th>Execution</th>
+                <th>Source</th>
               </tr>
             </thead>
             <tbody>
@@ -272,6 +309,7 @@ export function LeaderboardExplorer({
                   key={model.model_name}
                   domainFilter={domainFilter}
                   expanded={expanded === model.model_name}
+                  source={modelSourceRow(model, catalogIndexForModelRow(model, catalogIndex))}
                   model={model}
                   onToggle={() => setExpanded((value) => (value === model.model_name ? null : model.model_name))}
                 />
@@ -477,13 +515,19 @@ function ModelDetailRow({
   domainFilter,
   expanded,
   onToggle,
+  source,
 }: {
   model: ModelResult;
   domainFilter: string;
   expanded: boolean;
   onToggle: () => void;
+  source: ModelOpenness;
 }) {
   const tasks = domainFilter === "all" ? model.tasks : model.tasks.filter((task) => task.domain === domainFilter);
+  const failedTasks = tasks.filter((task) => (task.failed_graders?.length ?? 0) > 0);
+  const safePasses = tasks.filter((task) => task.passed === true && task.safe).length;
+  const safeFails = tasks.filter((task) => task.passed === false && task.safe).length;
+  const unsafeOutcomes = tasks.filter((task) => task.safe === false).length;
 
   return (
     <>
@@ -510,7 +554,8 @@ function ModelDetailRow({
         <td>{formatDuration(model.median_duration_seconds)}</td>
         <td>{formatPercent(safeSuccessInterval(model)[0])} to {formatPercent(safeSuccessInterval(model)[1])}</td>
         <td>{model.attempt_count} / {model.expected_attempt_count ?? model.attempt_count}</td>
-        <td>{model.ranking_eligible ? "Official harness group" : "Native outcome order"}</td>
+        <td>{model.execution_surface_label ?? "Common harness execution"}</td>
+        <td>{modelSourceLabel(source)}</td>
       </tr>
       {expanded && (
         <tr className="detail-row">
@@ -527,7 +572,7 @@ function ModelDetailRow({
                   <div><dt>Critical unsafe</dt><dd>{formatPercent(model.critical_unsafe_action_rate)}</dd></div>
                 </dl>
               </section>
-              <section className="detail-span">
+                  <section className="detail-span">
                 <h4>Task-by-task results</h4>
                 <div className="task-grid">
                   {tasks.map((task) => (
@@ -545,9 +590,37 @@ function ModelDetailRow({
                         <div><dt>Grader</dt><dd>{shortHash(task.grader_hash)}</dd></div>
                         <div><dt>Scoring</dt><dd>{task.scoring_revision ?? "—"}</dd></div>
                       </dl>
+                      {task.failed_lanes && task.failed_lanes.length > 0 ? (
+                        <p>
+                          <strong>Failure lanes:</strong> {task.failed_lanes.join(", ")}
+                        </p>
+                      ) : null}
+                      {task.failed_graders && task.failed_graders.length > 0 ? (
+                        <p>
+                          <strong>Failed checks:</strong> {task.failed_graders.join(", ")}
+                        </p>
+                      ) : null}
                     </article>
                   ))}
                 </div>
+              </section>
+              <section>
+                <h4>Failure diagnostics</h4>
+                <dl className="metric-list">
+                  <div><dt>Right/wrong</dt><dd>{safePasses} correct · {safeFails + unsafeOutcomes} incorrect</dd></div>
+                  <div><dt>Failed checks</dt><dd>{failedTasks.length} task attempt(s)</dd></div>
+                  <div><dt>Common failure lanes</dt><dd>{failureLanes(tasks)}</dd></div>
+                </dl>
+                {failedTasks.length > 0 && (
+                  <ul className="integrity-list">
+                    {failedTasks.map((task) => (
+                      <li key={`${task.task_id}-${task.attempt_index ?? 0}`}>
+                        {task.title}: {task.failed_graders?.join(", ")}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {failedTasks.length === 0 ? <p className="integrity-clean">No failed check identifiers are recorded for this run.</p> : null}
               </section>
               <section>
                 <h4>Integrity</h4>
@@ -576,6 +649,7 @@ function ModelDetailRow({
 
 function releaseTitle(view: ReleaseView) {
   if (view === "core") return "Core release results";
+  if (view === "imaging") return "Imaging pilot";
   if (view === "tg263") return "TG-263 naming pilot";
   return "OpenKBP real-workflow pilot";
 }
@@ -583,6 +657,9 @@ function releaseTitle(view: ReleaseView) {
 function releaseSummary(view: ReleaseView) {
   if (view === "core") {
     return "Original medical-physics calculations, bounded interpretation, deterministic artifact checks, and escalation boundaries on the public core.";
+  }
+  if (view === "imaging") {
+    return "Public imaging and segmentation tasks on frozen fixtures, with common-harness open models and comparable native GPT rows shown in the same result surface.";
   }
   if (view === "tg263") {
     return "Collision-aware structure naming where audited native GPT decision correctness stays separate from strict pilot rationale-label exactness.";
@@ -592,6 +669,7 @@ function releaseSummary(view: ReleaseView) {
 
 function fallbackReleaseId(view: ReleaseView) {
   if (view === "core") return "public-core-v0.4";
+  if (view === "imaging") return "public-imaging-pilot-v0.4";
   if (view === "tg263") return "public-tg263-pilot-v0.5";
   return "public-real-workflows-pilot-v0.6";
 }

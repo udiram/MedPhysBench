@@ -307,6 +307,13 @@ function evidenceFor(view: ReleaseView) {
       { label: "Protected holdout", state: "Not operating", tone: "bad", detail: "This public pilot is a development surface and is vulnerable to direct optimization." },
     ];
   }
+  if (view === "imaging") {
+    return [
+      { label: "Independent domain review", state: "Not complete", tone: "bad", detail: "The public imaging pilot has not yet cleared external physicist and imaging-expert review." },
+      { label: "Human baseline", state: "Not published", tone: "bad", detail: "No human-reader or contouring baseline is published for this pilot." },
+      { label: "Protected holdout", state: "Not operating", tone: "bad", detail: "The released imaging fixtures are public and development-facing, not contamination-resistant." },
+    ];
+  }
   return [
     { label: "Independent domain review", state: "Not complete", tone: "bad", detail: "The public development lane has not passed an external physicist review gate." },
     { label: "Human baseline", state: "Not published", tone: "bad", detail: "Scores are model-only research evidence and must not be described as human-level performance." },
@@ -322,6 +329,10 @@ function claimBoundary(view: ReleaseView) {
   if (view === "tg263") return {
     allowed: "Public development evidence for collision-aware TG-263 decisions and grader-contract auditing.",
     prohibited: "Cross-surface native ranking, treatment-system naming validation, or autonomous structure approval.",
+  };
+  if (view === "imaging") return {
+    allowed: "Research-only evaluation on frozen public imaging fixtures and benchmark-authored segmentation or interpretation contracts.",
+    prohibited: "Diagnostic validation, clinical contouring authority, or prospective reader-performance claims.",
   };
   return {
     allowed: "Public development and regression evidence across medical-physics knowledge, calculations, artifact checks, and escalation.",
