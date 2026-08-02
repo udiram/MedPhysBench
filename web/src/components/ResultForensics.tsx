@@ -22,6 +22,17 @@ type VisibleRow = {
   source: SourceFilter;
 };
 
+type DomainSummaryRow = {
+  domain: string;
+  attempts: number;
+  safeSuccess: number;
+  safeFailure: number;
+  unsafe: number;
+  inconclusive: number;
+  topLane: string | null;
+  topGrader: string | null;
+};
+
 const OUTCOME_ORDER: OutcomeKey[] = ["safe_success", "safe_failure", "unsafe", "inconclusive"];
 
 export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
@@ -141,6 +152,29 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
 
   const failedLanes = useMemo(() => tallyStrings(filteredTasks.flatMap((task) => task.failed_lanes ?? [])), [filteredTasks]);
   const failedGraders = useMemo(() => tallyStrings(filteredTasks.flatMap((task) => task.failed_graders ?? [])), [filteredTasks]);
+  const domainSummary = useMemo<DomainSummaryRow[]>(() => {
+    return domainBuckets.map(({ domain, tasks }) => {
+      const counts = tallyOutcomes(tasks);
+      const lanes = tallyStrings(tasks.flatMap((task) => task.failed_lanes ?? []));
+      const graders = tallyStrings(tasks.flatMap((task) => task.failed_graders ?? []));
+      return {
+        domain,
+        attempts: tasks.length,
+        safeSuccess: counts.safe_success,
+        safeFailure: counts.safe_failure,
+        unsafe: counts.unsafe,
+        inconclusive: counts.inconclusive,
+        topLane: lanes[0]?.[0] ?? null,
+        topGrader: graders[0]?.[0] ?? null,
+      };
+    }).sort(
+      (left, right) =>
+        right.unsafe - left.unsafe ||
+        right.safeFailure - left.safeFailure ||
+        right.attempts - left.attempts ||
+        left.domain.localeCompare(right.domain),
+    );
+  }, [domainBuckets]);
   const providers = useMemo(
     () => [...new Set((data ? [...data.models, ...(data.unranked_models ?? [])] : []).map((row) => row.provider))].sort(),
     [data],
@@ -423,6 +457,42 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                         </ol>
                       </div>
                     </div>
+                  </section>
+
+                  <section className="forensics-panel">
+                    <h3>Domain breakdown in current slice</h3>
+                    {domainSummary.length > 0 ? (
+                      <div className="forensics-domain-summary">
+                        {domainSummary.map((domainRow) => (
+                          <button
+                            key={domainRow.domain}
+                            type="button"
+                            className={`forensics-domain-summary-row${domainFilter === domainRow.domain ? " selected" : ""}`}
+                            onClick={() => {
+                              const next = domainFilter === domainRow.domain ? "all" : domainRow.domain;
+                              setDomainFilter(next);
+                              setUrlParams({ fx_domain: next === "all" ? null : next }, { history: "push" });
+                            }}
+                          >
+                            <div>
+                              <strong>{domainLabel(domainRow.domain)}</strong>
+                              <small>
+                                {domainRow.attempts} attempt{domainRow.attempts === 1 ? "" : "s"} · {formatPercent(domainRow.attempts ? domainRow.safeSuccess / domainRow.attempts : null)} safe success
+                              </small>
+                            </div>
+                            <dl>
+                              <div><dt>Safe fail</dt><dd>{domainRow.safeFailure}</dd></div>
+                              <div><dt>Unsafe</dt><dd>{domainRow.unsafe}</dd></div>
+                              <div><dt>Inconclusive</dt><dd>{domainRow.inconclusive}</dd></div>
+                              <div><dt>Top lane</dt><dd>{domainRow.topLane ?? "None"}</dd></div>
+                              <div><dt>Top grader</dt><dd>{domainRow.topGrader ?? "None"}</dd></div>
+                            </dl>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="forensics-note">No domain-level failures are visible in this slice.</p>
+                    )}
                   </section>
 
                   {selectedTask ? (

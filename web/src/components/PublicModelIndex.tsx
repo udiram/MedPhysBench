@@ -4,6 +4,8 @@ import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel
 import { isCommonHarnessRun, isNativeRun } from "../lib/runSurface";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import type {
+  FleetStatus,
+  FleetStatusModel,
   Leaderboard,
   ModelCatalogEntry,
   ModelOpenness,
@@ -20,6 +22,7 @@ type ReleaseDataset = {
 
 type PublicModelIndexProps = {
   catalog: ModelCatalogEntry[];
+  fleetStatus: FleetStatus | null;
   datasets: ReleaseDataset[];
 };
 
@@ -28,21 +31,104 @@ type PublicRun = ModelResult & {
   release_id: string;
   release_title: string;
   task_count: number;
+  model_base_id: string;
+  catalog_entry?: ModelCatalogEntry;
 };
 
 type ModelGroup = {
   key: string;
+  base_model_id: string;
   model_name: string;
-  provider: string;
+  display_name: string;
+  providers: string[];
+  provider_label: string;
   catalog: ModelCatalogEntry | null;
+  catalogEntries: ModelCatalogEntry[];
+  fleetEntry: FleetStatusModel | null;
+  openness: ModelOpenness;
   runs: PublicRun[];
   release_count: number;
   best_safe_success_rate: number | null;
   common_count: number;
   specialized_count: number;
+  has_reference_data: boolean;
 };
 
-export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
+
+function getRunBaseModelId(row: ModelResult, catalogByProviderModel: Map<string, ModelCatalogEntry>) {
+  const catalogEntry = catalogByProviderModel.get(`${row.provider}::${row.model_name}`);
+  if (catalogEntry?.base_model_id) {
+    return catalogEntry.base_model_id;
+  }
+
+  const revision = row.model_revision;
+  if (typeof revision === "string" && revision.includes("@")) {
+    return revision.split("@", 1)[0];
+  }
+
+  return `run::${row.provider}::${row.model_name}`;
+}
+
+type ModelFamilyFailure = {
+  family_id: string;
+  task_id: string;
+  title: string;
+  domain: string;
+  safePass: number;
+  safeFail: number;
+  unsafe: number;
+  unknown: number;
+  failedLanes: Array<[string, number]>;
+  failedGraders: Array<[string, number]>;
+};
+
+type ModelVariantSummary = {
+  key: string;
+  provider: string;
+  provider_label: string;
+  model_name: string;
+  release_count: number;
+  run_count: number;
+  best_safe_success_rate: number | null;
+  common_count: number;
+  native_count: number;
+  rankable_count: number;
+  integrity_issues: string[];
+};
+
+function plannedRouteLabel(value: FleetStatusModel["planned_routes"][number]) {
+  if (value === "self_hosted") return "Self-hosted";
+  if (value === "openai") return "OpenAI API";
+  if (value === "codex_native") return "Codex native";
+  if (value === "aws_bedrock") return "AWS Bedrock";
+  if (value === "xai") return "xAI";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function sizeTierLabel(value: FleetStatusModel["size_tier"] | undefined) {
+  if (!value) return "Unknown";
+  if (value === "frontier") return "Frontier";
+  if (value === "undisclosed") return "Undisclosed";
+  return `${value.charAt(0).toUpperCase()}${value.slice(1)} tier`;
+}
+
+function focusRunForensics(run: PublicRun) {
+  setUrlParams(
+    {
+      fx_provider: run.provider,
+      fx_model: `${run.provider}::${run.model_name}`,
+      fx_domain: null,
+      fx_outcome: null,
+      fx_task: null,
+    },
+    { history: "push" },
+  );
+  if (typeof window !== "undefined") {
+    window.location.hash = "forensics";
+  }
+}
+
+export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModelIndexProps) {
   const [query, setQuery] = useState("");
   const [openness, setOpenness] = useState<ModelOpenness | "all">("all");
   const [provider, setProvider] = useState<string>("all");
@@ -52,23 +138,44 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
   const deferredQuery = useDeferredValue(query);
   const allDatasetsReady = datasets.every((dataset) => dataset.data !== null);
 
-  const catalogMap = useMemo(
+  const catalogByProviderModel = useMemo(
     () => new Map(catalog.map((entry) => [`${entry.provider}::${entry.model_name}`, entry])),
     [catalog],
   );
 
-  const runs = useMemo(() => {
+  const catalogByBase = useMemo(() => {
+    const grouped = new Map<string, ModelCatalogEntry[]>();
+    for (const entry of catalog) {
+      const bucket = grouped.get(entry.base_model_id) ?? [];
+      bucket.push(entry);
+      grouped.set(entry.base_model_id, bucket);
+    }
+    return grouped;
+  }, [catalog]);
+
+  const fleetByBase = useMemo(() => {
+    const grouped = new Map<string, FleetStatusModel>();
+    for (const model of fleetStatus?.models ?? []) {
+      grouped.set(model.base_model_id, model);
+    }
+    return grouped;
+  }, [fleetStatus]);
+
+  const allRuns = useMemo(() => {
     const flattened: PublicRun[] = [];
     for (const dataset of datasets) {
       if (!dataset.data) continue;
       const rows = [...dataset.data.models, ...(dataset.data.unranked_models ?? [])];
       for (const row of rows) {
+        const catalogEntry = catalogByProviderModel.get(`${row.provider}::${row.model_name}`);
         flattened.push({
           ...row,
           release_key: dataset.key,
           release_id: dataset.data.release.release_id,
           release_title: dataset.label,
           task_count: dataset.data.tasks.length,
+          model_base_id: getRunBaseModelId(row, catalogByProviderModel),
+          catalog_entry: catalogEntry,
         });
       }
     }
@@ -78,93 +185,203 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
         left.model_name.localeCompare(right.model_name) ||
         left.release_id.localeCompare(right.release_id),
     );
-  }, [datasets]);
+  }, [catalogByProviderModel, datasets]);
 
-  const providers = useMemo(() => [...new Set(runs.map((row) => row.provider))].sort(), [runs]);
-
-  const filteredRuns = useMemo(() => {
-    const normalized = deferredQuery.trim().toLowerCase();
-    return runs.filter((row) => {
-      const entry = catalogMap.get(`${row.provider}::${row.model_name}`) ?? null;
-      const matchesQuery =
-        !normalized ||
-        row.model_name.toLowerCase().includes(normalized) ||
-        row.provider.toLowerCase().includes(normalized) ||
-        providerLabel(row.provider).toLowerCase().includes(normalized) ||
-        row.release_id.toLowerCase().includes(normalized) ||
-        entry?.family.toLowerCase().includes(normalized) === true;
-      const matchesOpenness = openness === "all" || (entry?.openness ?? "unknown") === openness;
-      const matchesProvider = provider === "all" || row.provider === provider;
-      const matchesRelease = release === "all" || row.release_key === release;
-      const matchesSurface =
-        surface === "all" ||
-        (surface === "common" && isCommonHarnessRun(row)) ||
-        (surface === "native" && isNativeRun(row));
-      return matchesQuery && matchesOpenness && matchesProvider && matchesRelease && matchesSurface;
-    });
-  }, [catalogMap, deferredQuery, openness, provider, release, runs, surface]);
-
-  const groups = useMemo(() => {
-    const grouped = new Map<string, ModelGroup>();
-    for (const row of filteredRuns) {
-      const key = `${row.provider}::${row.model_name}`;
-      const explicitRate = explicitSafeSuccessRate(row);
-      const current = grouped.get(key);
-      if (current) {
-        current.runs.push(row);
-        current.release_count = new Set(current.runs.map((item) => item.release_id)).size;
-        current.best_safe_success_rate = maxAvailable(current.best_safe_success_rate, explicitRate);
-        current.common_count += isCommonHarnessRun(row) ? 1 : 0;
-        current.specialized_count += isNativeRun(row) ? 1 : 0;
-      } else {
-        grouped.set(key, {
-          key,
-          model_name: row.model_name,
-          provider: row.provider,
-          catalog: catalogMap.get(key) ?? null,
-          runs: [row],
-          release_count: 1,
-          best_safe_success_rate: explicitRate,
-          common_count: isCommonHarnessRun(row) ? 1 : 0,
-          specialized_count: isNativeRun(row) ? 1 : 0,
-        });
+  const targetBaseModels = useMemo(() => {
+    const seeded = new Map<string, FleetStatusModel | null>();
+    for (const model of fleetStatus?.models ?? []) {
+      seeded.set(model.base_model_id, model);
+    }
+    for (const entry of catalog) {
+      if (!seeded.has(entry.base_model_id)) {
+        seeded.set(entry.base_model_id, null);
       }
     }
-    return [...grouped.values()].sort(
-      (left, right) =>
-        (right.best_safe_success_rate ?? -1) - (left.best_safe_success_rate ?? -1) ||
-        right.release_count - left.release_count ||
-        left.model_name.localeCompare(right.model_name),
+    for (const run of allRuns) {
+      if (!seeded.has(run.model_base_id)) {
+        seeded.set(run.model_base_id, null);
+      }
+    }
+    return seeded;
+  }, [allRuns, catalog, fleetStatus?.models]);
+
+  const surfaceFilteredRuns = useMemo(() => {
+    if (surface === "all") return allRuns;
+    return allRuns.filter((run) =>
+      surface === "common" ? isCommonHarnessRun(run) : isNativeRun(run),
     );
-  }, [catalogMap, filteredRuns]);
+  }, [allRuns, surface]);
+
+  const releaseFilteredRuns = useMemo(() => {
+    if (release === "all") return surfaceFilteredRuns;
+    return surfaceFilteredRuns.filter((run) => run.release_key === release);
+  }, [surfaceFilteredRuns, release]);
+
+  const providerFilteredRuns = useMemo(() => {
+    if (provider === "all") return releaseFilteredRuns;
+    return releaseFilteredRuns.filter((run) => run.provider === provider);
+  }, [provider, releaseFilteredRuns]);
+
+  const allGroups = useMemo(() => {
+    const grouped = new Map<string, ModelGroup>();
+    const createSeed = (baseModelId: string): ModelGroup => {
+      const catalogEntries = catalogByBase.get(baseModelId) ?? [];
+      const fleetEntry = fleetByBase.get(baseModelId) ?? null;
+      const providers = uniqueValues(catalogEntries.map((entry) => entry.provider));
+      const primary = catalogEntries[0];
+      const fallbackDisplay =
+        primary?.family ??
+        primary?.model_name ??
+        fleetEntry?.display_name ??
+        inferDisplayFromBase(baseModelId);
+      const fallbackProviders = providers.length > 0
+        ? providers
+        : (fleetEntry?.planned_routes ?? []).filter((value) => value !== "self_hosted");
+
+      return {
+        key: baseModelId,
+        base_model_id: baseModelId,
+        model_name: fallbackDisplay,
+        display_name: fallbackDisplay,
+        providers,
+        provider_label:
+          providers.length > 0
+            ? providers.map((value) => providerLabel(value)).join(", ")
+            : fallbackProviders.map((value) => plannedRouteLabel(value as FleetStatusModel["planned_routes"][number])).join(", "),
+        catalog: primary ?? null,
+        catalogEntries,
+        fleetEntry,
+        openness:
+          (primary?.openness as ModelOpenness | undefined) ??
+          (fleetEntry?.openness as ModelOpenness | undefined) ??
+          "unknown",
+        runs: [],
+        release_count: 0,
+        best_safe_success_rate: null,
+        common_count: 0,
+        specialized_count: 0,
+        has_reference_data: false,
+      };
+    };
+
+    for (const baseModelId of targetBaseModels.keys()) {
+      grouped.set(baseModelId, createSeed(baseModelId));
+    }
+
+    for (const run of providerFilteredRuns) {
+      const key = run.model_base_id;
+      let group = grouped.get(key);
+      if (!group) {
+        group = createSeed(key);
+        grouped.set(key, group);
+      }
+      group.runs.push(run);
+      group.has_reference_data = true;
+      group.release_count = new Set(group.runs.map((item) => item.release_id)).size;
+      group.best_safe_success_rate = maxAvailable(group.best_safe_success_rate, explicitSafeSuccessRate(run));
+      group.common_count += isCommonHarnessRun(run) ? 1 : 0;
+      group.specialized_count += isNativeRun(run) ? 1 : 0;
+      const runProvider = run.provider;
+      if (!group.providers.includes(runProvider)) {
+        group.providers.push(runProvider);
+        group.providers = uniqueValues(group.providers);
+        group.provider_label = group.providers.map((value) => providerLabel(value)).join(", ");
+      }
+      if (!group.catalog && run.catalog_entry) {
+        group.catalog = run.catalog_entry;
+        group.catalogEntries = [run.catalog_entry];
+      } else if (run.catalog_entry && !group.catalogEntries.includes(run.catalog_entry)) {
+        group.catalogEntries.push(run.catalog_entry);
+      }
+      if (!group.catalog && run.catalog_entry == null && run.model_name) {
+        group.model_name = run.model_name;
+        group.display_name = run.model_name;
+      }
+      if (group.catalog && (group.openness === "unknown")) {
+        group.openness = group.catalog.openness;
+      } else if (group.openness === "unknown" && group.fleetEntry) {
+        group.openness = group.fleetEntry.openness;
+      }
+    }
+
+    return [...grouped.values()];
+  }, [catalogByBase, fleetByBase, providerFilteredRuns, targetBaseModels]);
+
+  const providerOptions = useMemo(
+    () => uniqueValues(allGroups.flatMap((group) => group.providers)).sort((a, b) => a.localeCompare(b)),
+    [allGroups],
+  );
+
+  const groups = useMemo(() => {
+    const normalized = deferredQuery.trim().toLowerCase();
+    return allGroups
+      .filter((group) => {
+        const familyHints = group.catalogEntries.map((entry) => entry.family.toLowerCase());
+        const runNameHints = group.runs.map((run) => run.model_name.toLowerCase());
+        const catalogHints = group.catalog ? [group.catalog.base_model_id.toLowerCase(), group.catalog.steward.toLowerCase()] : [];
+        const baseHints = group.base_model_id.toLowerCase();
+        const providerHints = group.providers.join(" ").toLowerCase();
+        const routeHints = (group.fleetEntry?.planned_routes ?? []).map((value) => plannedRouteLabel(value).toLowerCase());
+        const matchesQuery =
+          !normalized ||
+          group.model_name.toLowerCase().includes(normalized) ||
+          group.display_name.toLowerCase().includes(normalized) ||
+          baseHints.includes(normalized) ||
+          providerHints.includes(normalized) ||
+          group.providers.some((item) => providerLabel(item).toLowerCase().includes(normalized)) ||
+          familyHints.some((item) => item.includes(normalized)) ||
+          runNameHints.some((item) => item.includes(normalized)) ||
+          routeHints.some((item) => item.includes(normalized)) ||
+          catalogHints.some((item) => item.includes(normalized)) ||
+          group.catalogEntries.some((entry) => (entry.family ?? "").toLowerCase().includes(normalized)) ||
+          group.runs.some((run) => run.release_id.toLowerCase().includes(normalized));
+        const matchesOpenness = openness === "all" || group.openness === openness;
+        const matchesProvider = provider === "all" || group.providers.includes(provider);
+        return matchesQuery && matchesOpenness && matchesProvider;
+      })
+      .sort((left, right) => {
+        const deltaBest = (right.best_safe_success_rate ?? -1) - (left.best_safe_success_rate ?? -1);
+        if (deltaBest !== 0) return deltaBest;
+        const deltaRelease = right.release_count - left.release_count;
+        if (deltaRelease !== 0) return deltaRelease;
+        if (left.model_name !== right.model_name) {
+          return left.model_name.localeCompare(right.model_name);
+        }
+        return left.key.localeCompare(right.key);
+      });
+  }, [allGroups, deferredQuery, openness, provider]);
 
   const loadedReleaseCount = datasets.filter((dataset) => dataset.data).length;
-  const verifiedBaseModelCount = new Set(
-    runs.map((run) => catalogMap.get(`${run.provider}::${run.model_name}`)?.base_model_id).filter(Boolean),
-  ).size;
-  const baseModelCount = new Set(groups.map((group) => group.catalog?.base_model_id).filter(Boolean)).size;
-  const openCount = groups.filter((group) => (group.catalog?.openness ?? "unknown") === "open").length;
-  const closedCount = groups.filter((group) => (group.catalog?.openness ?? "unknown") === "closed").length;
-  const groqCount = groups.filter((group) => group.provider === "groq").length;
+  const targetModelCount = fleetStatus?.summary.planned_base_models ?? targetBaseModels.size;
+  const sliceModelCount = groups.length;
+  const evaluatedModelCount = groups.filter((group) => group.has_reference_data).length;
+  const overallEvaluatedCount = allGroups.filter((group) => group.has_reference_data).length;
+  const openCount = groups.filter((group) => group.openness === "open").length;
+  const closedCount = groups.filter((group) => group.openness === "closed").length;
+  const groqCount = groups.filter((group) => group.providers.includes("groq")).length;
 
   useEffect(() => {
-    if (!allDatasetsReady || providers.length === 0) return;
-    if (provider !== "all" && !providers.includes(provider)) {
+    if (!allDatasetsReady || providerOptions.length === 0) return;
+    if (provider !== "all" && !providerOptions.includes(provider)) {
       setProvider("all");
     }
-  }, [allDatasetsReady, provider, providers]);
+  }, [allDatasetsReady, provider, providerOptions]);
 
   useEffect(() => {
     if (!allDatasetsReady || loadedReleaseCount === 0) return;
-    const linkedModel = getUrlParam("model_name");
+    const linkedBase = getUrlParam("model_base");
     const linkedProvider = getUrlParam("model_provider");
-    const linkedKey = linkedModel && linkedProvider ? `${linkedProvider}::${linkedModel}` : null;
+    const linkedModel = getUrlParam("model_name");
+    const legacyBase = linkedProvider && linkedModel ? catalogByProviderModel.get(`${linkedProvider}::${linkedModel}`)?.base_model_id : null;
+    const linkedKey = linkedBase || legacyBase || null;
     if (linkedKey && groups.some((group) => group.key === linkedKey)) {
-      if (expanded !== linkedKey) setExpanded(linkedKey);
+      if (expanded !== linkedKey) {
+        setExpanded(linkedKey);
+      }
     } else if (expanded && !groups.some((group) => group.key === expanded)) {
       setExpanded(null);
     }
-  }, [allDatasetsReady, expanded, groups, loadedReleaseCount]);
+  }, [allDatasetsReady, expanded, groups, catalogByProviderModel, loadedReleaseCount]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -174,14 +391,16 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
       setProvider(getUrlParam("provider") ?? "all");
       setRelease(readEnumParam("model_release", ["all", "core", "imaging", "tg263", "real"] as const, "all"));
       setSurface(readEnumParam("surface", ["all", "common", "native"] as const, "all"));
-      const model = getUrlParam("model_name");
+      const modelBase = getUrlParam("model_base");
       const modelProvider = getUrlParam("model_provider");
-      setExpanded(model && modelProvider ? `${modelProvider}::${model}` : null);
+      const modelName = getUrlParam("model_name");
+      const legacyBase = modelProvider && modelName ? catalogByProviderModel.get(`${modelProvider}::${modelName}`)?.base_model_id : null;
+      setExpanded(modelBase || legacyBase || null);
     };
     handlePopState();
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  }, [catalogByProviderModel]);
 
   const writeExplorerUrl = (overrides: {
     query?: string;
@@ -193,6 +412,7 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
     runRelease?: string | null;
     taskView?: TaskView | null;
     taskQuery?: string | null;
+    runKey?: string | null;
   } = {}, history: "replace" | "push" = "push") => {
     const nextQuery = overrides.query ?? query;
     const nextOpenness = overrides.openness ?? openness;
@@ -208,23 +428,27 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
       : filtersChanged
         ? null
         : expanded;
-    if (filtersChanged && expanded) setExpanded(null);
-    const modelProvider = nextExpanded ? nextExpanded.split("::", 2)[0] : null;
-    const modelName = nextExpanded ? nextExpanded.slice((modelProvider?.length ?? 0) + 2) : null;
-    const selectedModelChanged =
-      getUrlParam("model_provider") !== modelProvider || getUrlParam("model_name") !== modelName;
-    setUrlParams({
-      model_query: nextQuery || null,
-      openness: nextOpenness === "all" ? null : nextOpenness,
-      provider: nextProvider === "all" ? null : nextProvider,
-      model_release: nextRelease === "all" ? null : nextRelease,
-      surface: nextSurface === "all" ? null : nextSurface,
-      model_provider: modelProvider,
-      model_name: modelName,
-      run_release: nextExpanded ? (overrides.runRelease ?? (selectedModelChanged ? null : getUrlParam("run_release"))) : null,
-      task_view: nextExpanded ? (overrides.taskView ?? (selectedModelChanged ? null : getUrlParam("task_view"))) : null,
-      task_query: nextExpanded ? (overrides.taskQuery ?? (selectedModelChanged ? null : getUrlParam("task_query"))) : null,
-    }, { history });
+    if (filtersChanged && expanded) {
+      setExpanded(null);
+    }
+    const selectedModelChanged = getUrlParam("model_base") !== nextExpanded;
+    setUrlParams(
+      {
+        model_query: nextQuery || null,
+        openness: nextOpenness === "all" ? null : nextOpenness,
+        provider: nextProvider === "all" ? null : nextProvider,
+        model_release: nextRelease === "all" ? null : nextRelease,
+        surface: nextSurface === "all" ? null : nextSurface,
+        model_base: nextExpanded,
+        model_key: nextExpanded ? (overrides.runKey ?? null) : null,
+        model_provider: null,
+        model_name: null,
+        run_release: nextExpanded ? (overrides.runRelease ?? (selectedModelChanged ? null : getUrlParam("run_release"))) : null,
+        task_view: nextExpanded ? (overrides.taskView ?? (selectedModelChanged ? null : getUrlParam("task_view"))) : null,
+        task_query: nextExpanded ? (overrides.taskQuery ?? (selectedModelChanged ? null : getUrlParam("task_query"))) : null,
+      },
+      { history },
+    );
   };
 
   return (
@@ -232,33 +456,36 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
       <div className="section-heading">
         <h2>Explore every model</h2>
         <p>
-          One presentation. Explicit execution context. Every shipped public run stays in this index, with filters that change the
-          slice without inventing cross-release comparability.
+          One presentation. Explicit execution context. Every planned public model stays in this index, with filters that
+          change the slice without inventing cross-release comparability.
         </p>
       </div>
 
       <div className="model-index-kpis">
         <article>
           <span>Model systems</span>
-          <strong>{groups.length}</strong>
+          <strong>{sliceModelCount}</strong>
           <small>
-            {baseModelCount} base IDs in this slice · {verifiedBaseModelCount}/50 fleet target verified · {loadedReleaseCount} releases loaded
+            {sliceModelCount === 0
+              ? "No models match the current slice"
+              : `${evaluatedModelCount}/${sliceModelCount} with public evidence in current slice`}{" "}
+            · {overallEvaluatedCount}/{targetModelCount} with public evidence overall · {loadedReleaseCount} releases loaded
           </small>
         </article>
         <article>
           <span>Open-weight</span>
           <strong>{openCount}</strong>
-          <small>Catalogued as open weights</small>
+          <small>Shown under the current filters</small>
         </article>
         <article>
           <span>Closed</span>
           <strong>{closedCount}</strong>
-          <small>Provider-native or closed deployment surface</small>
+          <small>Shown under the current filters</small>
         </article>
         <article>
           <span>Groq-hosted</span>
           <strong>{groqCount}</strong>
-          <small>Visible in the same index as every other system</small>
+          <small>Shown under the current filters</small>
         </article>
       </div>
 
@@ -274,12 +501,12 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
                 setQuery(value);
                 writeExplorerUrl({ query: value }, "replace");
               }}
-              placeholder="Model, family, provider, or release"
+              placeholder="Model, base id, family, provider, or release"
             />
           </span>
         </label>
         <label className="field">
-          <span>Openness</span>
+          <span>Model source</span>
           <span className="select-wrap">
             <select value={openness} onChange={(event) => {
               const value = event.target.value as ModelOpenness | "all";
@@ -303,7 +530,7 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
               writeExplorerUrl({ provider: value });
             }}>
               <option value="all">All providers</option>
-              {providers.map((value) => (
+              {providerOptions.map((value) => (
                 <option key={value} value={value}>
                   {providerLabel(value)}
                 </option>
@@ -354,27 +581,35 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
               <tr>
                 <th>Model system</th>
                 <th>Source</th>
-                <th>Provider</th>
+                <th>Providers</th>
                 <th>Family</th>
                 <th>Releases</th>
-                <th>Best verified</th>
+                <th>Best published</th>
                 <th>Common runs</th>
                 <th>Other runs</th>
               </tr>
             </thead>
             <tbody>
-              {groups.map((group) => (
-                <ModelRegistryRow
-                  key={group.key}
-                  expanded={expanded === group.key}
-                  group={group}
-                  onToggle={() => {
-                    const nextExpanded = expanded === group.key ? null : group.key;
-                    setExpanded(nextExpanded);
-                    writeExplorerUrl({ expanded: nextExpanded });
-                  }}
-                />
-              ))}
+              {groups.map((group) => {
+                const runKey = group.catalogEntries[0]
+                  ? `${group.catalogEntries[0].provider}::${group.catalogEntries[0].model_name}`
+                  : group.runs[0]
+                    ? `${group.runs[0].provider}::${group.runs[0].model_name}`
+                    : null;
+                return (
+                  <ModelRegistryRow
+                    key={group.key}
+                    expanded={expanded === group.key}
+                    group={group}
+                    runKey={runKey}
+                    onToggle={() => {
+                      const nextExpanded = expanded === group.key ? null : group.key;
+                      setExpanded(nextExpanded);
+                      writeExplorerUrl({ expanded: nextExpanded, runKey: nextExpanded ? (runKey ?? null) : null });
+                    }}
+                  />
+                );
+              })}
             </tbody>
           </table>
           {groups.length === 0 && (
@@ -392,16 +627,51 @@ function ModelRegistryRow({
   group,
   expanded,
   onToggle,
+  runKey,
 }: {
   group: ModelGroup;
   expanded: boolean;
   onToggle: () => void;
+  runKey?: string | null;
 }) {
   const sortedRuns = [...group.runs].sort(
     (left, right) =>
       right.safe_success_rate - left.safe_success_rate ||
       left.release_id.localeCompare(right.release_id),
   );
+  const variantSummaries = useMemo(() => summarizeVariants(sortedRuns), [sortedRuns]);
+  const allTasks = useMemo(
+    () => sortedRuns.flatMap((run) => run.tasks),
+    [sortedRuns],
+  );
+  const outcomeSummary = useMemo(() => {
+    const safePass = allTasks.filter((task) => taskOutcome(task) === "safe-pass").length;
+    const safeFail = allTasks.filter((task) => taskOutcome(task) === "safe-fail").length;
+    const unsafe = allTasks.filter((task) => taskOutcome(task) === "unsafe").length;
+    const unknown = allTasks.filter((task) => taskOutcome(task) === "unknown").length;
+      const familyFailures = aggregateModelFailures(allTasks);
+    return {
+      safePass,
+      safeFail,
+      unsafe,
+      unknown,
+      familyFailures,
+      failuresByDomain: topCounts(
+        allTasks
+          .filter((task) => taskOutcome(task) !== "safe-pass")
+          .map((task) => domainLabel(task.domain)),
+        4,
+      ),
+      failuresByLanes: topCounts(
+        allTasks.filter((task) => taskOutcome(task) !== "safe-pass").flatMap((task) => task.failed_lanes ?? []),
+        4,
+      ),
+      failuresByGraders: topCounts(
+        allTasks.filter((task) => taskOutcome(task) !== "safe-pass").flatMap((task) => task.failed_graders ?? []),
+        4,
+      ),
+    };
+  }, [allTasks]);
 
   return (
     <>
@@ -414,12 +684,16 @@ function ModelRegistryRow({
             aria-expanded={expanded}
             aria-label={`${expanded ? "Collapse" : "Expand"} ${group.model_name} public run details`}
           >
-            <span>{group.model_name}</span>
-            <small>{group.catalog?.steward ?? "Catalog pending"}</small>
+            <span>{group.display_name || group.model_name}</span>
+            <small>
+              {group.fleetEntry?.steward ?? group.catalog?.steward ?? "Catalog pending"}
+              {group.providers.length > 0 ? ` · ${group.providers.map((item) => providerLabel(item)).join(" + ")}` : ""}
+              {variantSummaries.length > 0 ? ` · ${variantSummaries.length} variant${variantSummaries.length === 1 ? "" : "s"}` : ""}
+            </small>
           </button>
         </td>
-        <td>{opennessLabel(group.catalog?.openness ?? "unknown")}</td>
-        <td>{providerLabel(group.provider)}</td>
+        <td>{opennessLabel(group.openness)}</td>
+        <td>{group.provider_label || "Not classified"}</td>
         <td>{group.catalog?.family ?? "Unknown"}</td>
         <td>{group.release_count}</td>
         <td>{group.best_safe_success_rate == null ? "Unavailable" : formatPercent(group.best_safe_success_rate)}</td>
@@ -434,16 +708,32 @@ function ModelRegistryRow({
                 <h4>Registry summary</h4>
                 <dl className="metric-list">
                   <div>
-                    <dt>Model family</dt>
-                    <dd>{group.catalog?.family ?? "Unknown"}</dd>
+                    <dt>Base model ID</dt>
+                    <dd>{group.base_model_id}</dd>
                   </div>
                   <div>
-                    <dt>Provider</dt>
-                    <dd>{providerLabel(group.provider)}</dd>
+                    <dt>Model family</dt>
+                    <dd>{group.catalog?.family ?? group.catalogEntries[0]?.family ?? "Unknown"}</dd>
+                  </div>
+                  <div>
+                    <dt>Providers</dt>
+                    <dd>{group.providers.map((item) => providerLabel(item)).join(", ") || "None"}</dd>
+                  </div>
+                  <div>
+                    <dt>Planned routes</dt>
+                    <dd>{group.fleetEntry?.planned_routes.map((value) => plannedRouteLabel(value)).join(", ") || "Unspecified"}</dd>
                   </div>
                   <div>
                     <dt>Source class</dt>
-                    <dd>{opennessLabel(group.catalog?.openness ?? "unknown")}</dd>
+                    <dd>{opennessLabel(group.openness)}</dd>
+                  </div>
+                  <div>
+                    <dt>Size tier</dt>
+                    <dd>{sizeTierLabel(group.fleetEntry?.size_tier)}</dd>
+                  </div>
+                  <div>
+                    <dt>Fleet funnel status</dt>
+                    <dd>{fleetStatusLabel(group.fleetEntry, group.has_reference_data)}</dd>
                   </div>
                   <div>
                     <dt>Public releases</dt>
@@ -454,85 +744,260 @@ function ModelRegistryRow({
                     <dd>{group.common_count}</dd>
                   </div>
                   <div>
-                    <dt>Other recorded rows</dt>
+                    <dt>Native surface rows</dt>
                     <dd>{group.specialized_count}</dd>
                   </div>
                 </dl>
               </section>
               <section className="detail-span">
-                <h4>Release-by-release evidence</h4>
+                <h4>System variants in current slice</h4>
+                {variantSummaries.length > 0 ? (
+                  <div className="variant-table-wrap" role="region" aria-label={`${group.display_name} provider variants`} tabIndex={0}>
+                    <table className="variant-table">
+                      <thead>
+                        <tr>
+                          <th>System</th>
+                          <th>Provider</th>
+                          <th>Rows</th>
+                          <th>Releases</th>
+                          <th>Best score</th>
+                          <th>Surface split</th>
+                          <th>Rankable</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {variantSummaries.map((variant) => (
+                          <tr key={variant.key}>
+                            <td>
+                              <strong>{variant.model_name}</strong>
+                            </td>
+                            <td>{variant.provider_label}</td>
+                            <td>{variant.run_count}</td>
+                            <td>{variant.release_count}</td>
+                            <td>{formatPercent(variant.best_safe_success_rate)}</td>
+                            <td>
+                              {variant.common_count} common
+                              {variant.native_count > 0 ? ` · ${variant.native_count} native` : ""}
+                            </td>
+                            <td>
+                              {variant.rankable_count}/{variant.run_count}
+                              {variant.integrity_issues.length > 0 ? (
+                                <small>{variant.integrity_issues.slice(0, 2).join(", ")}</small>
+                              ) : null}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="run-task-empty">No provider variants are visible in the current slice.</p>
+                )}
+              </section>
+              <section className="detail-span">
+                <h4>Right / wrong breakdown (current slice)</h4>
                 <div className="registry-run-grid">
-                  {sortedRuns.map((run) => {
-                    const safePasses = run.tasks.filter((task) => taskOutcome(task) === "safe-pass").length;
-                    const failures = run.tasks.filter((task) => ["safe-fail", "unsafe"].includes(taskOutcome(task))).length;
-                    const unknown = run.tasks.filter((task) => taskOutcome(task) === "unknown").length;
-                    return (
-                      <article key={`${run.release_id}-${run.model_name}`} className="registry-run-card">
+                  <article className="registry-run-card">
+                    <header>
+                      <div>
+                        <strong>Failure diagnostics</strong>
+                        <p>Failures are grouped across all matched rows for this system.</p>
+                      </div>
+                      <div className="registry-run-badges">
+                        <span className="result-chip native">{group.has_reference_data ? "Has evidence" : "No public evidence"}</span>
+                        <span className="result-chip score">{formatPercent(allTasks.length === 0 ? null : (outcomeSummary.safePass / allTasks.length))}</span>
+                      </div>
+                    </header>
+                    <dl className="metric-list registry-metrics">
+                      <div>
+                        <dt>Safe-pass</dt>
+                        <dd>{outcomeSummary.safePass}</dd>
+                      </div>
+                      <div>
+                        <dt>Safe failure</dt>
+                        <dd>{outcomeSummary.safeFail}</dd>
+                      </div>
+                      <div>
+                        <dt>Unsafe</dt>
+                        <dd>{outcomeSummary.unsafe}</dd>
+                      </div>
+                      <div>
+                        <dt>Unavailable</dt>
+                        <dd>{outcomeSummary.unknown}</dd>
+                      </div>
+                      <div>
+                        <dt>Attempts</dt>
+                        <dd>{allTasks.length}</dd>
+                      </div>
+                      <div>
+                        <dt>Runs</dt>
+                        <dd>{group.runs.length}</dd>
+                      </div>
+                    </dl>
+                    <div className="registry-failure-list">
+                      <article>
                         <header>
-                          <div>
-                            <strong>{run.release_title}</strong>
-                            <p>{run.release_id}</p>
-                          </div>
-                          <div className="registry-run-badges">
-                            <span className={isCommonHarnessRun(run) ? "result-chip common" : "result-chip native"}>
-                              {isCommonHarnessRun(run) ? "Common harness" : "Native surface"}
-                            </span>
-                            <span className="result-chip score">{formatPercent(run.safe_success_rate)}</span>
-                          </div>
+                          <strong>Top failure domain</strong>
+                          <span>{outcomeSummary.failuresByDomain[0]?.[1] ?? 0} attempt(s)</span>
                         </header>
-                        <dl className="metric-list registry-metrics">
-                          <div>
-                            <dt>95% CI</dt>
-                            <dd>
-                              {formatPercent((run.safe_success_ci95 ?? run.task_success_ci95)[0])}–
-                              {formatPercent((run.safe_success_ci95 ?? run.task_success_ci95)[1])}
-                            </dd>
-                          </div>
-                          <div>
-                            <dt>Safety</dt>
-                            <dd>{formatPercent(run.safety_gate_rate)}</dd>
-                          </div>
-                          <div>
-                            <dt>Output valid</dt>
-                            <dd>{formatPercent(run.valid_output_rate)}</dd>
-                          </div>
-                          <div>
-                            <dt>Median tokens</dt>
-                            <dd>{formatTokens(run.token_usage?.median_total_tokens)}</dd>
-                          </div>
-                          <div>
-                            <dt>Token coverage</dt>
-                            <dd>{telemetryCoverage(run.token_usage?.observed_attempts, run.token_usage?.expected_attempts)}</dd>
-                          </div>
-                          <div>
-                            <dt>Median time</dt>
-                            <dd>{formatDuration(run.median_duration_seconds)}</dd>
-                          </div>
-                          <div>
-                            <dt>Time coverage</dt>
-                            <dd>{telemetryCoverage(run.duration_telemetry?.observed_attempts, run.duration_telemetry?.expected_attempts)}</dd>
-                          </div>
-                          <div>
-                            <dt>Tasks</dt>
-                            <dd>{run.task_count}</dd>
-                          </div>
+                        <p>{outcomeSummary.failuresByDomain[0]?.[0] ?? "No failures in scope"}</p>
+                        <dl>
+                          {outcomeSummary.failuresByDomain.slice(1).map(([name, count]) => (
+                            <div key={name}>
+                              <dt>{name}</dt>
+                              <dd>{count}</dd>
+                            </div>
+                          ))}
                         </dl>
-                        <div className="registry-outcome-strip">
-                          <span>{safePasses} safe passes</span>
-                          <span>{failures} explicit failures</span>
-                          {unknown > 0 && <span>{unknown} legacy outcomes unavailable</span>}
-                          <span>{run.comparison_group ?? run.harness_revision ?? "Recorded native surface"}</span>
-                        </div>
-                        <dl className="run-provenance registry-run-contract">
-                          <div><dt>Model revision</dt><dd>{run.model_revision || "Unavailable"}</dd></div>
-                          <div><dt>Harness</dt><dd>{run.harness_name ?? "Unavailable"} · {run.harness_revision ?? "Unavailable"}</dd></div>
-                          <div><dt>Run config</dt><dd>{run.run_profile?.run_configuration_hash ?? "Unavailable"}</dd></div>
-                          <div><dt>Comparison group</dt><dd>{run.comparison_group ?? "Not assigned"}</dd></div>
-                        </dl>
-                        <RunTaskExplorer run={run} />
                       </article>
-                    );
-                  })}
+                      <article>
+                        <header>
+                          <strong>Top failed lanes</strong>
+                          <span>{outcomeSummary.failuresByLanes[0]?.[1] ?? 0} attempt(s)</span>
+                        </header>
+                        <p>{outcomeSummary.failuresByLanes[0]?.[0] ?? "No lane failures in scope"}</p>
+                        <dl>
+                          {outcomeSummary.failuresByLanes.slice(1).map(([name, count]) => (
+                            <div key={name}>
+                              <dt>{name}</dt>
+                              <dd>{count}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </article>
+                      <article>
+                        <header>
+                          <strong>Top failed graders</strong>
+                          <span>{outcomeSummary.failuresByGraders[0]?.[1] ?? 0} attempt(s)</span>
+                        </header>
+                        <p>{outcomeSummary.failuresByGraders[0]?.[0] ?? "No grader failures in scope"}</p>
+                        <dl>
+                          {outcomeSummary.failuresByGraders.slice(1).map(([name, count]) => (
+                            <div key={name}>
+                              <dt>{name}</dt>
+                              <dd>{count}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </article>
+                    </div>
+                    <div className="registry-failure-list">
+                      {outcomeSummary.familyFailures.length > 0 ? (
+                        outcomeSummary.familyFailures.slice(0, 3).map((failure) => (
+                          <article key={failure.family_id}>
+                            <header>
+                              <strong>{failure.title}</strong>
+                              <span>{failure.domain}</span>
+                            </header>
+                            <p>
+                              Failures: {(failure.safeFail + failure.unsafe + failure.unknown) || "0"} (safe-pass: {failure.safePass})
+                            </p>
+                            <dl>
+                              <div>
+                                <dt>Failed lane</dt>
+                                <dd>{failure.failedLanes.map(([name, count]) => `${name} (${count})`).join(", ") || "None"}</dd>
+                              </div>
+                              <div>
+                                <dt>Failed grader</dt>
+                                <dd>{failure.failedGraders.map(([name, count]) => `${name} (${count})`).join(", ") || "None"}</dd>
+                              </div>
+                            </dl>
+                          </article>
+                        ))
+                      ) : (
+                        <p className="run-task-empty">No failures in the selected slice for this system.</p>
+                      )}
+                    </div>
+                  </article>
+                  {sortedRuns.length === 0 ? (
+                    <article className="registry-run-card">
+                      <p className="run-task-empty">No public runs match the current filter for this model.</p>
+                      <p className="run-task-empty">
+                        This model is tracked in the fleet but has no published rows under the selected release/surface slice.
+                      </p>
+                    </article>
+                  ) : (
+                    sortedRuns.map((run) => {
+                      const safePasses = run.tasks.filter((task) => taskOutcome(task) === "safe-pass").length;
+                      const failures = run.tasks.filter((task) => ["safe-fail", "unsafe"].includes(taskOutcome(task))).length;
+                      const unknown = run.tasks.filter((task) => taskOutcome(task) === "unknown").length;
+                      return (
+                        <article key={`${run.release_id}-${run.model_name}`} className="registry-run-card">
+                          <header>
+                            <div>
+                              <strong>{run.model_name}</strong>
+                              <p>
+                                {providerLabel(run.provider)} · {run.release_title} · {run.release_id}
+                              </p>
+                            </div>
+                            <div className="registry-run-badges">
+                              <span className={isCommonHarnessRun(run) ? "result-chip common" : "result-chip native"}>
+                                {isCommonHarnessRun(run) ? "Common harness" : "Native surface"}
+                              </span>
+                              <span className="result-chip score">{formatPercent(run.safe_success_rate)}</span>
+                            </div>
+                          </header>
+                          <dl className="metric-list registry-metrics">
+                            <div>
+                              <dt>95% CI</dt>
+                              <dd>
+                                {formatPercent((run.safe_success_ci95 ?? run.task_success_ci95)[0])}–
+                                {formatPercent((run.safe_success_ci95 ?? run.task_success_ci95)[1])}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>Safety</dt>
+                              <dd>{formatPercent(run.safety_gate_rate)}</dd>
+                            </div>
+                            <div>
+                              <dt>Output valid</dt>
+                              <dd>{formatPercent(run.valid_output_rate)}</dd>
+                            </div>
+                            <div>
+                              <dt>Median tokens</dt>
+                              <dd>{formatTokens(run.token_usage?.median_total_tokens)}</dd>
+                            </div>
+                            <div>
+                              <dt>Token coverage</dt>
+                              <dd>{telemetryCoverage(run.token_usage?.observed_attempts, run.token_usage?.expected_attempts)}</dd>
+                            </div>
+                            <div>
+                              <dt>Median time</dt>
+                              <dd>{formatDuration(run.median_duration_seconds)}</dd>
+                            </div>
+                            <div>
+                              <dt>Time coverage</dt>
+                              <dd>
+                                {telemetryCoverage(run.duration_telemetry?.observed_attempts, run.duration_telemetry?.expected_attempts)}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt>Tasks</dt>
+                              <dd>{run.task_count}</dd>
+                            </div>
+                          </dl>
+                          <div className="registry-outcome-strip">
+                            <span>{safePasses} safe passes</span>
+                            <span>{failures} explicit failures</span>
+                            {unknown > 0 && <span>{unknown} legacy outcomes unavailable</span>}
+                            <span>{run.comparison_group ?? run.harness_revision ?? "Recorded native surface"}</span>
+                          </div>
+                          <dl className="run-provenance registry-run-contract">
+                            <div><dt>Model revision</dt><dd>{run.model_revision || "Unavailable"}</dd></div>
+                            <div><dt>Harness</dt><dd>{run.harness_name ?? "Unavailable"} · {run.harness_revision ?? "Unavailable"}</dd></div>
+                            <div><dt>Run config</dt><dd>{run.run_profile?.run_configuration_hash ?? "Unavailable"}</dd></div>
+                            <div><dt>Comparison group</dt><dd>{run.comparison_group ?? "Not assigned"}</dd></div>
+                          </dl>
+                          <div className="registry-run-actions">
+                            <button type="button" onClick={() => focusRunForensics(run)}>
+                              Open attempt forensics
+                            </button>
+                          </div>
+                          <RunTaskExplorer run={run} modelBase={group.key} runKey={`${run.provider}::${run.model_name}`} />
+                        </article>
+                      );
+                    })
+                  )}
                 </div>
               </section>
             </div>
@@ -562,10 +1027,10 @@ type TaskSignature = {
   repeatedGraders: Array<[string, number]>;
 };
 
-function RunTaskExplorer({ run }: { run: PublicRun }) {
+function RunTaskExplorer({ run, modelBase, runKey }: { run: PublicRun; modelBase: string; runKey: string }) {
   const isSelectedRun =
-    getUrlParam("model_provider") === run.provider &&
-    getUrlParam("model_name") === run.model_name &&
+    getUrlParam("model_base") === modelBase &&
+    getUrlParam("model_key") === runKey &&
     getUrlParam("run_release") === run.release_key;
   const [presentation, setPresentation] = useState<TaskPresentation>("signatures");
   const [view, setView] = useState<TaskView>(() =>
@@ -670,14 +1135,19 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
     next: { view?: TaskView; query?: string } = {},
     history: "replace" | "push" = "push",
   ) => {
-    if (getUrlParam("model_provider") !== run.provider || getUrlParam("model_name") !== run.model_name) return;
+    if (getUrlParam("model_base") !== modelBase || getUrlParam("model_key") !== runKey) return;
     const nextView = next.view ?? view;
     const nextQuery = next.query ?? query;
-    setUrlParams({
-      run_release: run.release_key,
-      task_view: nextView === "all" ? null : nextView,
-      task_query: nextQuery || null,
-    }, { history });
+    setUrlParams(
+      {
+        model_base: modelBase,
+        model_key: runKey,
+        run_release: run.release_key,
+        task_view: nextView === "all" ? null : nextView,
+        task_query: nextQuery || null,
+      },
+      { history },
+    );
   };
 
   return (
@@ -854,16 +1324,114 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
         </div>
       )}
       <p className="run-task-boundary">
-        Structured public model outputs and deterministic verdicts are available in attempt-level forensics. Hidden expected values, gold-bearing evidence, and provider reasoning remain excluded.
+        Structured public model outputs and deterministic verdicts are available in attempt-level forensics.
       </p>
     </section>
   );
+}
+
+function aggregateModelFailures(tasks: ModelTaskResult[]): ModelFamilyFailure[] {
+  const grouped = new Map<string, ModelFamilyFailure>();
+  for (const task of tasks) {
+    const familyId = task.family_id ?? task.task_id;
+    const current = grouped.get(familyId);
+    const next = current ?? {
+      family_id: familyId,
+      task_id: task.task_id,
+      title: task.title,
+      domain: domainLabel(task.domain),
+      safePass: 0,
+      safeFail: 0,
+      unsafe: 0,
+      unknown: 0,
+      failedLanes: [],
+      failedGraders: [],
+    };
+    if (taskOutcome(task) === "safe-pass") {
+      next.safePass += 1;
+    } else if (taskOutcome(task) === "safe-fail") {
+      next.safeFail += 1;
+    } else if (taskOutcome(task) === "unsafe") {
+      next.unsafe += 1;
+    } else {
+      next.unknown += 1;
+    }
+    next.failedLanes = mergeCounts(next.failedLanes, task.failed_lanes ?? []);
+    next.failedGraders = mergeCounts(next.failedGraders, task.failed_graders ?? []);
+    grouped.set(familyId, next);
+  }
+  return [...grouped.values()]
+    .map((entry) => ({
+      ...entry,
+      failedLanes: entry.failedLanes.slice(0, 3),
+      failedGraders: entry.failedGraders.slice(0, 3),
+    }))
+    .filter((entry) => entry.safeFail + entry.unsafe + entry.unknown > 0)
+    .sort(
+      (left, right) =>
+        (right.safeFail + right.unsafe + right.unknown) - (left.safeFail + left.unsafe + left.unknown) ||
+        left.title.localeCompare(right.title),
+    );
+}
+
+function mergeCounts(entries: Array<[string, number]>, values: string[]) {
+  const working = new Map(entries);
+  for (const value of values) {
+    if (!value) continue;
+    working.set(value, (working.get(value) ?? 0) + 1);
+  }
+  return [...working.entries()].sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]));
 }
 
 function explicitSafeSuccessRate(run: PublicRun): number | null {
   if (run.tasks.length === 0 || run.tasks.length !== run.attempt_count) return null;
   if (!run.tasks.every((task) => typeof task.passed === "boolean")) return null;
   return run.tasks.filter((task) => task.passed === true && task.safe).length / run.tasks.length;
+}
+
+function summarizeVariants(runs: PublicRun[]): ModelVariantSummary[] {
+  const grouped = new Map<string, ModelVariantSummary>();
+  for (const run of runs) {
+    const key = `${run.provider}::${run.model_name}`;
+    const current = grouped.get(key) ?? {
+      key,
+      provider: run.provider,
+      provider_label: providerLabel(run.provider),
+      model_name: run.model_name,
+      release_count: 0,
+      run_count: 0,
+      best_safe_success_rate: null,
+      common_count: 0,
+      native_count: 0,
+      rankable_count: 0,
+      integrity_issues: [],
+    };
+    current.run_count += 1;
+    current.best_safe_success_rate = maxAvailable(current.best_safe_success_rate, explicitSafeSuccessRate(run));
+    current.common_count += isCommonHarnessRun(run) ? 1 : 0;
+    current.native_count += isNativeRun(run) ? 1 : 0;
+    current.rankable_count += run.ranking_eligible ? 1 : 0;
+    current.integrity_issues = uniqueValues([
+      ...current.integrity_issues,
+      ...(run.integrity?.integrity_errors ?? []),
+    ]);
+    grouped.set(key, current);
+  }
+
+  for (const variant of grouped.values()) {
+    variant.release_count = new Set(
+      runs
+        .filter((run) => `${run.provider}::${run.model_name}` === variant.key)
+        .map((run) => run.release_id),
+    ).size;
+  }
+
+  return [...grouped.values()].sort(
+    (left, right) =>
+      (right.best_safe_success_rate ?? -1) - (left.best_safe_success_rate ?? -1) ||
+      left.provider_label.localeCompare(right.provider_label) ||
+      left.model_name.localeCompare(right.model_name),
+  );
 }
 
 function maxAvailable(left: number | null, right: number | null): number | null {
@@ -898,6 +1466,25 @@ function opennessLabel(value: ModelOpenness) {
   return "Unknown";
 }
 
+function fleetStatusLabel(entry: FleetStatusModel | null, hasReferenceData: boolean) {
+  if (!entry) {
+    return hasReferenceData ? "Published outside frozen fleet" : "Catalog pending";
+  }
+  if (entry.ranked) return "Rankable";
+  if (entry.workflow_qualified) return "Workflow qualified";
+  if (entry.evaluated) return "Published";
+  if (entry.access_qualified) return qualificationStageLabel(entry.qualification_stage);
+  return "Planned";
+}
+
+function qualificationStageLabel(stage: FleetStatusModel["qualification_stage"]) {
+  if (stage === "q0") return "Q0 access-qualified";
+  if (stage === "q1") return "Q1 adapter-qualified";
+  if (stage === "q2") return "Q2 contract-qualified";
+  if (stage === "q3") return "Q3 restricted-qualified";
+  return "Access-qualified";
+}
+
 function telemetryCoverage(observed?: number, expected?: number) {
   if (observed == null || expected == null) return "Unavailable";
   return `${observed}/${expected}`;
@@ -906,6 +1493,7 @@ function telemetryCoverage(observed?: number, expected?: number) {
 function topCounts(values: string[], limit = 2) {
   const counts = new Map<string, number>();
   for (const value of values) {
+    if (!value) continue;
     counts.set(value, (counts.get(value) ?? 0) + 1);
   }
   return [...counts.entries()]
@@ -919,4 +1507,14 @@ function familyAgreementLabel(tasks: ModelTaskResult[]) {
   if (outcomes.includes("unsafe")) return "Mixed, includes unsafe";
   if (outcomes.includes("safe-pass") && outcomes.includes("safe-fail")) return "Mixed pass/fail";
   return "Mixed";
+}
+
+function uniqueValues<T>(values: T[]) {
+  return [...new Map(values.map((value) => [value, value])).values()];
+}
+
+function inferDisplayFromBase(baseModelId: string) {
+  if (!baseModelId.includes("/")) return baseModelId;
+  const tail = baseModelId.split("/").at(-1) ?? baseModelId;
+  return tail.replace(/[-_]/g, " ");
 }

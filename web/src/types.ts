@@ -325,6 +325,8 @@ export type FleetStatusModel = {
   family: string;
   openness: "open" | "closed";
   modalities: Array<"text" | "image">;
+  size_tier: "small" | "medium" | "large" | "frontier" | "undisclosed";
+  planned_routes: Array<"anthropic" | "aws_bedrock" | "codex_native" | "cohere" | "google" | "groq" | "ollama" | "openai" | "self_hosted" | "xai">;
   access_qualified: boolean;
   qualification_stage: "q0" | "q1" | "q2" | "q3" | null;
   evaluated: boolean;

@@ -32,7 +32,7 @@ export function shortHash(value: string | undefined) {
 }
 
 export function providerLabel(provider: string): string {
-  if (provider === "codex-native") return "OpenAI (GPT)";
+  if (provider === "codex-native") return "OpenAI";
   if (provider === "groq") return "Groq";
   if (provider === "ollama") return "Ollama";
   return provider;

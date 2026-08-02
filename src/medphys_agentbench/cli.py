@@ -479,21 +479,45 @@ def main() -> None:
                             f"Internal campaign error for {model_name} on {task.task_id}; "
                             f"recorded at {error_path}."
                         ) from error
-                    _write_json_exclusive(output_path, payload)
-                    print(
-                        json.dumps(
-                            {
-                                "model": model_name,
-                                "task_id": task.task_id,
-                                "attempt": attempt_index + 1,
-                                "status": payload["status"],
-                                "passed": payload["passed"],
-                                "safe": payload["safe"],
-                                "output_file": str(output_path),
-                            },
-                            sort_keys=True,
+                    try:
+                        _write_json_exclusive(output_path, payload)
+                        print(
+                            json.dumps(
+                                {
+                                    "model": model_name,
+                                    "task_id": task.task_id,
+                                    "attempt": attempt_index + 1,
+                                    "status": payload["status"],
+                                    "passed": payload["passed"],
+                                    "safe": payload["safe"],
+                                    "output_file": str(output_path),
+                                },
+                                sort_keys=True,
+                            )
                         )
-                    )
+                    except FileExistsError:
+                        _validate_resumable_attempt(
+                            output_path,
+                            task=task,
+                            model_descriptor=adapter.model_descriptor(),
+                            adapter_settings=adapter_runtime_settings(adapter),
+                            attempt_index=attempt_index,
+                            seed=attempt_seed,
+                            temperature=args.temperature,
+                            max_tokens=args.max_tokens,
+                        )
+                        print(
+                            json.dumps(
+                                {
+                                    "model": model_name,
+                                    "task_id": task.task_id,
+                                    "attempt": attempt_index + 1,
+                                    "status": "skipped_existing_race_validated",
+                                    "output_file": str(output_path),
+                                },
+                                sort_keys=True,
+                            )
+                        )
         return
 
     if args.command == "summarize":

@@ -229,6 +229,55 @@ def test_run_release_resume_validates_and_fills_only_missing_attempts(
     assert missing_path.exists()
 
 
+def test_run_release_resume_tolerates_validated_write_race(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    release = load_release("releases/public_imaging_pilot_v0_4.yaml")
+    outputs = {task.task_id: _reference_output(task) for task in release.load_tasks()}
+    monkeypatch.setattr(
+        cli,
+        "_build_adapter",
+        lambda *args, seed, **_kwargs: _ReferenceFakeAdapter(str(args[1]), seed, outputs),
+    )
+
+    original_write = cli._write_json_exclusive
+    collision_seen = False
+
+    def fake_write_json_exclusive(path: Path, payload: dict[str, object]) -> None:
+        nonlocal collision_seen
+        if not collision_seen and path.name.endswith("--attempt-1.json") and "_internal_errors" not in path.parts:
+            collision_seen = True
+            original_write(path, payload)
+            raise FileExistsError(path)
+        original_write(path, payload)
+
+    monkeypatch.setattr(cli, "_write_json_exclusive", fake_write_json_exclusive)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "medphys-bench",
+            "run-release",
+            "releases/public_imaging_pilot_v0_4.yaml",
+            "--adapter",
+            "groq",
+            "--model",
+            "resume-race-model",
+            "--seed",
+            "111",
+            "--results-dir",
+            str(tmp_path),
+            "--resume",
+        ],
+    )
+
+    cli.main()
+
+    artifacts = sorted(tmp_path.rglob("*.json"))
+    assert collision_seen is True
+    assert len(artifacts) == len(release.load_tasks())
+
+
 def test_run_release_resume_rejects_mismatched_immutable_checkpoint(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

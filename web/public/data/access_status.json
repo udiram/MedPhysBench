@@ -17,6 +17,13 @@
     "status": "available",
     "surface": "local_ollama",
     "date": "2026-08-02",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "qwen3-14b-openkb-v0.6-20260802",
+      "manifest_path": "submissions/qwen3-14b-openkb-v0.6-20260802.json"
+    },
     "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
   },
   {
@@ -27,6 +34,13 @@
     "status": "available",
     "surface": "local_ollama",
     "date": "2026-08-02",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "qwen3-8b-openkb-v0.6-20260802",
+      "manifest_path": "submissions/qwen3-8b-openkb-v0.6-20260802.json"
+    },
     "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
   },
   {
@@ -37,6 +51,13 @@
     "status": "available",
     "surface": "local_ollama",
     "date": "2026-08-02",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "qwen2.5-7b-instruct-openkb-v0.6-20260802",
+      "manifest_path": "submissions/qwen2.5-7b-instruct-openkb-v0.6-20260802.json"
+    },
     "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
   },
   {
@@ -47,6 +68,13 @@
     "status": "available",
     "surface": "local_ollama",
     "date": "2026-08-02",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "qwen3-1.7b-openkb-v0.6-20260802",
+      "manifest_path": "submissions/qwen3-1.7b-openkb-v0.6-20260802.json"
+    },
     "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
   },
   {
@@ -67,6 +95,13 @@
     "status": "available",
     "surface": "local_ollama",
     "date": "2026-08-02",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "phi4-mini-openkb-v0.6-20260802",
+      "manifest_path": "submissions/phi4-mini-openkb-v0.6-20260802.json"
+    },
     "note": "MIT-licensed Phi-4 Mini base evaluated through the digest-pinned Ollama artifact 78fad5d182a7c33065e153a5f8ba210754207ba9d91973f57dffa7f487363753. The three-task Q1 adapter audit preserved schema, trace, token, latency, and escalation evidence; the complete 30-attempt OpenKBP Q2 matrix is published with unsupported image tasks retained as scored capability outcomes."
   },
   {
@@ -87,6 +122,13 @@
     "status": "available",
     "surface": "local_ollama",
     "date": "2026-08-02",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "llama3.2-3b-openkb-v0.6-20260802",
+      "manifest_path": "submissions/llama3.2-3b-openkb-v0.6-20260802.json"
+    },
     "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
   },
   {
@@ -97,6 +139,13 @@
     "status": "available",
     "surface": "local_ollama",
     "date": "2026-08-02",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "backfilled_after_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "deepseek-r1-1.5b-openkb-v0.6-20260802",
+      "manifest_path": "submissions/deepseek-r1-1.5b-openkb-v0.6-20260802.json"
+    },
     "note": "Completed the 30-attempt OpenKBP v0.6 matrix with a digest-pinned local artifact and 4,096-token context. Twelve image-grid attempts are explicit unsupported-modality failures; all 18 text attempts produced schema-valid outputs. The row is outcome-orderable but not officially ranked until a second system shares its exact reference-json-v2 configuration."
   },
   {
@@ -127,6 +176,13 @@
     "status": "available",
     "surface": "local_ollama_vision",
     "date": "2026-08-02",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "qwen2.5vl-7b-openkb-v0.6-20260802",
+      "manifest_path": "submissions/qwen2.5vl-7b-openkb-v0.6-20260802.json"
+    },
     "note": "Apache-2.0 Qwen2.5-VL 7B base evaluated through exact Ollama artifact sha256:5ced39dfa4bac325dc183dd1e4febaa1c46b3ea28bce48896c8e69c1e79611cc. Four qualification calls covered structure naming, calculation, required escalation, and a real-image smoke task with schema, trace, token, latency, and image-transport evidence. The complete 30-attempt OpenKBP Q2 matrix contains real vision calls for all 12 image-grid attempts."
   },
   {
@@ -187,7 +243,31 @@
     "status": "available",
     "surface": "local_ollama",
     "date": "2026-08-02",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "backfilled_after_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "mistral-nemo-12b-openkb-v0.6-20260802",
+      "manifest_path": "submissions/mistral-nemo-12b-openkb-v0.6-20260802.json"
+    },
     "note": "Apache-2.0 Mistral Nemo 12B base evaluated through exact Ollama artifact sha256:daf6737417121831e572a9c482e92a221ee0c33537f35f1f857c7b4f7191df55. The complete 30-attempt OpenKBP Q2 matrix uses the frozen reference-json-v2 comparison settings; required-image tasks remain explicit unsupported-modality outcomes."
+  },
+  {
+    "model": "gemma3:12b-it-q4_K_M",
+    "provider": "ollama",
+    "base_model_id": "google/gemma-3-12b-it",
+    "qualification_stage": "q2",
+    "status": "available",
+    "surface": "local_ollama_vision",
+    "date": "2026-08-02",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "gemma3-12b-openkb-v0.6-20260802",
+      "manifest_path": "submissions/gemma3-12b-openkb-v0.6-20260802.json"
+    },
+    "note": "Gemma Terms of Use model evaluated through exact Ollama artifact sha256:f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a. A 10-task first-attempt preflight established schema, safety, receipt, token, duration, and real-image transport evidence before the immutable campaign resumed to the complete 30-attempt Q2 matrix. All 12 required-image attempts were real model calls."
   },
   {
     "model": "gpt-5.6-sol",

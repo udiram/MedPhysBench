@@ -4,13 +4,13 @@
   "fleet_id": "public-fleet-v1",
   "summary": {
     "planned_base_models": 50,
-    "access_qualified_base_models": 19,
-    "evaluated_base_models": 17,
-    "ranked_base_models": 17,
-    "workflow_qualified_base_models": 17,
-    "workflow_ranked_base_models": 17,
-    "published_system_configurations": 24,
-    "published_release_rows": 39,
+    "access_qualified_base_models": 20,
+    "evaluated_base_models": 18,
+    "ranked_base_models": 18,
+    "workflow_qualified_base_models": 18,
+    "workflow_ranked_base_models": 18,
+    "published_system_configurations": 25,
+    "published_release_rows": 40,
     "open_planned_models": 31,
     "closed_planned_models": 19,
     "vision_planned_models": 31,
@@ -25,6 +25,11 @@
       "openness": "open",
       "modalities": [
         "text"
+      ],
+      "size_tier": "large",
+      "planned_routes": [
+        "groq",
+        "self_hosted"
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
@@ -45,6 +50,11 @@
       "modalities": [
         "text"
       ],
+      "size_tier": "medium",
+      "planned_routes": [
+        "groq",
+        "self_hosted"
+      ],
       "access_qualified": true,
       "qualification_stage": "q2",
       "evaluated": true,
@@ -63,6 +73,12 @@
       "openness": "open",
       "modalities": [
         "text"
+      ],
+      "size_tier": "small",
+      "planned_routes": [
+        "groq",
+        "ollama",
+        "self_hosted"
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
@@ -83,6 +99,11 @@
       "modalities": [
         "text"
       ],
+      "size_tier": "small",
+      "planned_routes": [
+        "ollama",
+        "self_hosted"
+      ],
       "access_qualified": true,
       "qualification_stage": "q2",
       "evaluated": true,
@@ -101,6 +122,11 @@
       "openness": "open",
       "modalities": [
         "text"
+      ],
+      "size_tier": "large",
+      "planned_routes": [
+        "groq",
+        "self_hosted"
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
@@ -122,6 +148,10 @@
         "text",
         "image"
       ],
+      "size_tier": "large",
+      "planned_routes": [
+        "self_hosted"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -142,6 +172,10 @@
         "text",
         "image"
       ],
+      "size_tier": "large",
+      "planned_routes": [
+        "self_hosted"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -160,6 +194,11 @@
       "openness": "open",
       "modalities": [
         "text"
+      ],
+      "size_tier": "small",
+      "planned_routes": [
+        "ollama",
+        "self_hosted"
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
@@ -180,6 +219,10 @@
       "modalities": [
         "text"
       ],
+      "size_tier": "large",
+      "planned_routes": [
+        "self_hosted"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -198,6 +241,11 @@
       "openness": "open",
       "modalities": [
         "text"
+      ],
+      "size_tier": "small",
+      "planned_routes": [
+        "ollama",
+        "self_hosted"
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
@@ -218,6 +266,11 @@
       "modalities": [
         "text"
       ],
+      "size_tier": "small",
+      "planned_routes": [
+        "ollama",
+        "self_hosted"
+      ],
       "access_qualified": true,
       "qualification_stage": "q2",
       "evaluated": true,
@@ -236,6 +289,11 @@
       "openness": "open",
       "modalities": [
         "text"
+      ],
+      "size_tier": "medium",
+      "planned_routes": [
+        "ollama",
+        "self_hosted"
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
@@ -256,6 +314,10 @@
       "modalities": [
         "text"
       ],
+      "size_tier": "medium",
+      "planned_routes": [
+        "self_hosted"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -275,6 +337,11 @@
       "modalities": [
         "text"
       ],
+      "size_tier": "small",
+      "planned_routes": [
+        "ollama",
+        "self_hosted"
+      ],
       "access_qualified": true,
       "qualification_stage": "q2",
       "evaluated": true,
@@ -293,6 +360,11 @@
       "openness": "open",
       "modalities": [
         "text"
+      ],
+      "size_tier": "medium",
+      "planned_routes": [
+        "groq",
+        "self_hosted"
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
@@ -314,6 +386,11 @@
         "text",
         "image"
       ],
+      "size_tier": "small",
+      "planned_routes": [
+        "ollama",
+        "self_hosted"
+      ],
       "access_qualified": true,
       "qualification_stage": "q2",
       "evaluated": true,
@@ -333,6 +410,10 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "size_tier": "small",
+      "planned_routes": [
+        "self_hosted"
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
@@ -354,6 +435,10 @@
         "text",
         "image"
       ],
+      "size_tier": "large",
+      "planned_routes": [
+        "self_hosted"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -373,6 +458,11 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "size_tier": "small",
+      "planned_routes": [
+        "ollama",
+        "self_hosted"
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
@@ -394,6 +484,10 @@
         "text",
         "image"
       ],
+      "size_tier": "medium",
+      "planned_routes": [
+        "self_hosted"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -413,6 +507,11 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "size_tier": "small",
+      "planned_routes": [
+        "ollama",
+        "self_hosted"
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
@@ -434,15 +533,19 @@
         "text",
         "image"
       ],
-      "access_qualified": false,
-      "qualification_stage": null,
-      "evaluated": false,
-      "ranked": false,
-      "workflow_qualified": false,
-      "workflow_ranked": false,
-      "system_configuration_count": 0,
-      "published_release_count": 0,
-      "published_row_count": 0
+      "size_tier": "medium",
+      "planned_routes": [
+        "self_hosted"
+      ],
+      "access_qualified": true,
+      "qualification_stage": "q2",
+      "evaluated": true,
+      "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
+      "system_configuration_count": 1,
+      "published_release_count": 1,
+      "published_row_count": 1
     },
     {
       "base_model_id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
@@ -452,6 +555,11 @@
       "openness": "open",
       "modalities": [
         "text"
+      ],
+      "size_tier": "small",
+      "planned_routes": [
+        "ollama",
+        "self_hosted"
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
@@ -472,6 +580,10 @@
       "modalities": [
         "text"
       ],
+      "size_tier": "frontier",
+      "planned_routes": [
+        "self_hosted"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -491,6 +603,10 @@
       "modalities": [
         "text"
       ],
+      "size_tier": "frontier",
+      "planned_routes": [
+        "self_hosted"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -509,6 +625,10 @@
       "openness": "open",
       "modalities": [
         "text"
+      ],
+      "size_tier": "medium",
+      "planned_routes": [
+        "self_hosted"
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
@@ -530,6 +650,10 @@
         "text",
         "image"
       ],
+      "size_tier": "medium",
+      "planned_routes": [
+        "self_hosted"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -548,6 +672,10 @@
       "openness": "open",
       "modalities": [
         "text"
+      ],
+      "size_tier": "small",
+      "planned_routes": [
+        "self_hosted"
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
@@ -569,6 +697,10 @@
         "text",
         "image"
       ],
+      "size_tier": "small",
+      "planned_routes": [
+        "self_hosted"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -587,6 +719,10 @@
       "openness": "open",
       "modalities": [
         "text"
+      ],
+      "size_tier": "small",
+      "planned_routes": [
+        "self_hosted"
       ],
       "access_qualified": false,
       "qualification_stage": null,
@@ -608,6 +744,11 @@
         "text",
         "image"
       ],
+      "size_tier": "large",
+      "planned_routes": [
+        "cohere",
+        "self_hosted"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -627,6 +768,11 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "size_tier": "frontier",
+      "planned_routes": [
+        "openai",
+        "codex_native"
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
@@ -648,6 +794,11 @@
         "text",
         "image"
       ],
+      "size_tier": "frontier",
+      "planned_routes": [
+        "openai",
+        "codex_native"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -667,6 +818,11 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "size_tier": "frontier",
+      "planned_routes": [
+        "openai",
+        "codex_native"
       ],
       "access_qualified": false,
       "qualification_stage": null,
@@ -688,6 +844,10 @@
         "text",
         "image"
       ],
+      "size_tier": "undisclosed",
+      "planned_routes": [
+        "openai"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -707,6 +867,10 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "size_tier": "undisclosed",
+      "planned_routes": [
+        "openai"
       ],
       "access_qualified": false,
       "qualification_stage": null,
@@ -728,6 +892,10 @@
         "text",
         "image"
       ],
+      "size_tier": "undisclosed",
+      "planned_routes": [
+        "openai"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -747,6 +915,10 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "size_tier": "undisclosed",
+      "planned_routes": [
+        "anthropic"
       ],
       "access_qualified": false,
       "qualification_stage": null,
@@ -768,6 +940,10 @@
         "text",
         "image"
       ],
+      "size_tier": "frontier",
+      "planned_routes": [
+        "anthropic"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -787,6 +963,10 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "size_tier": "frontier",
+      "planned_routes": [
+        "anthropic"
       ],
       "access_qualified": false,
       "qualification_stage": null,
@@ -808,6 +988,10 @@
         "text",
         "image"
       ],
+      "size_tier": "undisclosed",
+      "planned_routes": [
+        "anthropic"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -827,6 +1011,10 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "size_tier": "undisclosed",
+      "planned_routes": [
+        "google"
       ],
       "access_qualified": false,
       "qualification_stage": null,
@@ -848,6 +1036,10 @@
         "text",
         "image"
       ],
+      "size_tier": "undisclosed",
+      "planned_routes": [
+        "google"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -867,6 +1059,10 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "size_tier": "undisclosed",
+      "planned_routes": [
+        "google"
       ],
       "access_qualified": false,
       "qualification_stage": null,
@@ -888,6 +1084,10 @@
         "text",
         "image"
       ],
+      "size_tier": "undisclosed",
+      "planned_routes": [
+        "google"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -907,6 +1107,10 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "size_tier": "frontier",
+      "planned_routes": [
+        "google"
       ],
       "access_qualified": false,
       "qualification_stage": null,
@@ -928,6 +1132,10 @@
         "text",
         "image"
       ],
+      "size_tier": "undisclosed",
+      "planned_routes": [
+        "google"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -947,6 +1155,10 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "size_tier": "frontier",
+      "planned_routes": [
+        "xai"
       ],
       "access_qualified": false,
       "qualification_stage": null,
@@ -968,6 +1180,10 @@
         "text",
         "image"
       ],
+      "size_tier": "undisclosed",
+      "planned_routes": [
+        "aws_bedrock"
+      ],
       "access_qualified": false,
       "qualification_stage": null,
       "evaluated": false,
@@ -987,6 +1203,10 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "size_tier": "undisclosed",
+      "planned_routes": [
+        "aws_bedrock"
       ],
       "access_qualified": false,
       "qualification_stage": null,

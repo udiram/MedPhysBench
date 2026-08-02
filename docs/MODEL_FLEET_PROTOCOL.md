@@ -69,11 +69,16 @@ adapter retry loop, and no provider-issued request ID; the immutable MedPhysBenc
 `run_id`, exact artifact digest, receipt hash, trace, and usage record supply the
 available execution identity. This provider limitation must remain explicit and
 must not be represented as a missing receipt or invented request ID.
-Q1 is a publication gate rather than a correctness threshold: a model may fail
-the clinical-physics outcome while still proving that its adapter records an
-honest, complete attempt. Normally Q1 precedes Q2. If a Q2 run is executed
-opportunistically first, it remains quarantined until an equivalent three-task
-Q1 audit passes and the out-of-order qualification is disclosed.
+Q1 is an operational publication gate rather than a correctness threshold: a
+model may fail the clinical-physics outcome while still proving that its adapter
+records an honest, complete attempt. Normally Q1 precedes Q2 so an invalid
+adapter is stopped before the expensive campaign. A complete, ranking-eligible,
+attested Q2 matrix is a machine-verifiable superset of that adapter evidence and
+may backfill qualification after an opportunistic full run. The access ledger
+must disclose either `preflight_before_full_q2` or
+`backfilled_after_full_q2`, use promotion basis `attested_complete_q2`, and
+reference the exact `common-harness-submission.v1` sidecar. This exception does
+not retroactively claim that Q1 protected the cost of the run.
 
 ### Q2 — ten-task real-workflow pilot
 
@@ -124,7 +129,7 @@ network context. Neither event supports a model score.
 The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
 19 closed-weight, 31 declared vision-capable, and 11 stewards. After enforcing
 the current grader/scoring manifest contract, the derived funnel
-reports 19 access-qualified, 17 common-harness evaluated, and 17 officially
+reports 20 access-qualified, 18 common-harness evaluated, and 18 officially
 rankable base models. One fully attempted Groq row is excluded from evaluated/ranked
 counts because its provider-output failure artifacts lack model-response receipts and telemetry.
 GPT-5.6's complete native rows remain visible in the same
@@ -134,10 +139,11 @@ model index and attempt forensics, but do not inflate that common-harness funnel
 Its 12 required-image attempts are explicit unsupported-modality outcomes and all
 18 text attempts produced schema-valid outputs. Five additional digest-pinned local
 models completed the identical 30-attempt contract: Qwen 3 1.7B, 8B, and 14B;
-Qwen 2.5 7B Instruct; and Llama 3.2 3B. Each also completed the three-task adapter
-audit with schema-valid output and complete duration/token telemetry. That initial
-six-system `reference-json-v2` comparison group became officially rankable within
-that frozen configuration only.
+Qwen 2.5 7B Instruct; and Llama 3.2 3B. Five of the six completed the three-task
+adapter audit before Q2, with schema-valid output and complete duration/token
+telemetry. DeepSeek's complete Q2 matrix was audited and attested after the run.
+That initial six-system `reference-json-v2` comparison group became officially
+rankable within that frozen configuration only.
 Phi-4 Mini then completed the same digest-pinned Q1 and 30-attempt Q2 process as a
 seventh local text system. Its exact Ollama artifact revision, complete artifact set,
 execution window, environment, and per-file hashes are bound by the first committed
@@ -159,8 +165,19 @@ artifact `sha256:daf6737417121831e572a9c482e92a221ee0c33537f35f1f857c7b4f7191df5
 Its first complete development run used a non-comparable 1,024-token cap and is
 retained outside the public release as candidate evidence. The published rerun uses
 the frozen 2,048-token v2 cap, joins the existing comparison group, and binds all 30
-sanitized artifacts to a third attested submission sidecar.
-The resulting current v2 group contains nine exact model configurations. A complete
+sanitized artifacts to an attested submission sidecar.
+Gemma 3 12B IT then completed a 10-task first-attempt preflight and resumed the
+same immutable campaign to 30 attempts through exact multimodal Ollama artifact
+`sha256:f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a`.
+It made real model calls on all 12 required-image attempts, retained complete
+receipts and token/time telemetry, achieved 40.0% safe success with 100% safety
+and valid-output rates, and passed a zero-change deterministic regrade.
+All ten current v2 rows
+now have their own sidecar with exact source commits, execution window, model
+identity, environment, and a SHA-256 inventory of every result artifact. The
+access ledger records whether qualification preceded the matrix or was backfilled
+from the complete attested matrix.
+The resulting current v2 group contains ten exact model configurations. A complete
 campaign with any other token cap, adapter-settings hash, harness revision, or seed
 policy remains visible evidence but cannot enter that ranking group.
 

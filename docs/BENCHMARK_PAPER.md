@@ -193,14 +193,15 @@ group. GPT-5.6 low, high, and ultra completed three native-surface attempts per 
 scored 66.67%, 76.67%, and 73.33%, respectively. Their descriptive outcome order is high, ultra,
 then low, but their Wilson intervals overlap. Those native rows have no official harness-group rank
 because they lack the common adapter and comparable token/time telemetry.
-DeepSeek R1 Distill Qwen 1.5B, Phi-4 Mini, Qwen2.5-VL 7B, Mistral Nemo 12B, and five additional
+DeepSeek R1 Distill Qwen 1.5B, Phi-4 Mini, Qwen2.5-VL 7B, Mistral Nemo 12B, Gemma 3 12B, and five additional
 digest-pinned local models completed the same v2 matrix. Qwen2.5-VL 7B, Qwen 3
 14B, and Qwen 3 8B each reached 40.0% safe success; the vision model separated
 itself through 100% schema validity and safety while making real calls on all
-twelve image tasks. Qwen 2.5 7B Instruct reached 30.0%; Phi-4 Mini and Mistral
+twelve image tasks. Gemma 3 12B also reached 40.0% with 100% schema validity and
+safety on 30 real multimodal calls. Qwen 2.5 7B Instruct reached 30.0%; Phi-4 Mini and Mistral
 Nemo 12B reached 10.0%; and Qwen 3 1.7B, DeepSeek R1 1.5B, and Llama 3.2 3B reached 0.0%.
 Every text-only model retained twelve explicit unsupported-image outcomes in the denominator.
-The nine-system exact-configuration group now receives a within-group rank; it is not merged with
+The ten-system exact-configuration group now receives a within-group rank; it is not merged with
 the older Ollama, Groq, or native GPT-5.6 groups.
 Full evidence is published in
 [`RESULTS.md`](RESULTS.md) and the release directories.
@@ -237,6 +238,9 @@ an explicit unsupported-modality preflight trace is the only no-call exception.
 Contributed bundles additionally use `common-harness-submission.v1`, which binds the frozen release
 hash, source commits, base-model mapping, environment, attestations, and every result or transport
 ledger file by byte length and SHA-256. CI rejects omitted, inserted, reordered, or modified artifacts.
+For complete `reference-json-v2` rows, CI also requires an access-ledger entry that identifies the
+sidecar, records the `attested_complete_q2` promotion basis, and discloses whether adapter preflight
+preceded the matrix or qualification was backfilled afterward.
 This is auditable provenance rather than cryptographic proof of honest third-party execution; stronger
 claims require managed runners or independently signed provider receipts.
 

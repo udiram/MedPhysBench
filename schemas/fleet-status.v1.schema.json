@@ -59,6 +59,8 @@
         "family",
         "openness",
         "modalities",
+        "size_tier",
+        "planned_routes",
         "access_qualified",
         "qualification_stage",
         "evaluated",
@@ -80,6 +82,13 @@
           "minItems": 1,
           "uniqueItems": true,
           "items": { "enum": ["text", "image"] }
+        },
+        "size_tier": { "enum": ["small", "medium", "large", "frontier", "undisclosed"] },
+        "planned_routes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["anthropic", "aws_bedrock", "codex_native", "cohere", "google", "groq", "ollama", "openai", "self_hosted", "xai"] }
         },
         "access_qualified": { "type": "boolean" },
         "qualification_stage": { "type": ["string", "null"], "enum": ["q0", "q1", "q2", "q3", null] },

@@ -56,13 +56,21 @@ uv run medphys-bench run-release \
   --model-revision sha256:daf6737417121831e572a9c482e92a221ee0c33537f35f1f857c7b4f7191df55 \
   --results-dir runs/openkb-mistral-nemo \
   --resume \
-  --seed 20260733 \
+  --seed 20260731 \
   --temperature 0 \
   --max-tokens 2048 \
   --timeout 300 \
   --ollama-num-ctx 4096 \
   --ollama-keep-alive 0
 ```
+
+The published multimodal Gemma 3 12B campaign used the same command with
+`--model gemma3:12b-it-q4_K_M`, revision
+`sha256:f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a`, and
+`--results-dir runs/openkb-gemma3-12b`. Its first pass added `--attempts 1` as a
+10-task adapter/modality preflight; the full command then omitted that flag and
+used `--resume` to validate those checkpoints before requesting attempts two and
+three.
 
 The summarizer still decides comparability from the frozen manifest hashes; matching
 the visible flags alone does not override a different harness revision, adapter
@@ -148,6 +156,18 @@ transport-error ledger. Its canonical tree hash prevents omitted failures, inser
 post-hoc byte edits from passing CI unnoticed. Ranking additionally requires a real model-response
 trace, non-empty provider/runtime receipt, and per-call token and duration telemetry; declared
 unsupported-modality preflight outcomes use their explicit capability trace instead.
+Every complete `reference-json-v2` row must also have a matching available Q2 access entry whose
+promotion basis is `attested_complete_q2`, whose chronology says whether preflight preceded the
+full matrix, and whose evidence points to that exact sidecar. The fleet projection, submission
+validator, and repository-wide validator all enforce this binding.
+
+The OpenKBP leaderboard has three byte-identical published projections plus the derived fleet
+status. Rebuild them together, or make CI prove that no copy drifted:
+
+```bash
+make rebuild-openkb
+make check-openkb-projection
+```
 
 ## Comparing a replication
 

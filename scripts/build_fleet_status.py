@@ -11,6 +11,11 @@ from typing import Any
 
 import yaml
 
+from medphys_agentbench.qualification import (
+    find_access_entry,
+    validate_attested_q2_qualification,
+)
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FLEET = REPO_ROOT / "fleet" / "public_fleet_v1.yaml"
 DEFAULT_CATALOG = REPO_ROOT / "web" / "public" / "data" / "model_catalog.json"
@@ -141,6 +146,20 @@ def build_fleet_status(
             if key not in catalog_index:
                 raise ValueError(f"Visible leaderboard row is missing from model catalog: {key}")
             base_model_id = str(catalog_index[key]["base_model_id"])
+            if row.get("harness_revision") == "reference-json-v2" and _complete_row(row):
+                qualification = find_access_entry(
+                    access,
+                    provider=key[0],
+                    model_name=key[1],
+                    base_model_id=base_model_id,
+                )
+                validate_attested_q2_qualification(
+                    qualification,
+                    repository_root=REPO_ROOT,
+                    provider=key[0],
+                    model_name=key[1],
+                    base_model_id=base_model_id,
+                )
             visible_configurations.add(key)
             row_count_by_base[base_model_id] += 1
             releases_by_base[base_model_id].add(release_id)
@@ -166,6 +185,8 @@ def build_fleet_status(
                 "family": str(planned["family"]),
                 "openness": str(planned["openness"]),
                 "modalities": list(planned["modalities"]),
+                "size_tier": str(planned["size_tier"]),
+                "planned_routes": list(planned["planned_routes"]),
                 "access_qualified": bool(stages),
                 "qualification_stage": highest_stage,
                 "evaluated": evaluated_by_base[base_model_id],

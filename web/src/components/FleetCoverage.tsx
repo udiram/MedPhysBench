@@ -8,6 +8,7 @@ type Props = {
 
 type SourceFilter = "all" | "open" | "closed";
 type StageFilter = "all" | "workflow" | "ranked" | "evaluated" | "access" | "planned";
+type RouteFilter = "all" | FleetStatusModel["planned_routes"][number];
 
 const FUNNEL_STAGES = [
   ["planned_base_models", "Frozen panel", "Predeclared unique base IDs"],
@@ -20,8 +21,13 @@ const FUNNEL_STAGES = [
 export function FleetCoverage({ data }: Props) {
   const [source, setSource] = useState<SourceFilter>("all");
   const [stage, setStage] = useState<StageFilter>("all");
+  const [route, setRoute] = useState<RouteFilter>("all");
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
+  const routeOptions = useMemo(
+    () => [...new Set((data?.models ?? []).flatMap((model) => model.planned_routes))].sort((left, right) => left.localeCompare(right)),
+    [data],
+  );
 
   const rows = useMemo(() => {
     if (!data) return [];
@@ -35,15 +41,17 @@ export function FleetCoverage({ data }: Props) {
         (stage === "evaluated" && model.evaluated) ||
         (stage === "access" && model.access_qualified) ||
         (stage === "planned" && !model.access_qualified);
+      const matchesRoute = route === "all" || model.planned_routes.includes(route);
       const matchesQuery =
         !normalized ||
         model.display_name.toLowerCase().includes(normalized) ||
         model.base_model_id.toLowerCase().includes(normalized) ||
         model.steward.toLowerCase().includes(normalized) ||
-        model.family.toLowerCase().includes(normalized);
-      return matchesSource && matchesStage && matchesQuery;
+        model.family.toLowerCase().includes(normalized) ||
+        model.planned_routes.some((value) => routeLabel(value).toLowerCase().includes(normalized));
+      return matchesSource && matchesStage && matchesRoute && matchesQuery;
     });
-  }, [data, deferredQuery, source, stage]);
+  }, [data, deferredQuery, route, source, stage]);
 
   if (!data) {
     return (
@@ -145,6 +153,20 @@ export function FleetCoverage({ data }: Props) {
                 <ChevronDown aria-hidden="true" />
               </span>
             </label>
+            <label className="field">
+              <span>Planned route</span>
+              <span className="select-wrap">
+                <select value={route} onChange={(event) => setRoute(event.target.value as RouteFilter)}>
+                  <option value="all">Any route</option>
+                  {routeOptions.map((value) => (
+                    <option key={value} value={value}>
+                      {routeLabel(value)}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown aria-hidden="true" />
+              </span>
+            </label>
             <div className="fleet-result-count" role="status">
               <strong>{rows.length}</strong>
               <span>base models shown</span>
@@ -196,9 +218,26 @@ function FleetModelCard({ model }: { model: FleetStatusModel }) {
       <footer>
         <span>{model.openness === "open" ? "Open weights" : "Closed"}</span>
         <span>{model.modalities.includes("image") ? "Vision" : "Text"}</span>
+        <span>{sizeTierLabel(model.size_tier)}</span>
         <span>{model.steward}</span>
         {model.system_configuration_count > 0 ? <span>{model.system_configuration_count} config{model.system_configuration_count === 1 ? "" : "s"}</span> : null}
+        <span>{model.planned_routes.map(routeLabel).join(" · ")}</span>
       </footer>
     </article>
   );
+}
+
+function routeLabel(value: FleetStatusModel["planned_routes"][number]) {
+  if (value === "self_hosted") return "Self-hosted";
+  if (value === "openai") return "OpenAI API";
+  if (value === "codex_native") return "Codex native";
+  if (value === "aws_bedrock") return "AWS Bedrock";
+  if (value === "xai") return "xAI";
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function sizeTierLabel(value: FleetStatusModel["size_tier"]) {
+  if (value === "frontier") return "Frontier";
+  if (value === "undisclosed") return "Undisclosed";
+  return `${value.charAt(0).toUpperCase()}${value.slice(1)} tier`;
 }

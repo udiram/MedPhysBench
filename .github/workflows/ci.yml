@@ -37,6 +37,8 @@ jobs:
           uv run medphys-bench validate-release releases/public_tg263_pilot_v0_5.yaml
       - name: Validate schemas, tasks, runtime projections, and result artifacts
         run: uv run python scripts/validate_repository.py
+      - name: Check deterministic OpenKBP projections
+        run: make check-openkb-projection
       - name: Verify auditable common-harness submission bundles
         run: uv run python scripts/common_harness_submission.py validate-all
       - name: Verify public governance projections

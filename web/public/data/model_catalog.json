@@ -190,5 +190,13 @@
     "openness": "open",
     "steward": "Qwen",
     "family": "Qwen 3"
+  },
+  {
+    "provider": "ollama",
+    "model_name": "gemma3:12b-it-q4_K_M",
+    "base_model_id": "google/gemma-3-12b-it",
+    "openness": "open",
+    "steward": "Google",
+    "family": "Gemma 3"
   }
 ]

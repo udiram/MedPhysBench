@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
@@ -46,18 +47,22 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert status == rebuilt
     assert rebuilt["summary"] == {
         "planned_base_models": 50,
-        "access_qualified_base_models": 19,
-        "evaluated_base_models": 17,
-        "ranked_base_models": 17,
-        "workflow_qualified_base_models": 17,
-        "workflow_ranked_base_models": 17,
-        "published_system_configurations": 24,
-        "published_release_rows": 39,
+        "access_qualified_base_models": 20,
+        "evaluated_base_models": 18,
+        "ranked_base_models": 18,
+        "workflow_qualified_base_models": 18,
+        "workflow_ranked_base_models": 18,
+        "published_system_configurations": 25,
+        "published_release_rows": 40,
         "open_planned_models": 31,
         "closed_planned_models": 19,
         "vision_planned_models": 31,
         "steward_count": 11,
     }
+    assert all("size_tier" in entry for entry in rebuilt["models"])
+    assert all("planned_routes" in entry for entry in rebuilt["models"])
+    assert any("groq" in entry["planned_routes"] for entry in rebuilt["models"])
+    assert any("ollama" in entry["planned_routes"] for entry in rebuilt["models"])
 
 
 def test_catalog_maps_system_configurations_to_unique_frozen_base_models() -> None:
@@ -70,7 +75,7 @@ def test_catalog_maps_system_configurations_to_unique_frozen_base_models() -> No
 
     assert len(keys) == len(set(keys))
     assert all(entry["base_model_id"] in frozen_ids for entry in catalog)
-    assert len({entry["base_model_id"] for entry in catalog}) == 19
+    assert len({entry["base_model_id"] for entry in catalog}) == 20
     assert sum(entry["base_model_id"] == "gpt-5.6-sol" for entry in catalog) == 6
 
 
@@ -100,6 +105,22 @@ def test_incomplete_campaign_cannot_increment_evaluated_or_ranked_counts(tmp_pat
     assert status["summary"]["published_release_rows"] == 1
     assert status["summary"]["evaluated_base_models"] == 0
     assert status["summary"]["ranked_base_models"] == 0
+
+
+@pytest.mark.parametrize("field", ["promotion_basis", "qualification_evidence"])
+def test_complete_v2_row_requires_attested_qualification_evidence(
+    tmp_path: Path,
+    field: str,
+) -> None:
+    access = _load_json(ACCESS_PATH)
+    assert isinstance(access, list)
+    qwen = next(entry for entry in access if entry.get("model") == "qwen3:14b")
+    qwen.pop(field)
+    access_path = tmp_path / "access-status.json"
+    access_path.write_text(json.dumps(access), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="promotion_basis|qualification_evidence"):
+        build_fleet_status(access_path=access_path)
 
 
 def test_v2_workflow_comparison_group_is_now_officially_ranked() -> None:
@@ -136,8 +157,8 @@ def test_qwen25vl_7b_is_exactly_bound_through_access_and_workflow_results() -> N
 
 def test_workflow_qualified_counts_only_common_harness_real_workflow_release() -> None:
     status = build_fleet_status()
-    assert status["summary"]["workflow_qualified_base_models"] == 17
-    assert status["summary"]["workflow_ranked_base_models"] == 17
+    assert status["summary"]["workflow_qualified_base_models"] == 18
+    assert status["summary"]["workflow_ranked_base_models"] == 18
 
     gpt = next(
         row

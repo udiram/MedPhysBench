@@ -15,12 +15,18 @@ from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
 
+from medphys_agentbench.qualification import (
+    find_access_entry,
+    load_access_entries,
+    validate_attested_q2_qualification,
+)
 from medphys_agentbench.release_loader import load_release
 from medphys_agentbench.reporting import summarize_release
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = ROOT / "schemas" / "common-harness-submission.v1.schema.json"
 CATALOG_PATH = ROOT / "web" / "public" / "data" / "model_catalog.json"
+ACCESS_PATH = ROOT / "web" / "public" / "data" / "access_status.json"
 
 
 def _load_json(path: Path) -> Any:
@@ -147,6 +153,28 @@ def validate_submission(manifest_path: Path) -> dict[str, Any]:
     catalog = _catalog_entry(model["provider"], model["model_name"])
     if catalog.get("base_model_id") != model["base_model_id"]:
         raise ValueError("Submission base_model_id does not match the public model catalog.")
+    resolved_manifest_path = manifest_path.resolve()
+    submissions_root = (ROOT / "submissions").resolve()
+    relative_manifest_path = (
+        resolved_manifest_path.relative_to(ROOT.resolve()).as_posix()
+        if resolved_manifest_path.is_relative_to(submissions_root)
+        else None
+    )
+    access_entry = find_access_entry(
+        load_access_entries(ACCESS_PATH),
+        provider=model["provider"],
+        model_name=model["model_name"],
+        base_model_id=model["base_model_id"],
+    )
+    validate_attested_q2_qualification(
+        access_entry,
+        repository_root=ROOT,
+        provider=model["provider"],
+        model_name=model["model_name"],
+        base_model_id=model["base_model_id"],
+        expected_submission_id=payload["submission_id"],
+        expected_manifest_path=relative_manifest_path,
+    )
 
     summary = summarize_release(release, ROOT / "results" / "releases")
     if summary["integrity"]["release_contract_hash_v2"] != payload["release_contract_hash_v2"]:

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -20,6 +21,8 @@ from medphys_agentbench.task_loader import load_task
 from medphys_agentbench.validation import validate_grader_mutations
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 SCHEMA_DIR = ROOT / "schemas"
 FORBIDDEN_RUNTIME_FIELDS = {"grading", "provenance", "access_class", "contamination_tags"}
 
@@ -140,6 +143,9 @@ def _validate_defect_ledger_semantics(
 
 
 def validate_repository() -> dict[str, int]:
+    from scripts.build_fleet_status import build_fleet_status
+    from scripts.common_harness_submission import validate_submission
+
     validators = {
         "task": _validator("task.v1.schema.json"),
         "runtime": _validator("runtime-task.v1.schema.json"),
@@ -174,6 +180,8 @@ def validate_repository() -> dict[str, int]:
     projected_ids = [str(item["base_model_id"]) for item in fleet_status["models"]]
     if projected_ids != fleet_ids:
         raise ValueError(f"{fleet_status_path}: model projection order/content differs from frozen fleet.")
+    if build_fleet_status() != fleet_status:
+        raise ValueError(f"{fleet_status_path}: projection differs from current catalog, access, or releases.")
 
     release_paths = sorted((ROOT / "releases").glob("*.yaml"))
     releases_by_id = {}
@@ -267,6 +275,7 @@ def validate_repository() -> dict[str, int]:
     submission_paths = sorted((ROOT / "submissions").glob("*.json"))
     for path in submission_paths:
         _validate(validators["common_harness_submission"], _load_json(path), path)
+        validate_submission(path)
 
     return {
         "schema_count": len(validators),

@@ -27,12 +27,12 @@ package, or evidence of autonomous clinical competence.
 - TG-263 audit: `public-tg263-pilot-v0.5-audit` (separates primary naming decisions from exact benchmark reason-code labels)
 - Real-image pilot: `public-imaging-pilot-v0.4` (`5` real MRI, CT, and PET tasks)
 - OpenKBP real-workflow pilot: `public-real-workflows-pilot-v0.6` (`10` tasks from
-  `2` patient families; `13` ranked Ollama configurations, `4` ranked Groq
+  `2` patient families; `14` ranked Ollama configurations, `4` ranked Groq
   configurations, `1` quarantined Groq configuration, and `3` GPT-5.6 native effort audits;
-  `630` total attempt artifacts)
+  `660` total attempt artifacts)
 - Scored configurations through Sunday, August 2, 2026: five common-harness local core models,
   six explicitly unranked GPT-5.6 core-effort pilots, two harder TG-263 native pilots,
-  three local models on the original image pilot, eighteen API/local configurations on the
+  three local models on the original image pilot, nineteen API/local configurations on the
   OpenKBP pilot, and three GPT-5.6 OpenKBP effort audits with descriptive outcome ranks
 - Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
 - Frozen 50-base-model panel: [`fleet/public_fleet_v1.yaml`](fleet/public_fleet_v1.yaml)

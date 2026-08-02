@@ -1,0 +1,196 @@
+#!/usr/bin/env python3
+"""Regenerate one public release projection from a committed result directory."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+import tempfile
+from pathlib import Path
+from typing import Any
+
+from medphys_agentbench.release_loader import load_release
+from medphys_agentbench.reporting import summarize_release
+
+
+def _load_build_fleet_status() -> Any:
+    scripts_dir = Path(__file__).resolve().parent
+    if str(scripts_dir) not in sys.path:
+        sys.path.insert(0, str(scripts_dir))
+    from build_fleet_status import build_fleet_status
+
+    return build_fleet_status
+
+
+def _serialize_sorted(payload: Any) -> bytes:
+    return (json.dumps(payload, indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+
+def _serialize_default(payload: Any) -> bytes:
+    return (json.dumps(payload, indent=2) + "\n").encode("utf-8")
+
+
+def _overlay_fleet_inputs(
+    *,
+    base_inputs: list[Path],
+    replaced_paths: dict[Path, Path],
+) -> list[Path]:
+    return [replaced_paths.get(path, path) for path in base_inputs]
+
+
+def _build_projection(
+    *,
+    release_file: Path,
+    results_root: Path,
+    expected_attempts_per_task: int | None,
+) -> tuple[dict[str, Any], bytes]:
+    release = load_release(release_file)
+    leaderboard = summarize_release(
+        release,
+        results_root,
+        expected_attempts_per_task=expected_attempts_per_task,
+    )
+    evidence_timestamps = [
+        str(task["created_at"])
+        for row in [*leaderboard.get("models", []), *leaderboard.get("unranked_models", [])]
+        for task in row.get("tasks", [])
+        if isinstance(task, dict) and isinstance(task.get("created_at"), str)
+    ]
+    if evidence_timestamps:
+        leaderboard["generated_at"] = max(evidence_timestamps)
+    return leaderboard, _serialize_sorted(leaderboard)
+
+
+def _coerce_paths(*paths: Path) -> list[Path]:
+    seen: set[Path] = set()
+    output: list[Path] = []
+    for path in paths:
+        if path in seen:
+            continue
+        seen.add(path)
+        output.append(path)
+    return output
+
+
+def _check_or_write(
+    *,
+    check: bool,
+    payloads: dict[Path, bytes],
+    fleet_status_path: Path,
+    fleet_status_payload: bytes,
+) -> None:
+    stale: list[str] = []
+    for path, projected in payloads.items():
+        if not path.is_file() or path.read_bytes() != projected:
+            stale.append(f"drift@{path}")
+
+    if not fleet_status_path.is_file() or fleet_status_path.read_bytes() != fleet_status_payload:
+        stale.append(f"drift@{fleet_status_path}")
+
+    if stale:
+        if check:
+            raise SystemExit(
+                "Stale release projection for: " + ", ".join(sorted(stale))
+            )
+        for path, projected in payloads.items():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(projected)
+        fleet_status_path.parent.mkdir(parents=True, exist_ok=True)
+        fleet_status_path.write_bytes(fleet_status_payload)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--release-file", type=Path, required=True)
+    parser.add_argument("--results-root", type=Path, required=True)
+    parser.add_argument("--canonical-leaderboard", type=Path, required=True)
+    parser.add_argument("--results-leaderboard", type=Path, required=True)
+    parser.add_argument("--public-leaderboard", type=Path, required=True)
+    parser.add_argument("--fleet-status", type=Path, required=True)
+    parser.add_argument("--fleet-manifest", type=Path, required=True)
+    parser.add_argument("--fleet-catalog", type=Path, required=True)
+    parser.add_argument("--fleet-access", type=Path, required=True)
+    parser.add_argument(
+        "--fleet-leaderboard",
+        action="append",
+        dest="fleet_leaderboards",
+        type=Path,
+    )
+    parser.add_argument("--expected-attempts", type=int)
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args()
+
+    release = load_release(args.release_file)
+    release_id = release.release_id
+    public_data_root = args.public_leaderboard.parent
+
+    _, leaderboard_text = _build_projection(
+        release_file=args.release_file,
+        results_root=args.results_root,
+        expected_attempts_per_task=args.expected_attempts,
+    )
+
+    payloads = {
+        args.canonical_leaderboard: leaderboard_text,
+        args.results_leaderboard: leaderboard_text,
+        args.public_leaderboard: leaderboard_text,
+    }
+
+    discovered_fleet_inputs = [
+        public_data_root / name
+        for name in (
+            "leaderboard.json",
+            "imaging_leaderboard.json",
+            "tg263_leaderboard.json",
+            "public-real-workflows-pilot-v0.6.json",
+        )
+        if (public_data_root / name).is_file()
+    ]
+    with tempfile.TemporaryDirectory(prefix="medphysbench-leaderboard-") as temp_dir:
+        temp_root = Path(temp_dir)
+        replaced_paths = {
+            args.results_leaderboard: temp_root / f"results-{args.results_leaderboard.name}",
+            args.public_leaderboard: temp_root / f"public-{args.public_leaderboard.name}",
+        }
+        for path in set(replaced_paths.values()):
+            path.write_bytes(leaderboard_text)
+
+        if args.fleet_leaderboards:
+            fleet_inputs = _coerce_paths(*args.fleet_leaderboards)
+        else:
+            if discovered_fleet_inputs:
+                fleet_inputs = _coerce_paths(*discovered_fleet_inputs)
+            else:
+                fleet_inputs = _coerce_paths(args.results_leaderboard)
+        projected_paths = _coerce_paths(
+            *_overlay_fleet_inputs(
+                base_inputs=fleet_inputs,
+                replaced_paths=replaced_paths,
+            )
+        )
+        build_fleet_status = _load_build_fleet_status()
+        fleet_payload = build_fleet_status(
+            fleet_path=args.fleet_manifest,
+            catalog_path=args.fleet_catalog,
+            access_path=args.fleet_access,
+            leaderboard_paths=tuple(projected_paths),
+        )
+    fleet_text = _serialize_default(fleet_payload)
+
+    _check_or_write(
+        check=args.check,
+        payloads=payloads,
+        fleet_status_path=args.fleet_status,
+        fleet_status_payload=fleet_text,
+    )
+
+    if args.check:
+        print(
+            f"release projection up to date: release_id={release_id}, "
+            f"path={args.canonical_leaderboard.name}"
+        )
+
+
+if __name__ == "__main__":
+    main()

@@ -1791,6 +1791,55 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   color: var(--muted);
   justify-content: flex-start;
 }
+.forensics-domain-summary {
+  display: grid;
+  gap: 10px;
+}
+.forensics-domain-summary-row {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 12px;
+  text-align: left;
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+.forensics-domain-summary-row:hover,
+.forensics-domain-summary-row:focus-visible,
+.forensics-domain-summary-row.selected {
+  border-color: rgba(137, 197, 150, 0.45);
+  transform: translateY(-1px);
+}
+.forensics-domain-summary-row > div {
+  display: grid;
+  gap: 4px;
+}
+.forensics-domain-summary-row strong {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+}
+.forensics-domain-summary-row small {
+  color: var(--muted);
+  font-size: 11px;
+}
+.forensics-domain-summary-row dl {
+  display: grid;
+  gap: 8px 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+.forensics-domain-summary-row dt {
+  color: var(--muted);
+  font: 500 10px/1.4 "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+}
+.forensics-domain-summary-row dd {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
 .forensics-task-detail {
   padding-left: 12px;
   border-left: 2px solid transparent;
@@ -2070,7 +2119,7 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 .fleet-registry-body { padding: 16px; }
 .fleet-controls {
   display: grid;
-  grid-template-columns: minmax(280px, 1.4fr) minmax(180px, 0.7fr) minmax(180px, 0.7fr) auto;
+  grid-template-columns: minmax(280px, 1.4fr) repeat(3, minmax(180px, 0.7fr)) auto;
   gap: 12px;
   align-items: end;
   margin-bottom: 16px;
@@ -2247,6 +2296,27 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   padding-top: 14px;
   border-top: 1px solid var(--line);
 }
+.registry-run-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.registry-run-actions button {
+  border: 1px solid rgba(137, 197, 150, 0.26);
+  background: rgba(137, 197, 150, 0.08);
+  color: var(--text);
+  cursor: pointer;
+  font: 500 11px/1.2 "IBM Plex Mono", monospace;
+  padding: 9px 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.registry-run-actions button:hover,
+.registry-run-actions button:focus-visible {
+  border-color: rgba(137, 197, 150, 0.48);
+  background: rgba(137, 197, 150, 0.14);
+}
 .registry-failure-list {
   display: grid;
   gap: 10px;
@@ -2389,6 +2459,7 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   .forensics-failure-columns {
     grid-template-columns: 1fr;
   }
+  .forensics-domain-summary-row dl { grid-template-columns: 1fr; }
   .forensics-controls .model-field { grid-column: auto; }
   .forensics-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .forensics-domain-group header,

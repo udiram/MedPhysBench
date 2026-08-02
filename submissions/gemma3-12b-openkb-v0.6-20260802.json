@@ -1,0 +1,232 @@
+{
+  "adapter_source_commit": "9ea5aac61206eaffce2ed11c1d7e9363a68b0a5a",
+  "artifact_tree_sha256": "91e1fa16007998635c7e2b7ab446e907d8afb6f468a8a4aa4fa9a599f46b11f8",
+  "artifacts": [
+    {
+      "bytes": 4986,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_high_dose_segmentation_001--attempt-1.json",
+      "sha256": "0d85eed94837934f428a2fa344d08ec1a745080e52293218e8fa49ed2ba34325"
+    },
+    {
+      "bytes": 4986,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_high_dose_segmentation_001--attempt-2.json",
+      "sha256": "1042cca7a0688d6511c8a721b699129901cc660a49fae67adcfebb916b9f8963"
+    },
+    {
+      "bytes": 4986,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_high_dose_segmentation_001--attempt-3.json",
+      "sha256": "9b3bada4ecb6340dc7c5502204b2af73c4232d7b2fc6e8d3d711507831675c28"
+    },
+    {
+      "bytes": 4594,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_parotid_segmentation_001--attempt-1.json",
+      "sha256": "3276b1b49158dee52007412d7e79b9a75232c211bce4c5b4be7c751ca701854c"
+    },
+    {
+      "bytes": 4592,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_parotid_segmentation_001--attempt-2.json",
+      "sha256": "8d7520d2ba7d10fb8df5912bace1d3d2526b2e75c6a3ef2a18366e70c6b11b74"
+    },
+    {
+      "bytes": 4594,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_parotid_segmentation_001--attempt-3.json",
+      "sha256": "437ef681522d7dfd86ebfed7fc920ea47658f0469468bbbd521acc7177883dc2"
+    },
+    {
+      "bytes": 6012,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_plan_criteria_audit_001--attempt-1.json",
+      "sha256": "898a4a6762aa98a2a43a2b7860bdb3deee28648380f4570724dc894aace79dd0"
+    },
+    {
+      "bytes": 6012,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_plan_criteria_audit_001--attempt-2.json",
+      "sha256": "f4cc0a06a35f136addf4e218a61090297bab777f8e456a820e4147b249a7a235"
+    },
+    {
+      "bytes": 6012,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_plan_criteria_audit_001--attempt-3.json",
+      "sha256": "197b960ae9cf0d12fb18bf352299c33da78681f24d6e2ccba3b437cf114f101f"
+    },
+    {
+      "bytes": 5677,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_structure_inventory_001--attempt-1.json",
+      "sha256": "611dce9c0c88554c29e8675cd77b4e4b2f06a313bd21cb6830b35e71491e12c4"
+    },
+    {
+      "bytes": 5677,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_structure_inventory_001--attempt-2.json",
+      "sha256": "060be885ec674f07692762c14480fc1af0fa827b4c72399f3b2f2fffcfb88595"
+    },
+    {
+      "bytes": 5677,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_structure_inventory_001--attempt-3.json",
+      "sha256": "c40a4b64c760d558693f71537fd225c05cfb2de6b5859e4ec6292a8a1011cd07"
+    },
+    {
+      "bytes": 5264,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_tg263_naming_audit_001--attempt-1.json",
+      "sha256": "c867035e496192a922b276760a7be5fbde8e05d256346219de2624dbbb2721bd"
+    },
+    {
+      "bytes": 5264,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_tg263_naming_audit_001--attempt-2.json",
+      "sha256": "e9b8c0e23d878a00f5509f2d9373de1ae7d8c2f6b5a246032c85765677e953a7"
+    },
+    {
+      "bytes": 5264,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_tg263_naming_audit_001--attempt-3.json",
+      "sha256": "2fb2f4748cdf93c649bd07451a36dc919a6fb11012f7f2c39e9e0e998893b579"
+    },
+    {
+      "bytes": 4986,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_high_dose_segmentation_001--attempt-1.json",
+      "sha256": "fe169faa93bea269dbe7756d9c6f654d7e10d09c4de53fbc542eb26a8b90b562"
+    },
+    {
+      "bytes": 4986,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_high_dose_segmentation_001--attempt-2.json",
+      "sha256": "ae42d32122a83fa3c3501625c1378a153abbce67fa75804e3168f45361a39332"
+    },
+    {
+      "bytes": 4984,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_high_dose_segmentation_001--attempt-3.json",
+      "sha256": "de7aafb6314588d2e9b266c3798db6366f38896cfe15cd60d3dda54f41f7dce4"
+    },
+    {
+      "bytes": 4594,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_parotid_segmentation_001--attempt-1.json",
+      "sha256": "ba6668332a910185ff0c7a38f6d89a914b4af228b867fff95a354520d06f6359"
+    },
+    {
+      "bytes": 4594,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_parotid_segmentation_001--attempt-2.json",
+      "sha256": "56564dfd20a7165ac9d493c9531f87458fa8199f2148881b2175b61fcd5a69d8"
+    },
+    {
+      "bytes": 4594,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_parotid_segmentation_001--attempt-3.json",
+      "sha256": "94f328e8decc94a34d099c8dc208c10ed44a8089f40a890794ff5f302a186fe5"
+    },
+    {
+      "bytes": 6134,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_plan_criteria_audit_001--attempt-1.json",
+      "sha256": "1945ad344b41669931d5a7116090668d4f376f30384e4d26d85ce944934c32c5"
+    },
+    {
+      "bytes": 6134,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_plan_criteria_audit_001--attempt-2.json",
+      "sha256": "c2e9c7099790078b301c44ca05eae0200838036b3757bb59ead5ce8106cfcd55"
+    },
+    {
+      "bytes": 6133,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_plan_criteria_audit_001--attempt-3.json",
+      "sha256": "2346d5094e99219629fd97759983b8c3a1f7baef2e7e2d12039b6a62dd8c966d"
+    },
+    {
+      "bytes": 5736,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_structure_inventory_001--attempt-1.json",
+      "sha256": "0c3fff42813c983822075712cef7e5fae98b565d0149004061f626d15aee48a0"
+    },
+    {
+      "bytes": 5736,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_structure_inventory_001--attempt-2.json",
+      "sha256": "25ca25a55bf766e51f067b49628670f656daacacb5ec14b6d1879d65ca1a9a80"
+    },
+    {
+      "bytes": 5736,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_structure_inventory_001--attempt-3.json",
+      "sha256": "287ea8857d502f663cb3305c7618edca5a90f06ff80bbea80c3e8922a2581d6c"
+    },
+    {
+      "bytes": 5072,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_tg263_naming_audit_001--attempt-1.json",
+      "sha256": "4f5b0a770a0c2cfceb9247412042ecab5aea28975c0f9d204a8e78edd1759e21"
+    },
+    {
+      "bytes": 5072,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_tg263_naming_audit_001--attempt-2.json",
+      "sha256": "eccc99deebb035223b45a523a76af9881557cf0f4ab754899d2fb2d5f7e6846d"
+    },
+    {
+      "bytes": 5072,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_tg263_naming_audit_001--attempt-3.json",
+      "sha256": "0a17398466e3545d3fcf1eb33b4aea5e9994b8974db2c2c56bfbe35d6140e119"
+    }
+  ],
+  "attestations": {
+    "common_harness_unmodified": true,
+    "complete_unfiltered_artifact_set": true,
+    "no_credentials_or_phi": true,
+    "no_manual_output_edits": true,
+    "no_runtime_gold_or_grader_access": true,
+    "redistribution_permitted": true
+  },
+  "budget": {
+    "estimated_cost_usd": 0.0,
+    "funding": "local_compute"
+  },
+  "environment": {
+    "accelerator": "Apple Silicon unified-memory GPU",
+    "architecture": "arm64",
+    "hardware_summary": "24 GB Apple Silicon Mac; serial single-model execution with 4,096-token context and keep_alive=0",
+    "os": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "runtime_versions": {
+      "ollama": "0.32.5",
+      "python": "3.14.0"
+    }
+  },
+  "execution_finished_at": "2026-08-02T23:23:05.039499+00:00",
+  "execution_started_at": "2026-08-02T23:01:52.413378+00:00",
+  "harness_source_commit": "9ea5aac61206eaffce2ed11c1d7e9363a68b0a5a",
+  "model": {
+    "base_model_id": "google/gemma-3-12b-it",
+    "harness_name": "medphysbench-ollama",
+    "harness_revision": "reference-json-v2",
+    "model_name": "gemma3:12b-it-q4_K_M",
+    "model_revision": "sha256:f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a",
+    "provider": "ollama"
+  },
+  "release_contract_hash_v2": "c8bb7a810e9598eb37132884301449c1256447c90426f769fd028d3f7237909e",
+  "release_file": "releases/public_real_workflows_pilot_v0_6.yaml",
+  "release_id": "public-real-workflows-pilot-v0.6",
+  "repo_commit": "9ea5aac61206eaffce2ed11c1d7e9363a68b0a5a",
+  "results_directory": "results/releases/public-real-workflows-pilot-v0.6/gemma3_12b_it_q4_k_m",
+  "schema_version": "medphysbench.common-harness-submission.v1",
+  "submission_id": "gemma3-12b-openkb-v0.6-20260802",
+  "submission_kind": "managed_local",
+  "submitted_at": "2026-08-02T23:26:49.096790+00:00",
+  "submitter": {
+    "affiliation": "MedPhysBench",
+    "name": "MedPhysBench benchmark operator"
+  }
+}

@@ -147,6 +147,7 @@ function App() {
         <FleetCoverage data={fleetStatus} />
         <PublicModelIndex
           catalog={modelCatalog}
+          fleetStatus={fleetStatus}
           datasets={[
             { key: "core", label: "Core v0.4", data: core.data },
             { key: "imaging", label: "Imaging pilot", data: imaging.data },
