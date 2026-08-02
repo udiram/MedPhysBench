@@ -33,10 +33,18 @@ uv run medphys-bench run-release \
 
 The attempt count defaults to the frozen release contract. `--resume` validates every existing
 checkpoint, including its model descriptor, attempt key, sampling settings, immutable hashes, and
-deterministic regrade, before requesting only missing keys. Without `--resume`, an existing artifact
+deterministic regrade, before requesting only missing keys. Run manifest v2 additionally freezes a
+credential-free hash of adapter settings: endpoint, timeout, structured-output mode, strictness,
+reasoning effort, retry limit, artifact transport, and (for Ollama) context window and `keep_alive`.
+Changing any of these values aborts resume before a provider request. URLs containing user-info,
+query parameters, or fragments are rejected rather than persisted. Without `--resume`, an existing artifact
 is an immutable-overwrite error. Do not rename or remove individual attempt artifacts before
 summarizing; incomplete, duplicate, unknown-task, mixed-identity, or hash-drifted sets are retained
 as unranked evidence.
+
+Run manifest v1 remains readable for published history, but it is deliberately not resumable: it
+did not freeze the adapter-runtime settings needed to prove a campaign continued unchanged. Start a
+new results directory/revision when migrating an interrupted v1 campaign.
 
 Provider/network failures are retained under the model's append-only
 `_transport_errors` ledger while the canonical attempt key remains absent. A
@@ -89,6 +97,18 @@ cd web
 npm ci
 npm run build
 ```
+
+Rebuild the public model-fleet projection before a site release:
+
+```bash
+uv run python scripts/build_fleet_status.py
+git diff --exit-code web/public/data/fleet_status.json
+```
+
+The projection counts a base model as evaluated only when at least one public row has its exact
+expected attempt count, no canonical errors, no missing or unexpected attempt keys, and no
+integrity issue beyond a declared cross-surface comparability annotation. Access probes and partial
+campaigns never increment the evaluated or ranked counts.
 
 ## Comparing a replication
 

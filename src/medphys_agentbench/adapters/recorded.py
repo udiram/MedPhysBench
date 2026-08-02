@@ -34,6 +34,15 @@ class RecordedOutputAdapter:
             harness_revision=f"{self.harness_revision};effort={self.reasoning_effort}",
         )
 
+    def runtime_settings(self) -> dict[str, Any]:
+        return {
+            "schema_version": "medphysbench.adapter-settings.v1",
+            "endpoint_kind": "recorded_output_import",
+            "reasoning_effort": self.reasoning_effort,
+            "live_provider_request": False,
+            "tool_access": False,
+        }
+
     def execute(self, task: RuntimeTask) -> AgentResult:
         output = self.outputs.get(task.task_id)
         if not isinstance(output, dict):

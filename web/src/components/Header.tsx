@@ -24,6 +24,7 @@ export function Header({ mobileOpen, onToggle, onClose, repoUrl }: HeaderProps) 
       </button>
       <nav className={mobileOpen ? "nav-links nav-open" : "nav-links"} aria-label="Primary">
         <a href="#benchmark" onClick={onClose}>Benchmark</a>
+        <a href="#fleet" onClick={onClose}>Models</a>
         <a href="#methodology" onClick={onClose}>Methods</a>
         <a href="#coverage" onClick={onClose}>Tasks</a>
         <a href="#leaderboard" onClick={onClose}>Results</a>

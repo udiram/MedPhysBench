@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { domainLabel, formatPercent } from "../lib/format";
+import { useMemo, useState } from "react";
+import { domainLabel, formatPercent, providerLabel } from "../lib/format";
+import { isCommonHarnessRun } from "../lib/runSurface";
 import type { Leaderboard, ModelCatalogEntry, ModelResult, ReleaseView } from "../types";
 
 type ViewMode = "capability" | "failures" | "evidence";
@@ -22,16 +23,10 @@ type Family = {
 
 export function CapabilityExplorer({ data, loadError = false, releaseView, modelCatalog }: Props) {
   const [view, setView] = useState<ViewMode>("capability");
-  const [scope, setScope] = useState<ScopeMode>("official");
+  const [scope, setScope] = useState<ScopeMode>("all");
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
-  const effectiveScope = scope === "official" && data?.models.length === 0 && (data.unranked_models?.length ?? 0) > 0
-    ? "native"
-    : scope;
-
-  useEffect(() => {
-    if (!data) return;
-    setScope(data.models.length === 0 && (data.unranked_models?.length ?? 0) > 0 ? "native" : "official");
-  }, [data, releaseView]);
+  const [providerFilter, setProviderFilter] = useState("all");
+  const effectiveScope = scope;
 
   const rows = useMemo(() => {
     const catalogIndex = Object.fromEntries(
@@ -45,7 +40,8 @@ export function CapabilityExplorer({ data, loadError = false, releaseView, model
           (effectiveScope === "official" ? isCommonHarnessRow(row) : !isCommonHarnessRow(row));
         const source = modelSource(row, catalogIndex);
         const sourceMatch = sourceFilter === "all" || source === sourceFilter;
-        return surfaceMatch && sourceMatch;
+        const providerMatch = providerFilter === "all" || row.provider === providerFilter;
+        return surfaceMatch && sourceMatch && providerMatch;
       })
       .sort((a, b) => {
         if (effectiveScope === "official") {
@@ -53,7 +49,7 @@ export function CapabilityExplorer({ data, loadError = false, releaseView, model
         }
         return (a.outcome_rank ?? Infinity) - (b.outcome_rank ?? Infinity);
       });
-  }, [data, effectiveScope, modelCatalog, sourceFilter]);
+  }, [data, effectiveScope, modelCatalog, sourceFilter, providerFilter]);
   const families = useMemo(() => buildFamilies(data, rows), [data, rows]);
 
   if (!data) {
@@ -99,9 +95,9 @@ export function CapabilityExplorer({ data, loadError = false, releaseView, model
         </div>
         <div className="scope-switch" role="group" aria-label="Result comparison scope">
           {([
-            ["official", "Official comparable"],
-            ["native", "Native audit"],
             ["all", "All visible"],
+            ["official", "Common harness"],
+            ["native", "Native / imported"],
           ] as const).map(([value, label]) => (
             <button key={value} type="button" aria-pressed={effectiveScope === value} onClick={() => setScope(value)}>
               {label}
@@ -113,9 +109,26 @@ export function CapabilityExplorer({ data, loadError = false, releaseView, model
           <span className="select-wrap">
             <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as SourceFilter)}>
               <option value="all">Open + closed</option>
-              <option value="open">Open-source</option>
+              <option value="open">Open weights</option>
               <option value="closed">Closed</option>
               <option value="unknown">Unclassified</option>
+            </select>
+          </span>
+        </label>
+        <label className="field">
+          <span>Provider</span>
+          <span className="select-wrap">
+            <select value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}>
+              <option value="all">All providers</option>
+              {[...new Set(
+                (data ? [...data.models, ...(data.unranked_models ?? [])] : []).map((row) => row.provider),
+              )]
+                .sort((left, right) => left.localeCompare(right))
+                .map((providerValue) => (
+                  <option key={providerValue} value={providerValue}>
+                    {providerLabel(providerValue)}
+                  </option>
+                ))}
             </select>
           </span>
         </label>
@@ -192,10 +205,7 @@ function CapabilityMatrix({ rows, families, scope }: { rows: ModelResult[]; fami
 }
 
 function isCommonHarnessRow(row: ModelResult): boolean {
-  if (row.execution_surface) {
-    return row.execution_surface === "common_harness";
-  }
-  return row.run_profile?.is_common_harness ?? row.ranking_eligible;
+  return isCommonHarnessRun(row);
 }
 
 function modelSource(
@@ -397,9 +407,7 @@ function rankGroup(row: ModelResult) {
 }
 
 function rankGroupLabel(row: ModelResult) {
-  if (row.provider === "groq") return "Groq";
-  if (row.provider === "ollama") return "Ollama";
-  return row.provider;
+  return providerLabel(row.provider);
 }
 
 function shortModel(value: string) {

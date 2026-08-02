@@ -11,8 +11,9 @@ import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
 from medphys_agentbench.artifacts import resolve_asset_reference
-from medphys_agentbench.json_utils import decode_strict_json_object
+from medphys_agentbench.json_utils import decode_strict_json_object, stable_hash
 from medphys_agentbench.release_loader import load_release
+from medphys_agentbench.runner import adapter_runtime_settings
 from medphys_agentbench.scoring import score_attempt
 from medphys_agentbench.task_loader import load_task
 from medphys_agentbench.validation import validate_grader_mutations
@@ -54,11 +55,35 @@ def validate_repository() -> dict[str, int]:
     validators = {
         "task": _validator("task.v1.schema.json"),
         "runtime": _validator("runtime-task.v1.schema.json"),
-        "run": _validator("run.v1.schema.json"),
+        "run_v1": _validator("run.v1.schema.json"),
+        "run_v2": _validator("run.v2.schema.json"),
         "result": _validator("result.v1.schema.json"),
         "release": _validator("release.v1.schema.json"),
         "review_evidence": _validator("review-evidence.v1.schema.json"),
+        "model_fleet": _validator("model-fleet.v1.schema.json"),
+        "fleet_status": _validator("fleet-status.v1.schema.json"),
     }
+
+    fleet_path = ROOT / "fleet" / "public_fleet_v1.yaml"
+    fleet = _load_yaml(fleet_path)
+    _validate(validators["model_fleet"], fleet, fleet_path)
+    fleet_models = fleet["models"]
+    fleet_ids = [str(item["base_model_id"]) for item in fleet_models]
+    if len(fleet_ids) != len(set(fleet_ids)):
+        raise ValueError(f"{fleet_path}: base_model_id values must be unique.")
+    if len(fleet_ids) != fleet["target_base_model_count"]:
+        raise ValueError(f"{fleet_path}: target_base_model_count does not match the frozen list.")
+
+    fleet_status_path = ROOT / "web" / "public" / "data" / "fleet_status.json"
+    fleet_status = _load_json(fleet_status_path)
+    _validate(validators["fleet_status"], fleet_status, fleet_status_path)
+    if fleet_status["fleet_id"] != fleet["fleet_id"]:
+        raise ValueError(f"{fleet_status_path}: fleet_id does not match the frozen fleet manifest.")
+    if fleet_status["summary"]["planned_base_models"] != len(fleet_ids):
+        raise ValueError(f"{fleet_status_path}: planned model count does not match the frozen fleet.")
+    projected_ids = [str(item["base_model_id"]) for item in fleet_status["models"]]
+    if projected_ids != fleet_ids:
+        raise ValueError(f"{fleet_status_path}: model projection order/content differs from frozen fleet.")
 
     release_paths = sorted((ROOT / "releases").glob("*.yaml"))
     releases_by_id = {}
@@ -113,7 +138,27 @@ def validate_repository() -> dict[str, int]:
     for path in result_paths:
         payload = _load_json(path)
         _validate(validators["result"], payload, path)
-        _validate(validators["run"], payload.get("manifest"), path)
+        manifest = payload.get("manifest")
+        if not isinstance(manifest, dict):
+            raise ValueError(f"{path}: result manifest must be an object.")
+        manifest_version = manifest.get("schema_version")
+        if manifest_version == "medeval.run.v1":
+            _validate(validators["run_v1"], manifest, path)
+        elif manifest_version == "medeval.run.v2":
+            _validate(validators["run_v2"], manifest, path)
+            settings = manifest["adapter_settings"]
+            if stable_hash(settings) != manifest["adapter_settings_hash"]:
+                raise ValueError(f"{path}: adapter_settings_hash does not match adapter_settings.")
+            class _ManifestAdapter:
+                def __init__(self, runtime_settings: dict[str, Any]) -> None:
+                    self._runtime_settings = runtime_settings
+
+                def runtime_settings(self) -> dict[str, Any]:
+                    return self._runtime_settings
+
+            adapter_runtime_settings(_ManifestAdapter(settings))  # type: ignore[arg-type]
+        else:
+            raise ValueError(f"{path}: unsupported run manifest version {manifest_version!r}.")
         raw_response = payload.get("raw_response")
         if isinstance(raw_response, dict) and {"content", "thinking"}.intersection(raw_response):
             raise ValueError(f"{path}: public result contains unredacted provider output.")
@@ -128,6 +173,7 @@ def validate_repository() -> dict[str, int]:
         "task_count": len(task_paths),
         "result_count": len(result_paths),
         "grader_mutation_count": grader_mutation_count,
+        "fleet_model_count": len(fleet_ids),
     }
 
 

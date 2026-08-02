@@ -19,6 +19,7 @@ export type ModelOpenness = "open" | "closed" | "unknown";
 export type ModelCatalogEntry = {
   provider: string;
   model_name: string;
+  base_model_id: string;
   openness: ModelOpenness;
   steward: string;
   family: string;
@@ -215,6 +216,9 @@ export type Leaderboard = {
 
 export type AccessStatusEntry = {
   model: string;
+  provider?: string;
+  base_model_id?: string;
+  qualification_stage?: "q0" | "q1" | "q2" | "q3";
   status: string;
   surface: string;
   date: string;
@@ -222,3 +226,40 @@ export type AccessStatusEntry = {
 };
 
 export type AccessStatus = AccessStatusEntry;
+
+export type FleetStatusSummary = {
+  planned_base_models: number;
+  access_qualified_base_models: number;
+  evaluated_base_models: number;
+  ranked_base_models: number;
+  published_system_configurations: number;
+  published_release_rows: number;
+  open_planned_models: number;
+  closed_planned_models: number;
+  vision_planned_models: number;
+  steward_count: number;
+};
+
+export type FleetStatusModel = {
+  base_model_id: string;
+  display_name: string;
+  steward: string;
+  family: string;
+  openness: "open" | "closed";
+  modalities: Array<"text" | "image">;
+  access_qualified: boolean;
+  qualification_stage: "q0" | "q1" | "q2" | "q3" | null;
+  evaluated: boolean;
+  ranked: boolean;
+  system_configuration_count: number;
+  published_release_count: number;
+  published_row_count: number;
+};
+
+export type FleetStatus = {
+  schema_version: "medphysbench.fleet-status.v1";
+  generated_at: string;
+  fleet_id: string;
+  summary: FleetStatusSummary;
+  models: FleetStatusModel[];
+};

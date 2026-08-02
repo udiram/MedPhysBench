@@ -1,6 +1,7 @@
 import { ChevronDown, Search } from "lucide-react";
-import { useDeferredValue, useMemo, useState } from "react";
-import { domainLabel, formatDuration, formatPercent, formatTokens } from "../lib/format";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel } from "../lib/format";
+import { isCommonHarnessRun, isNativeRun, surfaceKind } from "../lib/runSurface";
 import type {
   Leaderboard,
   ModelCatalogEntry,
@@ -35,6 +36,7 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
   const [mode, setMode] = useState<ViewMode>("tokens");
   const [rankedOnly, setRankedOnly] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
+  const [providerFilter, setProviderFilter] = useState("all");
   const [surfaceFilter, setSurfaceFilter] = useState<SurfaceFilter>("all");
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
@@ -47,22 +49,27 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
       ) as Record<string, ModelCatalogEntry>,
     [modelCatalog],
   );
+  const allRows: ModelResult[] = useMemo(() => (data ? [...data.models, ...(data.unranked_models ?? [])] : []), [data]);
+  const availableProviders = useMemo(
+    () => [...new Set(allRows.map((row) => row.provider))].sort((left, right) => left.localeCompare(right)),
+    [allRows],
+  );
 
   const rows = useMemo(() => {
     if (!data) return [];
-    const allRows: ModelResult[] = [...data.models, ...(data.unranked_models ?? [])];
     const queryValue = deferredQuery.trim().toLowerCase();
 
     return allRows
       .map((row) => {
         const key = modelRowKey(row);
         const source = modelSource(row, catalogIndex);
-        const surface = rowSurface(row);
+        const surface = resolveSurface(row);
         return { key, row, source, surface };
       })
       .filter((entry) => {
         const matchesRanked = !rankedOnly || entry.row.ranking_eligible;
         const matchesSource = sourceFilter === "all" || entry.source === sourceFilter;
+        const matchesProvider = providerFilter === "all" || entry.row.provider === providerFilter;
         const matchesSurface =
           surfaceFilter === "all" ||
           (surfaceFilter === "common" && entry.surface === "common") ||
@@ -76,13 +83,20 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
           (entry.row.execution_surface ?? "").toLowerCase().includes(normalized) ||
           (entry.row.run_profile?.harness_revision ?? "").toLowerCase().includes(normalized);
 
-        return matchesRanked && matchesSource && matchesSurface && matchesQuery;
+        return matchesRanked && matchesSource && matchesSurface && matchesQuery && matchesProvider;
       })
       .sort((left, right) =>
         right.row.safe_success_rate - left.row.safe_success_rate ||
         left.row.model_name.localeCompare(right.row.model_name),
       );
-  }, [catalogIndex, data, deferredQuery, rankedOnly, sourceFilter, surfaceFilter]);
+  }, [allRows, catalogIndex, deferredQuery, rankedOnly, sourceFilter, surfaceFilter, providerFilter]);
+
+  useEffect(() => {
+    if (providerFilter === "all") return;
+    if (!availableProviders.includes(providerFilter)) {
+      setProviderFilter("all");
+    }
+  }, [availableProviders, providerFilter]);
 
   const focusedModel = useMemo(
     () => rows.find((entry) => entry.key === focused)?.row ?? null,
@@ -96,7 +110,7 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
 
   const focusedSurface = useMemo(() => {
     if (!focusedModel) return null;
-    return rowSurface(focusedModel);
+    return resolveSurface(focusedModel);
   }, [focusedModel]);
 
   const filteredCommonCount = useMemo(() => rows.filter((entry) => entry.surface === "common").length, [rows]);
@@ -152,9 +166,23 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
           <span className="select-wrap">
             <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as SourceFilter)}>
               <option value="all">Open + closed</option>
-              <option value="open">Open-source</option>
+              <option value="open">Open weights</option>
               <option value="closed">Closed</option>
               <option value="unknown">Unclassified</option>
+            </select>
+            <ChevronDown aria-hidden="true" />
+          </span>
+        </label>
+        <label className="field">
+          <span>Provider</span>
+          <span className="select-wrap">
+            <select value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}>
+              <option value="all">All providers</option>
+              {availableProviders.map((value) => (
+                  <option key={value} value={value}>
+                    {providerLabel(value)}
+                  </option>
+                ))}
             </select>
             <ChevronDown aria-hidden="true" />
           </span>
@@ -223,7 +251,7 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
             </div>
           </dl>
           <p className="focused-model">
-            {openCount ? `Open-source ${openCount}` : "Open-source 0"}
+            {openCount ? `Open-weight ${openCount}` : "Open-weight 0"}
             {" / "}
             {closedCount ? `${closedCount} closed` : "0 closed"}
             {" · "}
@@ -261,30 +289,9 @@ function fallbackRelease(view: ReleaseView) {
   if (view === "tg263") return "public-tg263-pilot-v0.5";
   return "public-real-workflows-pilot-v0.6";
 }
-
-function isCommonRun(row: ModelResult) {
-  if (row.execution_surface) {
-    return row.execution_surface === "common_harness";
-  }
-  if (row.run_profile) {
-    return Boolean(row.run_profile.is_common_harness);
-  }
-  return row.ranking_eligible;
-}
-
-function isNativeRun(row: ModelResult) {
-  if (row.execution_surface) {
-    return row.execution_surface !== "common_harness";
-  }
-  if (row.run_profile) {
-    return Boolean(!row.run_profile.is_common_harness);
-  }
-  return !row.ranking_eligible;
-}
-
-function rowSurface(row: ModelResult): SurfaceFilter {
-  if (isCommonRun(row)) return "common";
-  if (isNativeRun(row)) return "native";
+function resolveSurface(row: ModelResult): SurfaceFilter {
+  if (isCommonHarnessRun(row)) return "common";
+  if (isNativeRun(row) || surfaceKind(row) === "native") return "native";
   return "native";
 }
 
@@ -448,7 +455,7 @@ function EfficiencyScatter({
                 y2={y(safeBand[1])}
                 className="confidence-line"
               />
-              {isCommonRun(row) ? (
+              {isCommonHarnessRun(row) ? (
                 <circle cx={px} cy={py} r={6} className="ranked-point" />
               ) : (
                 <path
@@ -458,7 +465,7 @@ function EfficiencyScatter({
               )}
               <path
                 d={`M ${px + 8} ${py} L ${labelX - 10} ${labelY}`}
-                className={isCommonRun(row) ? "label-connector" : "label-connector native"}
+                className={isCommonHarnessRun(row) ? "label-connector" : "label-connector native"}
               />
               <text x={labelX} y={labelY + 4} textAnchor="start" className="chart-model-label">
                 {shortModelName(row.model_name)}
@@ -528,7 +535,7 @@ function ReliabilityProfile({
           >
             <span className="reliability-name">
               {shortModelName(row.model_name)}
-              <small>{isCommonRun(row) ? "common" : "native"}</small>
+              <small>{isCommonHarnessRun(row) ? "common" : "native"}</small>
             </span>
             <ReliabilityCell value={row.safe_success_rate} />
             <ReliabilityCell value={row.reliability?.all_attempts_agree_rate ?? null} />
@@ -642,6 +649,20 @@ function RunDiagnosticsPanel({
           {model.provider} · {shortModelName(model.model_name)} · {sourceLabel(source)} ·{" "}
           {surface === "common" ? "Common harness" : "Native/import"}
         </p>
+        <div className="section-actions">
+          <button
+            type="button"
+            onClick={() => downloadTaskLedger(model, "csv")}
+          >
+            Export task ledger (CSV)
+          </button>
+          <button
+            type="button"
+            onClick={() => downloadTaskLedger(model, "json")}
+          >
+            Export task ledger (JSON)
+          </button>
+        </div>
       </div>
       <div className="detail-grid">
         <section>
@@ -723,6 +744,82 @@ function RunDiagnosticsPanel({
       ) : null}
     </section>
   );
+}
+
+function downloadTaskLedger(model: ModelResult, format: "csv" | "json") {
+  const safeName = `${model.model_name.replaceAll(" ", "_").replaceAll("[", "-").replaceAll("]", "")}-${model.provider}`;
+  const filename = `${safeName}-task-ledger.${format}`;
+
+  if (format === "json") {
+    const payload = {
+      model: model.model_name,
+      provider: model.provider,
+      safe_success_rate: model.safe_success_rate,
+      task_success_rate: model.task_success_rate,
+      tasks: model.tasks,
+    };
+    triggerDownload(filename, JSON.stringify(payload, null, 2), "application/json;charset=utf-8");
+    return;
+  }
+
+  const header = [
+    "task_id",
+    "title",
+    "domain",
+    "track",
+    "attempt_index",
+    "passed",
+    "safe",
+    "outcome",
+    "run_id",
+    "prompt_hash",
+    "tool_schema_hash",
+    "runtime_task_hash",
+    "scoring_revision",
+    "failed_lanes",
+    "failed_graders",
+  ];
+
+  const rows = model.tasks.map((task) => {
+    const outcome = taskClassForOutcome(task);
+    return [
+      task.task_id,
+      task.title,
+      task.domain,
+      task.track,
+      task.attempt_index ?? "",
+      task.passed == null ? "unknown" : task.passed ? "passed" : "failed",
+      task.safe ? "safe" : "unsafe",
+      outcome,
+      task.run_id ?? "",
+      task.prompt_hash ?? "",
+      task.tool_schema_hash ?? "",
+      task.runtime_task_hash ?? "",
+      task.scoring_revision ?? "",
+      (task.failed_lanes ?? []).join("|"),
+      (task.failed_graders ?? []).join("|"),
+    ];
+  });
+  const csv = [header, ...rows]
+    .map((row) =>
+      row
+        .map((value) => `"${String(value).replaceAll('"', '""')}"`)
+        .join(","),
+    )
+    .join("\n");
+  triggerDownload(filename, csv, "text/csv;charset=utf-8");
+}
+
+function triggerDownload(filename: string, text: string, mimeType: string) {
+  const blob = new Blob([text], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(url);
 }
 
 function taskFailureLanes(tasks: ModelTaskResult[]) {

@@ -252,6 +252,8 @@ class RunManifest:
     seed: int | None
     temperature: float | None
     max_tokens: int | None
+    adapter_settings: dict[str, Any]
+    adapter_settings_hash: str
     sandbox_image_digest: str
     tool_environment_version: str
     created_at: str
@@ -272,6 +274,8 @@ class RunManifest:
         seed: int | None,
         temperature: float | None,
         max_tokens: int | None,
+        adapter_settings: dict[str, Any],
+        adapter_settings_hash: str,
         sandbox_image_digest: str,
         tool_environment_version: str,
         prompt_hash: str,
@@ -282,7 +286,7 @@ class RunManifest:
         scoring_revision: str,
     ) -> RunManifest:
         return cls(
-            schema_version="medeval.run.v1",
+            schema_version="medeval.run.v2",
             run_id=run_id,
             task_id=task.task_id,
             task_version=task.version,
@@ -290,6 +294,8 @@ class RunManifest:
             seed=seed,
             temperature=temperature,
             max_tokens=max_tokens,
+            adapter_settings=adapter_settings,
+            adapter_settings_hash=adapter_settings_hash,
             sandbox_image_digest=sandbox_image_digest,
             tool_environment_version=tool_environment_version,
             created_at=datetime.now(UTC).isoformat(),

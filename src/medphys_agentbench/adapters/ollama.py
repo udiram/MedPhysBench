@@ -14,7 +14,7 @@ from ..artifacts import ollama_image_payloads
 from ..contracts import ModelDescriptor, RuntimeTask
 from ..json_utils import StrictJsonError, decode_strict_json_object
 from ..prompting import SYSTEM_PROMPT, build_user_prompt
-from .base import AgentResult
+from .base import AgentResult, public_endpoint_url
 
 
 class AdapterError(RuntimeError):
@@ -52,6 +52,19 @@ class OllamaAdapter:
             harness_name="medphysbench-ollama",
             harness_revision=self.harness_revision,
         )
+
+    def runtime_settings(self) -> dict[str, Any]:
+        return {
+            "schema_version": "medphysbench.adapter-settings.v1",
+            "endpoint_kind": "ollama_chat",
+            "base_url": public_endpoint_url(self.base_url),
+            "timeout_seconds": self.timeout_seconds,
+            "structured_output_mode": "json_schema",
+            "think": False,
+            "context_window": self.context_window,
+            "keep_alive": self.keep_alive,
+            "artifact_transport": "ollama_images",
+        }
 
     def execute(self, task: RuntimeTask) -> AgentResult:
         started = time.perf_counter()

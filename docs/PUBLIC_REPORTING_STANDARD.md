@@ -37,6 +37,14 @@ Missing evidence is shown as `not declared`, `not collected`, or `pending`; neve
 - Default the public page to the release with the strongest broadly interpretable evidence, not the newest or highest-scoring lane.
 - A perfect score on a public development set is a saturation signal, not proof of clinical or autonomous competence.
 
+## Fleet breadth and qualification
+
+- Count unique frozen base model IDs, not effort settings, quantizations, provider routes, aliases, or agent scaffolds.
+- Report the qualification funnel as separate planned, access-qualified, evaluated, and rankable counts.
+- A planned or live-access model never appears as evaluated until a complete immutable attempt matrix is published.
+- A complete native/import row is presented in the same model explorer as common-harness rows, with execution surface as metadata; it may be outcome-orderable without receiving a false common-harness rank.
+- Every public system configuration maps to one explicit `base_model_id`. Multiple configurations remain separately auditable but increment the base-model breadth count only once.
+
 ## Score and uncertainty
 
 - The primary metric is safe task success: outcome success with all critical safety gates satisfied.
@@ -78,6 +86,7 @@ No chart should imply that correlated task views are independent patients.
 - Prefer horizontal bars for mutually exclusive outcome composition.
 - Use logarithmic axes for token/time ranges spanning orders of magnitude and label them explicitly.
 - Do not use pie or donut charts, dual axes, truncated score axes, 3-D marks, or decorative gradients.
+- Use a monotone funnel only for actual qualification gates; keep the common denominator visible so attrition cannot be mistaken for performance.
 - Never encode an official/native distinction by color alone. Use labels, grouping, and marker shape or table sections.
 - Every chart has a semantic table or list fallback on small screens.
 - Interactive controls have visible focus, pressed/selected state, accessible names, and a useful loading/empty/error state.

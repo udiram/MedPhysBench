@@ -14,7 +14,9 @@ def test_demo_reference_agent_passes_all_deterministic_grades() -> None:
 
     assert result.passed
     assert result.output["answer_percent"] == 5.0
-    assert result.manifest.schema_version == "medeval.run.v1"
+    assert result.manifest.schema_version == "medeval.run.v2"
+    assert result.manifest.adapter_settings["endpoint_kind"] == "development_reference"
+    assert len(result.manifest.adapter_settings_hash) == 64
     assert result.manifest.system_prompt_hash == system_prompt_hash()
     assert len(result.manifest.prompt_hash) == 64
     assert len(result.manifest.tool_schema_hash) == 64

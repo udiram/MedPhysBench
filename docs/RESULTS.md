@@ -24,6 +24,27 @@ binary attempt uncertainty. The v0.6 pilot also reports a deterministic
 family-cluster bootstrap interval, but two patient families are still far too
 few for external-validity claims.
 
+## Public model-fleet status
+
+The preregistered breadth target is 50 unique base model IDs, not 50 prompt or
+provider variants. The frozen v1 panel contains 31 open-weight and 19 closed-
+weight models, including 31 declared vision-capable entries across 11 stewards.
+The machine-derived public status currently reports:
+
+| Qualification gate | Unique base models | Meaning |
+| --- | ---: | --- |
+| Frozen panel | 50 | Selected before further score inspection |
+| Access qualified | 16 | Live Q0 or later access evidence exists |
+| Evaluated | 15 | At least one complete public attempt matrix exists |
+| Rankable | 14 | At least one complete common-harness row exists |
+
+The site still exposes all 20 published system configurations and 30 release
+rows. Six GPT-5.6 effort settings therefore remain six auditable configurations
+of one base model, while Groq-hosted and local routes of the same open-weight
+base also count once toward breadth. `deepseek-r1:1.5b` is access-qualified but
+not evaluated on Q2: 18/30 attempts completed and 12 image-grid requests failed
+with Ollama HTTP 500 under the frozen runtime. No partial score is published.
+
 ## Core common-harness leaderboard
 
 These models completed the same 64 tasks through the Ollama adapter with

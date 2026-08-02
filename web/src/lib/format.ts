@@ -28,3 +28,10 @@ export function shortHash(value: string | undefined) {
   if (!value) return "—";
   return `${value.slice(0, 10)}…${value.slice(-6)}`;
 }
+
+export function providerLabel(provider: string): string {
+  if (provider === "codex-native") return "OpenAI (GPT)";
+  if (provider === "groq") return "Groq";
+  if (provider === "ollama") return "Ollama";
+  return provider;
+}

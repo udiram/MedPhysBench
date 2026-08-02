@@ -28,6 +28,20 @@ The public site borrows four established benchmark conventions:
 
 ## Views and semantics
 
+### Frozen fleet qualification funnel
+
+The fleet view uses one constant denominator: the 50 unique base model IDs frozen before
+additional score inspection. It separately reports access-qualified, evaluated, and rankable
+counts. Effort settings, provider routes, and aliases remain visible system configurations but do
+not inflate fleet breadth. The underlying `fleet_status.json` is deterministically rebuilt from the
+frozen fleet manifest, model catalog, access ledger, and all public release projections.
+
+Each exact planned base ID is inspectable with open-weight/closed, steward, modality, and
+qualification filters. A local probe that stops at 18/30 attempts can advance access evidence but
+cannot produce a published score, evaluated count, or rank. This follows the same missingness-first
+principle used by HELM and the completion gates used by execution benchmarks: coverage is itself a
+reported result.
+
 ### Cross-release model index and evidence drilldown
 
 The first results surface is a discovery index, not an ordinal leaderboard. It

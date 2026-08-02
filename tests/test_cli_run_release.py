@@ -9,10 +9,12 @@ import pytest
 
 from medphys_agentbench import cli
 from medphys_agentbench.adapters.base import AgentResult
+from medphys_agentbench.adapters.ollama import AdapterError
 from medphys_agentbench.adapters.openai_compatible import UnsupportedCapabilityError
 from medphys_agentbench.contracts import ModelDescriptor
 from medphys_agentbench.release_loader import load_release
 from medphys_agentbench.reporting import summarize_release
+from medphys_agentbench.runner import adapter_runtime_settings
 
 
 @dataclass
@@ -25,9 +27,10 @@ class _FakeResult:
 
 
 class _FakeAdapter:
-    def __init__(self, model_name: str, seed: int) -> None:
+    def __init__(self, model_name: str, seed: int, context_window: int = 4096) -> None:
         self.model_name = model_name
         self.seed = seed
+        self.context_window = context_window
 
     def model_descriptor(self) -> ModelDescriptor:
         return ModelDescriptor(
@@ -37,6 +40,13 @@ class _FakeAdapter:
             harness_name="test-harness",
             harness_revision="test-harness-v1",
         )
+
+    def runtime_settings(self) -> dict[str, object]:
+        return {
+            "schema_version": "medphysbench.adapter-settings.v1",
+            "endpoint_kind": "fake_test",
+            "context_window": self.context_window,
+        }
 
 
 class _ReferenceFakeAdapter(_FakeAdapter):
@@ -274,11 +284,11 @@ def test_run_release_transport_failure_leaves_attempt_key_resumable(
     monkeypatch.setattr(
         cli,
         "run_trial",
-        lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("temporary provider outage")),
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(AdapterError("temporary provider outage")),
     )
     monkeypatch.setattr(sys, "argv", command)
 
-    with pytest.raises(RuntimeError, match="temporary provider outage"):
+    with pytest.raises(AdapterError, match="temporary provider outage"):
         cli.main()
 
     model_dir = tmp_path / "public-imaging-pilot-v0.4" / "transient_model"
@@ -293,3 +303,83 @@ def test_run_release_transport_failure_leaves_attempt_key_resumable(
 
     assert len(list(model_dir.glob("*.json"))) == 5
     assert error_paths[0].read_bytes() == error_bytes
+
+
+def test_run_release_resume_rejects_changed_adapter_runtime_settings(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    release = load_release("releases/public_imaging_pilot_v0_4.yaml")
+    outputs = {task.task_id: _reference_output(task) for task in release.load_tasks()}
+    context_window = 4096
+
+    def build_adapter(*args: object, seed: int, **_kwargs: object) -> _ReferenceFakeAdapter:
+        adapter = _ReferenceFakeAdapter(str(args[1]), seed, outputs)
+        adapter.context_window = context_window
+        return adapter
+
+    monkeypatch.setattr(cli, "_build_adapter", build_adapter)
+    command = [
+        "medphys-bench",
+        "run-release",
+        "releases/public_imaging_pilot_v0_4.yaml",
+        "--adapter",
+        "groq",
+        "--model",
+        "settings-model",
+        "--results-dir",
+        str(tmp_path),
+    ]
+    monkeypatch.setattr(sys, "argv", command)
+    cli.main()
+
+    context_window = 8192
+    monkeypatch.setattr(sys, "argv", [*command, "--resume"])
+    with pytest.raises(SystemExit, match="adapter_settings"):
+        cli.main()
+
+
+def test_run_release_unexpected_internal_error_is_fatal_and_not_transport(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        cli,
+        "_build_adapter",
+        lambda *args, seed, **_kwargs: _FakeAdapter(str(args[1]), seed),
+    )
+    monkeypatch.setattr(
+        cli,
+        "run_trial",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("grader bug")),
+    )
+    command = [
+        "medphys-bench",
+        "run-release",
+        "releases/public_imaging_pilot_v0_4.yaml",
+        "--adapter",
+        "groq",
+        "--model",
+        "internal-error-model",
+        "--results-dir",
+        str(tmp_path),
+    ]
+    monkeypatch.setattr(sys, "argv", command)
+
+    with pytest.raises(RuntimeError, match="Internal campaign error"):
+        cli.main()
+
+    model_dir = tmp_path / "public-imaging-pilot-v0.4" / "internal_error_model"
+    assert not list(model_dir.glob("*.json"))
+    assert not (model_dir / "_transport_errors").exists()
+    internal_errors = list((model_dir / "_internal_errors").glob("*.json"))
+    assert len(internal_errors) == 1
+
+
+def test_adapter_settings_reject_nested_credential_keys() -> None:
+    adapter = _FakeAdapter("nested-secret-model", 1)
+    adapter.runtime_settings = lambda: {  # type: ignore[method-assign]
+        "schema_version": "medphysbench.adapter-settings.v1",
+        "endpoint_kind": "fake_test",
+        "provider_options": {"access_token": "do-not-persist"},
+    }
+    with pytest.raises(ValueError, match="provider_options.access_token"):
+        adapter_runtime_settings(adapter)

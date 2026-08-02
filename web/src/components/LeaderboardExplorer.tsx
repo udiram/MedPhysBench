@@ -1,7 +1,8 @@
 import { ArrowDownToLine, ChevronDown, Search } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 import type { AccessStatus, Leaderboard, ModelCatalogEntry, ModelResult, ReleaseView, Tg263Audit } from "../types";
-import { domainLabel, formatDuration, formatPercent, formatTokens, shortHash } from "../lib/format";
+import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
+import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 
 type SortKey =
   | "model_name"
@@ -87,6 +88,7 @@ export function LeaderboardExplorer({
   const [domainFilter, setDomainFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState<"all" | "open" | "closed" | "unknown">("all");
+  const [providerFilter, setProviderFilter] = useState("all");
   const [sortKey, setSortKey] = useState<SortKey>("safe_success_rate");
   const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc");
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -123,10 +125,21 @@ export function LeaderboardExplorer({
           (statusFilter === "review" && !model.ranking_eligible);
         const source = modelSourceRow(model, catalogIndexForModelRow(model, catalogIndex));
         const matchesSource = sourceFilter === "all" || source === sourceFilter;
-        return matchesQuery && matchesStatus && matchesSource;
+        const matchesProvider = providerFilter === "all" || model.provider === providerFilter;
+        return matchesQuery && matchesStatus && matchesSource && matchesProvider;
       })
       .sort((left, right) => compareRows(left, right, sortKey, sortDirection, domainFilter));
-  }, [allRows, catalogIndex, deferredQuery, domainFilter, sortDirection, sortKey, statusFilter, sourceFilter]);
+  }, [
+    allRows,
+    catalogIndex,
+    deferredQuery,
+    domainFilter,
+    sortDirection,
+    sortKey,
+    statusFilter,
+    sourceFilter,
+    providerFilter,
+  ]);
 
   const summaryRows = [...allRows].sort(
     (left, right) =>
@@ -243,9 +256,25 @@ export function LeaderboardExplorer({
           <span className="select-wrap">
             <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as typeof sourceFilter)}>
               <option value="all">Open + closed</option>
-              <option value="open">Open-source</option>
+              <option value="open">Open weights</option>
               <option value="closed">Closed</option>
               <option value="unknown">Unclassified</option>
+            </select>
+            <ChevronDown aria-hidden="true" />
+          </span>
+        </label>
+        <label className="field">
+          <span>Provider</span>
+          <span className="select-wrap">
+            <select value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}>
+              <option value="all">All providers</option>
+              {[...new Set(allRows.map((row) => row.provider))]
+                .sort((left, right) => left.localeCompare(right))
+                .map((value) => (
+                  <option key={value} value={value}>
+                    {providerLabel(value)}
+                  </option>
+                ))}
             </select>
             <ChevronDown aria-hidden="true" />
           </span>
@@ -410,15 +439,20 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
           const interval = intervalFor(row);
           const markerX = scaleX(row.safe_success_rate);
           return (
-            <g key={row.model_name} className={row.ranking_eligible ? "interval-row common" : "interval-row native"}>
+            <g
+              key={row.model_name}
+              className={inferExecutionSurface(row) === "common_harness" ? "interval-row common" : "interval-row native"}
+            >
               <text x={margin.left - 18} y={y - 3} textAnchor="end" className="interval-model-label">{shortModelLabel(row.model_name)}</text>
               <text x={margin.left - 18} y={y + 14} textAnchor="end" className="interval-rank-label">
-                {row.ranking_eligible ? `${rankGroupLabel(row)} #${row.rank}` : `outcome #${row.outcome_rank} · native`}
+                {inferExecutionSurface(row) === "common_harness"
+                  ? `${rankGroupLabel(row)} #${row.rank ?? "—"}`
+                  : `outcome #${row.outcome_rank ?? "—"} · ${surfaceLabel("recorded_output_import")}`}
               </text>
               <line x1={scaleX(interval[0])} x2={scaleX(interval[1])} y1={y} y2={y} className="interval-whisker" />
               <line x1={scaleX(interval[0])} x2={scaleX(interval[0])} y1={y - 5} y2={y + 5} className="interval-cap" />
               <line x1={scaleX(interval[1])} x2={scaleX(interval[1])} y1={y - 5} y2={y + 5} className="interval-cap" />
-              {row.ranking_eligible ? (
+              {inferExecutionSurface(row) === "common_harness" ? (
                 <circle cx={markerX} cy={y} r="6" className="ranked-point" />
               ) : (
                 <path d={`M ${markerX} ${y - 7} L ${markerX + 7} ${y} L ${markerX} ${y + 7} L ${markerX - 7} ${y} Z`} className="native-point" />
@@ -439,7 +473,11 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
                 <strong>{shortModelLabel(row.model_name)}</strong>
                 <span>{formatPercent(row.safe_success_rate)}</span>
               </div>
-              <p>{row.ranking_eligible ? `${rankGroupLabel(row)} #${row.rank}` : `Outcome #${row.outcome_rank} · native audit`}</p>
+              <p>
+                {inferExecutionSurface(row) === "common_harness"
+                  ? `${rankGroupLabel(row)} #${row.rank ?? "—"}`
+                  : `Outcome #${row.outcome_rank ?? "—"} · ${surfaceLabel("recorded_output_import")}`}
+              </p>
               <div className="mobile-interval-track" aria-hidden="true">
                 <i style={{ left: `${interval[0] * 100}%`, width: `${(interval[1] - interval[0]) * 100}%` }} />
                 <b style={{ left: `${row.safe_success_rate * 100}%` }} />
@@ -450,8 +488,8 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
         })}
       </ol>
       <div className="outcome-plot-key" aria-label="Plot key">
-        <span><i className="outcome-key-common" /> Official harness-group row</span>
-        <span><i className="outcome-key-native" /> Complete native-surface row</span>
+        <span><i className="outcome-key-common" /> Common-harness comparable row</span>
+        <span><i className="outcome-key-native" /> Native/import row</span>
         <span>Whisker = Wilson 95% interval</span>
         {omitted > 0 && <span>{omitted} incomplete or invalid row(s) omitted</span>}
       </div>
@@ -543,7 +581,7 @@ function ModelDetailRow({
             aria-label={`${expanded ? "Collapse" : "Expand"} ${model.model_name} run details`}
           >
             <span>{model.model_name}</span>
-            <small>{model.provider}</small>
+            <small>{providerLabel(model.provider)}</small>
           </button>
         </td>
         <td>{formatPercent(metricForDomain(model, domainFilter))}</td>
@@ -554,7 +592,7 @@ function ModelDetailRow({
         <td>{formatDuration(model.median_duration_seconds)}</td>
         <td>{formatPercent(safeSuccessInterval(model)[0])} to {formatPercent(safeSuccessInterval(model)[1])}</td>
         <td>{model.attempt_count} / {model.expected_attempt_count ?? model.attempt_count}</td>
-        <td>{model.execution_surface_label ?? "Common harness execution"}</td>
+        <td>{surfaceLabel(inferExecutionSurface(model))}</td>
         <td>{modelSourceLabel(source)}</td>
       </tr>
       {expanded && (

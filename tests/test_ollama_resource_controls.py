@@ -58,6 +58,20 @@ def test_ollama_defaults_unload_model_and_bound_context(monkeypatch: pytest.Monk
     assert result.final_output["answer_ratio"] == 0.25
 
 
+@pytest.mark.parametrize(
+    "base_url",
+    [
+        "https://user:password@example.test/v1",
+        "https://example.test/v1?api_key=secret",
+        "https://example.test/v1#credential",
+    ],
+)
+def test_ollama_runtime_manifest_rejects_credential_bearing_base_urls(base_url: str) -> None:
+    adapter = OllamaAdapter(model_name="fixture-model", base_url=base_url)
+    with pytest.raises(ValueError, match="must not contain"):
+        adapter.runtime_settings()
+
+
 def test_ollama_surfaces_overload_without_retrying(monkeypatch: pytest.MonkeyPatch) -> None:
     calls = 0
 

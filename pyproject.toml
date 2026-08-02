@@ -38,7 +38,7 @@ medphys-bench = "medphys_agentbench.cli:main"
 packages = ["src/medphys_agentbench"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 testpaths = ["tests"]
 
 [tool.ruff]

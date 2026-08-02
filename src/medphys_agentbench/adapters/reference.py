@@ -28,6 +28,13 @@ class DevelopmentReferenceAgent:
             harness_revision="0.2.0",
         )
 
+    def runtime_settings(self) -> dict[str, object]:
+        return {
+            "schema_version": "medphysbench.adapter-settings.v1",
+            "endpoint_kind": "development_reference",
+            "development_only": True,
+        }
+
     def execute(self, task: RuntimeTask) -> AgentResult:
         return AgentResult(
             final_output=self.output,

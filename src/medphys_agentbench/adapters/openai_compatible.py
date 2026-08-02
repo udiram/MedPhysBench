@@ -20,7 +20,7 @@ from ..artifacts import openai_message_content
 from ..contracts import ModelDescriptor, RuntimeTask
 from ..json_utils import StrictJsonError, decode_strict_json_object
 from ..prompting import SYSTEM_PROMPT, build_user_prompt
-from .base import AgentResult
+from .base import AgentResult, public_endpoint_url
 from .ollama import AdapterError
 
 
@@ -77,6 +77,19 @@ class OpenAICompatibleAdapter:
             harness_name="medphysbench-openai-compatible",
             harness_revision=f"{self.harness_revision};format={self.response_format};mode={mode};effort={effort}",
         )
+
+    def runtime_settings(self) -> dict[str, Any]:
+        return {
+            "schema_version": "medphysbench.adapter-settings.v1",
+            "endpoint_kind": "openai_chat_completions",
+            "base_url": public_endpoint_url(self.base_url),
+            "timeout_seconds": self.timeout_seconds,
+            "response_format": self.response_format,
+            "strict_schema": self.strict_schema,
+            "reasoning_effort": self.reasoning_effort,
+            "max_rate_limit_retries": self.max_rate_limit_retries,
+            "artifact_transport": "openai_message_content",
+        }
 
     def execute(self, task: RuntimeTask) -> AgentResult:
         started = time.perf_counter()

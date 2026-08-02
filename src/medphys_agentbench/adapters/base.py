@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Protocol
+from urllib.parse import urlsplit, urlunsplit
 
 from ..contracts import ModelDescriptor, RuntimeTask
 
@@ -27,5 +28,20 @@ class AgentAdapter(Protocol):
     def model_descriptor(self) -> ModelDescriptor:
         """Return the normalized identity captured in run manifests."""
 
+    def runtime_settings(self) -> dict[str, Any]:
+        """Return the non-secret execution settings that define this system row."""
+
     def execute(self, task: RuntimeTask) -> AgentResult:
         """Execute exactly one isolated trial against a runtime-visible task contract."""
+
+
+def public_endpoint_url(value: str) -> str:
+    """Normalize a credential-free HTTP endpoint for a public run manifest."""
+    parsed = urlsplit(value.rstrip("/"))
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        raise ValueError("Adapter base URL must be an absolute HTTP(S) URL.")
+    if parsed.username is not None or parsed.password is not None:
+        raise ValueError("Adapter base URL must not contain user-info credentials.")
+    if parsed.query or parsed.fragment:
+        raise ValueError("Adapter base URL must not contain query parameters or a fragment.")
+    return urlunsplit((parsed.scheme, parsed.netloc, parsed.path.rstrip("/"), "", ""))

@@ -34,6 +34,8 @@ package, or evidence of autonomous clinical competence.
   three local models on the original image pilot, nine API/local configurations on the
   OpenKBP pilot, and three GPT-5.6 OpenKBP effort audits with descriptive outcome ranks
 - Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
+- Frozen 50-base-model panel: [`fleet/public_fleet_v1.yaml`](fleet/public_fleet_v1.yaml)
+- Reproducible fleet funnel: [`web/public/data/fleet_status.json`](web/public/data/fleet_status.json)
 - Plot and rank semantics: [`docs/VISUALIZATION_METHODS.md`](docs/VISUALIZATION_METHODS.md)
 - Frontier benchmark methods review: [`docs/BENCHMARK_METHODS_REVIEW.md`](docs/BENCHMARK_METHODS_REVIEW.md)
 - Public reporting standard: [`docs/PUBLIC_REPORTING_STANDARD.md`](docs/PUBLIC_REPORTING_STANDARD.md)
@@ -64,6 +66,9 @@ package, or evidence of autonomous clinical competence.
 ## What is already real
 
 - Versioned task, runtime-task, run, result, and release contracts in [`schemas/`](schemas/).
+- Run manifest v2 freezes credential-free adapter settings—including endpoint, context window,
+  structured-output mode, retry policy, and local model residency controls—so `--resume` cannot
+  silently continue under a changed execution configuration.
 - A sealed `RuntimeTask` projection that excludes authoring-only grading and provenance data.
 - A deterministic grading stack covering schema validity, safety gates, numeric tolerances,
   exact matches, unordered set matches, string constraints, bounding-box IoU, and grid-mask Dice.
@@ -88,11 +93,14 @@ package, or evidence of autonomous clinical competence.
 - Harness-group release ranks plus a clearly labeled descriptive cross-surface outcome order;
   incomplete or manifest-inconsistent runs remain published but receive neither.
 - Architecture, governance, evaluation, onboarding, and deployment documentation in [`docs/`](docs/).
-- Repository-wide validation of all six JSON Schemas, every authored/runtime task projection,
+- Repository-wide validation of all nine JSON Schemas, every authored/runtime task projection,
   every artifact digest, constructed reference feasibility, and every published result artifact.
 - A unified browser model index that exposes open/closed and provider filters, release-specific
   scores, task-level outcome facets, failed grader contracts, and provenance hashes while keeping
   raw responses, hidden expected values, and grader golds out of the public projection.
+- A machine-derived qualification funnel that reports `50` frozen base IDs, `16` access-qualified,
+  `15` evaluated, and `14` rankable—without counting six GPT-5.6 effort settings as six models or
+  presenting a partial local campaign as a score.
 
 ## Quick start
 
@@ -118,9 +126,10 @@ uv run medphys-bench summarize \
 
 ```text
 docs/                    Architecture, governance, protocol, and release docs
+fleet/                   Frozen base-model selection manifests
 releases/                Immutable benchmark release manifests
 results/releases/        Published release artifacts and leaderboard inputs
-schemas/                 Versioned task, runtime, run, result, and release schemas
+schemas/                 Versioned task, runtime, run, result, fleet, and release schemas
 src/medphys_agentbench/  Loader, contracts, graders, adapters, prompts, runner, reporting
 tasks/                   Development and public task packs
 tests/                   Contract, regression, and summary tests

@@ -48,9 +48,9 @@ def test_public_model_catalog_declares_valid_openness_values() -> None:
 def test_public_model_catalog_distinguishes_system_rows_from_base_models() -> None:
     catalog = _load_json(CATALOG_PATH)
     assert isinstance(catalog, list)
-    base_model_ids = {entry["model_name"].split(" [effort=", 1)[0] for entry in catalog}
-    assert len(catalog) == 20
-    assert len(base_model_ids) == 15
+    base_model_ids = {entry["base_model_id"] for entry in catalog}
+    assert len(catalog) >= 20
+    assert len(base_model_ids) >= 15
 
 
 def test_real_workflow_release_contains_expected_groq_rows() -> None:

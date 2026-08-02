@@ -7,12 +7,11 @@ import hashlib
 import json
 import os
 from dataclasses import asdict
-from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
 from .adapters.base import AgentAdapter
-from .adapters.ollama import OllamaAdapter
+from .adapters.ollama import AdapterError, OllamaAdapter
 from .adapters.openai_compatible import (
     OpenAICompatibleAdapter,
     ProviderOutputContractError,
@@ -21,11 +20,14 @@ from .adapters.openai_compatible import (
 from .adapters.recorded import RecordedOutputAdapter
 from .adapters.reference import DevelopmentReferenceAgent
 from .contracts import ModelDescriptor, TaskSpec
+from .json_utils import stable_hash
 from .prompting import SYSTEM_PROMPT
 from .release_loader import load_release
 from .reporting import summarize_release, write_summary
 from .runner import (
     SCORING_REVISION,
+    adapter_runtime_settings,
+    create_run_manifest,
     grader_hash_for_task,
     prompt_hash_for_task,
     run_trial,
@@ -255,7 +257,7 @@ def main() -> None:
 
         if existing_paths:
             for model_name in args.model:
-                descriptor = _build_adapter(
+                resume_adapter = _build_adapter(
                     args.adapter,
                     model_name,
                     args.base_url,
@@ -270,7 +272,9 @@ def main() -> None:
                     reasoning_effort=args.reasoning_effort,
                     ollama_keep_alive=args.ollama_keep_alive,
                     ollama_num_ctx=args.ollama_num_ctx,
-                ).model_descriptor()
+                )
+                descriptor = resume_adapter.model_descriptor()
+                settings = adapter_runtime_settings(resume_adapter)
                 model_dir = args.results_dir / release.release_id / _slugify(model_name)
                 for task in tasks:
                     for attempt_index in range(attempts):
@@ -282,6 +286,7 @@ def main() -> None:
                                 output_path,
                                 task=task,
                                 model_descriptor=descriptor,
+                                adapter_settings=settings,
                                 attempt_index=attempt_index,
                                 seed=args.seed + attempt_index,
                                 temperature=args.temperature,
@@ -360,25 +365,14 @@ def main() -> None:
                             "passed": grades_pass(grades),
                             "safe": grades_safe(grades),
                             "score": weighted_grade_score(grades),
-                            "manifest": {
-                                "schema_version": "medeval.run.v1",
-                                "run_id": run_id,
-                                "task_id": task.task_id,
-                                "task_version": task.version,
-                                "model": asdict(adapter.model_descriptor()),
-                                "seed": attempt_seed,
-                                "temperature": args.temperature,
-                                "max_tokens": args.max_tokens,
-                                "sandbox_image_digest": "process-isolation-public-v0.2.0",
-                                "tool_environment_version": "public-fixtures-v0.2.0",
-                                "created_at": datetime.now(UTC).isoformat(),
-                                "prompt_hash": prompt_hash_for_task(task),
-                                "tool_schema_hash": tool_schema_hash_for_task(task),
-                                "system_prompt_hash": system_prompt_hash(),
-                                "runtime_task_hash": runtime_task_hash_for_task(task),
-                                "grader_hash": grader_hash_for_task(task),
-                                "scoring_revision": SCORING_REVISION,
-                            },
+                            "manifest": create_run_manifest(
+                                task,
+                                adapter,
+                                seed=attempt_seed,
+                                temperature=args.temperature,
+                                max_tokens=args.max_tokens,
+                                run_id=run_id,
+                            ).to_dict(),
                             "output": {},
                             "grades": [grade.to_dict() for grade in grades],
                             "trace": [
@@ -391,7 +385,7 @@ def main() -> None:
                             "raw_response": {},
                             "duration_seconds": 0.0,
                         }
-                    except Exception as error:
+                    except AdapterError as error:
                         payload = {
                             "status": "error",
                             "attempt_index": attempt_index,
@@ -400,25 +394,14 @@ def main() -> None:
                             "passed": False,
                             "safe": False,
                             "score": 0.0,
-                            "manifest": {
-                                "schema_version": "medeval.run.v1",
-                                "run_id": run_id,
-                                "task_id": task.task_id,
-                                "task_version": task.version,
-                                "model": asdict(adapter.model_descriptor()),
-                                "seed": attempt_seed,
-                                "temperature": args.temperature,
-                                "max_tokens": args.max_tokens,
-                                "sandbox_image_digest": "process-isolation-public-v0.2.0",
-                                "tool_environment_version": "public-fixtures-v0.2.0",
-                                "created_at": datetime.now(UTC).isoformat(),
-                                "prompt_hash": prompt_hash_for_task(task),
-                                "tool_schema_hash": tool_schema_hash_for_task(task),
-                                "system_prompt_hash": system_prompt_hash(),
-                                "runtime_task_hash": runtime_task_hash_for_task(task),
-                                "grader_hash": grader_hash_for_task(task),
-                                "scoring_revision": SCORING_REVISION,
-                            },
+                            "manifest": create_run_manifest(
+                                task,
+                                adapter,
+                                seed=attempt_seed,
+                                temperature=args.temperature,
+                                max_tokens=args.max_tokens,
+                                run_id=run_id,
+                            ).to_dict(),
                             "output": {},
                             "grades": [],
                             "trace": [],
@@ -444,6 +427,26 @@ def main() -> None:
                         if args.fail_fast:
                             raise
                         continue
+                    except Exception as error:
+                        error_path = model_dir / "_internal_errors" / (
+                            f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}--{run_id}.json"
+                        )
+                        _write_json_exclusive(
+                            error_path,
+                            {
+                                "schema_version": "medphysbench.internal-error.v1",
+                                "run_id": run_id,
+                                "task_id": task.task_id,
+                                "attempt_index": attempt_index,
+                                "model": asdict(adapter.model_descriptor()),
+                                "error_type": type(error).__name__,
+                                "error": str(error),
+                            },
+                        )
+                        raise RuntimeError(
+                            f"Internal campaign error for {model_name} on {task.task_id}; "
+                            f"recorded at {error_path}."
+                        ) from error
                     _write_json_exclusive(output_path, payload)
                     print(
                         json.dumps(
@@ -610,6 +613,7 @@ def _validate_resumable_attempt(
     *,
     task: TaskSpec,
     model_descriptor: ModelDescriptor,
+    adapter_settings: dict[str, object],
     attempt_index: int,
     seed: int,
     temperature: float,
@@ -627,9 +631,12 @@ def _validate_resumable_attempt(
     if not isinstance(manifest, dict):
         raise SystemExit(f"Cannot resume: result artifact {path} has no run manifest.")
     expected = {
+        "schema_version": "medeval.run.v2",
         "task_id": task.task_id,
         "task_version": task.version,
         "model": asdict(model_descriptor),
+        "adapter_settings": adapter_settings,
+        "adapter_settings_hash": stable_hash(adapter_settings),
         "seed": seed,
         "temperature": temperature,
         "max_tokens": max_tokens,

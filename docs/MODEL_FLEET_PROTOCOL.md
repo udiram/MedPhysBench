@@ -3,6 +3,12 @@
 Status: execution protocol; target matrix not yet complete  
 Review date: 2026-08-02
 
+Machine-readable artifacts:
+
+- frozen selection: [`../fleet/public_fleet_v1.yaml`](../fleet/public_fleet_v1.yaml);
+- public derived status: [`../web/public/data/fleet_status.json`](../web/public/data/fleet_status.json);
+- deterministic builder: [`../scripts/build_fleet_status.py`](../scripts/build_fleet_status.py).
+
 This protocol defines what “50 models evaluated” means for MedPhysBench. It is a
 publication gate, not permission to inflate the count with prompt variants,
 partial campaigns, provider aliases, or imported third-party scores.
@@ -104,6 +110,20 @@ not 20 unique base models. An Ollama Cloud access probe
 for `qwen3.5:397b-cloud` on 2026-08-02 returned HTTP 429 before a scored artifact
 was created. The lab-node hostname was not resolvable from the current Mac
 network context. Neither event supports a model score.
+
+The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
+19 closed-weight, 31 declared vision-capable, and 11 stewards. The derived
+qualification funnel currently reports 16 access-qualified, 15 evaluated, and
+14 rankable base models. `deepseek-r1:1.5b` completed the Q1 schema/escalation
+probe, but its Q2 run stopped at 18/30 canonical attempts after 12 Ollama HTTP
+500 failures on image-grid tasks under a frozen 4,096-token context. Its partial
+artifacts are not in the score tree and it receives no score or rank.
+
+Run manifest v2 now freezes and hashes credential-free adapter runtime settings.
+Resume rejects a context-window, endpoint, strict-schema, retry-policy, reasoning-
+effort, artifact-transport, or model-residency change before sending a request.
+Unexpected harness exceptions are fatal internal campaign errors; only declared
+provider/transport failures enter the append-only transport side ledger.
 
 The 50-model target therefore remains an execution objective. MedPhysBench must
 publish the actual completed count and the access ledger until all 50 base-model

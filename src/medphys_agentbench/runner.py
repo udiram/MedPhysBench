@@ -63,15 +63,81 @@ def run_trial(
     """Run exactly one trial against the sealed runtime task view."""
     started = monotonic()
     runtime_task = task.runtime_task()
-    result = agent.execute(runtime_task)
-    model = agent.model_descriptor()
-    manifest = RunManifest.create(
-        run_id=run_id or str(uuid4()),
-        task=task,
-        model=model,
+    manifest = create_run_manifest(
+        task,
+        agent,
         seed=seed,
         temperature=temperature,
         max_tokens=max_tokens,
+        run_id=run_id,
+    )
+    result = agent.execute(runtime_task)
+    return TrialResult(
+        manifest=manifest,
+        output=result.final_output,
+        grades=tuple(score_attempt(task, result.final_output)),
+        trace=tuple(result.trace),
+        raw_response=result.raw_response,
+        duration_seconds=round(monotonic() - started, 6),
+    )
+
+
+def adapter_runtime_settings(agent: AgentAdapter) -> dict[str, Any]:
+    """Return the public, secret-free settings that define an adapter execution."""
+    settings_method = getattr(agent, "runtime_settings", None)
+    if callable(settings_method):
+        settings = settings_method()
+    else:
+        settings = {
+            "schema_version": "medphysbench.adapter-settings.v1",
+            "endpoint_kind": "undeclared_test_adapter",
+            "adapter_class": type(agent).__name__,
+        }
+    if not isinstance(settings, dict):
+        raise TypeError("Agent runtime_settings() must return a JSON object.")
+    stable_hash(settings)
+    forbidden = _credential_like_setting_paths(settings)
+    if forbidden:
+        raise ValueError(f"Adapter runtime settings contain forbidden credential-like keys: {forbidden}")
+    return settings
+
+
+def _credential_like_setting_paths(value: Any, path: str = "adapter_settings") -> list[str]:
+    found: list[str] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_path = f"{path}.{key}"
+            lowered = str(key).lower()
+            if any(token in lowered for token in ("secret", "api_key", "apikey", "access_token", "auth_token")):
+                found.append(child_path)
+            found.extend(_credential_like_setting_paths(child, child_path))
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            found.extend(_credential_like_setting_paths(child, f"{path}[{index}]"))
+    return sorted(set(found))
+
+
+def create_run_manifest(
+    task: TaskSpec,
+    agent: AgentAdapter,
+    *,
+    seed: int | None,
+    temperature: float | None,
+    max_tokens: int | None,
+    run_id: str | None = None,
+) -> RunManifest:
+    """Create the immutable v2 manifest before provider execution begins."""
+    runtime_task = task.runtime_task()
+    settings = adapter_runtime_settings(agent)
+    return RunManifest.create(
+        run_id=run_id or str(uuid4()),
+        task=task,
+        model=agent.model_descriptor(),
+        seed=seed,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        adapter_settings=settings,
+        adapter_settings_hash=stable_hash(settings),
         sandbox_image_digest=getattr(
             agent, "sandbox_image_digest", "process-isolation-public-v0.2.0"
         ),
@@ -84,14 +150,6 @@ def run_trial(
         runtime_task_hash=stable_hash(runtime_task.to_dict()),
         grader_hash=grader_hash_for_task(task),
         scoring_revision=SCORING_REVISION,
-    )
-    return TrialResult(
-        manifest=manifest,
-        output=result.final_output,
-        grades=tuple(score_attempt(task, result.final_output)),
-        trace=tuple(result.trace),
-        raw_response=result.raw_response,
-        duration_seconds=round(monotonic() - started, 6),
     )
 
 

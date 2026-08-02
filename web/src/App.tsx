@@ -5,13 +5,14 @@ import { REPO_URL } from "./content";
 import { CapabilityExplorer } from "./components/CapabilityExplorer";
 import { EvidenceSections } from "./components/EvidenceSections";
 import { EfficiencyExplorer } from "./components/EfficiencyExplorer";
+import { FleetCoverage } from "./components/FleetCoverage";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { LeaderboardExplorer } from "./components/LeaderboardExplorer";
 import { PublicModelIndex } from "./components/PublicModelIndex";
 import { useLeaderboard } from "./hooks/useLeaderboard";
 import { readEnumParam, setUrlParams } from "./lib/urlState";
-import type { AccessStatus, ModelCatalogEntry, ReleaseView, Tg263Audit } from "./types";
+import type { AccessStatus, FleetStatus, ModelCatalogEntry, ReleaseView, Tg263Audit } from "./types";
 
 const LEADERBOARD_URL = "/data/leaderboard.json";
 const IMAGING_LEADERBOARD_URL = "/data/imaging_leaderboard.json";
@@ -20,6 +21,7 @@ const TG263_LEADERBOARD_URL = "/data/tg263_leaderboard.json";
 const TG263_AUDIT_URL = "/data/public-tg263-pilot-v0.5-audit.json";
 const ACCESS_STATUS_URL = "/data/access_status.json";
 const MODEL_CATALOG_URL = "/data/model_catalog.json";
+const FLEET_STATUS_URL = "/data/fleet_status.json";
 
 function App() {
   const core = useLeaderboard(LEADERBOARD_URL);
@@ -29,6 +31,7 @@ function App() {
   const [tg263Audit, setTg263Audit] = useState<Tg263Audit | null>(null);
   const [accessStatus, setAccessStatus] = useState<AccessStatus[]>([]);
   const [modelCatalog, setModelCatalog] = useState<ModelCatalogEntry[]>([]);
+  const [fleetStatus, setFleetStatus] = useState<FleetStatus | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [releaseView, setReleaseView] = useState<ReleaseView>("core");
   const selected =
@@ -50,6 +53,15 @@ function App() {
         }
       })
       .catch(() => setTg263Audit(null));
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(FLEET_STATUS_URL, { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<FleetStatus>) : null))
+      .then((payload) => startTransition(() => setFleetStatus(payload)))
+      .catch(() => setFleetStatus(null));
     return () => controller.abort();
   }, []);
 
@@ -108,6 +120,7 @@ function App() {
           releaseView={releaseView}
           repoUrl={REPO_URL}
         />
+        <FleetCoverage data={fleetStatus} />
         <PublicModelIndex
           catalog={modelCatalog}
           datasets={[

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphys-agentbench.org/schemas/medeval.run.v2.schema.json",
+  "title": "MedPhys-AgentBench run manifest v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "task_id",
+    "task_version",
+    "model",
+    "seed",
+    "temperature",
+    "max_tokens",
+    "adapter_settings",
+    "adapter_settings_hash",
+    "sandbox_image_digest",
+    "tool_environment_version",
+    "created_at",
+    "prompt_hash",
+    "tool_schema_hash",
+    "system_prompt_hash",
+    "runtime_task_hash",
+    "grader_hash",
+    "scoring_revision"
+  ],
+  "properties": {
+    "schema_version": { "const": "medeval.run.v2" },
+    "run_id": { "type": "string", "minLength": 1 },
+    "task_id": { "type": "string", "minLength": 1 },
+    "task_version": { "type": "string", "minLength": 1 },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "model_name", "model_revision", "harness_name", "harness_revision"],
+      "properties": {
+        "provider": { "type": "string", "minLength": 1 },
+        "model_name": { "type": "string", "minLength": 1 },
+        "model_revision": { "type": "string", "minLength": 1 },
+        "harness_name": { "type": "string", "minLength": 1 },
+        "harness_revision": { "type": "string", "minLength": 1 }
+      }
+    },
+    "seed": { "type": ["integer", "null"] },
+    "temperature": { "type": ["number", "null"], "minimum": 0 },
+    "max_tokens": { "type": ["integer", "null"], "minimum": 1 },
+    "adapter_settings": {
+      "type": "object",
+      "minProperties": 2,
+      "required": ["schema_version", "endpoint_kind"],
+      "properties": {
+        "schema_version": { "const": "medphysbench.adapter-settings.v1" },
+        "endpoint_kind": { "type": "string", "minLength": 1 }
+      }
+    },
+    "adapter_settings_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sandbox_image_digest": { "type": "string", "minLength": 1 },
+    "tool_environment_version": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "prompt_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "tool_schema_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "system_prompt_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "runtime_task_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "grader_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "scoring_revision": { "type": "string", "minLength": 1 }
+  }
+}

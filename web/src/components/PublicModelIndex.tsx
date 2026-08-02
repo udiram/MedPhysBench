@@ -1,6 +1,7 @@
 import { ChevronDown, Search } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { domainLabel, formatDuration, formatPercent, formatTokens, shortHash } from "../lib/format";
+import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
+import { isCommonHarnessRun, isNativeRun } from "../lib/runSurface";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import type {
   Leaderboard,
@@ -37,29 +38,9 @@ type ModelGroup = {
   runs: PublicRun[];
   release_count: number;
   best_safe_success_rate: number | null;
-  official_count: number;
-  native_count: number;
+  common_count: number;
+  specialized_count: number;
 };
-
-function isCommonHarnessRun(run: PublicRun): boolean {
-  if (run.execution_surface) {
-    return run.execution_surface === "common_harness";
-  }
-  if (run.run_profile) {
-    return Boolean(run.run_profile.is_common_harness);
-  }
-  return run.ranking_eligible;
-}
-
-function isNativeRun(run: PublicRun): boolean {
-  if (run.execution_surface) {
-    return run.execution_surface !== "common_harness";
-  }
-  if (run.run_profile) {
-    return Boolean(run.run_profile.is_recorded_import_surface);
-  }
-  return !run.ranking_eligible;
-}
 
 export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
   const [query, setQuery] = useState("");
@@ -132,8 +113,8 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
         current.runs.push(row);
         current.release_count = new Set(current.runs.map((item) => item.release_id)).size;
         current.best_safe_success_rate = maxAvailable(current.best_safe_success_rate, explicitRate);
-        current.official_count += isCommonHarnessRun(row) ? 1 : 0;
-        current.native_count += isNativeRun(row) ? 1 : 0;
+        current.common_count += isCommonHarnessRun(row) ? 1 : 0;
+        current.specialized_count += isNativeRun(row) ? 1 : 0;
       } else {
         grouped.set(key, {
           key,
@@ -143,8 +124,8 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
           runs: [row],
           release_count: 1,
           best_safe_success_rate: explicitRate,
-          official_count: isCommonHarnessRun(row) ? 1 : 0,
-          native_count: isNativeRun(row) ? 1 : 0,
+          common_count: isCommonHarnessRun(row) ? 1 : 0,
+          specialized_count: isNativeRun(row) ? 1 : 0,
         });
       }
     }
@@ -158,9 +139,9 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
 
   const loadedReleaseCount = datasets.filter((dataset) => dataset.data).length;
   const verifiedBaseModelCount = new Set(
-    runs.map((run) => run.model_name.replace(/\s+\[effort=[^\]]+\]$/, "")),
+    runs.map((run) => catalogMap.get(`${run.provider}::${run.model_name}`)?.base_model_id).filter(Boolean),
   ).size;
-  const baseModelCount = new Set(groups.map((group) => group.model_name.replace(/\s+\[effort=[^\]]+\]$/, ""))).size;
+  const baseModelCount = new Set(groups.map((group) => group.catalog?.base_model_id).filter(Boolean)).size;
   const openCount = groups.filter((group) => (group.catalog?.openness ?? "unknown") === "open").length;
   const closedCount = groups.filter((group) => (group.catalog?.openness ?? "unknown") === "closed").length;
   const groqCount = groups.filter((group) => group.provider === "groq").length;
@@ -441,8 +422,8 @@ function ModelRegistryRow({
         <td>{group.catalog?.family ?? "Unknown"}</td>
         <td>{group.release_count}</td>
         <td>{group.best_safe_success_rate == null ? "Unavailable" : formatPercent(group.best_safe_success_rate)}</td>
-        <td>{group.official_count}</td>
-        <td>{group.native_count}</td>
+        <td>{group.common_count}</td>
+        <td>{group.specialized_count}</td>
       </tr>
       {expanded && (
         <tr className="detail-row">
@@ -469,11 +450,11 @@ function ModelRegistryRow({
                   </div>
                   <div>
                     <dt>Common-harness rows</dt>
-                    <dd>{group.official_count}</dd>
+                    <dd>{group.common_count}</dd>
                   </div>
                   <div>
                     <dt>Other recorded rows</dt>
-                    <dd>{group.native_count}</dd>
+                    <dd>{group.specialized_count}</dd>
                   </div>
                 </dl>
               </section>
@@ -861,13 +842,6 @@ function outcomeLabel(task: ModelTaskResult) {
   if (status === "unsafe") return "Unsafe";
   if (status === "safe-fail") return "Safe failure";
   return "Outcome unavailable";
-}
-
-function providerLabel(provider: string) {
-  if (provider === "codex-native") return "Codex native";
-  if (provider === "groq") return "Groq";
-  if (provider === "ollama") return "Ollama";
-  return provider;
 }
 
 function opennessLabel(value: ModelOpenness) {
