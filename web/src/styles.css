@@ -2061,6 +2061,19 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   .run-task-row > header { flex-direction: column; }
   .run-provenance { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .run-failure-contract div { grid-template-columns: 1fr; gap: 4px; }
+  .run-task-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+  .run-task-tabs button {
+    min-width: 0;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    white-space: normal;
+  }
+  .run-task-tabs button:nth-child(even) { border-right: 0; }
+  .run-task-tabs button:last-child { border-bottom: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
