@@ -46,13 +46,13 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert status == rebuilt
     assert rebuilt["summary"] == {
         "planned_base_models": 50,
-        "access_qualified_base_models": 16,
+            "access_qualified_base_models": 17,
         "evaluated_base_models": 15,
         "ranked_base_models": 15,
         "workflow_qualified_base_models": 15,
         "workflow_ranked_base_models": 15,
-        "published_system_configurations": 21,
-        "published_release_rows": 36,
+            "published_system_configurations": 22,
+            "published_release_rows": 37,
         "open_planned_models": 31,
         "closed_planned_models": 19,
         "vision_planned_models": 31,
@@ -70,7 +70,7 @@ def test_catalog_maps_system_configurations_to_unique_frozen_base_models() -> No
 
     assert len(keys) == len(set(keys))
     assert all(entry["base_model_id"] in frozen_ids for entry in catalog)
-    assert len({entry["base_model_id"] for entry in catalog}) == 16
+    assert len({entry["base_model_id"] for entry in catalog}) == 17
     assert sum(entry["base_model_id"] == "gpt-5.6-sol" for entry in catalog) == 6
 
 

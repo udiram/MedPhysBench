@@ -144,18 +144,21 @@ def summarize_release(
         "methodology": {
             "primary_metric": "safe task success rate",
             "confidence_interval": (
-                "Wilson 95% interval over attempts plus deterministic family-cluster bootstrap "
-                "when family IDs are available"
+                "Deterministic family-cluster bootstrap is primary when family IDs are available; "
+                "the attempt-level Wilson 95% interval is retained as a secondary sensitivity analysis"
             ),
             "pass_at_k": "unbiased probability that at least one of k sampled attempts safely passes",
             "pass_power_k": "unbiased probability that all k sampled attempts safely pass",
             "ranking_rule": (
-                "Only complete and internally consistent model runs receive an official rank, and ranks are "
-                "computed only when at least two systems share an identical provider, harness, harness revision, "
-                "adapter-settings hash, sampling contract, and seed policy."
+                "Only complete, deterministically regraded runs with execution traces, provider/runtime receipts, "
+                "per-call usage and duration telemetry receive an official rank. Ranks are computed only when at "
+                "least two systems share an identical provider, harness, harness revision, adapter-settings hash, "
+                "sampling contract, and seed policy. Explicit unsupported-modality preflight outcomes are exempt "
+                "from provider-call telemetry requirements."
             ),
             "outcome_order_rule": (
-                "Complete, internally consistent rows also receive a descriptive cross-surface outcome order. "
+                "Complete, internally consistent rows with valid execution evidence also receive a descriptive "
+                "cross-surface outcome order. "
                 "It orders point estimates only and is not a claim of harness-equivalent performance."
             ),
             "family_dependence": (
@@ -538,6 +541,7 @@ def _audit_model_results(
     model_name = str(first_model.get("model_name", "unknown"))
     provider = str(first_model.get("provider", "unknown"))
     model_revision = str(first_model.get("model_revision", model_name))
+    is_recorded_import = _run_is_recorded_import(results)
 
     for item in results:
         manifest = item.get("manifest", {})
@@ -594,6 +598,13 @@ def _audit_model_results(
             errors.append(f"duplicate_attempt:{task_id}:{attempt_index}")
         observed_attempt_keys.add(attempt_key)
 
+        if not is_recorded_import:
+            errors.extend(
+                _common_harness_receipt_errors(
+                    item=item,
+                )
+            )
+
         expected_hashes = task_hash_catalog[task_id]
         prompt_hash = manifest.get("prompt_hash")
         if not prompt_hash:
@@ -643,7 +654,6 @@ def _audit_model_results(
     noncompleted_attempts = sum(1 for item in results if item.get("status", "completed") != "completed")
     if noncompleted_attempts:
         errors.append(f"noncompleted_attempts:{noncompleted_attempts}")
-    is_recorded_import = _run_is_recorded_import(results)
     if is_recorded_import:
         errors.append("unranked_noncommon_surface")
     elif missing_seed_count:
@@ -674,6 +684,43 @@ def _audit_model_results(
         "missing_attempt_count": len(missing_attempt_keys),
         "unexpected_attempt_count": len(unexpected_attempt_keys),
     }
+
+
+def _common_harness_receipt_errors(*, item: dict[str, Any]) -> list[str]:
+    """Require evidence that a completed common-harness attempt traversed a runtime adapter."""
+    trace = item.get("trace")
+    trace_items = trace if isinstance(trace, list) else []
+    events = [
+        str(event.get("event", ""))
+        for event in trace_items
+        if isinstance(event, dict)
+    ]
+    if not events:
+        return ["missing_execution_trace"]
+
+    is_unsupported_modality = bool(item.get("capability_failure")) and (
+        item.get("model_failure_kind") == "unsupported_required_modality"
+        or "unsupported_required_modality" in events
+    )
+    if is_unsupported_modality:
+        return [] if "unsupported_required_modality" in events else ["missing_capability_trace"]
+
+    errors: list[str] = []
+    if "model_response" not in events:
+        errors.append("missing_model_response_trace")
+    raw_response = item.get("raw_response")
+    if not isinstance(raw_response, dict) or not raw_response:
+        errors.append("missing_provider_receipt")
+
+    usage = _provider_usage(item)
+    prompt = _nonnegative_int(usage.get("prompt_eval_count", usage.get("prompt_tokens")))
+    completion = _nonnegative_int(usage.get("eval_count", usage.get("completion_tokens")))
+    if prompt is None or completion is None:
+        errors.append("missing_usage_telemetry")
+    duration = item.get("duration_seconds")
+    if isinstance(duration, bool) or not isinstance(duration, (int, float)) or duration <= 0:
+        errors.append("missing_duration_telemetry")
+    return errors
 
 
 def _run_is_recorded_import(results: list[dict[str, Any]]) -> bool:

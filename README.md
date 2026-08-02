@@ -27,11 +27,12 @@ package, or evidence of autonomous clinical competence.
 - TG-263 audit: `public-tg263-pilot-v0.5-audit` (separates primary naming decisions from exact benchmark reason-code labels)
 - Real-image pilot: `public-imaging-pilot-v0.4` (`5` real MRI, CT, and PET tasks)
 - OpenKBP real-workflow pilot: `public-real-workflows-pilot-v0.6` (`10` tasks from
-  `2` patient families; `10` ranked Ollama configurations, `5` ranked Groq
-  configurations, and `3` GPT-5.6 native effort audits; `540` total attempts)
-- Scored configurations through Saturday, August 1, 2026: five common-harness local core models,
+  `2` patient families; `11` ranked Ollama configurations, `4` ranked Groq
+  configurations, `1` quarantined Groq configuration, and `3` GPT-5.6 native effort audits;
+  `570` total attempt artifacts)
+- Scored configurations through Sunday, August 2, 2026: five common-harness local core models,
   six explicitly unranked GPT-5.6 core-effort pilots, two harder TG-263 native pilots,
-  three local models on the original image pilot, fifteen API/local configurations on the
+  three local models on the original image pilot, sixteen API/local configurations on the
   OpenKBP pilot, and three GPT-5.6 OpenKBP effort audits with descriptive outcome ranks
 - Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
 - Frozen 50-base-model panel: [`fleet/public_fleet_v1.yaml`](fleet/public_fleet_v1.yaml)
@@ -57,6 +58,7 @@ package, or evidence of autonomous clinical competence.
 | Reproduce the public release | [Reproducibility guide](docs/REPRODUCIBILITY.md) · [Evaluation protocol](docs/EVALUATION_PROTOCOL.md) |
 | Inspect what could invalidate a score | [Threat model](docs/THREAT_MODEL.md) · [Data statement](docs/DATA_STATEMENT.md) |
 | Add a provider or model | [Adapter contract](docs/ADAPTER_CONTRACT.md) · [Model onboarding](docs/MODEL_ONBOARDING.md) |
+| Submit auditable model results | [Contribution guide](CONTRIBUTING.md#result-submission-requirements) · [submission schema](schemas/common-harness-submission.v1.schema.json) |
 | Propose a task | [Contribution guide](CONTRIBUTING.md) · [Task catalog](docs/TASK_CATALOG.md) |
 | Understand the harder RT roadmap | [Benchmark hardening](docs/BENCHMARK_HARDENING.md) · [RT competency map](docs/RT_COMPETENCY_MAP.md) · [AAPM coverage](docs/AAPM_TASK_GROUP_COVERAGE.md) · [planning sandbox](docs/PLANNING_SANDBOX.md) · [TG-263 lane](docs/TG263_BENCHMARK.md) |
 | Audit the human-grounding claim | [Human baseline protocol](docs/HUMAN_BASELINE_PROTOCOL.md) · [review ledger](reviews/public-real-workflows-pilot-v0.6.json) |
@@ -73,8 +75,8 @@ package, or evidence of autonomous clinical competence.
 - A deterministic grading stack covering schema validity, safety gates, numeric tolerances,
   exact matches, unordered set matches, string constraints, bounding-box IoU, and grid-mask Dice.
 - Rank eligibility that rejects missing, duplicate, or unresolved transport-error attempts; mixed model or run
-  configurations; task-version or hash drift; malformed outputs; and stored grades that disagree
-  with deterministic regrading.
+  configurations; task-version or hash drift; malformed outputs; receipt-free or telemetry-free
+  common-harness attempts; and stored grades that disagree with deterministic regrading.
 - Strict provider-output parsing with no Markdown repair, substring extraction, duplicate JSON keys,
   non-finite numbers, or non-object roots.
 - A runnable Ollama adapter and release runner that persist benchmark artifacts under [`runs/`](runs/).
@@ -93,7 +95,7 @@ package, or evidence of autonomous clinical competence.
 - Harness-group release ranks plus a clearly labeled descriptive cross-surface outcome order;
   incomplete or manifest-inconsistent runs remain published but receive neither.
 - Architecture, governance, evaluation, onboarding, and deployment documentation in [`docs/`](docs/).
-- Repository-wide validation of all nine JSON Schemas, every authored/runtime task projection,
+- Repository-wide validation of all ten JSON Schemas, every authored/runtime task projection,
   every artifact digest, constructed reference feasibility, and every published result artifact.
 - A unified browser model index that exposes open/closed and provider filters, release-specific
   scores, task-level outcome facets, failed grader contracts, and provenance hashes while keeping
@@ -101,7 +103,7 @@ package, or evidence of autonomous clinical competence.
 - A release-aware forensic surface built from released outputs and deterministic regrading; it
   exposes per-attempt task cards, failed-lane/failed-grader tallies, and immutable hash drilldowns
   while keeping legacy manifest limitations visible and outside current-contract ranks.
-- A machine-derived qualification funnel that reports `50` frozen base IDs, `16` access-qualified,
+- A machine-derived qualification funnel that reports `50` frozen base IDs, `17` access-qualified,
   `15` validly evaluated under the current manifest contract, and `15` rankable—without counting six
   GPT-5.6 effort settings as six models, treating historical legacy rows as current-contract evidence,
   or presenting a partial local campaign as a score.

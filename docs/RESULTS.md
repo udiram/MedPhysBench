@@ -19,10 +19,10 @@ two patient families. It is reported independently from the core and original
 five-image pilot.
 
 The primary metric is safe task success: an attempt must pass every required
-outcome grader and every explicit safety-lane gate. Wilson 95% intervals describe
-binary attempt uncertainty. The v0.6 pilot also reports a deterministic
-family-cluster bootstrap interval, but two patient families are still far too
-few for external-validity claims.
+outcome grader and every explicit safety-lane gate. For patient-linked releases,
+the deterministic family-cluster bootstrap is the primary interval and the Wilson
+95% attempt interval remains a secondary sensitivity analysis. The v0.6 pilot has
+only two patient families, far too few for external-validity claims.
 
 ## Public model-fleet status
 
@@ -34,11 +34,11 @@ The machine-derived public status currently reports:
 | Qualification gate | Unique base models | Meaning |
 | --- | ---: | --- |
 | Frozen panel | 50 | Selected before further score inspection |
-| Access qualified | 16 | Live Q0 or later access evidence exists |
-| Validly evaluated | 11 | At least one complete matrix satisfies the current manifest/scoring contract |
-| Rankable | 9 | At least two systems share an exact frozen comparison group |
+| Access qualified | 17 | Live Q0 or later access evidence exists |
+| Validly evaluated | 15 | At least one complete matrix satisfies the current manifest/scoring and execution-evidence contract |
+| Rankable | 15 | At least two systems share an exact frozen comparison group |
 
-The site still exposes all 21 published system configurations and 31 release
+The site exposes all 22 published system configurations and 37 release
 rows. Six GPT-5.6 effort settings therefore remain six auditable configurations
 of one base model, while Groq-hosted and local routes of the same open-weight
 base also count once toward breadth. Five legacy core-only base models remain
@@ -186,15 +186,19 @@ TG-263 naming audit. The CT and expert contours are derived from OpenKBP; the
 reference plan dose is OpenKBP's standardized synthetic plan. Every task requires
 qualified review or escalation and is regraded from the stored candidate output.
 
-Fifteen API/local configurations completed three attempts per task. Four ran under
+Sixteen API/local configurations completed three attempts per task. Four ran under
 one memory-bounded Ollama harness (`temperature=0`, seeds
 `20260731`–`20260733`, 4,096-token context, 768 output-token cap). Five ran on
 Groq's OpenAI-compatible endpoint under one shared JSON-object contract with the
-same temperature, seeds, and output-token cap. Six ran under the digest-pinned
+same temperature, seeds, and output-token cap. Seven ran under the digest-pinned
 `reference-json-v2` Ollama contract with the same seeds, a 4,096-token context,
 and 2,048-token output cap. Official ranks are computed within
 each identical provider/harness/configuration group with at least two systems; the
 separate descriptive outcome order spans every complete valid row.
+
+The compact tables retain the attempt-level Wilson interval for sensitivity and
+historical continuity. The website and JSON make the two-family cluster interval
+primary and display both interval definitions for every row.
 
 | Rank | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens | Median time |
 | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -209,22 +213,23 @@ separate descriptive outcome order spans every complete valid row.
 | 2 | `openai/gpt-oss-20b` | 60.0% | 42.32–75.41% | 60.0% | 60.0% | 1,338 | 9.283 s |
 | 3 | `openai/gpt-oss-120b` | 50.0% | 33.15–66.85% | 60.0% | 60.0% | 1,371.5 | 10.268 s |
 | 4 | `llama-3.1-8b-instant` | 0.0% | 0.00–11.35% | 16.67% | 60.0% | 1,002 | 8.343 s |
-| 5 | `qwen/qwen3.6-27b` | 0.0% | 0.00–11.35% | 0.0% | 0.0% | unavailable | unavailable |
+| — | `qwen/qwen3.6-27b` | 0.0% | 0.00–11.35% | 0.0% | 0.0% | unavailable | unavailable |
 
 | Ollama v2 rank | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens* | Median wall time* |
 | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 1 | `qwen3:14b` | 40.0% | 24.59–57.68% | 60.0% | 60.0% | 1,025 | 30.736 s |
 | 2 | `qwen3:8b` | 40.0% | 24.59–57.68% | 60.0% | 60.0% | 1,025 | 17.580 s |
 | 3 | `qwen2.5:7b-instruct` | 30.0% | 16.66–47.88% | 60.0% | 60.0% | 1,019 | 15.604 s |
-| 4 | `qwen3:1.7b` | 0.0% | 0.00–11.35% | 60.0% | 60.0% | 1,029 | 6.420 s |
-| 5 | `deepseek-r1:1.5b` | 0.0% | 0.00–11.35% | 60.0% | 60.0% | 1,616 | 14.805 s |
-| 6 | `llama3.2:3b` | 0.0% | 0.00–11.35% | 20.0% | 60.0% | 950.5 | 7.708 s |
+| 4 | `phi4-mini:3.8b-q4_K_M` | 10.0% | 3.46–25.62% | 60.0% | 60.0% | 938.5 | 9.632 s |
+| 5 | `qwen3:1.7b` | 0.0% | 0.00–11.35% | 60.0% | 60.0% | 1,029 | 6.420 s |
+| 6 | `deepseek-r1:1.5b` | 0.0% | 0.00–11.35% | 30.0% | 60.0% | 1,616 | 14.805 s |
+| 7 | `llama3.2:3b` | 0.0% | 0.00–11.35% | 20.0% | 60.0% | 950.5 | 7.708 s |
 
-All six v2 rows completed the same 30-attempt matrix with exact local artifact
+All seven v2 rows completed the same 30-attempt matrix with exact local artifact
 digests. Their 12 required-image attempts are explicit unsupported-modality
 outcomes, not omitted tasks; the token and time medians therefore cover the 18
 actual text calls. A separate three-task adapter audit produced schema-valid output,
-duration telemetry, token telemetry, and unique run IDs for all 15 qualification
+duration telemetry, token telemetry, and unique run IDs for all 21 qualification
 calls. Task correctness was not a Q1 requirement and remained scored only in Q2.
 
 `*` Groq token and time medians use the 18 text attempts with observed provider
@@ -233,9 +238,10 @@ for the text-only Llama and GPT-OSS rows; those failures are never omitted from 
 score denominator. Free-tier HTTP 429 backoff is traced and is included in observed
 end-to-end wall time, so this table is not a hardware-normalized inference-speed
 comparison. `qwen/qwen3.6-27b` failed the bounded provider JSON-object contract on
-all 30 attempts and therefore has no response usage or completion-time telemetry;
-this is reported as interface compliance failure, not as a claim about latent
-medical-physics knowledge.
+all 30 attempts and its stored failure artifacts have no model-response receipt,
+usage, or completion-time telemetry. The configuration remains visible but is
+quarantined from both official rank and descriptive outcome order. This is an
+execution-evidence failure, not a claim about latent medical-physics knowledge.
 
 Three GPT-5.6 effort settings completed the same sealed ten-task runtime three
 times, producing 30 deterministically regraded attempts per effort. These are real

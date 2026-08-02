@@ -112,6 +112,7 @@ def validate_repository() -> dict[str, int]:
         "review_evidence": _validator("review-evidence.v1.schema.json"),
         "model_fleet": _validator("model-fleet.v1.schema.json"),
         "fleet_status": _validator("fleet-status.v1.schema.json"),
+        "common_harness_submission": _validator("common-harness-submission.v1.schema.json"),
     }
 
     fleet_path = ROOT / "fleet" / "public_fleet_v1.yaml"
@@ -219,12 +220,17 @@ def validate_repository() -> dict[str, int]:
         if isinstance(trace, list) and any(isinstance(item, dict) and "raw_preview" in item for item in trace):
             raise ValueError(f"{path}: public result trace contains an unredacted raw preview.")
 
+    submission_paths = sorted((ROOT / "submissions").glob("*.json"))
+    for path in submission_paths:
+        _validate(validators["common_harness_submission"], _load_json(path), path)
+
     return {
         "schema_count": len(validators),
         "release_count": len(release_paths),
         "review_evidence_count": len(review_paths),
         "task_count": len(task_paths),
         "result_count": len(result_paths),
+        "submission_count": len(submission_paths),
         "grader_mutation_count": grader_mutation_count,
         "fleet_model_count": len(fleet_ids),
     }

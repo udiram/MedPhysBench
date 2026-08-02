@@ -16,6 +16,8 @@ jobs:
     # controlled environment and must never be added to public CI.
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
@@ -32,6 +34,8 @@ jobs:
           uv run medphys-bench validate-release releases/public_real_workflows_pilot_v0_6.yaml
       - name: Validate schemas, tasks, runtime projections, and result artifacts
         run: uv run python scripts/validate_repository.py
+      - name: Verify auditable common-harness submission bundles
+        run: uv run python scripts/common_harness_submission.py validate-all
       - name: Verify public artifacts exclude provider reasoning
         run: |
           uv run python scripts/sanitize_public_results.py --check results/releases/public-core-v0.4

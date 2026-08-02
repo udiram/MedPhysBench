@@ -263,8 +263,22 @@ def _write_result(
         },
         "grades": [grade.to_dict() for grade in grades],
         "output": output,
-        "trace": [],
-        "raw_response": {},
+        "trace": [
+            {
+                "event": "model_response",
+                "provider": "ollama",
+                "model": model_name,
+                "latency_ms": 1000.0,
+                "usage": {"prompt_eval_count": 100, "eval_count": 20},
+            }
+        ],
+        "raw_response": {
+            "provider": "ollama",
+            "model": model_name,
+            "content": json.dumps(output, sort_keys=True),
+            "latency_ms": 1000.0,
+            "usage": {"prompt_eval_count": 100, "eval_count": 20},
+        },
     }
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
@@ -612,7 +626,8 @@ def test_repository_contracts_and_public_artifacts_validate() -> None:
     )
     counts = json.loads(completed.stdout)
 
-    assert counts["schema_count"] == 9
+    assert counts["schema_count"] == 10
+    assert counts["submission_count"] >= 1
     assert counts["fleet_model_count"] == 50
     assert counts["release_count"] >= 1
     assert counts["review_evidence_count"] >= 1
@@ -650,6 +665,52 @@ def test_release_summary_ranks_complete_models(tmp_path: Path) -> None:
     assert summary["models"][1]["safe_success_rate"] == 0.9375
     assert all(path.startswith("tasks/") for path in summary["release"]["task_files"])
     assert not any(Path(path).is_absolute() for path in summary["release"]["task_files"])
+
+
+def test_release_summary_rejects_receipt_free_common_harness_rows(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    tasks = release.load_tasks()
+    for model_name in ("fabricated-a", "fabricated-b"):
+        model_dir = tmp_path / release.release_id / model_name
+        model_dir.mkdir(parents=True)
+        for task in tasks:
+            result_file = model_dir / f"{task.task_id}--attempt-1.json"
+            _write_result(result_file, task, model_name)
+            payload = json.loads(result_file.read_text(encoding="utf-8"))
+            payload["trace"] = []
+            payload["raw_response"] = {}
+            result_file.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    summary = summarize_release(release, tmp_path)
+
+    assert summary["models"] == []
+    assert len(summary["unranked_models"]) == 2
+    for row in summary["unranked_models"]:
+        errors = row["integrity"]["integrity_errors"]
+        assert "missing_execution_trace" in errors
+
+
+def test_release_summary_rejects_telemetry_free_common_harness_rows(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    tasks = release.load_tasks()
+    for model_name in ("telemetry-free-a", "telemetry-free-b"):
+        model_dir = tmp_path / release.release_id / model_name
+        model_dir.mkdir(parents=True)
+        for task in tasks:
+            result_file = model_dir / f"{task.task_id}--attempt-1.json"
+            _write_result(result_file, task, model_name)
+            payload = json.loads(result_file.read_text(encoding="utf-8"))
+            payload["raw_response"].pop("usage")
+            payload["trace"][0].pop("usage")
+            result_file.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    summary = summarize_release(release, tmp_path)
+
+    assert summary["models"] == []
+    assert len(summary["unranked_models"]) == 2
+    for row in summary["unranked_models"]:
+        errors = row["integrity"]["integrity_errors"]
+        assert "missing_usage_telemetry" in errors
 
 
 def test_cli_sampling_contract_reaches_ollama_adapter() -> None:

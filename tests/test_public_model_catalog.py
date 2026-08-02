@@ -113,7 +113,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(payload, dict)
     rows = [*payload["models"], *payload.get("unranked_models", [])]
-    assert len(rows) == 18
+    assert len(rows) == 19
     v2_rows = [
         row
         for row in rows
@@ -122,13 +122,14 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     assert {row["model_name"] for row in v2_rows} == {
         "deepseek-r1:1.5b",
         "llama3.2:3b",
+        "phi4-mini:3.8b-q4_K_M",
         "qwen2.5:7b-instruct",
         "qwen3:1.7b",
         "qwen3:8b",
         "qwen3:14b",
     }
     assert all(row["ranking_eligible"] is True for row in v2_rows)
-    assert {row["rank"] for row in v2_rows} == set(range(1, 7))
+    assert {row["rank"] for row in v2_rows} == set(range(1, 8))
     deepseek = next(row for row in rows if row["model_name"] == "deepseek-r1:1.5b")
     capability_failures = [task for task in deepseek["tasks"] if task.get("capability_failure")]
     assert len(capability_failures) == 12
@@ -161,3 +162,19 @@ def test_real_workflow_public_copies_are_byte_identical() -> None:
     ]
     contents = [path.read_bytes() for path in paths]
     assert all(content == contents[0] for content in contents[1:])
+
+
+def test_receipt_free_groq_batch_remains_visible_but_unranked() -> None:
+    payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
+    rows = [*payload["models"], *payload.get("unranked_models", [])]
+    row = next(item for item in rows if item["model_name"] == "qwen/qwen3.6-27b")
+
+    assert row["attempt_count"] == row["expected_attempt_count"] == 30
+    assert row["ranking_eligible"] is False
+    assert row.get("outcome_rank") is None
+    assert set(row["integrity"]["integrity_errors"]) == {
+        "missing_duration_telemetry",
+        "missing_model_response_trace",
+        "missing_provider_receipt",
+        "missing_usage_telemetry",
+    }

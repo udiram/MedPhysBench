@@ -561,6 +561,12 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 }
 .telemetry-missing button:hover,
 .telemetry-missing button:focus-visible { color: var(--accent); }
+.telemetry-partial { border-top-style: dashed; }
+.chart-point.partial-telemetry .ranked-point,
+.chart-point.partial-telemetry .native-point {
+  fill-opacity: 0.28;
+  stroke-dasharray: 2 2;
+}
 
 .summary-table-wrap,
 .table-frame,
@@ -582,6 +588,13 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 .summary-table th:nth-child(4) { width: 18%; }
 .summary-table td:nth-child(2) { overflow-wrap: anywhere; }
 .summary-table td:nth-child(2) small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font: 500 9px/1.4 "IBM Plex Mono", monospace;
+}
+.summary-table td:nth-child(4) small,
+.efficiency-table td small {
   display: block;
   margin-top: 4px;
   color: var(--muted);

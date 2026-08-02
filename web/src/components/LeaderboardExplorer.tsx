@@ -1,7 +1,17 @@
 import { ArrowDownToLine, ChevronDown, Search } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 import type { AccessStatus, Leaderboard, ModelCatalogEntry, ModelResult, ReleaseView, Tg263Audit } from "../types";
-import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
+import {
+  domainLabel,
+  formatDuration,
+  formatPercent,
+  formatTokens,
+  primaryScoreInterval,
+  primaryScoreIntervalLabel,
+  providerLabel,
+  secondaryScoreInterval,
+  shortHash,
+} from "../lib/format";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 
 type SortKey =
@@ -61,6 +71,11 @@ function integrityLabel(value: string) {
   if (value === "unranked_singleton_comparison_group") return "Official rank withheld: no peer with identical frozen harness contract";
   if (value === "mixed_run_configuration_manifest") return "Integrity failure: mixed runtime configuration";
   if (value === "mixed_seed_policy_manifest") return "Integrity failure: mixed seed policy";
+  if (value === "missing_execution_trace") return "Integrity failure: execution trace absent";
+  if (value === "missing_model_response_trace") return "Integrity failure: model-response event absent";
+  if (value === "missing_provider_receipt") return "Integrity failure: provider/runtime receipt absent";
+  if (value === "missing_usage_telemetry") return "Integrity failure: provider usage telemetry absent";
+  if (value === "missing_duration_telemetry") return "Integrity failure: positive call duration absent";
   return value.replaceAll("_", " ");
 }
 
@@ -203,7 +218,7 @@ export function LeaderboardExplorer({
                   <th>Outcome</th>
                   <th>Model</th>
                   <th>Score</th>
-                  <th>95% CI</th>
+                  <th>Primary 95% interval</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -215,7 +230,16 @@ export function LeaderboardExplorer({
                         <small>{model.rank ? `${rankGroupLabel(model)} official #${model.rank}` : "No official group rank"}</small>
                       </td>
                       <td>{formatPercent(model.safe_success_rate)}</td>
-                      <td>{formatPercent(safeSuccessInterval(model)[0])}–{formatPercent(safeSuccessInterval(model)[1])}</td>
+                      <td>
+                        {formatPercent(primaryScoreInterval(model)[0])}–{formatPercent(primaryScoreInterval(model)[1])}
+                        <small>{primaryScoreIntervalLabel(model)}</small>
+                        {secondaryScoreInterval(model) ? (
+                          <small>
+                            Wilson {formatPercent(secondaryScoreInterval(model)?.[0])}–
+                            {formatPercent(secondaryScoreInterval(model)?.[1])}
+                          </small>
+                        ) : null}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -229,7 +253,7 @@ export function LeaderboardExplorer({
           )}
 
           <p className="summary-footnote">
-            Outcome order is descriptive across complete rows. Official rank is shown as row metadata only when an identical frozen harness group exists; unavailable telemetry is never imputed.
+            Outcome order is descriptive across complete rows. Family-cluster intervals are primary when patient-family IDs are available; Wilson attempt-level intervals remain visible as a secondary sensitivity analysis. Official rank is shown only within identical frozen harness groups.
           </p>
         </aside>
       </div>
@@ -335,7 +359,7 @@ export function LeaderboardExplorer({
                     </button>
                   </th>
                 ))}
-                <th>95% CI</th>
+                <th>Primary 95% CI</th>
                 <th>Attempts</th>
                 <th>Execution</th>
                 <th>Source</th>
@@ -417,7 +441,8 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
   const height = 82 + rows.length * rowHeight;
   const margin = { top: 50, right: 28, bottom: 32, left: 222 };
   const scaleX = (value: number) => margin.left + value * (width - margin.left - margin.right);
-  const intervalFor = (row: ModelResult) => row.safe_success_ci95 ?? row.task_success_ci95;
+  const intervalFor = (row: ModelResult) => primaryScoreInterval(row);
+  const usesFamilyIntervals = rows.some((row) => row.family_cluster_safe_success_ci95 != null);
   const leadingIntervalsOverlap = rows.length > 1 && intervalFor(rows[0])[0] <= intervalFor(rows[1])[1];
   const insightTitle = leadingIntervalsOverlap
     ? "The leading intervals still overlap"
@@ -428,13 +453,16 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
       <div className="results-visual-head">
         <div>
           <h3>{insightTitle}</h3>
-          <p>Point estimate and Wilson 95% interval for safe task success. Direct labels replace a detached legend.</p>
+          <p>
+            Point estimate and {usesFamilyIntervals ? "patient-family-cluster" : "Wilson"} 95% interval for safe task
+            success. {usesFamilyIntervals ? "Attempt-level Wilson intervals remain in the evidence table." : ""}
+          </p>
         </div>
         <span className="results-inline-note">Official rank and cross-surface outcome order remain distinct</span>
       </div>
       <svg className="results-chart outcome-interval-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby="results-chart-title results-chart-description">
         <title id="results-chart-title">Safe task success with 95 percent confidence intervals</title>
-        <desc id="results-chart-description">Models are ordered by their descriptive outcome rank. Circles are official harness-group rows and diamonds are complete native-surface rows. Horizontal lines show Wilson confidence intervals.</desc>
+        <desc id="results-chart-description">Models are ordered by their descriptive outcome rank. Circles are official harness-group rows and diamonds are complete native-surface rows. Horizontal lines show the primary confidence interval, clustered by patient family when available.</desc>
         {[0, 0.25, 0.5, 0.75, 1].map((tick) => (
           <g key={tick}>
             <line x1={scaleX(tick)} x2={scaleX(tick)} y1={margin.top - 18} y2={height - margin.bottom} className="chart-grid" />
@@ -491,7 +519,13 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
                 <i style={{ left: `${interval[0] * 100}%`, width: `${(interval[1] - interval[0]) * 100}%` }} />
                 <b style={{ left: `${row.safe_success_rate * 100}%` }} />
               </div>
-              <small>95% CI {formatPercent(interval[0])}–{formatPercent(interval[1])}</small>
+              <small>{primaryScoreIntervalLabel(row)} {formatPercent(interval[0])}–{formatPercent(interval[1])}</small>
+              {secondaryScoreInterval(row) ? (
+                <small>
+                  Wilson sensitivity {formatPercent(secondaryScoreInterval(row)?.[0])}–
+                  {formatPercent(secondaryScoreInterval(row)?.[1])}
+                </small>
+              ) : null}
             </li>
           );
         })}
@@ -499,7 +533,8 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
       <div className="outcome-plot-key" aria-label="Plot key">
         <span><i className="outcome-key-common" /> Common-harness comparable row</span>
         <span><i className="outcome-key-native" /> Native/import row</span>
-        <span>Whisker = Wilson 95% interval</span>
+        <span>Whisker = primary 95% interval{usesFamilyIntervals ? " (family-clustered)" : " (Wilson)"}</span>
+        {usesFamilyIntervals ? <span>Only two patient families: intervals and order are provisional</span> : null}
         {omitted > 0 && <span>{omitted} incomplete or invalid row(s) omitted</span>}
       </div>
     </>
@@ -770,7 +805,7 @@ function metricForDomain(model: ModelResult, domainFilter: string) {
 }
 
 function safeSuccessInterval(model: ModelResult): [number, number] {
-  return model.safe_success_ci95 ?? model.task_success_ci95;
+  return primaryScoreInterval(model);
 }
 
 function shortModelLabel(value: string) {

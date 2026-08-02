@@ -110,6 +110,19 @@ expected attempt count, no canonical errors, no missing or unexpected attempt ke
 integrity issue beyond a declared cross-surface comparability annotation. Access probes and partial
 campaigns never increment the evaluated or ranked counts.
 
+Every contributed common-harness result bundle must also pass the artifact-level submission
+validator:
+
+```bash
+uv run python scripts/common_harness_submission.py validate-all
+```
+
+The committed sidecar inventory covers the full result directory, including any append-only
+transport-error ledger. Its canonical tree hash prevents omitted failures, inserted artifacts, or
+post-hoc byte edits from passing CI unnoticed. Ranking additionally requires a real model-response
+trace, non-empty provider/runtime receipt, and per-call token and duration telemetry; declared
+unsupported-modality preflight outcomes use their explicit capability trace instead.
+
 ## Comparing a replication
 
 Report the repository commit, release ID and release-contract hash, complete model descriptor,

@@ -2,8 +2,11 @@
 
 ## Unreleased
 
-- Froze a machine-readable 50-base-model fleet and added a deterministic public qualification funnel: 16 access-qualified, 15 common-harness evaluated and rankable under the current manifest contract, 21 published system configurations, 36 release rows, and no count inflation from aliases or GPT-5.6 effort settings.
-- Completed 150 new digest-pinned OpenKBP attempts for Qwen 3 1.7B/8B/14B, Qwen 2.5 7B Instruct, and Llama 3.2 3B under the memory-bounded `reference-json-v2` harness, plus a 15-call schema/telemetry adapter audit; the six-system v2 group now receives an official within-group rank.
+- Froze a machine-readable 50-base-model fleet and added a deterministic public qualification funnel: 17 access-qualified, 15 common-harness evaluated and rankable under the current manifest contract, 22 published system configurations, 37 release rows, and no count inflation from aliases or GPT-5.6 effort settings.
+- Completed 180 new digest-pinned OpenKBP attempts for Qwen 3 1.7B/8B/14B, Qwen 2.5 7B Instruct, Llama 3.2 3B, and Phi-4 Mini under the memory-bounded `reference-json-v2` harness, plus an 18-call schema/telemetry adapter audit; the seven-system v2 group now receives an official within-group rank.
+- Added a schema-validated common-harness submission sidecar, canonical artifact-tree hash, per-file SHA-256 inventory, exact release/source/model/environment attestations, CI validation, and tamper regressions so omitted failures or edited result files cannot silently enter a contributed rank.
+- Required per-call model-response traces, provider/runtime receipts, token counts, and positive duration for common-harness rank eligibility. This quarantined a receipt-free Groq Qwen output-contract batch while preserving all 30 attempts for inspection.
+- Made family-cluster intervals primary for patient-linked releases, retained Wilson intervals as secondary evidence, and excluded partial token/time telemetry from Pareto frontiers while keeping those rows visible with explicit coverage.
 - Made review completion evidence-backed: completed human/domain states require a matched release, completion timestamp, and repository-relative SHA-256 evidence package; the website now reads the canonical review ledger instead of hard-coded human-baseline and review counts.
 - Prevented seedless common-harness matrices from receiving a rank and prevented complete native/import rows from inflating the common-harness fleet funnel while preserving GPT-5.6 in the same public model and forensic views.
 - Disclosed that v0.6 requires but does not semantically grade the `limitations` field, and added a repository gate requiring v0.7+ tasks to declare a score-bearing limitations grader when that field is required.

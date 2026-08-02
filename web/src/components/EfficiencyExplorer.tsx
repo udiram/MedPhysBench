@@ -1,6 +1,17 @@
 import { ChevronDown, Search } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel } from "../lib/format";
+import {
+  domainLabel,
+  formatCoverage,
+  formatDuration,
+  formatPercent,
+  formatTokens,
+  hasComparableTelemetry,
+  primaryScoreInterval,
+  primaryScoreIntervalLabel,
+  providerLabel,
+  secondaryScoreInterval,
+} from "../lib/format";
 import { isCommonHarnessRun, isNativeRun, surfaceKind } from "../lib/runSurface";
 import type {
   Leaderboard,
@@ -243,7 +254,7 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
             </div>
             <div>
               <dt><span className="guide-line" /> Pareto frontier</dt>
-              <dd>No visible common-harness point should be both more expensive and less accurate.</dd>
+              <dd>Built only from rows with complete telemetry; no point should be both more expensive and less accurate within its frozen comparison group.</dd>
             </div>
             <div>
               <dt><span className="guide-missing" /> Telemetry unavailable</dt>
@@ -314,6 +325,7 @@ function EfficiencyScatter({
 }) {
   const available = rows.filter((entry) => xValue(entry.row, mode) !== null);
   const missing = rows.filter((entry) => xValue(entry.row, mode) === null);
+  const partial = available.filter((entry) => !hasComparableTelemetry(entry.row, mode));
 
   if (available.length === 0) {
     return (
@@ -364,11 +376,13 @@ function EfficiencyScatter({
             ? "Quality and token use form a frontier"
             : "Fast responses are useful only when they remain correct"}
         </h3>
-        <p>Each whisker is the safe-success 95% interval. Labels are placed in a dedicated lane to reduce overlap.</p>
+        <p>Each whisker is the primary safe-success 95% interval. Labels are placed in a dedicated lane to reduce overlap.</p>
       </div>
       <div className="chart-keyline">
         <span>Higher is better (y). Lower is better (x).</span>
-        <span>{missing.length} row{missing.length === 1 ? "" : "s"} without comparable telemetry</span>
+        <span>
+          {missing.length} missing · {partial.length} partial row{partial.length === 1 ? "" : "s"} excluded from frontier
+        </span>
       </div>
       <svg
         className="efficiency-chart"
@@ -432,7 +446,7 @@ function EfficiencyScatter({
               aria-label={`${pointLabel}${metricLabel}; 95% interval ${intervalLabel}`}
               onMouseEnter={() => onFocus(modelKey)}
               onFocus={() => onFocus(modelKey)}
-              className="chart-point"
+              className={`chart-point${hasComparableTelemetry(row, mode) ? "" : " partial-telemetry"}`}
             >
               <line
                 x1={px}
@@ -495,6 +509,20 @@ function EfficiencyScatter({
               onMouseEnter={() => onFocus(entry.key)}
             >
               {shortModelName(entry.row.model_name)}
+            </button>
+          ))}
+        </div>
+      )}
+      {partial.length > 0 && (
+        <div className="telemetry-missing telemetry-partial">
+          <strong>Partial telemetry · plotted, excluded from Pareto frontier</strong>
+          {partial.map((entry) => (
+            <button
+              key={entry.key}
+              onFocus={() => onFocus(entry.key)}
+              onMouseEnter={() => onFocus(entry.key)}
+            >
+              {shortModelName(entry.row.model_name)} · {telemetryCoverageLabel(entry.row, mode)}
             </button>
           ))}
         </div>
@@ -582,6 +610,7 @@ function EfficiencyTable({
             <th>Input tokens</th>
             <th>Output tokens</th>
             <th>Median time</th>
+            <th>Telemetry coverage</th>
             <th>Attempts</th>
             <th>Surface</th>
             <th>Source</th>
@@ -603,10 +632,23 @@ function EfficiencyTable({
                   </button>
                 </td>
                 <td>{formatPercent(row.safe_success_rate)}</td>
-                <td>{formatPercent(safeSuccessInterval(row)[0])}–{formatPercent(safeSuccessInterval(row)[1])}</td>
+                <td>
+                  {formatPercent(safeSuccessInterval(row)[0])}–{formatPercent(safeSuccessInterval(row)[1])}
+                  <small>{primaryScoreIntervalLabel(row)}</small>
+                  {secondaryScoreInterval(row) ? (
+                    <small>
+                      Wilson {formatPercent(secondaryScoreInterval(row)?.[0])}–
+                      {formatPercent(secondaryScoreInterval(row)?.[1])}
+                    </small>
+                  ) : null}
+                </td>
                 <td>{formatTokens(row.token_usage?.median_input_tokens)}</td>
                 <td>{formatTokens(row.token_usage?.median_output_tokens)}</td>
                 <td>{formatDuration(row.median_duration_seconds)}</td>
+                <td>
+                  <span>Tokens: {formatCoverage(row.token_usage?.observed_attempts, row.token_usage?.expected_attempts)}</span>
+                  <small>Time: {formatCoverage(row.duration_telemetry?.observed_attempts, row.duration_telemetry?.expected_attempts)}</small>
+                </td>
                 <td>{row.completed_count}/{row.expected_attempt_count}</td>
                 <td>{entry.surface === "common" ? "Common harness" : "Native/import"}</td>
                 <td>{sourceLabel(source)}</td>
@@ -856,7 +898,7 @@ function rankExclusionLabel(value: string) {
 }
 
 function safeSuccessInterval(row: ModelResult): [number, number] {
-  return row.safe_success_ci95 ?? row.task_success_ci95;
+  return primaryScoreInterval(row);
 }
 
 function xValue(row: ModelResult, mode: "tokens" | "time") {
@@ -866,7 +908,7 @@ function xValue(row: ModelResult, mode: "tokens" | "time") {
 
 function paretoFrontiers(rows: ModelResult[], mode: "tokens" | "time") {
   const groups = new Map<string, ModelResult[]>();
-  for (const row of rows) {
+  for (const row of rows.filter((candidate) => hasComparableTelemetry(candidate, mode))) {
     const group = row.comparison_group ?? row.rank_group ?? `${row.provider}::${row.harness_name}::${row.harness_revision}`;
     groups.set(group, [...(groups.get(group) ?? []), row]);
   }
@@ -883,6 +925,11 @@ function paretoFrontiers(rows: ModelResult[], mode: "tokens" | "time") {
     }
     return { group, rows: frontier };
   });
+}
+
+function telemetryCoverageLabel(row: ModelResult, mode: "tokens" | "time") {
+  const telemetry = mode === "tokens" ? row.token_usage : row.duration_telemetry;
+  return formatCoverage(telemetry?.observed_attempts, telemetry?.expected_attempts);
 }
 
 function compactNumber(value: number) {

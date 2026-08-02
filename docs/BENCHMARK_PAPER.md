@@ -30,7 +30,9 @@ as task success, safe success, structured-output validity, escalation accuracy, 
 Version 0.6 retains deterministic regrading and adds reference-feasibility reconstruction,
 hash-verified multimodal assets, bounding-box IoU and grid-mask Dice graders, and sealed-batch
 import checks. It also binds each attempt to the grader hash and scoring revision and reports
-family-cluster uncertainty for correlated patient-linked tasks. A model is rankable only when its task/attempt matrix is complete and consistent.
+family-cluster uncertainty for correlated patient-linked tasks. A model is rankable only when its
+task/attempt matrix is complete, deterministically regraded, internally consistent, and backed by
+per-call execution traces, provider/runtime receipts, usage telemetry, and duration telemetry.
 Native conversation-surface pilots are published separately and cannot receive a common-harness rank.
 Difficulty governance adds family-level splits, rotating holdouts, paired counterfactuals,
 multi-seed consistency, saturation triggers, and a 20-phase radiation-therapy competency map.
@@ -191,11 +193,12 @@ group. GPT-5.6 low, high, and ultra completed three native-surface attempts per 
 scored 66.67%, 76.67%, and 73.33%, respectively. Their descriptive outcome order is high, ultra,
 then low, but their Wilson intervals overlap. Those native rows have no official harness-group rank
 because they lack the common adapter and comparable token/time telemetry.
-DeepSeek R1 Distill Qwen 1.5B and five additional digest-pinned local models completed the
+DeepSeek R1 Distill Qwen 1.5B, Phi-4 Mini, and five additional digest-pinned local models completed the
 same v2 matrix. Qwen 3 14B and 8B each reached 40.0% safe success, Qwen 2.5 7B Instruct
-reached 30.0%, and Qwen 3 1.7B, DeepSeek R1 1.5B, and Llama 3.2 3B reached 0.0%.
+reached 30.0%, Phi-4 Mini reached 10.0%, and Qwen 3 1.7B, DeepSeek R1 1.5B, and
+Llama 3.2 3B reached 0.0%.
 Every text-only model retained twelve explicit unsupported-image outcomes in the denominator.
-The six-system exact-configuration group now receives a within-group rank; it is not merged with
+The seven-system exact-configuration group now receives a within-group rank; it is not merged with
 the older Ollama, Groq, or native GPT-5.6 groups.
 Full evidence is published in
 [`RESULTS.md`](RESULTS.md) and the release directories.
@@ -225,7 +228,15 @@ During publication, the summarizer verifies the expected `(task_id, attempt_inde
 duplicates, unknown tasks, unresolved transport-error attempts, and mixed execution configurations, enforces
 task/model/harness identity consistency, checks prompt/tool/runtime/system hashes, and recomputes
 deterministic grades from output. Any disagreement between stored and recomputed pass/safety fields
-makes the row unrankable and remains visible in the integrity report.
+makes the row unrankable and remains visible in the integrity report. Common-harness calls must also
+carry a model-response trace, non-empty provider/runtime receipt, usage counts, and positive duration;
+an explicit unsupported-modality preflight trace is the only no-call exception.
+
+Contributed bundles additionally use `common-harness-submission.v1`, which binds the frozen release
+hash, source commits, base-model mapping, environment, attestations, and every result or transport
+ledger file by byte length and SHA-256. CI rejects omitted, inserted, reordered, or modified artifacts.
+This is auditable provenance rather than cryptographic proof of honest third-party execution; stronger
+claims require managed runners or independently signed provider receipts.
 
 Unsupported required modalities and provider JSON-generation failures are completed zero-score
 model attempts rather than transport errors. This prevents systems from escaping the denominator by
