@@ -134,6 +134,7 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
   }, [catalogMap, filteredRuns]);
 
   const loadedReleaseCount = datasets.filter((dataset) => dataset.data).length;
+  const baseModelCount = new Set(groups.map((group) => group.model_name.replace(/\s+\[effort=[^\]]+\]$/, ""))).size;
   const openCount = groups.filter((group) => (group.catalog?.openness ?? "unknown") === "open").length;
   const closedCount = groups.filter((group) => (group.catalog?.openness ?? "unknown") === "closed").length;
   const groqCount = groups.filter((group) => group.provider === "groq").length;
@@ -152,7 +153,7 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
         <article>
           <span>Model systems</span>
           <strong>{groups.length}</strong>
-          <small>{loadedReleaseCount} public releases loaded</small>
+          <small>{baseModelCount} base model IDs · {loadedReleaseCount} public releases loaded</small>
         </article>
         <article>
           <span>Open-weight</span>

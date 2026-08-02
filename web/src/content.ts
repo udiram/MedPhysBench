@@ -7,6 +7,7 @@ export const DOC_LINKS = [
   ["Evaluation protocol", `${REPO_URL}/blob/main/docs/EVALUATION_PROTOCOL.md`],
   ["Reproducibility", `${REPO_URL}/blob/main/docs/REPRODUCIBILITY.md`],
   ["Human baseline", `${REPO_URL}/blob/main/docs/HUMAN_BASELINE_PROTOCOL.md`],
+  ["50-model fleet protocol", `${REPO_URL}/blob/main/docs/MODEL_FLEET_PROTOCOL.md`],
   ["All documentation", `${REPO_URL}/tree/main/docs`],
 ] as const;
 

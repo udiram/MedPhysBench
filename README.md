@@ -59,6 +59,7 @@ package, or evidence of autonomous clinical competence.
 | Understand the harder RT roadmap | [Benchmark hardening](docs/BENCHMARK_HARDENING.md) · [RT competency map](docs/RT_COMPETENCY_MAP.md) · [AAPM coverage](docs/AAPM_TASK_GROUP_COVERAGE.md) · [planning sandbox](docs/PLANNING_SANDBOX.md) · [TG-263 lane](docs/TG263_BENCHMARK.md) |
 | Audit the human-grounding claim | [Human baseline protocol](docs/HUMAN_BASELINE_PROTOCOL.md) · [review ledger](reviews/public-real-workflows-pilot-v0.6.json) |
 | Run models at no software cost | [Free-model evaluation](docs/FREE_MODEL_EVALUATION.md) |
+| Audit the 50-model expansion target | [Model fleet protocol](docs/MODEL_FLEET_PROTOCOL.md) |
 
 ## What is already real
 
@@ -89,8 +90,9 @@ package, or evidence of autonomous clinical competence.
 - Architecture, governance, evaluation, onboarding, and deployment documentation in [`docs/`](docs/).
 - Repository-wide validation of all six JSON Schemas, every authored/runtime task projection,
   every artifact digest, constructed reference feasibility, and every published result artifact.
-- A compact browser leaderboard that exposes scores, integrity state, task labels, and contract
-  hashes while keeping attempt outputs and grader evidence in the immutable release result files.
+- A unified browser model index that exposes open/closed and provider filters, release-specific
+  scores, task-level outcome facets, failed grader contracts, and provenance hashes while keeping
+  raw responses, hidden expected values, and grader golds out of the public projection.
 
 ## Quick start
 
