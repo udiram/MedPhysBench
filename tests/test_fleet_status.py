@@ -47,12 +47,12 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert rebuilt["summary"] == {
         "planned_base_models": 50,
         "access_qualified_base_models": 16,
-        "evaluated_base_models": 15,
-        "ranked_base_models": 14,
-        "workflow_qualified_base_models": 10,
+        "evaluated_base_models": 11,
+        "ranked_base_models": 9,
+        "workflow_qualified_base_models": 11,
         "workflow_ranked_base_models": 9,
-        "published_system_configurations": 20,
-        "published_release_rows": 30,
+        "published_system_configurations": 21,
+        "published_release_rows": 31,
         "open_planned_models": 31,
         "closed_planned_models": 19,
         "vision_planned_models": 31,
@@ -70,7 +70,7 @@ def test_catalog_maps_system_configurations_to_unique_frozen_base_models() -> No
 
     assert len(keys) == len(set(keys))
     assert all(entry["base_model_id"] in frozen_ids for entry in catalog)
-    assert len({entry["base_model_id"] for entry in catalog}) == 15
+    assert len({entry["base_model_id"] for entry in catalog}) == 16
     assert sum(entry["base_model_id"] == "gpt-5.6-sol" for entry in catalog) == 6
 
 
@@ -102,24 +102,24 @@ def test_incomplete_campaign_cannot_increment_evaluated_or_ranked_counts(tmp_pat
     assert status["summary"]["ranked_base_models"] == 0
 
 
-def test_access_only_model_is_not_presented_as_evaluated() -> None:
+def test_singleton_workflow_model_is_evaluated_but_not_officially_ranked() -> None:
     status = build_fleet_status()
     deepseek = next(
         row
         for row in status["models"]
         if row["base_model_id"] == "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
     )
-    assert deepseek["qualification_stage"] == "q1"
+    assert deepseek["qualification_stage"] == "q2"
     assert deepseek["access_qualified"] is True
-    assert deepseek["evaluated"] is False
+    assert deepseek["evaluated"] is True
     assert deepseek["ranked"] is False
-    assert deepseek["workflow_qualified"] is False
+    assert deepseek["workflow_qualified"] is True
     assert deepseek["workflow_ranked"] is False
 
 
 def test_workflow_qualified_counts_only_real_workflow_release() -> None:
     status = build_fleet_status()
-    assert status["summary"]["workflow_qualified_base_models"] == 10
+    assert status["summary"]["workflow_qualified_base_models"] == 11
     assert status["summary"]["workflow_ranked_base_models"] == 9
 
     gpt = next(
@@ -135,5 +135,5 @@ def test_workflow_qualified_counts_only_real_workflow_release() -> None:
         for row in status["models"]
         if row["base_model_id"] == "Qwen/Qwen3-14B"
     )
-    assert core_only["evaluated"] is True
+    assert core_only["evaluated"] is False
     assert core_only["workflow_qualified"] is False

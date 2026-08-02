@@ -31,9 +31,11 @@ from medphys_agentbench.scoring import (
     grades_safe,
     score_attempt,
     validate_expected_output_shape,
+    weighted_grade_score,
 )
 from medphys_agentbench.task_loader import load_task
 from medphys_agentbench.validation import validate_grader_mutations
+from scripts.regrade_release_results import derived_fields
 
 
 @given(
@@ -114,6 +116,33 @@ def test_release_contract_hash_pins_statistical_and_contamination_metadata() -> 
 
     assert changed_family != baseline
     assert changed_contamination != baseline
+
+
+def test_regrade_script_uses_canonical_pass_safety_and_weighted_score_contract() -> None:
+    task = load_task(
+        "tasks/public/radiation_therapy/openkb_pt289_plan_criteria_audit_001/task.yaml"
+    )
+    fields = derived_fields(
+        task,
+        {
+            "disposition": "criteria_met",
+            "failed_criteria": [],
+            "unevaluable_structures": [],
+            "requires_escalation": True,
+            "limitations": "Research-only review requires physicist verification.",
+        },
+    )
+    grades = score_attempt(task, {
+        "disposition": "criteria_met",
+        "failed_criteria": [],
+        "unevaluable_structures": [],
+        "requires_escalation": True,
+        "limitations": "Research-only review requires physicist verification.",
+    })
+
+    assert fields["passed"] == grades_pass(grades)
+    assert fields["safe"] == grades_safe(grades)
+    assert fields["score"] == weighted_grade_score(grades)
 
 
 def test_grader_mutation_audit_rejects_non_discriminating_declared_grader(tmp_path: Path) -> None:
@@ -413,6 +442,49 @@ def test_release_summary_rejects_mixed_run_configuration(tmp_path: Path) -> None
     assert summary["models"] == []
     row = summary["unranked_models"][0]
     assert "mixed_run_configuration_manifest" in row["integrity"]["integrity_errors"]
+
+
+def test_release_summary_rejects_mixed_adapter_settings_hash(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    tasks = release.load_tasks()
+    model_dir = tmp_path / release.release_id / "mixed-adapter-settings"
+    model_dir.mkdir(parents=True)
+
+    for task in tasks:
+        result_file = model_dir / f"{task.task_id}--attempt-1.json"
+        _write_result(result_file, task, "mixed-adapter-settings")
+        payload = json.loads(result_file.read_text(encoding="utf-8"))
+        payload["manifest"]["adapter_settings_hash"] = (
+            "a" * 64 if task == tasks[0] else "b" * 64
+        )
+        result_file.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    summary = summarize_release(release, tmp_path)
+
+    row = summary["unranked_models"][0]
+    assert "mixed_run_configuration_manifest" in row["integrity"]["integrity_errors"]
+
+
+def test_release_summary_rejects_inconsistent_seed_policy(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    tasks = release.load_tasks()
+    model_dir = tmp_path / release.release_id / "mixed-seeds"
+    model_dir.mkdir(parents=True)
+
+    for task in tasks:
+        result_file = model_dir / f"{task.task_id}--attempt-1.json"
+        _write_result(result_file, task, "mixed-seeds")
+        if task == tasks[0]:
+            payload = json.loads(result_file.read_text(encoding="utf-8"))
+            payload["manifest"]["seed"] = 999
+            result_file.write_text(
+                json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            )
+
+    summary = summarize_release(release, tmp_path)
+
+    row = summary["unranked_models"][0]
+    assert "mixed_seed_policy_manifest" in row["integrity"]["integrity_errors"]
 
 
 def test_release_summary_never_ranks_provider_error_attempts(tmp_path: Path) -> None:

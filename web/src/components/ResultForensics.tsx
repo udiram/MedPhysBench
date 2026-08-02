@@ -5,7 +5,7 @@ import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import type { Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, ReleaseView } from "../types";
 
 type SourceFilter = "all" | "open" | "closed" | "unknown";
-type OutcomeFilter = "all" | "safe_success" | "safe_failure" | "unsafe" | "inconclusive";
+type OutcomeFilter = "all" | "safe_success" | "safe_failure" | "unsafe" | "inconclusive" | "capability_failure";
 
 type Props = {
   data: Leaderboard | null;
@@ -39,7 +39,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
     [modelCatalog],
   );
 
-  const visibleRows = useMemo<VisibleRow[]>(() => {
+  const forensicRows = useMemo<VisibleRow[]>(() => {
     if (!data) return [];
     const combined = [...data.models, ...(data.unranked_models ?? [])];
     return combined
@@ -48,17 +48,21 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
         const source = catalogIndex[`${row.provider}::${row.model_name}`]?.openness ?? "unknown";
         return { key: `${row.provider}::${row.model_name}`, row, source };
       })
-      .filter((entry) => {
-        const matchesSource = sourceFilter === "all" || entry.source === sourceFilter;
-        const matchesProvider = providerFilter === "all" || entry.row.provider === providerFilter;
-        return matchesSource && matchesProvider;
-      })
       .sort((left, right) => {
         const leftRank = left.row.outcome_rank ?? left.row.rank ?? Number.POSITIVE_INFINITY;
         const rightRank = right.row.outcome_rank ?? right.row.rank ?? Number.POSITIVE_INFINITY;
         return leftRank - rightRank || right.row.safe_success_rate - left.row.safe_success_rate;
       });
-  }, [catalogIndex, data, providerFilter, sourceFilter]);
+  }, [catalogIndex, data]);
+
+  const visibleRows = useMemo<VisibleRow[]>(() => {
+    return forensicRows
+      .filter((entry) => {
+        const matchesSource = sourceFilter === "all" || entry.source === sourceFilter;
+        const matchesProvider = providerFilter === "all" || entry.row.provider === providerFilter;
+        return matchesSource && matchesProvider;
+      });
+  }, [forensicRows, providerFilter, sourceFilter]);
 
   useEffect(() => {
     if (!visibleRows.length) {
@@ -82,7 +86,10 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
     if (!selectedRow) return [];
     return selectedRow.tasks.filter((task) => {
       const matchesDomain = domainFilter === "all" || task.domain === domainFilter;
-      const matchesOutcome = outcomeFilter === "all" || task.outcome_category === outcomeFilter;
+      const matchesOutcome = outcomeFilter === "all"
+        || (outcomeFilter === "capability_failure"
+          ? task.capability_failure === true
+          : task.outcome_category === outcomeFilter);
       return matchesDomain && matchesOutcome;
     });
   }, [domainFilter, outcomeFilter, selectedRow]);
@@ -117,7 +124,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
     [data],
   );
 
-  const supportsForensics = visibleRows.length > 0;
+  const supportsForensics = forensicRows.length > 0;
 
   if (!data) {
     return (
@@ -136,8 +143,9 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
         <div>
           <h2>Attempt-level forensics</h2>
           <p>
-            Inspect where a model went right or wrong at the task level. This view only uses released attempt labels,
-            grader traces, and immutable hashes already present in the public artifact.
+            Inspect where a model went right or wrong at the task level. This view uses released outputs,
+            deterministic regrading, grader traces, and immutable hashes from the public artifact; legacy manifest
+            gaps remain visible and cannot receive a current-contract rank.
           </p>
         </div>
         <p className="coverage-summary">
@@ -161,7 +169,13 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
             <label className="field">
               <span>Model source</span>
               <span className="select-wrap">
-                <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as SourceFilter)}>
+                <select
+                  value={sourceFilter}
+                  onChange={(event) => {
+                    setSourceFilter(event.target.value as SourceFilter);
+                    setProviderFilter("all");
+                  }}
+                >
                   <option value="all">Open + closed</option>
                   <option value="open">Open weights</option>
                   <option value="closed">Closed</option>
@@ -220,6 +234,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                   <option value="safe_failure">Safe failure</option>
                   <option value="unsafe">Unsafe</option>
                   <option value="inconclusive">Inconclusive</option>
+                  <option value="capability_failure">Capability failure</option>
                 </select>
                 <ChevronDown aria-hidden="true" />
               </span>
@@ -279,6 +294,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                                   Attempt {task.attempt_index != null ? task.attempt_index + 1 : "—"}
                                   {task.seed != null ? ` · seed ${task.seed}` : ""}
                                 </small>
+                                {task.model_failure_kind ? <small>{failureKindLabel(task.model_failure_kind)}</small> : null}
                                 <em>{outcomeLabel(task.outcome_category)}</em>
                               </button>
                               );
@@ -360,6 +376,8 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                           <div><dt>Tools</dt><dd>{shortHash(selectedTask.tool_schema_hash)}</dd></div>
                           <div><dt>Runtime</dt><dd>{shortHash(selectedTask.runtime_task_hash)}</dd></div>
                           <div><dt>Grader</dt><dd>{shortHash(selectedTask.grader_hash)}</dd></div>
+                          <div><dt>Failure kind</dt><dd>{selectedTask.model_failure_kind ? failureKindLabel(selectedTask.model_failure_kind) : "Model output graded"}</dd></div>
+                          <div><dt>Capability failure</dt><dd>{selectedTask.capability_failure ? "Yes" : "No"}</dd></div>
                         </dl>
                         <div className="forensics-tag-groups">
                           <div>
@@ -408,7 +426,12 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                 </aside>
               </div>
             </>
-          ) : null}
+          ) : (
+            <div className="forensics-empty">
+              <strong>No released run sets match this source and provider combination.</strong>
+              <p>Change either filter to restore the attempt-level evidence view; the controls remain available.</p>
+            </div>
+          )}
         </>
       )}
     </section>
@@ -494,4 +517,10 @@ function taskKey(task: ModelTaskResult, index: number) {
     task.seed ?? "noseed",
     task.run_id ?? "norun",
   ].join("::");
+}
+
+function failureKindLabel(value: string) {
+  if (value === "unsupported_required_modality") return "Unsupported required modality";
+  if (value === "provider_output_contract_failure") return "Provider output contract failure";
+  return value.replaceAll("_", " ");
 }

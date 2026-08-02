@@ -18,8 +18,8 @@ Version 0.6 adds a separate ten-task OpenKBP real-workflow pilot derived from
 two patient families. It is reported independently from the core and original
 five-image pilot.
 
-The primary metric is safe task success: an attempt must pass every outcome
-grader and avoid every critical safety failure. Wilson 95% intervals describe
+The primary metric is safe task success: an attempt must pass every required
+outcome grader and every explicit safety-lane gate. Wilson 95% intervals describe
 binary attempt uncertainty. The v0.6 pilot also reports a deterministic
 family-cluster bootstrap interval, but two patient families are still far too
 few for external-validity claims.
@@ -35,22 +35,26 @@ The machine-derived public status currently reports:
 | --- | ---: | --- |
 | Frozen panel | 50 | Selected before further score inspection |
 | Access qualified | 16 | Live Q0 or later access evidence exists |
-| Evaluated | 15 | At least one complete public attempt matrix exists |
-| Rankable | 14 | At least one complete common-harness row exists |
+| Validly evaluated | 11 | At least one complete matrix satisfies the current manifest/scoring contract |
+| Rankable | 9 | At least two systems share an exact frozen comparison group |
 
-The site still exposes all 20 published system configurations and 30 release
+The site still exposes all 21 published system configurations and 31 release
 rows. Six GPT-5.6 effort settings therefore remain six auditable configurations
 of one base model, while Groq-hosted and local routes of the same open-weight
-base also count once toward breadth. `deepseek-r1:1.5b` is access-qualified but
-not evaluated on Q2: 18/30 attempts completed and 12 image-grid requests failed
-with Ollama HTTP 500 under the frozen runtime. No partial score is published.
+base also count once toward breadth. Five legacy core-only base models remain
+visible but no longer count as current-contract evaluated because their v1
+artifacts predate grader hashes and scoring revisions. `deepseek-r1:1.5b` completed
+all 30 Q2 attempts with an immutable Ollama artifact digest; 12 image-grid attempts
+are explicit unsupported-modality failures rather than omitted requests.
 
-## Core common-harness leaderboard
+## Historical core common-harness snapshot
 
 These models completed the same 64 tasks through the Ollama adapter with
-temperature 0 and seed 20260731. They are the only ranked v0.4 core rows.
+temperature 0 and seed 20260731. Their point estimates are preserved as a historical
+snapshot, but current reporting withholds official ranks because the v1 artifacts
+predate grader hashes and the scoring-revision field.
 
-| Rank | Model | Safe success | 95% CI | Safety gate | Valid output |
+| Historical order | Model | Safe success | 95% CI | Safety gate | Valid output |
 | ---: | --- | ---: | ---: | ---: | ---: |
 | 1 | `qwen3:14b` | 73.44% | 61.52–82.70% | 98.44% | 100.00% |
 | 2 | `qwen3:8b` | 57.81% | 45.61–69.13% | 98.44% | 100.00% |
@@ -160,9 +164,9 @@ boxes, and the released PET source label remain outside the model-visible runtim
 
 | Surface | Model / effort | Safe success | Safety gate | Valid output | Status |
 | --- | --- | ---: | ---: | ---: | --- |
-| Ollama vision | `gemma3:4b` | 0/5 | 100% | 80% | Ranked common harness |
-| Ollama vision | `qwen2.5vl:3b` | 0/5 | 100% | 100% | Ranked common harness |
-| Ollama vision | `qwen3-vl:8b` | 0/5 | 0% | 0% | Ranked common harness |
+| Ollama vision | `gemma3:4b` | 0/5 | 100% | 80% | Historical; current-contract rank withheld |
+| Ollama vision | `qwen2.5vl:3b` | 0/5 | 100% | 100% | Historical; current-contract rank withheld |
+| Ollama vision | `qwen3-vl:8b` | 0/5 | 0% | 0% | Historical; current-contract rank withheld |
 | Codex native vision | GPT-5.6 high | 4/5 | 100% | 100% | Unranked native pilot |
 | Codex native vision | GPT-5.6 ultra | 4/5 | 100% | 100% | Unranked native pilot |
 
@@ -182,13 +186,13 @@ TG-263 naming audit. The CT and expert contours are derived from OpenKBP; the
 reference plan dose is OpenKBP's standardized synthetic plan. Every task requires
 qualified review or escalation and is regraded from the stored candidate output.
 
-Nine API/local configurations completed three attempts per task. Four ran under
+Ten API/local configurations completed three attempts per task. Four ran under
 one memory-bounded Ollama harness (`temperature=0`, seeds
 `20260731`–`20260733`, 4,096-token context, 768 output-token cap). Five ran on
 Groq's OpenAI-compatible endpoint under one shared JSON-object contract with the
 same temperature, seeds, and output-token cap. Official ranks are computed within
-each identical provider/harness-revision group; the separate descriptive outcome
-order spans every complete row.
+each identical provider/harness/configuration group with at least two systems; the
+separate descriptive outcome order spans every complete valid row.
 
 | Rank | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens | Median time |
 | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -204,6 +208,15 @@ order spans every complete row.
 | 3 | `openai/gpt-oss-120b` | 50.0% | 33.15–66.85% | 60.0% | 60.0% | 1,371.5 | 10.268 s |
 | 4 | `llama-3.1-8b-instant` | 0.0% | 0.00–11.35% | 16.67% | 60.0% | 1,002 | 8.343 s |
 | 5 | `qwen/qwen3.6-27b` | 0.0% | 0.00–11.35% | 0.0% | 0.0% | unavailable | unavailable |
+
+`deepseek-r1:1.5b` completed the same 30-attempt matrix under the new
+`reference-json-v2` harness with a digest-pinned Q4 artifact, 4,096-token context,
+and 2,048-token output cap. It scored 0/30 safe successes: 12 image tasks were
+explicit unsupported-modality failures, while all 18 text attempts were schema-valid
+but failed one or more outcome/safety contracts. Provider telemetry covered those
+18 model calls (29,082 total tokens; 1,616 median tokens; 14.805 s median wall time).
+The row is visible in outcome order but receives no official rank until a second
+system shares the exact v2 configuration contract.
 
 `*` Groq token and time medians use the 18 text attempts with observed provider
 telemetry. The four image tasks generate 12 completed zero-score modality failures

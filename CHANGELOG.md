@@ -2,11 +2,13 @@
 
 ## Unreleased
 
-- Froze a machine-readable 50-base-model fleet and added a deterministic public qualification funnel: 16 access-qualified, 15 evaluated, 14 rankable, 20 published system configurations, and no count inflation from aliases or GPT-5.6 effort settings.
+- Froze a machine-readable 50-base-model fleet and added a deterministic public qualification funnel: 16 access-qualified, 11 validly evaluated under the current manifest contract, 9 rankable, 21 published system configurations, and no count inflation from aliases or GPT-5.6 effort settings.
 - Unified GPT-5.6, Groq, and Ollama discovery, provider/source filtering, efficiency plots, and task-level failure drilldowns while preserving execution surface only as a comparability annotation.
 - Added run manifest v2 with a hashed, credential-free adapter-settings contract; resume now rejects context, endpoint, schema-mode, retry, reasoning-effort, artifact-transport, or model-residency drift.
-- Made unexpected harness exceptions fatal internal campaign errors instead of misclassifying them as provider transport failures, and recorded the incomplete DeepSeek R1 1.5B qualification without publishing a score.
-- Made the fleet headline data-derived and constrained the complete site shell horizontally after expanded mobile task-evidence QA.
+- Made unexpected harness exceptions fatal internal campaign errors instead of misclassifying them as provider transport failures; then completed a digest-pinned 30-attempt DeepSeek R1 1.5B Q2 matrix with 12 explicit unsupported-modality outcomes and 18 schema-valid text calls.
+- Added attempt-level source/provider/model/domain/outcome/capability filters, failure-lane and grader anatomy, immutable hash drilldowns, family agreement views, and honest legacy deterministic-regrade labels.
+- Froze comparison groups by adapter-settings hash and seed policy, withheld singleton ranks, and aligned the bulk regrader with the canonical safety-lane and weighted-score functions.
+- Made the fleet headline data-derived, kept forensic controls mounted across empty filter intersections, and constrained the complete site shell horizontally after expanded desktop/mobile task-evidence QA.
 - Added 150 Groq-hosted v0.6 attempts across Llama 3.1 8B Instant, Llama 3.3 70B Versatile, GPT-OSS 20B, GPT-OSS 120B, and Qwen 3.6 27B, with bounded rate-limit backoff and no persisted provider credential.
 - Expanded the GPT-5.6 OpenKBP audit from one to three attempts per task and effort, publishing 90 native-surface attempts with Wilson intervals, repeated-attempt agreement, and a descriptive outcome order.
 - Split official ranks by identical provider/harness revision while retaining a clearly labeled cross-surface point-estimate order, so native evidence is visible without being misrepresented as API-equivalent.

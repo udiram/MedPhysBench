@@ -27,6 +27,7 @@ WORKFLOW_QUALIFYING_RELEASE_IDS = {"public-real-workflows-pilot-v0.6"}
 COMPARABILITY_ONLY_ISSUES = {
     "unranked_noncommon_surface",
     "unranked_native_pilot_surface",
+    "unranked_singleton_comparison_group",
 }
 STAGE_ORDER = {"q0": 0, "q1": 1, "q2": 2, "q3": 3}
 

@@ -2209,6 +2209,7 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   .fleet-controls { grid-template-columns: 1fr; }
   .fleet-funnel li::after { display: none; }
   .release-title-row,
+  .section-heading-row,
   .capability-toolbar { align-items: flex-start; flex-direction: column; }
   .release-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .forensics-controls,

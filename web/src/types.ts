@@ -74,6 +74,9 @@ export type ModelTaskResult = {
   passed?: boolean;
   safe: boolean;
   outcome_category?: string;
+  capability_failure?: boolean;
+  model_failure_kind?: string | null;
+  error_type?: string | null;
   failed_graders?: string[];
   failed_lanes?: string[];
 };

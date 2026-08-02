@@ -103,21 +103,25 @@ scored outcomes and remain canonical attempts; they are not transport retries.
 
 ## Current state
 
-The public website currently exposes 20 model configurations representing 15
+The public website currently exposes 21 model configurations representing 16
 unique base model identifiers across four release surfaces, including five
 completed Groq configurations and six GPT-5.6 effort configurations. These are
-not 20 unique base models. An Ollama Cloud access probe
+not 21 unique base models. An Ollama Cloud access probe
 for `qwen3.5:397b-cloud` on 2026-08-02 returned HTTP 429 before a scored artifact
 was created. The lab-node hostname was not resolvable from the current Mac
 network context. Neither event supports a model score.
 
 The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
-19 closed-weight, 31 declared vision-capable, and 11 stewards. The derived
-qualification funnel currently reports 16 access-qualified, 15 evaluated, and
-14 rankable base models. `deepseek-r1:1.5b` completed the Q1 schema/escalation
-probe, but its Q2 run stopped at 18/30 canonical attempts after 12 Ollama HTTP
-500 failures on image-grid tasks under a frozen 4,096-token context. Its partial
-artifacts are not in the score tree and it receives no score or rank.
+19 closed-weight, 31 declared vision-capable, and 11 stewards. After enforcing
+the current grader/scoring manifest contract, the derived funnel
+reports 16 access-qualified, 11 validly evaluated, and 9 officially rankable base
+models. Five older core-only bases remain visible as historical evidence but lack
+the grader hashes/scoring revision required for current-contract status.
+`deepseek-r1:1.5b` completed a fresh 30-attempt Q2 matrix with artifact digest
+`sha256:e0979632db5a88d1a53884cb2a941772d10ff5d055aabaa6801c4e36f3a6c2d7`.
+Its 12 required-image attempts are explicit unsupported-modality outcomes and all
+18 text attempts produced schema-valid outputs. The row receives no official rank
+because it is the only system in its exact `reference-json-v2` comparison group.
 
 Run manifest v2 now freezes and hashes credential-free adapter runtime settings.
 Resume rejects a context-window, endpoint, strict-schema, retry-policy, reasoning-

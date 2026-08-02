@@ -86,7 +86,7 @@ def test_core_release_contains_expected_gpt56_native_rows() -> None:
     ]
 
 
-def test_legacy_aggregates_are_not_mistaken_for_explicit_task_outcomes() -> None:
+def test_legacy_outputs_are_regraded_but_never_promoted_past_integrity_gates() -> None:
     core = _load_json(PUBLIC_DATA / "leaderboard.json")
     real = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(core, dict)
@@ -96,7 +96,12 @@ def test_legacy_aggregates_are_not_mistaken_for_explicit_task_outcomes() -> None
     core_gpt_high = next(row for row in core_rows if row["model_name"] == "gpt-5.6-sol [effort=high]")
     assert core_gpt_high["safe_success_rate"] == 1.0
     assert core_gpt_high["tasks"]
-    assert all("passed" not in task for task in core_gpt_high["tasks"])
+    assert all(isinstance(task.get("passed"), bool) for task in core_gpt_high["tasks"])
+    assert core_gpt_high["ranking_eligible"] is False
+    assert any(
+        issue.startswith("missing_grader_hash:")
+        for issue in core_gpt_high["integrity"]["integrity_errors"]
+    )
 
     real_rows = [*real["models"], *real.get("unranked_models", [])]
     real_gpt_high = next(row for row in real_rows if row["model_name"] == "gpt-5.6-sol [effort=high]")
@@ -108,7 +113,13 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(payload, dict)
     rows = [*payload["models"], *payload.get("unranked_models", [])]
-    assert len(rows) == 12
+    assert len(rows) == 13
+    deepseek = next(row for row in rows if row["model_name"] == "deepseek-r1:1.5b")
+    capability_failures = [task for task in deepseek["tasks"] if task.get("capability_failure")]
+    assert len(capability_failures) == 12
+    assert {task["model_failure_kind"] for task in capability_failures} == {
+        "unsupported_required_modality"
+    }
 
     forbidden = {"output", "grades", "raw_response", "trace", "error", "expected"}
     for row in rows:

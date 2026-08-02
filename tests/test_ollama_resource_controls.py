@@ -11,6 +11,7 @@ from medphys_agentbench.adapters.ollama import (
     AdapterError,
     OllamaAdapter,
     UnsupportedCapabilityError,
+    resolve_ollama_model_revision,
 )
 from medphys_agentbench.task_loader import load_task
 
@@ -60,6 +61,44 @@ def test_ollama_defaults_unload_model_and_bound_context(monkeypatch: pytest.Monk
     assert payload["options"]["num_ctx"] == 4096
     assert payload["options"]["num_predict"] == 1024
     assert result.final_output["answer_ratio"] == 0.25
+
+
+def test_ollama_model_revision_resolves_to_immutable_digest(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    digest = "a" * 64
+
+    def fake_urlopen(request: urllib.request.Request, timeout: int) -> _FakeResponse:
+        assert request.full_url == "http://127.0.0.1:11434/api/tags"
+        assert request.get_method() == "GET"
+        assert timeout == 17
+        return _FakeResponse(
+            {"models": [{"name": "fixture-model", "digest": digest}]}
+        )
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+
+    revision = resolve_ollama_model_revision("fixture-model", timeout_seconds=17)
+    adapter = OllamaAdapter(model_name="fixture-model", model_revision_override=revision)
+
+    assert revision == f"sha256:{digest}"
+    assert adapter.model_descriptor().model_revision == revision
+    assert adapter.runtime_settings()["model_identity_resolution"] == "ollama_tags_digest_v1"
+
+
+def test_ollama_model_revision_rejects_missing_or_invalid_digest(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        urllib.request,
+        "urlopen",
+        lambda *_args, **_kwargs: _FakeResponse(
+            {"models": [{"name": "fixture-model", "digest": "not-a-digest"}]}
+        ),
+    )
+
+    with pytest.raises(AdapterError, match="valid SHA-256 digest"):
+        resolve_ollama_model_revision("fixture-model")
 
 
 def test_ollama_preflights_declared_image_capability(monkeypatch: pytest.MonkeyPatch) -> None:

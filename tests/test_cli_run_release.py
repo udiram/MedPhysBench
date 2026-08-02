@@ -180,8 +180,12 @@ def test_run_release_scores_unsupported_required_modality_as_completed_zero(
     assert all(item["capability_failure"] is True for item in artifacts)
     assert all(item["passed"] is False for item in artifacts)
     summary = summarize_release(load_release("releases/public_imaging_pilot_v0_4.yaml"), tmp_path)
-    assert summary["integrity"]["ranked_model_count"] == 1
-    assert summary["models"][0]["safe_success_rate"] == 0.0
+    assert summary["integrity"]["ranked_model_count"] == 0
+    assert summary["models"] == []
+    assert summary["unranked_models"][0]["safe_success_rate"] == 0.0
+    assert "unranked_singleton_comparison_group" in summary["unranked_models"][0]["integrity"][
+        "integrity_errors"
+    ]
 
 
 def test_run_release_resume_validates_and_fills_only_missing_attempts(

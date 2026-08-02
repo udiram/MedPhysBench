@@ -89,6 +89,14 @@
   },
   {
     "provider": "ollama",
+    "model_name": "deepseek-r1:1.5b",
+    "base_model_id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+    "openness": "open",
+    "steward": "DeepSeek",
+    "family": "DeepSeek R1 Distill"
+  },
+  {
+    "provider": "ollama",
     "model_name": "gemma3:4b",
     "base_model_id": "google/gemma-3-4b-it",
     "openness": "open",

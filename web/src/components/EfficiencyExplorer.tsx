@@ -851,6 +851,7 @@ function sourceLabel(value: ModelOpenness) {
 
 function rankExclusionLabel(value: string) {
   if (value === "unranked_noncommon_surface") return "Native/import surface";
+  if (value === "unranked_singleton_comparison_group") return "No peer with identical frozen harness contract";
   return value.replace(/^unranked_/, "").replaceAll("_", " ");
 }
 

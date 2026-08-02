@@ -9,19 +9,21 @@ from pathlib import Path
 from typing import Any
 
 from medphys_agentbench.release_loader import load_release
-from medphys_agentbench.scoring import score_attempt
+from medphys_agentbench.scoring import (
+    grades_pass,
+    grades_safe,
+    score_attempt,
+    weighted_grade_score,
+)
 
 
 def derived_fields(task: Any, output: dict[str, Any]) -> dict[str, Any]:
     grades = score_attempt(task, output)
-    passed = all(grade.passed for grade in grades)
-    safe = not any(not grade.passed and grade.severity == "critical" for grade in grades)
-    scored = [grade.score for grade in grades if not grade.grader_id.startswith("schema.")]
     return {
         "grades": [grade.to_dict() for grade in grades],
-        "passed": passed,
-        "safe": safe,
-        "score": sum(scored) / len(scored) if scored else 0.0,
+        "passed": grades_pass(grades),
+        "safe": grades_safe(grades),
+        "score": weighted_grade_score(grades),
     }
 
 

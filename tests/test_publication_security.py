@@ -44,6 +44,25 @@ def test_public_sanitizer_redacts_trace_raw_preview(tmp_path: Path) -> None:
     assert check.returncode == 0
 
 
+def test_public_sanitizer_ignores_release_summary_json(tmp_path: Path) -> None:
+    releases_root = tmp_path / "releases"
+    release_dir = releases_root / "release"
+    release_dir.mkdir(parents=True)
+    leaderboard_path = release_dir / "leaderboard.json"
+    leaderboard_path.write_text(json.dumps([{"model_name": "fixture"}]), encoding="utf-8")
+
+    check = subprocess.run(
+        [sys.executable, "scripts/sanitize_public_results.py", str(releases_root), "--check"],
+        capture_output=True,
+        text=True,
+    )
+
+    assert check.returncode == 0
+    assert json.loads(leaderboard_path.read_text(encoding="utf-8")) == [
+        {"model_name": "fixture"}
+    ]
+
+
 def test_api_release_path_cannot_escape_results_root(tmp_path: Path) -> None:
     fastapi = pytest.importorskip("fastapi")
     from medphys_agentbench.api import _release_leaderboard_path

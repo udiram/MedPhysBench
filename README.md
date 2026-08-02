@@ -98,9 +98,16 @@ package, or evidence of autonomous clinical competence.
 - A unified browser model index that exposes open/closed and provider filters, release-specific
   scores, task-level outcome facets, failed grader contracts, and provenance hashes while keeping
   raw responses, hidden expected values, and grader golds out of the public projection.
+- A release-aware forensic surface built from released outputs and deterministic regrading; it
+  exposes per-attempt task cards, failed-lane/failed-grader tallies, and immutable hash drilldowns
+  while keeping legacy manifest limitations visible and outside current-contract ranks.
 - A machine-derived qualification funnel that reports `50` frozen base IDs, `16` access-qualified,
-  `15` evaluated, and `14` rankable—without counting six GPT-5.6 effort settings as six models or
-  presenting a partial local campaign as a score.
+  `11` validly evaluated under the current manifest contract, and `9` rankable—without counting six
+  GPT-5.6 effort settings as six models, treating historical legacy rows as current-contract evidence,
+  or presenting a partial local campaign as a score.
+- Workflow-qualified accounting now separately reports which planned models have actually completed
+  a repeated-trial workflow release instead of letting smaller pilot surfaces overstate benchmark
+  breadth.
 
 ## Quick start
 

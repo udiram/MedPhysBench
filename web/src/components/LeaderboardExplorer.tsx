@@ -55,6 +55,15 @@ function modelSourceLabel(value: ModelOpenness) {
   return "Unknown";
 }
 
+function integrityLabel(value: string) {
+  if (value === "unranked_noncommon_surface") return "Official rank withheld: native/import surface";
+  if (value === "unranked_native_pilot_surface") return "Official rank withheld: native pilot surface";
+  if (value === "unranked_singleton_comparison_group") return "Official rank withheld: no peer with identical frozen harness contract";
+  if (value === "mixed_run_configuration_manifest") return "Integrity failure: mixed runtime configuration";
+  if (value === "mixed_seed_policy_manifest") return "Integrity failure: mixed seed policy";
+  return value.replaceAll("_", " ");
+}
+
 function failureLanes(tasks: readonly LeaderboardExplorerTask[]) {
   const laneCounts = new Map<string, number>();
   for (const task of tasks) {
@@ -199,7 +208,7 @@ export function LeaderboardExplorer({
                 </thead>
                 <tbody>
                   {summaryRows.map((model) => (
-                    <tr key={model.model_name}>
+                    <tr key={`${model.provider}::${model.model_name}::${model.model_revision ?? "unknown"}`}>
                       <td>#{model.outcome_rank ?? "—"}</td>
                       <td>
                         {model.model_name}
@@ -608,6 +617,8 @@ function ModelDetailRow({
                   <div><dt>Output validity</dt><dd>{formatPercent(model.valid_output_rate)}</dd></div>
                   <div><dt>Median duration</dt><dd>{formatDuration(model.median_duration_seconds)}</dd></div>
                   <div><dt>Critical unsafe</dt><dd>{formatPercent(model.critical_unsafe_action_rate)}</dd></div>
+                  <div><dt>Official rank status</dt><dd>{model.rank ? `${rankGroupLabel(model)} #${model.rank}` : "No official rank assigned"}</dd></div>
+                  <div><dt>Outcome order</dt><dd>{model.outcome_rank ? `#${model.outcome_rank}` : "Not ordered"}</dd></div>
                 </dl>
               </section>
                   <section className="detail-span">
@@ -670,7 +681,7 @@ function ModelDetailRow({
                 {model.integrity?.integrity_errors?.length ? (
                   <ul className="integrity-list">
                     {model.integrity.integrity_errors.map((item) => (
-                      <li key={item}>{item}</li>
+                      <li key={item}>{integrityLabel(item)}</li>
                     ))}
                   </ul>
                 ) : (
@@ -785,7 +796,9 @@ function withDerivedOutcomeRanks(rows: ModelResult[]) {
       if (row.outcome_order_eligible === true || row.ranking_eligible) return true;
       const findings = row.integrity?.integrity_errors ?? [];
       return findings.length > 0 && findings.every((finding) =>
-        finding === "unranked_noncommon_surface" || finding === "unranked_native_pilot_surface",
+        finding === "unranked_noncommon_surface"
+        || finding === "unranked_native_pilot_surface"
+        || finding === "unranked_singleton_comparison_group",
       );
     })
     .sort((left, right) =>

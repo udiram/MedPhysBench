@@ -48,6 +48,8 @@ def sanitize_tree(root: Path) -> int:
     changed = 0
     for path in sorted(root.glob("*/*.json")):
         artifact = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(artifact, dict):
+            continue
         raw = artifact.get("raw_response")
         trace = artifact.get("trace")
         raw_needs_sanitizing = isinstance(raw, dict) and ("content" in raw or "thinking" in raw)
@@ -71,6 +73,8 @@ def find_unsanitized(root: Path) -> list[Path]:
     paths: list[Path] = []
     for path in sorted(root.glob("*/*.json")):
         artifact = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(artifact, dict):
+            continue
         raw = artifact.get("raw_response")
         trace = artifact.get("trace")
         if (isinstance(raw, dict) and ("content" in raw or "thinking" in raw)) or (

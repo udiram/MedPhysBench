@@ -12,7 +12,7 @@ type StageFilter = "all" | "workflow" | "ranked" | "evaluated" | "access" | "pla
 const FUNNEL_STAGES = [
   ["planned_base_models", "Frozen panel", "Predeclared unique base IDs"],
   ["access_qualified_base_models", "Access qualified", "Live Q0 or later evidence"],
-  ["evaluated_base_models", "Published", "At least one complete release matrix"],
+  ["evaluated_base_models", "Valid evaluated", "At least one complete current-contract release matrix"],
   ["workflow_qualified_base_models", "Workflow qualified", "Complete OpenKBP real-workflow matrix"],
   ["ranked_base_models", "Rankable", "Complete common-harness evidence"],
 ] as const;
@@ -63,7 +63,7 @@ export function FleetCoverage({ data }: Props) {
       <div className="section-heading fleet-heading">
         <div>
           <p className="eyebrow">Fleet integrity</p>
-          <h2>{target} planned. {data.summary.workflow_qualified_base_models} workflow-qualified. {data.summary.evaluated_base_models} published anywhere.</h2>
+          <h2>{target} planned. {data.summary.workflow_qualified_base_models} workflow-qualified. {data.summary.evaluated_base_models} validly evaluated.</h2>
         </div>
         <p>
           The panel counts unique base model IDs—not effort settings, providers, aliases, or partial attempts. A model advances only

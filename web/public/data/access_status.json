@@ -83,11 +83,11 @@
     "model": "deepseek-r1:1.5b",
     "provider": "ollama",
     "base_model_id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
-    "qualification_stage": "q1",
+    "qualification_stage": "q2",
     "status": "available",
     "surface": "local_ollama",
     "date": "2026-08-02",
-    "note": "Q1 schema and escalation probe completed, but Q2 is incomplete: 18/30 canonical attempts completed and 12 image-grid requests returned Ollama HTTP 500 at a frozen 4,096-token context. No Q2 score or rank is published."
+    "note": "Completed the 30-attempt OpenKBP v0.6 matrix with a digest-pinned local artifact and 4,096-token context. Twelve image-grid attempts are explicit unsupported-modality failures; all 18 text attempts produced schema-valid outputs. The row is outcome-orderable but not officially ranked until a second system shares its exact reference-json-v2 configuration."
   },
   {
     "model": "qwen3-vl:8b",

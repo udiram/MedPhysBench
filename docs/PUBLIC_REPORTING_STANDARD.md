@@ -30,7 +30,10 @@ Missing evidence is shown as `not declared`, `not collected`, or `pending`; neve
 
 ## Ranking and comparison
 
-- Official ranks exist only inside identical frozen comparison groups.
+- Official ranks exist only inside identical frozen comparison groups containing at least two systems.
+- A comparison group freezes provider, adapter, harness revision, exact model revision, adapter-settings
+  hash, sampling/token contract, and attempt-index seed policy. A singleton remains visible in descriptive
+  outcome order but cannot manufacture a rank of one.
 - A provider alias is not an identity. Persist provider, exact model revision, date, adapter, harness revision, effort/sampling settings, and system description.
 - Native-system results may receive a descriptive outcome order only when the attempt matrix is complete and internally consistent.
 - Never display native and common-harness rows as one official ordinal leaderboard.
@@ -41,7 +44,9 @@ Missing evidence is shown as `not declared`, `not collected`, or `pending`; neve
 
 - Count unique frozen base model IDs, not effort settings, quantizations, provider routes, aliases, or agent scaffolds.
 - Report the qualification funnel as separate planned, access-qualified, evaluated, and rankable counts.
-- A planned or live-access model never appears as evaluated until a complete immutable attempt matrix is published.
+- A planned or live-access model never appears as evaluated until a complete immutable attempt matrix is published
+  under the current manifest/scoring contract. Historical rows with missing hashes remain visible but do not inflate
+  current-contract evaluated or rankable counts.
 - A complete native/import row is presented in the same model explorer as common-harness rows, with execution surface as metadata; it may be outcome-orderable without receiving a false common-harness rank.
 - Every public system configuration maps to one explicit `base_model_id`. Multiple configurations remain separately auditable but increment the base-model breadth count only once.
 

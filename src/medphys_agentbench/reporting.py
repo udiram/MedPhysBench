@@ -70,6 +70,22 @@ def summarize_release(
         else:
             unranked_rows.append(row)
 
+    comparison_group_sizes: dict[str, int] = defaultdict(int)
+    for row in ranked_rows:
+        comparison_group_sizes[str(row.get("comparison_group") or "undeclared")] += 1
+    still_ranked: list[dict[str, Any]] = []
+    for row in ranked_rows:
+        group = str(row.get("comparison_group") or "undeclared")
+        if comparison_group_sizes[group] >= 2:
+            still_ranked.append(row)
+            continue
+        row["ranking_eligible"] = False
+        row["integrity"]["integrity_errors"] = sorted(
+            {*row["integrity"]["integrity_errors"], "unranked_singleton_comparison_group"}
+        )
+        unranked_rows.append(row)
+    ranked_rows = still_ranked
+
     task_rows = [
         {
             "task_id": task.task_id,
@@ -135,7 +151,8 @@ def summarize_release(
             "pass_power_k": "unbiased probability that all k sampled attempts safely pass",
             "ranking_rule": (
                 "Only complete and internally consistent model runs receive an official rank, and ranks are "
-                "computed within an identical provider, harness, and harness-revision group."
+                "computed only when at least two systems share an identical provider, harness, harness revision, "
+                "adapter-settings hash, sampling contract, and seed policy."
             ),
             "outcome_order_rule": (
                 "Complete, internally consistent rows also receive a descriptive cross-surface outcome order. "
@@ -296,6 +313,7 @@ def _summarize_model_dir(
     is_common_harness = integrity["is_common_harness"]
     comparison_group = (
         f"{integrity['provider']}::{integrity['harness_name']}::{integrity['harness_revision']}"
+        f"::config={integrity['run_configuration_hash'][:16]}"
         if is_common_harness
         else None
     )
@@ -321,6 +339,7 @@ def _summarize_model_dir(
             "provider": integrity["provider"],
             "harness_name": integrity["harness_name"],
             "harness_revision": integrity["harness_revision"],
+            "run_configuration_hash": integrity["run_configuration_hash"],
             "is_common_harness": is_common_harness,
             "is_recorded_import_surface": not is_common_harness,
         },
@@ -462,6 +481,9 @@ def _task_result_row(item: dict[str, Any], task_catalog: dict[str, Any]) -> dict
         "passed": bool(item.get("passed", False)),
         "safe": item.get("safe", item["passed"]),
         "outcome_category": _task_outcome_category(item),
+        "capability_failure": bool(item.get("capability_failure", False)),
+        "model_failure_kind": item.get("model_failure_kind"),
+        "error_type": item.get("error_type"),
         "failed_graders": _failed_graders(item),
         "failed_lanes": _failed_lanes(item),
     }
@@ -508,6 +530,7 @@ def _audit_model_results(
     observed_attempt_keys: set[tuple[str, int]] = set()
     observed_run_ids: set[str] = set()
     run_configurations: set[tuple[Any, ...]] = set()
+    seeds_by_attempt_index: dict[int, set[Any]] = defaultdict(set)
 
     first_manifest = results[0].get("manifest", {})
     first_model = first_manifest.get("model", {})
@@ -535,6 +558,7 @@ def _audit_model_results(
 
         run_configurations.add(
             (
+                manifest.get("adapter_settings_hash"),
                 manifest.get("temperature"),
                 manifest.get("max_tokens"),
                 manifest.get("sandbox_image_digest"),
@@ -560,6 +584,7 @@ def _audit_model_results(
         if not isinstance(attempt_index, int) or isinstance(attempt_index, bool) or attempt_index < 0:
             errors.append(f"invalid_attempt_index:{task_id}")
             continue
+        seeds_by_attempt_index[attempt_index].add(manifest.get("seed"))
 
         attempt_key = (task_id, attempt_index)
         if attempt_key in observed_attempt_keys:
@@ -610,12 +635,23 @@ def _audit_model_results(
         errors.append(f"unexpected_attempts:{len(unexpected_attempt_keys)}")
     if len(run_configurations) > 1:
         errors.append("mixed_run_configuration_manifest")
+    if any(len(seeds) > 1 for seeds in seeds_by_attempt_index.values()):
+        errors.append("mixed_seed_policy_manifest")
     noncompleted_attempts = sum(1 for item in results if item.get("status", "completed") != "completed")
     if noncompleted_attempts:
         errors.append(f"noncompleted_attempts:{noncompleted_attempts}")
     is_recorded_import = _run_is_recorded_import(results)
     if is_recorded_import:
         errors.append("unranked_noncommon_surface")
+    run_configuration_hash = stable_hash(
+        {
+            "run_configurations": [list(values) for values in sorted(run_configurations, key=repr)],
+            "seeds_by_attempt_index": {
+                str(index): sorted(seeds, key=repr)
+                for index, seeds in sorted(seeds_by_attempt_index.items())
+            },
+        }
+    )
 
     return {
         "model_name": model_name,
@@ -623,6 +659,7 @@ def _audit_model_results(
         "model_revision": model_revision,
         "harness_name": str(first_model.get("harness_name", "")),
         "harness_revision": str(first_model.get("harness_revision", model_name)),
+        "run_configuration_hash": run_configuration_hash,
         "is_recorded_import": is_recorded_import,
         "is_common_harness": not is_recorded_import,
         "ranking_eligible": not errors,

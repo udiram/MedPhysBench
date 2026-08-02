@@ -165,7 +165,8 @@ The public leaderboard reports:
 - **median and total token use**, when the provider reports it;
 - **median common-harness wall time**, with unavailable native telemetry shown as missing;
 - **score-efficiency Pareto frontier**, reported only within one release and comparable harness.
-- **official harness-group rank**, computed only across identical provider, harness, and harness revision;
+- **official harness-group rank**, computed only when at least two systems share identical provider,
+  harness revision, adapter-settings hash, sampling/token contract, and seed policy;
 - **descriptive cross-surface outcome order**, available to complete native rows but never labeled API-equivalent.
 
 Ranks are descriptive. Overlapping intervals and small public task counts make close rank
@@ -174,19 +175,25 @@ bootstrap intervals and publish rank uncertainty.
 
 ### 6.1 Public baseline snapshot
 
-Five local models completed the 64-task core through the common Ollama harness. Scores ranged
+Five local models completed the 64-task core through the common Ollama harness. Their historical scores ranged
 from 25.00% to 73.44%; `qwen3:14b` led with 73.44% safe
-success with a 98.44% safety-gate rate. Six GPT-5.6 effort configurations completed the same sealed
+success with a 98.44% safety-gate rate. Those v1 artifacts predate the current grader-hash and
+scoring-revision contract, so their point estimates remain visible but no longer receive current-contract
+official ranks. Six GPT-5.6 effort configurations completed the same sealed
 runtime batch on a native Codex conversation surface; three scored 100% and three scored 98.44%, all
 with 100% safety-gate rate. Those GPT rows are deliberately unranked because the surface was not the
 common adapter and did not provide equivalent isolation or sampling controls. Three local vision
-models also completed the separate imaging pilot. Four local vision models and five Groq-hosted
-models then completed three attempts on every OpenKBP v0.6 task. `qwen3.5:4b` led the Ollama group
+models also completed the separate imaging pilot. Five local models and five Groq-hosted
+models then completed three attempts on every OpenKBP v0.6 task. `qwen3.5:4b` led the four-system
+Ollama v1 group
 at 50.0% safe success; `llama-3.3-70b-versatile` and `openai/gpt-oss-20b` tied at 60.0% in the Groq
 group. GPT-5.6 low, high, and ultra completed three native-surface attempts per OpenKBP task and
 scored 66.67%, 76.67%, and 73.33%, respectively. Their descriptive outcome order is high, ultra,
 then low, but their Wilson intervals overlap. Those native rows have no official harness-group rank
 because they lack the common adapter and comparable token/time telemetry.
+DeepSeek R1 Distill Qwen 1.5B completed a digest-pinned v2 matrix with twelve explicit
+unsupported-image failures and eighteen schema-valid text outputs, but remains unranked as a
+singleton exact-configuration group.
 Full evidence is published in
 [`RESULTS.md`](RESULTS.md) and the release directories.
 
