@@ -13,7 +13,7 @@ import { PublicModelIndex } from "./components/PublicModelIndex";
 import { ResultForensics } from "./components/ResultForensics";
 import { useLeaderboard } from "./hooks/useLeaderboard";
 import { readEnumParam, setUrlParams } from "./lib/urlState";
-import type { AccessStatus, FleetStatus, ModelCatalogEntry, ReleaseView, ReviewEvidence, Tg263Audit } from "./types";
+import type { AccessStatus, DefectLedger, FleetStatus, ModelCatalogEntry, ReleaseView, ReviewEvidence, Tg263Audit } from "./types";
 
 const LEADERBOARD_URL = "/data/leaderboard.json";
 const IMAGING_LEADERBOARD_URL = "/data/imaging_leaderboard.json";
@@ -24,6 +24,7 @@ const ACCESS_STATUS_URL = "/data/access_status.json";
 const MODEL_CATALOG_URL = "/data/model_catalog.json";
 const FLEET_STATUS_URL = "/data/fleet_status.json";
 const REAL_WORKFLOWS_REVIEW_URL = "/data/public-real-workflows-pilot-v0.6-review.json";
+const DEFECT_LEDGER_URL = "/data/benchmark-defects.json";
 
 function App() {
   const core = useLeaderboard(LEADERBOARD_URL);
@@ -35,6 +36,7 @@ function App() {
   const [modelCatalog, setModelCatalog] = useState<ModelCatalogEntry[]>([]);
   const [fleetStatus, setFleetStatus] = useState<FleetStatus | null>(null);
   const [realWorkflowsReview, setRealWorkflowsReview] = useState<ReviewEvidence | null>(null);
+  const [defectLedger, setDefectLedger] = useState<DefectLedger | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [releaseView, setReleaseView] = useState<ReleaseView>("real");
   const selected =
@@ -56,6 +58,15 @@ function App() {
         }
       })
       .catch(() => setTg263Audit(null));
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(DEFECT_LEDGER_URL, { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<DefectLedger>) : null))
+      .then((payload) => startTransition(() => setDefectLedger(payload)))
+      .catch(() => setDefectLedger(null));
     return () => controller.abort();
   }, []);
 
@@ -89,7 +100,7 @@ function App() {
 
   const handleReleaseViewChange = (value: ReleaseView) => {
     setReleaseView(value);
-    setUrlParams({ release: value === "real" ? null : value });
+    setUrlParams({ release: value === "real" ? null : value }, { history: "push" });
   };
 
   useEffect(() => {
@@ -171,6 +182,7 @@ function App() {
         <EvidenceSections
           accessStatus={accessStatus}
           data={selected.data}
+          defectLedger={defectLedger}
           releaseView={releaseView}
           reviewEvidence={releaseView === "real" ? realWorkflowsReview : null}
         />

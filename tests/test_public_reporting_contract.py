@@ -9,6 +9,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_PAYLOADS = (
     ROOT / "web/public/data/leaderboard.json",
+    ROOT / "web/public/data/imaging_leaderboard.json",
     ROOT / "web/public/data/tg263_leaderboard.json",
     ROOT / "web/public/data/public-real-workflows-pilot-v0.6.json",
 )

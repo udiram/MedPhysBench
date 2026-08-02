@@ -142,6 +142,36 @@ def test_public_review_evidence_projection_matches_canonical_ledger() -> None:
     assert completed.returncode == 0, completed.stderr or completed.stdout
 
 
+def test_public_defect_ledger_is_valid_and_matches_canonical_projection() -> None:
+    schema = json.loads(Path("schemas/defect-ledger.v1.schema.json").read_text(encoding="utf-8"))
+    payload = json.loads(Path("governance/benchmark-defects.json").read_text(encoding="utf-8"))
+    Draft202012Validator(schema, format_checker=FormatChecker()).validate(payload)
+
+    completed = subprocess.run(
+        [sys.executable, "scripts/build_public_defect_ledger.py", "--check"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert completed.returncode == 0, completed.stderr or completed.stdout
+
+
+def test_defect_ledger_rejects_unknown_affected_task() -> None:
+    from medphys_agentbench.release_loader import load_release
+    from scripts.validate_repository import _validate_defect_ledger_semantics
+
+    payload = json.loads(Path("governance/benchmark-defects.json").read_text(encoding="utf-8"))
+    payload["entries"][0]["affected_task_ids"].append("private.nonexistent-task")
+    releases = {
+        "public-real-workflows-pilot-v0.6": load_release(
+            "releases/public_real_workflows_pilot_v0_6.yaml"
+        )
+    }
+
+    with pytest.raises(ValueError, match="unknown affected task"):
+        _validate_defect_ledger_semantics(payload, Path("fixture.json"), releases)
+
+
 def test_v07_required_limitations_field_cannot_be_presence_only() -> None:
     import yaml
 

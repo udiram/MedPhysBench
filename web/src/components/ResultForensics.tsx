@@ -2,6 +2,7 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
+import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import type { Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, ReleaseView } from "../types";
 
 type SourceFilter = "all" | "open" | "closed" | "unknown";
@@ -24,12 +25,26 @@ type VisibleRow = {
 const OUTCOME_ORDER: OutcomeKey[] = ["safe_success", "safe_failure", "unsafe", "inconclusive"];
 
 export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
-  const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
-  const [providerFilter, setProviderFilter] = useState("all");
-  const [modelKey, setModelKey] = useState<string>("");
-  const [domainFilter, setDomainFilter] = useState("all");
-  const [outcomeFilter, setOutcomeFilter] = useState<OutcomeFilter>("all");
-  const [selectedTaskKey, setSelectedTaskKey] = useState<string>("");
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>(() => readEnumParam("fx_source", ["all", "open", "closed", "unknown"] as const, "all"));
+  const [providerFilter, setProviderFilter] = useState(() => getUrlParam("fx_provider") ?? "all");
+  const [modelKey, setModelKey] = useState<string>(() => getUrlParam("fx_model") ?? "");
+  const [domainFilter, setDomainFilter] = useState(() => getUrlParam("fx_domain") ?? "all");
+  const [outcomeFilter, setOutcomeFilter] = useState<OutcomeFilter>(() => readEnumParam("fx_outcome", ["all", "safe_success", "safe_failure", "unsafe", "inconclusive", "capability_failure"] as const, "all"));
+  const [selectedTaskKey, setSelectedTaskKey] = useState<string>(() => getUrlParam("fx_task") ?? "");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handlePopState = () => {
+      setSourceFilter(readEnumParam("fx_source", ["all", "open", "closed", "unknown"] as const, "all"));
+      setProviderFilter(getUrlParam("fx_provider") ?? "all");
+      setModelKey(getUrlParam("fx_model") ?? "");
+      setDomainFilter(getUrlParam("fx_domain") ?? "all");
+      setOutcomeFilter(readEnumParam("fx_outcome", ["all", "safe_success", "safe_failure", "unsafe", "inconclusive", "capability_failure"] as const, "all"));
+      setSelectedTaskKey(getUrlParam("fx_task") ?? "");
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   const catalogIndex = useMemo(
     () =>
@@ -65,14 +80,18 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
   }, [forensicRows, providerFilter, sourceFilter]);
 
   useEffect(() => {
+    if (!data) return;
     if (!visibleRows.length) {
       setModelKey("");
+      setUrlParams({ fx_model: null });
       return;
     }
     if (!visibleRows.some((entry) => entry.key === modelKey)) {
-      setModelKey(visibleRows[0].key);
+      const next = visibleRows[0].key;
+      setModelKey(next);
+      setUrlParams({ fx_model: next });
     }
-  }, [modelKey, visibleRows]);
+  }, [data, modelKey, visibleRows]);
 
   const selected = useMemo(() => visibleRows.find((entry) => entry.key === modelKey) ?? null, [modelKey, visibleRows]);
   const selectedRow = selected?.row ?? null;
@@ -107,15 +126,18 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
   }, [filteredTasks, selectedTaskKey]);
 
   useEffect(() => {
+    if (!selectedRow) return;
     if (!selectedTask) {
       setSelectedTaskKey("");
+      setUrlParams({ fx_task: null });
       return;
     }
     const key = taskKey(selectedTask, filteredTasks.indexOf(selectedTask));
     if (key !== selectedTaskKey) {
       setSelectedTaskKey(key);
+      setUrlParams({ fx_task: key });
     }
-  }, [filteredTasks, selectedTask, selectedTaskKey]);
+  }, [filteredTasks, selectedRow, selectedTask, selectedTaskKey]);
 
   const failedLanes = useMemo(() => tallyStrings(filteredTasks.flatMap((task) => task.failed_lanes ?? [])), [filteredTasks]);
   const failedGraders = useMemo(() => tallyStrings(filteredTasks.flatMap((task) => task.failed_graders ?? [])), [filteredTasks]);
@@ -125,6 +147,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
   );
 
   const supportsForensics = forensicRows.length > 0;
+  const showsPublicOutputs = data?.release.public_attempt_detail === "sanitized_output";
 
   if (!data) {
     return (
@@ -143,9 +166,9 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
         <div>
           <h2>Attempt-level forensics</h2>
           <p>
-            Inspect where a model went right or wrong at the task level. This view uses released outputs,
-            deterministic regrading, grader traces, and immutable hashes from the public artifact; legacy manifest
-            gaps remain visible and cannot receive a current-contract rank.
+            Inspect where a model went right or wrong at the task level. This view uses deterministic regrading,
+            failure contracts, immutable hashes, and—only when the release explicitly permits it—schema-filtered
+            public-development outputs. Legacy manifest gaps remain visible and cannot receive a current-contract rank.
           </p>
         </div>
         <p className="coverage-summary">
@@ -172,8 +195,13 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                 <select
                   value={sourceFilter}
                   onChange={(event) => {
-                    setSourceFilter(event.target.value as SourceFilter);
+                    const next = event.target.value as SourceFilter;
+                    setSourceFilter(next);
                     setProviderFilter("all");
+                    setUrlParams(
+                      { fx_source: next === "all" ? null : next, fx_provider: null },
+                      { history: "push" },
+                    );
                   }}
                 >
                   <option value="all">Open + closed</option>
@@ -187,7 +215,11 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
             <label className="field">
               <span>Provider</span>
               <span className="select-wrap">
-                <select value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}>
+                <select value={providerFilter} onChange={(event) => {
+                  const next = event.target.value;
+                  setProviderFilter(next);
+                  setUrlParams({ fx_provider: next === "all" ? null : next }, { history: "push" });
+                }}>
                   <option value="all">All providers</option>
                   {providers.map((provider) => (
                     <option key={provider} value={provider}>
@@ -201,7 +233,10 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
             <label className="field model-field">
               <span>Run set</span>
               <span className="select-wrap">
-                <select value={modelKey} onChange={(event) => setModelKey(event.target.value)}>
+                <select value={modelKey} onChange={(event) => {
+                  setModelKey(event.target.value);
+                  setUrlParams({ fx_model: event.target.value }, { history: "push" });
+                }}>
                   {visibleRows.map((entry) => (
                     <option key={entry.key} value={entry.key}>
                       {entry.row.model_name}
@@ -214,7 +249,11 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
             <label className="field">
               <span>Domain</span>
               <span className="select-wrap">
-                <select value={domainFilter} onChange={(event) => setDomainFilter(event.target.value)}>
+                <select value={domainFilter} onChange={(event) => {
+                  const next = event.target.value;
+                  setDomainFilter(next);
+                  setUrlParams({ fx_domain: next === "all" ? null : next }, { history: "push" });
+                }}>
                   <option value="all">All domains</option>
                   {domains.map((domain) => (
                     <option key={domain} value={domain}>
@@ -228,7 +267,11 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
             <label className="field">
               <span>Outcome</span>
               <span className="select-wrap">
-                <select value={outcomeFilter} onChange={(event) => setOutcomeFilter(event.target.value as OutcomeFilter)}>
+                <select value={outcomeFilter} onChange={(event) => {
+                  const next = event.target.value as OutcomeFilter;
+                  setOutcomeFilter(next);
+                  setUrlParams({ fx_outcome: next === "all" ? null : next }, { history: "push" });
+                }}>
                   <option value="all">All outcomes</option>
                   <option value="safe_success">Safe success</option>
                   <option value="safe_failure">Safe failure</option>
@@ -259,6 +302,22 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
               <div className="forensics-layout">
                 <article className="forensics-main">
                   <div className="forensics-domain-list">
+                    {filteredTasks.length === 0 ? (
+                      <div className="forensics-empty compact" role="status">
+                        <strong>No task attempts match this filter combination.</strong>
+                        <p>Change the domain or outcome filter to restore task-level evidence.</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDomainFilter("all");
+                            setOutcomeFilter("all");
+                            setUrlParams({ fx_domain: null, fx_outcome: null }, { history: "push" });
+                          }}
+                        >
+                          Reset task filters
+                        </button>
+                      </div>
+                    ) : null}
                     {domainBuckets.map(({ domain, tasks }) => {
                       const counts = tallyOutcomes(tasks);
                       return (
@@ -286,7 +345,10 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                                 key={currentKey}
                                 type="button"
                                 className={`forensics-task-card ${outcomeClassName(task.outcome_category)}${selectedTask && currentKey === taskKey(selectedTask, filteredTasks.indexOf(selectedTask)) ? " selected" : ""}`}
-                                onClick={() => setSelectedTaskKey(currentKey)}
+                                onClick={() => {
+                                  setSelectedTaskKey(currentKey);
+                                  setUrlParams({ fx_task: currentKey }, { history: "push" });
+                                }}
                               >
                                 <span>{task.title}</span>
                                 <small>{task.task_id}</small>
@@ -376,6 +438,13 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                           <div><dt>Tools</dt><dd>{shortHash(selectedTask.tool_schema_hash)}</dd></div>
                           <div><dt>Runtime</dt><dd>{shortHash(selectedTask.runtime_task_hash)}</dd></div>
                           <div><dt>Grader</dt><dd>{shortHash(selectedTask.grader_hash)}</dd></div>
+                          <div><dt>Adapter</dt><dd>{shortHash(selectedTask.adapter_settings_hash)}</dd></div>
+                          <div><dt>Attempt score</dt><dd>{selectedTask.score != null ? formatPercent(selectedTask.score) : "—"}</dd></div>
+                          <div><dt>Wall time</dt><dd>{formatDuration(selectedTask.duration_seconds)}</dd></div>
+                          <div><dt>Input tokens</dt><dd>{formatTokens(selectedTask.token_usage?.input_tokens)}</dd></div>
+                          <div><dt>Output tokens</dt><dd>{formatTokens(selectedTask.token_usage?.output_tokens)}</dd></div>
+                          <div><dt>Total tokens</dt><dd>{formatTokens(selectedTask.token_usage?.total_tokens)}</dd></div>
+                          <div><dt>Recorded</dt><dd>{formatTimestamp(selectedTask.created_at)}</dd></div>
                           <div><dt>Failure kind</dt><dd>{selectedTask.model_failure_kind ? failureKindLabel(selectedTask.model_failure_kind) : "Model output graded"}</dd></div>
                           <div><dt>Capability failure</dt><dd>{selectedTask.capability_failure ? "Yes" : "No"}</dd></div>
                         </dl>
@@ -397,6 +466,47 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                             </ul>
                           </div>
                         </div>
+                        {showsPublicOutputs ? (
+                          <>
+                            <div className="forensics-evidence-block">
+                              <div className="forensics-evidence-heading">
+                                <span>Structured model output</span>
+                                <small>Schema-filtered public-development answer · provider reasoning excluded</small>
+                              </div>
+                              <pre>{renderJson(selectedTask.output)}</pre>
+                            </div>
+                            <div className="forensics-evidence-block">
+                              <div className="forensics-evidence-heading">
+                                <span>Deterministic grader verdicts</span>
+                                <small>Gold-bearing grader evidence withheld</small>
+                              </div>
+                              <ul className="forensics-grader-list">
+                                {(selectedTask.grader_results ?? []).map((grader) => (
+                                  <li key={`${grader.grader_id}:${grader.lane}`} className={grader.passed ? "passed" : "failed"}>
+                                    <div>
+                                      <strong>{grader.grader_id}</strong>
+                                      <span>{grader.lane} · {formatPercent(grader.score)}{grader.required_for_pass ? " · required" : ""}</span>
+                                    </div>
+                                    <em>{grader.passed ? "Pass" : "Fail"}</em>
+                                    <p>{grader.rationale}</p>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </>
+                        ) : (
+                          <p className="forensics-note">
+                            This release is aggregate-only: model answers and value-level grader verdicts are not published.
+                          </p>
+                        )}
+                        {selectedTask.response_receipt && Object.keys(selectedTask.response_receipt).length ? (
+                          <details className="forensics-receipt">
+                            <summary>Provider/runtime receipt</summary>
+                            <pre>{renderJson(selectedTask.response_receipt)}</pre>
+                          </details>
+                        ) : (
+                          <p className="forensics-note">No provider/runtime receipt is available for this attempt.</p>
+                        )}
                       </div>
                     </section>
                   ) : null}
@@ -523,4 +633,23 @@ function failureKindLabel(value: string) {
   if (value === "unsupported_required_modality") return "Unsupported required modality";
   if (value === "provider_output_contract_failure") return "Provider output contract failure";
   return value.replaceAll("_", " ");
+}
+
+function renderJson(value: unknown) {
+  if (!value || (typeof value === "object" && !Object.keys(value).length)) return "No structured output was recorded.";
+  return JSON.stringify(value, null, 2);
+}
+
+function formatTimestamp(value: string | undefined) {
+  if (!value) return "—";
+  const timestamp = new Date(value);
+  if (Number.isNaN(timestamp.getTime())) return value;
+  return timestamp.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
 }

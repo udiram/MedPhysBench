@@ -120,6 +120,16 @@
     "note": "Vision-capable model completed the 30-attempt OpenKBP v0.6 matrix through the local Ollama common harness."
   },
   {
+    "model": "qwen2.5vl:7b-q4_K_M",
+    "provider": "ollama",
+    "base_model_id": "Qwen/Qwen2.5-VL-7B-Instruct",
+    "qualification_stage": "q2",
+    "status": "available",
+    "surface": "local_ollama_vision",
+    "date": "2026-08-02",
+    "note": "Apache-2.0 Qwen2.5-VL 7B base evaluated through exact Ollama artifact sha256:5ced39dfa4bac325dc183dd1e4febaa1c46b3ea28bce48896c8e69c1e79611cc. Four qualification calls covered structure naming, calculation, required escalation, and a real-image smoke task with schema, trace, token, latency, and image-transport evidence. The complete 30-attempt OpenKBP Q2 matrix contains real vision calls for all 12 image-grid attempts."
+  },
+  {
     "model": "llama-3.1-8b-instant",
     "provider": "groq",
     "base_model_id": "meta-llama/Llama-3.1-8B-Instruct",

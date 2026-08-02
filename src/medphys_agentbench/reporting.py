@@ -64,6 +64,7 @@ def summarize_release(
             task_catalog=task_catalog,
             task_hash_catalog=task_hash_catalog,
             expected_attempt_keys=expected_attempt_keys,
+            public_attempt_detail=release.public_attempt_detail,
         )
         if row["ranking_eligible"]:
             ranked_rows.append(row)
@@ -117,6 +118,7 @@ def summarize_release(
             "allow_access_classes": [value.value for value in release.allow_access_classes],
             "expected_attempts_per_task": expected_attempts,
             "integrity_profile": release.integrity_profile,
+            "public_attempt_detail": release.public_attempt_detail,
             "family_count": len({task.family_id or task.task_id for task in tasks}),
         },
         "integrity": {
@@ -254,6 +256,7 @@ def _summarize_model_dir(
     task_catalog: dict[str, Any],
     task_hash_catalog: dict[str, dict[str, str]],
     expected_attempt_keys: set[tuple[str, int]],
+    public_attempt_detail: str,
 ) -> dict[str, Any]:
     integrity = _audit_model_results(
         results=results,
@@ -405,7 +408,12 @@ def _summarize_model_dir(
             "integrity_errors": integrity["errors"],
         },
         "tasks": [
-            _task_result_row(item, task_catalog)
+            _task_result_row(
+                item,
+                task_catalog,
+                include_execution_telemetry=is_common_harness,
+                include_public_output=public_attempt_detail == "sanitized_output",
+            )
             for item in verified_results
             if item.get("manifest", {}).get("task_id") in task_catalog
         ],
@@ -464,9 +472,16 @@ def _nonnegative_int(value: Any) -> int | None:
     return number if number >= 0 and number == value else None
 
 
-def _task_result_row(item: dict[str, Any], task_catalog: dict[str, Any]) -> dict[str, Any]:
+def _task_result_row(
+    item: dict[str, Any],
+    task_catalog: dict[str, Any],
+    *,
+    include_execution_telemetry: bool,
+    include_public_output: bool,
+) -> dict[str, Any]:
     task_id = item["manifest"]["task_id"]
     task = task_catalog[task_id]
+    duration = item.get("duration_seconds")
     return {
         "task_id": task_id,
         "family_id": task.family_id,
@@ -480,7 +495,20 @@ def _task_result_row(item: dict[str, Any], task_catalog: dict[str, Any]) -> dict
         "tool_schema_hash": item["manifest"].get("tool_schema_hash"),
         "runtime_task_hash": item["manifest"].get("runtime_task_hash"),
         "grader_hash": item["manifest"].get("grader_hash"),
+        "adapter_settings_hash": item["manifest"].get("adapter_settings_hash"),
         "scoring_revision": item["manifest"].get("scoring_revision"),
+        "created_at": item["manifest"].get("created_at"),
+        "status": item.get("status", "completed"),
+        "score": round(float(item.get("score", 0.0)), 4),
+        "duration_seconds": (
+            round(float(duration), 4)
+            if include_execution_telemetry and isinstance(duration, (int, float))
+            else None
+        ),
+        "token_usage": _task_usage(item) if include_execution_telemetry else _empty_task_usage(),
+        "output": _public_output(item, task) if include_public_output else {},
+        "grader_results": _public_grader_results(item) if include_public_output else [],
+        "response_receipt": _public_response_receipt(item) if include_execution_telemetry else {},
         "passed": bool(item.get("passed", False)),
         "safe": item.get("safe", item["passed"]),
         "outcome_category": _task_outcome_category(item),
@@ -490,6 +518,116 @@ def _task_result_row(item: dict[str, Any], task_catalog: dict[str, Any]) -> dict
         "failed_graders": _failed_graders(item),
         "failed_lanes": _failed_lanes(item),
     }
+
+
+def _task_usage(item: dict[str, Any]) -> dict[str, Any]:
+    usage = _provider_usage(item)
+    input_tokens = _nonnegative_int(usage.get("prompt_eval_count", usage.get("prompt_tokens")))
+    output_tokens = _nonnegative_int(usage.get("eval_count", usage.get("completion_tokens")))
+    total_tokens = _nonnegative_int(usage.get("total_tokens"))
+    if total_tokens is None and input_tokens is not None and output_tokens is not None:
+        total_tokens = input_tokens + output_tokens
+    return {
+        "available": input_tokens is not None and output_tokens is not None,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "total_tokens": total_tokens,
+    }
+
+
+def _empty_task_usage() -> dict[str, Any]:
+    return {
+        "available": False,
+        "input_tokens": None,
+        "output_tokens": None,
+        "total_tokens": None,
+    }
+
+
+def _public_grader_results(item: dict[str, Any]) -> list[dict[str, Any]]:
+    """Project deterministic verdicts without gold-bearing grader evidence."""
+    projected: list[dict[str, Any]] = []
+    for grade in item.get("grades", []):
+        if not isinstance(grade, dict):
+            continue
+        projected.append(
+            {
+                "grader_id": str(grade.get("grader_id", "")),
+                "lane": str(grade.get("lane", "outcome")),
+                "passed": bool(grade.get("passed", False)),
+                "score": round(float(grade.get("score", 0.0)), 4),
+                "required_for_pass": bool(grade.get("required_for_pass", False)),
+                "severity": str(grade.get("severity", "none")),
+                "rationale": str(grade.get("rationale", "")),
+            }
+        )
+    return projected
+
+
+_FORBIDDEN_PUBLIC_OUTPUT_KEYS = {
+    "analysis",
+    "messages",
+    "prompt",
+    "raw_response",
+    "reasoning",
+    "request_id",
+    "response_id",
+    "thinking",
+    "tool_calls",
+    "trace",
+}
+
+
+def _public_output(item: dict[str, Any], task: TaskSpec) -> dict[str, Any]:
+    """Project only declared task-output fields, never arbitrary provider content."""
+    output = item.get("output")
+    properties = task.expected_output_schema.get("properties")
+    if not isinstance(output, dict) or not isinstance(properties, dict):
+        return {}
+    return {
+        key: _public_schema_value(output[key], field_schema)
+        for key, field_schema in properties.items()
+        if key in output
+        and key.casefold() not in _FORBIDDEN_PUBLIC_OUTPUT_KEYS
+        and isinstance(field_schema, dict)
+    }
+
+
+def _public_schema_value(value: Any, schema: dict[str, Any]) -> Any:
+    if isinstance(value, dict):
+        properties = schema.get("properties")
+        if not isinstance(properties, dict):
+            return {}
+        return {
+            key: _public_schema_value(value[key], child_schema)
+            for key, child_schema in properties.items()
+            if key in value
+            and key.casefold() not in _FORBIDDEN_PUBLIC_OUTPUT_KEYS
+            and isinstance(child_schema, dict)
+        }
+    if isinstance(value, list):
+        item_schema = schema.get("items")
+        if not isinstance(item_schema, dict):
+            return []
+        return [_public_schema_value(entry, item_schema) for entry in value]
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    return None
+
+
+def _public_response_receipt(item: dict[str, Any]) -> dict[str, Any]:
+    raw = item.get("raw_response")
+    if not isinstance(raw, dict):
+        return {}
+    allowed = (
+        "provider",
+        "model",
+        "done_reason",
+        "latency_ms",
+        "content_sha256",
+        "content_redacted",
+    )
+    return {key: raw[key] for key in allowed if key in raw}
 
 
 def _task_outcome_category(item: dict[str, Any]) -> str:

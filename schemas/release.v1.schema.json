@@ -29,6 +29,10 @@
     "integrity_profile": {
       "enum": ["development", "pilot", "comparison"]
     },
+    "public_attempt_detail": {
+      "description": "Public evidence projection. Sanitized outputs are permitted only for fully public development/pilot releases, never comparison releases.",
+      "enum": ["aggregate_only", "sanitized_output"]
+    },
     "task_files": {
       "type": "array",
       "minItems": 1,

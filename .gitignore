@@ -17,6 +17,8 @@ web/dist/
 web/.wrangler/
 web/.vite/
 .playwright-cli/
+.claude-flow/
+web/test-results/
 *.tsbuildinfo
 data/restricted/
 data/private/

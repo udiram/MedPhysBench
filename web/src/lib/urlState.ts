@@ -3,7 +3,10 @@ export function getUrlParam(key: string): string | null {
   return new URLSearchParams(window.location.search).get(key);
 }
 
-export function setUrlParams(updates: Record<string, string | null | undefined>) {
+export function setUrlParams(
+  updates: Record<string, string | null | undefined>,
+  options: { history?: "replace" | "push" } = {},
+) {
   if (typeof window === "undefined") return;
   const url = new URL(window.location.href);
   for (const [key, value] of Object.entries(updates)) {
@@ -13,7 +16,8 @@ export function setUrlParams(updates: Record<string, string | null | undefined>)
   const next = `${url.pathname}${url.search}${url.hash}`;
   const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
   if (next !== current) {
-    window.history.replaceState(null, "", next);
+    if (options.history === "push") window.history.pushState(null, "", next);
+    else window.history.replaceState(null, "", next);
   }
 }
 

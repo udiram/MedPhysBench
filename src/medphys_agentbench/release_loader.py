@@ -24,6 +24,7 @@ class BenchmarkRelease:
     allow_access_classes: tuple[AccessClass, ...]
     expected_attempts_per_task: int = 1
     integrity_profile: str = "development"
+    public_attempt_detail: str = "aggregate_only"
 
     def load_tasks(self) -> tuple[TaskSpec, ...]:
         tasks = tuple(load_task(path) for path in self.task_files)
@@ -90,6 +91,22 @@ def load_release(release_file: str | Path) -> BenchmarkRelease:
             f"release.integrity_profile {integrity_profile!r} requires at least "
             f"{minimum_attempts[integrity_profile]} attempts per task."
         )
+    public_attempt_detail = str(raw.get("public_attempt_detail", "aggregate_only"))
+    if public_attempt_detail not in {"aggregate_only", "sanitized_output"}:
+        raise ContractError(
+            "release.public_attempt_detail must be aggregate_only or sanitized_output."
+        )
+    if public_attempt_detail == "sanitized_output" and any(
+        access_class is not AccessClass.PUBLIC for access_class in allow_access_classes
+    ):
+        raise ContractError(
+            "release.public_attempt_detail may expose sanitized outputs only when every "
+            "allowed access class is public."
+        )
+    if public_attempt_detail == "sanitized_output" and integrity_profile == "comparison":
+        raise ContractError(
+            "release.public_attempt_detail cannot expose answers for a comparison-profile release."
+        )
 
     return BenchmarkRelease(
         schema_version=str(raw["schema_version"]),
@@ -100,4 +117,5 @@ def load_release(release_file: str | Path) -> BenchmarkRelease:
         allow_access_classes=allow_access_classes,
         expected_attempts_per_task=expected_attempts_per_task,
         integrity_profile=integrity_profile,
+        public_attempt_detail=public_attempt_detail,
     )

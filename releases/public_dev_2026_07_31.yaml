@@ -5,6 +5,7 @@ description: >-
   Public synthetic development suite spanning arithmetic, source grounding, checklist,
   and escalation-boundary tasks across medical physics domains.
 allow_access_classes: [public]
+public_attempt_detail: sanitized_output
 expected_attempts_per_task: 1
 task_files:
   - ../tasks/public/core_physics/inverse_square_001/task.yaml

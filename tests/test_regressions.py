@@ -355,7 +355,7 @@ def test_release_summary_demotes_malformed_stored_grade_numbers(tmp_path: Path) 
     assert any("stored_grades_disagree_with_regrade" in issue for issue in row["integrity"]["integrity_errors"])
 
 
-def test_release_summary_keeps_attempt_outputs_out_of_leaderboard(tmp_path: Path) -> None:
+def test_release_summary_projects_public_safe_attempt_forensics(tmp_path: Path) -> None:
     release = load_release("releases/public_dev_2026_07_31.yaml")
     task = release.load_tasks()[0]
     model_dir = tmp_path / release.release_id / "projection-test"
@@ -365,14 +365,90 @@ def test_release_summary_keeps_attempt_outputs_out_of_leaderboard(tmp_path: Path
     summary = summarize_release(release, tmp_path)
     task_row = summary["unranked_models"][0]["tasks"][0]
 
-    assert "output" not in task_row
+    assert task_row["output"] == _passing_output(task)
+    assert task_row["score"] == 1.0
+    assert task_row["duration_seconds"] == 1.0
+    assert task_row["token_usage"] == {
+        "available": True,
+        "input_tokens": 100,
+        "output_tokens": 20,
+        "total_tokens": 120,
+    }
+    assert task_row["response_receipt"] == {
+        "latency_ms": 1000.0,
+        "model": "projection-test",
+        "provider": "ollama",
+    }
     assert "grades" not in task_row
-    assert "score" not in task_row
+    assert "raw_response" not in task_row
+    assert task_row["grader_results"]
+    assert all("evidence" not in grade for grade in task_row["grader_results"])
     assert task_row["task_id"] == task.task_id
     assert task_row["runtime_task_hash"]
     assert task_row["outcome_category"] in {"safe_success", "safe_failure", "unsafe", "inconclusive"}
     assert isinstance(task_row["failed_graders"], list)
     assert isinstance(task_row["failed_lanes"], list)
+
+
+def test_release_summary_defaults_to_no_public_answers(tmp_path: Path) -> None:
+    release = replace(
+        load_release("releases/public_dev_2026_07_31.yaml"),
+        public_attempt_detail="aggregate_only",
+    )
+    task = release.load_tasks()[0]
+    model_dir = tmp_path / release.release_id / "aggregate-only"
+    model_dir.mkdir(parents=True)
+    _write_result(model_dir / "attempt.json", task, model_name="aggregate-only")
+
+    task_row = summarize_release(release, tmp_path)["unranked_models"][0]["tasks"][0]
+
+    assert task_row["output"] == {}
+    assert task_row["grader_results"] == []
+    assert task_row["passed"] is True
+    assert task_row["safe"] is True
+
+
+def test_public_forensics_filters_undeclared_output_and_provider_ids(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    task = release.load_tasks()[0]
+    model_dir = tmp_path / release.release_id / "adversarial-receipt"
+    model_dir.mkdir(parents=True)
+    result_file = model_dir / "attempt.json"
+    _write_result(result_file, task, model_name="adversarial-receipt")
+    payload = json.loads(result_file.read_text(encoding="utf-8"))
+    payload["output"].update(
+        {
+            "analysis": "private reasoning",
+            "messages": [{"role": "system", "content": "sealed prompt"}],
+            "request_id": "provider-secret-request",
+            "tool_calls": [{"name": "hidden_tool"}],
+        }
+    )
+    payload["raw_response"].update(
+        {
+            "content": "raw provider response",
+            "request_id": "provider-secret-request",
+            "response_id": "provider-secret-response",
+            "reasoning": "private provider reasoning",
+        }
+    )
+    result_file.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    task_row = summarize_release(release, tmp_path)["unranked_models"][0]["tasks"][0]
+
+    assert set(task_row["output"]) <= set(task.expected_output_schema["properties"])
+    assert {"analysis", "messages", "request_id", "tool_calls"}.isdisjoint(task_row["output"])
+    assert set(task_row["response_receipt"]) <= {
+        "provider",
+        "model",
+        "done_reason",
+        "latency_ms",
+        "content_sha256",
+        "content_redacted",
+    }
+    assert "content" not in task_row["response_receipt"]
+    assert "request_id" not in task_row["response_receipt"]
+    assert "response_id" not in task_row["response_receipt"]
 
 
 def test_release_summary_marks_incomplete_run_ineligible(tmp_path: Path) -> None:
@@ -626,11 +702,12 @@ def test_repository_contracts_and_public_artifacts_validate() -> None:
     )
     counts = json.loads(completed.stdout)
 
-    assert counts["schema_count"] == 10
+    assert counts["schema_count"] == 11
     assert counts["submission_count"] >= 1
     assert counts["fleet_model_count"] == 50
     assert counts["release_count"] >= 1
     assert counts["review_evidence_count"] >= 1
+    assert counts["defect_count"] >= 1
     assert counts["task_count"] >= 98
     assert counts["result_count"] >= 120
     assert counts["grader_mutation_count"] >= 600

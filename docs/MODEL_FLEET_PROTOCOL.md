@@ -64,6 +64,11 @@ create a score row.
 Run one schema task, one calculation/artifact task, and one required-escalation
 task. Validate structured output, deterministic seeds where supported, token and
 duration capture, request IDs, bounded retries, and secret redaction.
+For the local Ollama surface, the runtime has one declared request attempt, no
+adapter retry loop, and no provider-issued request ID; the immutable MedPhysBench
+`run_id`, exact artifact digest, receipt hash, trace, and usage record supply the
+available execution identity. This provider limitation must remain explicit and
+must not be represented as a missing receipt or invented request ID.
 Q1 is a publication gate rather than a correctness threshold: a model may fail
 the clinical-physics outcome while still proving that its adapter records an
 honest, complete attempt. Normally Q1 precedes Q2. If a Q2 run is executed
@@ -108,7 +113,7 @@ scored outcomes and remain canonical attempts; they are not transport retries.
 
 ## Current state
 
-The public website currently exposes 22 model configurations representing 17
+The public website currently exposes 23 model configurations representing 18
 unique base model identifiers across four release surfaces, including five
 completed Groq configurations and six GPT-5.6 effort configurations. These are
 not 22 unique base models. An Ollama Cloud access probe
@@ -119,7 +124,7 @@ network context. Neither event supports a model score.
 The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
 19 closed-weight, 31 declared vision-capable, and 11 stewards. After enforcing
 the current grader/scoring manifest contract, the derived funnel
-reports 17 access-qualified, 15 common-harness evaluated, and 15 officially
+reports 18 access-qualified, 16 common-harness evaluated, and 16 officially
 rankable base models. One fully attempted Groq row is excluded from evaluated/ranked
 counts because its provider-output failure artifacts lack model-response receipts and telemetry.
 GPT-5.6's complete native rows remain visible in the same
@@ -142,6 +147,13 @@ base ID to the exact official
 [`phi4-mini:3.8b-q4_K_M`](https://ollama.com/library/phi4-mini/tags) Ollama artifact;
 the published row retains the full resolved manifest digest rather than relying on the
 mutable tag alone.
+Qwen2.5-VL 7B then completed four Q1 calls—including a real-image transport
+smoke test—and the full 30-attempt Q2 matrix through exact Ollama artifact
+`sha256:5ced39dfa4bac325dc183dd1e4febaa1c46b3ea28bce48896c8e69c1e79611cc`.
+Unlike the text-only v2 rows, its twelve image-grid attempts were real model
+calls rather than unsupported-modality preflight outcomes. The sanitized
+artifact set and every file digest are bound by a second
+`common-harness-submission.v1` sidecar.
 
 Run manifest v2 now freezes and hashes credential-free adapter runtime settings.
 Resume rejects a context-window, endpoint, strict-schema, retry-policy, reasoning-

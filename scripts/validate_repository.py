@@ -101,6 +101,44 @@ def _validate_task_grading_semantics(payload: dict[str, Any], path: Path) -> Non
         raise ValueError(f"{path}: at least one limitations grader must be required for pass.")
 
 
+def _validate_defect_ledger_semantics(
+    payload: dict[str, Any],
+    path: Path,
+    releases_by_id: dict[str, Any],
+) -> None:
+    defect_ids = [str(entry["defect_id"]) for entry in payload["entries"]]
+    if len(defect_ids) != len(set(defect_ids)):
+        raise ValueError(f"{path}: defect_id values must be unique.")
+
+    task_ids_by_release = {
+        release_id: {task.task_id for task in release.load_tasks()}
+        for release_id, release in releases_by_id.items()
+    }
+    for entry in payload["entries"]:
+        defect_id = str(entry["defect_id"])
+        release_ids = [str(value) for value in entry["affected_release_ids"]]
+        unknown_releases = sorted(set(release_ids).difference(releases_by_id))
+        if unknown_releases:
+            raise ValueError(f"{path}:{defect_id}: unknown affected release {unknown_releases[0]!r}.")
+        eligible_task_ids = set().union(*(task_ids_by_release[value] for value in release_ids))
+        unknown_tasks = sorted(set(entry["affected_task_ids"]).difference(eligible_task_ids))
+        if unknown_tasks:
+            raise ValueError(f"{path}:{defect_id}: unknown affected task {unknown_tasks[0]!r}.")
+        for evidence in entry["evidence"]:
+            evidence_path = Path(str(evidence))
+            if evidence_path.is_absolute():
+                raise ValueError(f"{path}:{defect_id}: evidence paths must be repository-relative.")
+            resolved = (ROOT / evidence_path).resolve()
+            if not resolved.is_relative_to(ROOT.resolve()) or not resolved.is_file():
+                raise ValueError(f"{path}:{defect_id}: evidence path is missing or outside the repository.")
+        if entry["status"] in {"fixed", "regraded"}:
+            resolution = entry["resolution"]
+            if resolution["status"] != "complete" or not resolution["replacement_artifact"]:
+                raise ValueError(
+                    f"{path}:{defect_id}: fixed/regraded defects require a complete replacement artifact."
+                )
+
+
 def validate_repository() -> dict[str, int]:
     validators = {
         "task": _validator("task.v1.schema.json"),
@@ -113,6 +151,7 @@ def validate_repository() -> dict[str, int]:
         "model_fleet": _validator("model-fleet.v1.schema.json"),
         "fleet_status": _validator("fleet-status.v1.schema.json"),
         "common_harness_submission": _validator("common-harness-submission.v1.schema.json"),
+        "defect_ledger": _validator("defect-ledger.v1.schema.json"),
     }
 
     fleet_path = ROOT / "fleet" / "public_fleet_v1.yaml"
@@ -145,6 +184,11 @@ def validate_repository() -> dict[str, int]:
         if release_id in releases_by_id:
             raise ValueError(f"Duplicate release_id {release_id!r} in {path}.")
         releases_by_id[release_id] = load_release(path)
+
+    defect_ledger_path = ROOT / "governance" / "benchmark-defects.json"
+    defect_ledger = _load_json(defect_ledger_path)
+    _validate(validators["defect_ledger"], defect_ledger, defect_ledger_path)
+    _validate_defect_ledger_semantics(defect_ledger, defect_ledger_path, releases_by_id)
 
     review_paths = sorted((ROOT / "reviews").glob("*.json"))
     for path in review_paths:
@@ -228,6 +272,7 @@ def validate_repository() -> dict[str, int]:
         "schema_count": len(validators),
         "release_count": len(release_paths),
         "review_evidence_count": len(review_paths),
+        "defect_count": len(defect_ledger["entries"]),
         "task_count": len(task_paths),
         "result_count": len(result_paths),
         "submission_count": len(submission_paths),

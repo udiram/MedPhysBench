@@ -46,13 +46,13 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert status == rebuilt
     assert rebuilt["summary"] == {
         "planned_base_models": 50,
-            "access_qualified_base_models": 17,
-        "evaluated_base_models": 15,
-        "ranked_base_models": 15,
-        "workflow_qualified_base_models": 15,
-        "workflow_ranked_base_models": 15,
-            "published_system_configurations": 22,
-            "published_release_rows": 37,
+        "access_qualified_base_models": 18,
+        "evaluated_base_models": 16,
+        "ranked_base_models": 16,
+        "workflow_qualified_base_models": 16,
+        "workflow_ranked_base_models": 16,
+        "published_system_configurations": 23,
+        "published_release_rows": 38,
         "open_planned_models": 31,
         "closed_planned_models": 19,
         "vision_planned_models": 31,
@@ -70,7 +70,7 @@ def test_catalog_maps_system_configurations_to_unique_frozen_base_models() -> No
 
     assert len(keys) == len(set(keys))
     assert all(entry["base_model_id"] in frozen_ids for entry in catalog)
-    assert len({entry["base_model_id"] for entry in catalog}) == 17
+    assert len({entry["base_model_id"] for entry in catalog}) == 18
     assert sum(entry["base_model_id"] == "gpt-5.6-sol" for entry in catalog) == 6
 
 
@@ -117,10 +117,27 @@ def test_v2_workflow_comparison_group_is_now_officially_ranked() -> None:
     assert deepseek["workflow_ranked"] is True
 
 
+def test_qwen25vl_7b_is_exactly_bound_through_access_and_workflow_results() -> None:
+    status = build_fleet_status()
+    qwen = next(
+        row
+        for row in status["models"]
+        if row["base_model_id"] == "Qwen/Qwen2.5-VL-7B-Instruct"
+    )
+
+    assert qwen["qualification_stage"] == "q2"
+    assert qwen["access_qualified"] is True
+    assert qwen["evaluated"] is True
+    assert qwen["ranked"] is True
+    assert qwen["workflow_qualified"] is True
+    assert qwen["workflow_ranked"] is True
+    assert qwen["published_row_count"] == 1
+
+
 def test_workflow_qualified_counts_only_common_harness_real_workflow_release() -> None:
     status = build_fleet_status()
-    assert status["summary"]["workflow_qualified_base_models"] == 15
-    assert status["summary"]["workflow_ranked_base_models"] == 15
+    assert status["summary"]["workflow_qualified_base_models"] == 16
+    assert status["summary"]["workflow_ranked_base_models"] == 16
 
     gpt = next(
         row

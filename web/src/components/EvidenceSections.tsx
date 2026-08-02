@@ -1,22 +1,27 @@
 import { ExternalLink } from "lucide-react";
 import { DOC_LINKS, domainDescriptions, workflow } from "../content";
 import { domainLabel, shortHash } from "../lib/format";
-import type { AccessStatus, Leaderboard, ReleaseView, ReviewEvidence } from "../types";
+import type { AccessStatus, DefectLedger, Leaderboard, ReleaseView, ReviewEvidence } from "../types";
 
 type EvidenceSectionsProps = {
   accessStatus: AccessStatus[];
   data: Leaderboard | null;
+  defectLedger: DefectLedger | null;
   releaseView: ReleaseView;
   reviewEvidence: ReviewEvidence | null;
 };
 
-export function EvidenceSections({ accessStatus, data, releaseView, reviewEvidence }: EvidenceSectionsProps) {
+export function EvidenceSections({ accessStatus, data, defectLedger, releaseView, reviewEvidence }: EvidenceSectionsProps) {
   const coverage = data?.coverage ?? buildCoverage(data?.tasks ?? []);
   const integrity = data?.integrity;
   const blocked = accessStatus.filter((item) => item.status !== "available");
   const rankedCount = data ? integrity?.ranked_model_count ?? data.models.length : null;
   const reviewCount = data ? integrity?.unranked_model_count ?? data.unranked_models?.length ?? 0 : null;
   const trackMix = buildTrackMix(data?.tasks ?? []);
+  const selectedReleaseId = data?.release.release_id ?? fallbackReleaseId(releaseView);
+  const affectedDefects = defectLedger?.entries.filter((entry) =>
+    entry.affected_release_ids.includes(selectedReleaseId),
+  ) ?? [];
 
   return (
     <>
@@ -174,6 +179,25 @@ export function EvidenceSections({ accessStatus, data, releaseView, reviewEviden
           <article>
             <h3>Access status</h3>
             <p>{blocked.length} blocked or retired handles kept separate from scored results.</p>
+          </article>
+          <article className={affectedDefects.length ? "integrity-defect-card active" : "integrity-defect-card"}>
+            <h3>Public defect ledger</h3>
+            {!defectLedger ? (
+              <p>Ledger loading or unavailable; no clean-bill claim is inferred.</p>
+            ) : affectedDefects.length ? (
+              <>
+                <p><strong>{affectedDefects.length} disclosed item{affectedDefects.length === 1 ? "" : "s"}</strong> affect this release.</p>
+                {affectedDefects.map((defect) => (
+                  <details key={defect.defect_id}>
+                    <summary>{defect.defect_id} · {defect.severity} · {defect.status}</summary>
+                    <p>{defect.summary}</p>
+                    <p>{defect.score_treatment}</p>
+                  </details>
+                ))}
+              </>
+            ) : (
+              <p>No confirmed ledger entry currently targets this release.</p>
+            )}
           </article>
         </div>
       </section>

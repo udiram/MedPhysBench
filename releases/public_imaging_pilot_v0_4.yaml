@@ -6,6 +6,7 @@ description: >-
   localization, coarse segmentation, and source-label classification. This development pilot
   is reported separately from the core leaderboard and is not clinical validation.
 allow_access_classes: [public]
+public_attempt_detail: sanitized_output
 expected_attempts_per_task: 1
 task_files:
   - ../tasks/public/imaging/real_mri_hippocampus_localization_001/task.yaml

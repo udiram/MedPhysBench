@@ -30,17 +30,25 @@ jobs:
       - name: Validate the complete public releases
         run: |
           uv run medphys-bench validate-release releases/public_core_v0_4.yaml
+          uv run medphys-bench validate-release releases/public_core_v0_5.yaml
+          uv run medphys-bench validate-release releases/public_dev_2026_07_31.yaml
           uv run medphys-bench validate-release releases/public_imaging_pilot_v0_4.yaml
           uv run medphys-bench validate-release releases/public_real_workflows_pilot_v0_6.yaml
+          uv run medphys-bench validate-release releases/public_tg263_pilot_v0_5.yaml
       - name: Validate schemas, tasks, runtime projections, and result artifacts
         run: uv run python scripts/validate_repository.py
       - name: Verify auditable common-harness submission bundles
         run: uv run python scripts/common_harness_submission.py validate-all
+      - name: Verify public governance projections
+        run: |
+          uv run python scripts/build_public_review_evidence.py --check
+          uv run python scripts/build_public_defect_ledger.py --check
       - name: Verify public artifacts exclude provider reasoning
         run: |
           uv run python scripts/sanitize_public_results.py --check results/releases/public-core-v0.4
           uv run python scripts/sanitize_public_results.py --check results/releases/public-imaging-pilot-v0.4
           uv run python scripts/sanitize_public_results.py --check results/releases/public-real-workflows-pilot-v0.6
+          uv run python scripts/sanitize_public_results.py --check results/releases/public-tg263-pilot-v0.5
 
   build-public-site:
     runs-on: ubuntu-latest
@@ -54,9 +62,12 @@ jobs:
       - name: Install locked frontend dependencies
         working-directory: web
         run: npm ci
-      - name: Typecheck and build
+      - name: Test, typecheck, and build
         working-directory: web
-        run: npm run build
+        run: |
+          npm test
+          npm run lint
+          npm run build
       - name: Audit production dependencies
         working-directory: web
         run: npm audit --omit=dev

@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_DATA = REPO_ROOT / "web" / "public" / "data"
 CATALOG_PATH = PUBLIC_DATA / "model_catalog.json"
@@ -113,7 +115,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(payload, dict)
     rows = [*payload["models"], *payload.get("unranked_models", [])]
-    assert len(rows) == 19
+    assert len(rows) == 20
     v2_rows = [
         row
         for row in rows
@@ -124,12 +126,13 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
         "llama3.2:3b",
         "phi4-mini:3.8b-q4_K_M",
         "qwen2.5:7b-instruct",
+        "qwen2.5vl:7b-q4_K_M",
         "qwen3:1.7b",
         "qwen3:8b",
         "qwen3:14b",
     }
     assert all(row["ranking_eligible"] is True for row in v2_rows)
-    assert {row["rank"] for row in v2_rows} == set(range(1, 8))
+    assert {row["rank"] for row in v2_rows} == set(range(1, 9))
     deepseek = next(row for row in rows if row["model_name"] == "deepseek-r1:1.5b")
     capability_failures = [task for task in deepseek["tasks"] if task.get("capability_failure")]
     assert len(capability_failures) == 12
@@ -137,7 +140,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
         "unsupported_required_modality"
     }
 
-    forbidden = {"output", "grades", "raw_response", "trace", "error", "expected"}
+    forbidden = {"grades", "raw_response", "trace", "error", "expected", "evidence"}
     for row in rows:
         task_rows = row["tasks"]
         assert len(task_rows) == row["attempt_count"]
@@ -145,6 +148,10 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
         assert round(recomputed_safe_success, 4) == row["safe_success_rate"]
         for task in task_rows:
             assert forbidden.isdisjoint(task)
+            assert isinstance(task["output"], dict)
+            assert isinstance(task["grader_results"], list)
+            assert all("evidence" not in grade for grade in task["grader_results"])
+            assert "content" not in task["response_receipt"]
             assert task["outcome_category"] in {"safe_success", "safe_failure", "unsafe", "inconclusive"}
             assert isinstance(task["failed_graders"], list)
             assert isinstance(task["failed_lanes"], list)
@@ -153,12 +160,33 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
                 assert task["failed_graders"] == []
                 assert task["failed_lanes"] == []
 
+    recorded = next(row for row in rows if row["model_name"] == "gpt-5.6-sol [effort=high]")
+    assert recorded["execution_surface"] == "recorded_output_import"
+    for task in recorded["tasks"]:
+        assert task["duration_seconds"] is None
+        assert task["token_usage"] == {
+            "available": False,
+            "input_tokens": None,
+            "output_tokens": None,
+            "total_tokens": None,
+        }
+        assert task["response_receipt"] == {}
 
-def test_real_workflow_public_copies_are_byte_identical() -> None:
+
+@pytest.mark.parametrize(
+    ("release_id", "public_filename"),
+    [
+        ("public-core-v0.4", "leaderboard.json"),
+        ("public-imaging-pilot-v0.4", "imaging_leaderboard.json"),
+        ("public-tg263-pilot-v0.5", "tg263_leaderboard.json"),
+        ("public-real-workflows-pilot-v0.6", "public-real-workflows-pilot-v0.6.json"),
+    ],
+)
+def test_public_release_copies_are_byte_identical(release_id: str, public_filename: str) -> None:
     paths = [
-        REPO_ROOT / "results" / "releases" / "public-real-workflows-pilot-v0.6" / "leaderboard.json",
-        REPO_ROOT / "results" / "leaderboards" / "public-real-workflows-pilot-v0.6.json",
-        PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json",
+        REPO_ROOT / "results" / "releases" / release_id / "leaderboard.json",
+        REPO_ROOT / "results" / "leaderboards" / f"{release_id}.json",
+        PUBLIC_DATA / public_filename,
     ]
     contents = [path.read_bytes() for path in paths]
     assert all(content == contents[0] for content in contents[1:])

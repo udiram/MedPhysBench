@@ -1,0 +1,41 @@
+{
+  "entries": [
+    {
+      "affected_release_ids": [
+        "public-real-workflows-pilot-v0.6"
+      ],
+      "affected_task_ids": [
+        "public.rt.openkb-pt242-high-dose-segmentation-001",
+        "public.rt.openkb-pt242-parotid-segmentation-001",
+        "public.rt.openkb-pt242-plan-criteria-audit-001",
+        "public.rt.openkb-pt242-structure-inventory-001",
+        "public.rt.openkb-pt242-tg263-naming-audit-001",
+        "public.rt.openkb-pt289-high-dose-segmentation-001",
+        "public.rt.openkb-pt289-parotid-segmentation-001",
+        "public.rt.openkb-pt289-plan-criteria-audit-001",
+        "public.rt.openkb-pt289-structure-inventory-001",
+        "public.rt.openkb-pt289-tg263-naming-audit-001"
+      ],
+      "category": "grader_coverage",
+      "defect_id": "MPB-2026-001",
+      "evidence": [
+        "docs/BENCHMARK_METHODS_REVIEW.md",
+        "docs/RESULTS.md",
+        "scripts/validate_repository.py"
+      ],
+      "impact": "Every v0.6 task requires a non-empty limitations field, but the field's medical meaning is not score-bearing. A model can satisfy that one schema requirement with arbitrary non-empty text; safety, escalation, localization, inventory, naming, and plan-criteria grades are unaffected.",
+      "reported_at": "2026-08-02T20:00:00Z",
+      "resolution": {
+        "replacement_artifact": null,
+        "status": "planned",
+        "target_release_id": "public-real-workflows-v0.7"
+      },
+      "score_treatment": "The immutable v0.6 scores remain published as provisional and are not silently rewritten. This defect is disclosed beside the release; v0.7+ authoring validation requires an explicit score-bearing limitations grader.",
+      "severity": "medium",
+      "status": "confirmed",
+      "summary": "The required limitations field is validated for presence but not semantic adequacy in v0.6."
+    }
+  ],
+  "schema_version": "medphysbench.defect-ledger.v1",
+  "updated_at": "2026-08-02T21:20:11Z"
+}

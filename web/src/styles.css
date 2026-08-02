@@ -959,6 +959,29 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   padding: 18px;
   background: var(--surface);
 }
+.integrity-defect-card.active {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.integrity-defect-card strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.integrity-defect-card details {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.integrity-defect-card summary {
+  color: var(--accent);
+  cursor: pointer;
+  font: 600 11px/1.5 "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.integrity-defect-card details p {
+  margin: 10px 0 0;
+  line-height: 1.55;
+}
 
 .workflow-rail {
   display: grid;
@@ -1785,6 +1808,101 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   font: 500 10px/1.4 "IBM Plex Mono", monospace;
   overflow-wrap: anywhere;
 }
+.forensics-evidence-block {
+  min-width: 0;
+  margin-top: 16px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+}
+.forensics-evidence-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.forensics-evidence-heading span,
+.forensics-receipt summary {
+  color: var(--text);
+  font: 500 11px/1.4 "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+}
+.forensics-evidence-heading small {
+  color: var(--muted);
+  font: 500 9px/1.4 "IBM Plex Mono", monospace;
+  text-align: right;
+}
+.forensics-evidence-block pre,
+.forensics-receipt pre {
+  max-width: 100%;
+  max-height: 320px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  background: #0b0c0d;
+  color: #c9d2ca;
+  font: 500 10px/1.6 "IBM Plex Mono", monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.forensics-grader-list {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 1px;
+  background: var(--line);
+  list-style: none;
+}
+.forensics-grader-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px 12px;
+  padding: 11px;
+  border-left: 2px solid transparent;
+  background: var(--surface-alt);
+}
+.forensics-grader-list li.passed { border-left-color: #527f5b; }
+.forensics-grader-list li.failed { border-left-color: var(--danger); }
+.forensics-grader-list li > div { min-width: 0; }
+.forensics-grader-list strong,
+.forensics-grader-list span {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.forensics-grader-list strong {
+  color: var(--text);
+  font: 500 10px/1.45 "IBM Plex Mono", monospace;
+}
+.forensics-grader-list span {
+  margin-top: 3px;
+  color: var(--muted);
+  font: 500 9px/1.4 "IBM Plex Mono", monospace;
+}
+.forensics-grader-list em {
+  color: var(--muted-strong);
+  font: normal 600 9px/1.4 "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+}
+.forensics-grader-list li.passed em { color: #9ccfa7; }
+.forensics-grader-list li.failed em { color: var(--danger); }
+.forensics-grader-list p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted-strong);
+  font-size: 11px;
+  line-height: 1.55;
+}
+.forensics-receipt {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+}
+.forensics-receipt summary {
+  cursor: pointer;
+}
+.forensics-receipt pre { margin-top: 10px; }
 .forensics-empty {
   margin-top: 20px;
   padding: 18px;
@@ -1802,6 +1920,31 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   color: var(--muted);
   font-size: 13px;
   line-height: 1.6;
+}
+
+.forensics-empty.compact {
+  min-height: 220px;
+  display: grid;
+  place-content: center;
+  justify-items: start;
+  gap: 12px;
+}
+
+.forensics-empty.compact button {
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 0.65rem 0.9rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.forensics-empty.compact button:hover,
+.forensics-empty.compact button:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 .fleet-section {
   padding-block: 34px 38px;
@@ -2238,6 +2381,8 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   .forensics-task-grid {
     grid-template-columns: 1fr;
   }
+  .forensics-evidence-heading { align-items: flex-start; flex-direction: column; }
+  .forensics-evidence-heading small { text-align: left; }
   .capability-toolbar .view-switch,
   .scope-switch { width: 100%; overflow-x: auto; }
   .scope-switch button { flex: 1 0 auto; }

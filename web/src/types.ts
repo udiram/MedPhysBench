@@ -35,6 +35,31 @@ export type ReviewEvidence = {
   };
 };
 
+export type BenchmarkDefect = {
+  defect_id: string;
+  reported_at: string;
+  status: "reported" | "confirmed" | "fixed" | "withdrawn" | "regraded";
+  severity: "low" | "medium" | "high" | "critical";
+  category: string;
+  summary: string;
+  impact: string;
+  score_treatment: string;
+  affected_release_ids: string[];
+  affected_task_ids: string[];
+  resolution: {
+    status: "planned" | "in_progress" | "complete" | "not_applicable";
+    target_release_id: string | null;
+    replacement_artifact: string | null;
+  };
+  evidence: string[];
+};
+
+export type DefectLedger = {
+  schema_version: "medphysbench.defect-ledger.v1";
+  updated_at: string;
+  entries: BenchmarkDefect[];
+};
+
 export type PublicReleaseKey = "core" | "imaging" | "tg263" | "real";
 
 export type ModelOpenness = "open" | "closed" | "unknown";
@@ -93,7 +118,29 @@ export type ModelTaskResult = {
   tool_schema_hash?: string;
   runtime_task_hash?: string;
   grader_hash?: string;
+  adapter_settings_hash?: string;
   scoring_revision?: string;
+  created_at?: string;
+  status?: string;
+  score?: number;
+  duration_seconds?: number | null;
+  token_usage?: {
+    available: boolean;
+    input_tokens: number | null;
+    output_tokens: number | null;
+    total_tokens: number | null;
+  };
+  output?: Record<string, unknown>;
+  grader_results?: Array<{
+    grader_id: string;
+    lane: string;
+    passed: boolean;
+    score: number;
+    required_for_pass: boolean;
+    severity: string;
+    rationale: string;
+  }>;
+  response_receipt?: Record<string, unknown>;
   passed?: boolean;
   safe: boolean;
   outcome_category?: string;
@@ -119,6 +166,7 @@ export type ModelResult = {
     provider: string;
     harness_name: string;
     harness_revision: string;
+    run_configuration_hash?: string;
     is_common_harness: boolean;
     is_recorded_import_surface: boolean;
   };
@@ -219,6 +267,7 @@ export type Leaderboard = {
     allow_access_classes: string[];
     expected_attempts_per_task?: number;
     integrity_profile?: "development" | "pilot" | "comparison";
+    public_attempt_detail?: "aggregate_only" | "sanitized_output";
     family_count?: number;
   };
   integrity: {

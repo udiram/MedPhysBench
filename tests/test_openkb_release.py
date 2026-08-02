@@ -19,6 +19,7 @@ def test_openkb_release_uses_case_families_and_multi_attempt_pilot_contract() ->
     tasks = release.load_tasks()
 
     assert release.integrity_profile == "pilot"
+    assert release.public_attempt_detail == "sanitized_output"
     assert release.expected_attempts_per_task == 3
     assert len(tasks) == 10
     assert {task.family_id for task in tasks} == {"openkb.pt_289", "openkb.pt_242"}
@@ -102,6 +103,54 @@ def test_release_rejects_task_paths_outside_repository_task_tree(tmp_path: Path)
     )
 
     with pytest.raises(ContractError, match="repository tasks directory"):
+        load_release(release_path)
+
+
+def test_release_rejects_public_output_projection_for_nonpublic_access(tmp_path: Path) -> None:
+    release_path = tmp_path / "unsafe-publication.yaml"
+    release_path.write_text(
+        "\n".join(
+            [
+                "schema_version: medeval.release.v1",
+                "release_id: unsafe-publication",
+                "title: Unsafe publication",
+                "description: Restricted tasks must never expose attempt outputs",
+                "allow_access_classes: [restricted]",
+                "public_attempt_detail: sanitized_output",
+                "task_files:",
+                f"  - {ROOT / 'tasks/public/core_physics/inverse_square_001/task.yaml'}",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ContractError, match="every allowed access class is public"):
+        load_release(release_path)
+
+
+def test_release_rejects_answer_projection_for_comparison_profile(tmp_path: Path) -> None:
+    release_path = tmp_path / "unsafe-comparison-publication.yaml"
+    release_path.write_text(
+        "\n".join(
+            [
+                "schema_version: medeval.release.v1",
+                "release_id: unsafe-comparison-publication",
+                "title: Unsafe comparison publication",
+                "description: Comparison answers must remain aggregate-only",
+                "allow_access_classes: [public]",
+                "integrity_profile: comparison",
+                "expected_attempts_per_task: 5",
+                "public_attempt_detail: sanitized_output",
+                "task_files:",
+                f"  - {ROOT / 'tasks/public/core_physics/inverse_square_001/task.yaml'}",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ContractError, match="comparison-profile"):
         load_release(release_path)
 
 

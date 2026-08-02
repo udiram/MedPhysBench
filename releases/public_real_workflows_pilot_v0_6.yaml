@@ -8,6 +8,7 @@ description: >-
   authored TG-263 naming rules. Patient-linked tasks share a family ID and results must
   not be represented as ten independent cases or as clinical validation.
 allow_access_classes: [public]
+public_attempt_detail: sanitized_output
 integrity_profile: pilot
 expected_attempts_per_task: 3
 task_files:

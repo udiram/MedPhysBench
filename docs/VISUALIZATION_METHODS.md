@@ -63,13 +63,23 @@ Each release card exposes outcome filters for safe passes, safe failures, unsafe
 attempts, and legacy outcomes whose pass label cannot be reproduced. Search can
 match task IDs, domains, failed lanes, and deterministic grader IDs. The public
 drilldown contains provenance hashes and failure-contract identifiers, but not
-raw model responses, hidden expected values, provider reasoning, or grader golds.
-This follows HELM's prompt-level transparency principle while preserving the
-sealed-task boundary required by MedPhysBench.
+raw provider responses, hidden expected values, provider reasoning, or grader
+golds. A release must explicitly declare `public_attempt_detail:
+sanitized_output` before the reporter can expose task answers, and that policy is
+rejected for any non-public access class. Eligible public-development releases
+include only schema-declared answer fields, per-attempt score, wall time, token
+counts, reduced deterministic grader verdicts without gold-bearing evidence, and
+a redacted provider/runtime receipt. Comparison-profile releases cannot opt in,
+even when their task contracts are public. Aggregate-only is the default. Exact model,
+harness, and run-configuration revisions are shown beside the attempt evidence.
+This follows HELM's prompt-level
+transparency principle while preserving the sealed-task boundary required by
+MedPhysBench.
 
 Explorer state is URL-backed. The selected release, source/provider filters,
-execution surface, expanded model row, selected release card, and task-evidence
-filters survive refresh and can be shared as a direct link for audit or review.
+execution surface, expanded model row, selected release card, forensic run set,
+domain, outcome, and selected task survive refresh and can be shared as a direct
+link for audit or review.
 
 ### Outcome interval plot
 

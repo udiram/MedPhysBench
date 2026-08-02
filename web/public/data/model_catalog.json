@@ -137,6 +137,14 @@
   },
   {
     "provider": "ollama",
+    "model_name": "qwen2.5vl:7b-q4_K_M",
+    "base_model_id": "Qwen/Qwen2.5-VL-7B-Instruct",
+    "openness": "open",
+    "steward": "Qwen",
+    "family": "Qwen 2.5 VL"
+  },
+  {
+    "provider": "ollama",
     "model_name": "qwen3-vl:8b",
     "base_model_id": "Qwen/Qwen3-VL-8B-Instruct",
     "openness": "open",

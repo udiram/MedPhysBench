@@ -27,12 +27,12 @@ package, or evidence of autonomous clinical competence.
 - TG-263 audit: `public-tg263-pilot-v0.5-audit` (separates primary naming decisions from exact benchmark reason-code labels)
 - Real-image pilot: `public-imaging-pilot-v0.4` (`5` real MRI, CT, and PET tasks)
 - OpenKBP real-workflow pilot: `public-real-workflows-pilot-v0.6` (`10` tasks from
-  `2` patient families; `11` ranked Ollama configurations, `4` ranked Groq
+  `2` patient families; `12` ranked Ollama configurations, `4` ranked Groq
   configurations, `1` quarantined Groq configuration, and `3` GPT-5.6 native effort audits;
-  `570` total attempt artifacts)
+  `600` total attempt artifacts)
 - Scored configurations through Sunday, August 2, 2026: five common-harness local core models,
   six explicitly unranked GPT-5.6 core-effort pilots, two harder TG-263 native pilots,
-  three local models on the original image pilot, sixteen API/local configurations on the
+  three local models on the original image pilot, seventeen API/local configurations on the
   OpenKBP pilot, and three GPT-5.6 OpenKBP effort audits with descriptive outcome ranks
 - Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
 - Frozen 50-base-model panel: [`fleet/public_fleet_v1.yaml`](fleet/public_fleet_v1.yaml)
@@ -44,6 +44,7 @@ package, or evidence of autonomous clinical competence.
 - Imaging run package: [`results/releases/public-imaging-pilot-v0.4/`](results/releases/public-imaging-pilot-v0.4/)
 - OpenKBP run package: [`results/releases/public-real-workflows-pilot-v0.6/`](results/releases/public-real-workflows-pilot-v0.6/)
 - OpenKBP review ledger: [`reviews/public-real-workflows-pilot-v0.6.json`](reviews/public-real-workflows-pilot-v0.6.json)
+- Public defect ledger: [`governance/benchmark-defects.json`](governance/benchmark-defects.json)
 - Release writeup: [`docs/RESULTS.md`](docs/RESULTS.md)
 - Benchmark card: [`docs/BENCHMARK_CARD.md`](docs/BENCHMARK_CARD.md)
 - Changelog: [`CHANGELOG.md`](CHANGELOG.md)
@@ -56,7 +57,7 @@ package, or evidence of autonomous clinical competence.
 | Understand the benchmark and current evidence | [Benchmark paper](docs/BENCHMARK_PAPER.md) · [Benchmark card](docs/BENCHMARK_CARD.md) |
 | Audit the benchmark methodology and reporting contract | [Methods review](docs/BENCHMARK_METHODS_REVIEW.md) · [Public reporting standard](docs/PUBLIC_REPORTING_STANDARD.md) |
 | Reproduce the public release | [Reproducibility guide](docs/REPRODUCIBILITY.md) · [Evaluation protocol](docs/EVALUATION_PROTOCOL.md) |
-| Inspect what could invalidate a score | [Threat model](docs/THREAT_MODEL.md) · [Data statement](docs/DATA_STATEMENT.md) |
+| Inspect what could invalidate a score | [Defect ledger](governance/benchmark-defects.json) · [Threat model](docs/THREAT_MODEL.md) · [Data statement](docs/DATA_STATEMENT.md) |
 | Add a provider or model | [Adapter contract](docs/ADAPTER_CONTRACT.md) · [Model onboarding](docs/MODEL_ONBOARDING.md) |
 | Submit auditable model results | [Contribution guide](CONTRIBUTING.md#result-submission-requirements) · [submission schema](schemas/common-harness-submission.v1.schema.json) |
 | Propose a task | [Contribution guide](CONTRIBUTING.md) · [Task catalog](docs/TASK_CATALOG.md) |
@@ -95,21 +96,27 @@ package, or evidence of autonomous clinical competence.
 - Harness-group release ranks plus a clearly labeled descriptive cross-surface outcome order;
   incomplete or manifest-inconsistent runs remain published but receive neither.
 - Architecture, governance, evaluation, onboarding, and deployment documentation in [`docs/`](docs/).
-- Repository-wide validation of all ten JSON Schemas, every authored/runtime task projection,
+- Repository-wide validation of all eleven JSON Schemas, every authored/runtime task projection,
   every artifact digest, constructed reference feasibility, and every published result artifact.
 - A unified browser model index that exposes open/closed and provider filters, release-specific
-  scores, task-level outcome facets, failed grader contracts, and provenance hashes while keeping
-  raw responses, hidden expected values, and grader golds out of the public projection.
-- A release-aware forensic surface built from released outputs and deterministic regrading; it
-  exposes per-attempt task cards, failed-lane/failed-grader tallies, and immutable hash drilldowns
-  while keeping legacy manifest limitations visible and outside current-contract ranks.
-- A machine-derived qualification funnel that reports `50` frozen base IDs, `17` access-qualified,
-  `15` validly evaluated under the current manifest contract, and `15` rankable—without counting six
+  scores, task-level outcome facets, failed grader contracts, exact configuration hashes, and
+  provenance while keeping raw provider responses, hidden expected values, and grader golds out
+  of the public projection.
+- A release-aware forensic surface built from deterministic regrading. Explicitly opted-in
+  public-development releases expose only schema-filtered answers, per-attempt score/time/tokens,
+  reduced deterministic verdicts, redacted receipts, failed-lane tallies, shareable URL state, and
+  immutable hashes. Aggregate-only is the default; non-public and comparison-profile releases
+  cannot opt in.
+- A machine-derived qualification funnel that reports `50` frozen base IDs, `18` access-qualified,
+  `16` validly evaluated under the current manifest contract, and `16` rankable—without counting six
   GPT-5.6 effort settings as six models, treating historical legacy rows as current-contract evidence,
   or presenting a partial local campaign as a score.
 - Workflow-qualified accounting now separately reports which planned models have actually completed
   a repeated-trial workflow release instead of letting smaller pilot surfaces overstate benchmark
   breadth.
+- A machine-readable public defect ledger binds confirmed issues to exact releases and tasks, states
+  whether scores remain provisional, withdrawn, fixed, or regraded, and never silently rewrites an
+  immutable published result.
 
 ## Quick start
 

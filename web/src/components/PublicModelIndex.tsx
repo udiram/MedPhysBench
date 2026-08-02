@@ -90,6 +90,7 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
         !normalized ||
         row.model_name.toLowerCase().includes(normalized) ||
         row.provider.toLowerCase().includes(normalized) ||
+        providerLabel(row.provider).toLowerCase().includes(normalized) ||
         row.release_id.toLowerCase().includes(normalized) ||
         entry?.family.toLowerCase().includes(normalized) === true;
       const matchesOpenness = openness === "all" || (entry?.openness ?? "unknown") === openness;
@@ -192,7 +193,7 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
     runRelease?: string | null;
     taskView?: TaskView | null;
     taskQuery?: string | null;
-  } = {}) => {
+  } = {}, history: "replace" | "push" = "push") => {
     const nextQuery = overrides.query ?? query;
     const nextOpenness = overrides.openness ?? openness;
     const nextProvider = overrides.provider ?? provider;
@@ -223,7 +224,7 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
       run_release: nextExpanded ? (overrides.runRelease ?? (selectedModelChanged ? null : getUrlParam("run_release"))) : null,
       task_view: nextExpanded ? (overrides.taskView ?? (selectedModelChanged ? null : getUrlParam("task_view"))) : null,
       task_query: nextExpanded ? (overrides.taskQuery ?? (selectedModelChanged ? null : getUrlParam("task_query"))) : null,
-    });
+    }, { history });
   };
 
   return (
@@ -271,7 +272,7 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
               onChange={(event) => {
                 const value = event.target.value;
                 setQuery(value);
-                writeExplorerUrl({ query: value });
+                writeExplorerUrl({ query: value }, "replace");
               }}
               placeholder="Model, family, provider, or release"
             />
@@ -522,6 +523,12 @@ function ModelRegistryRow({
                           {unknown > 0 && <span>{unknown} legacy outcomes unavailable</span>}
                           <span>{run.comparison_group ?? run.harness_revision ?? "Recorded native surface"}</span>
                         </div>
+                        <dl className="run-provenance registry-run-contract">
+                          <div><dt>Model revision</dt><dd>{run.model_revision || "Unavailable"}</dd></div>
+                          <div><dt>Harness</dt><dd>{run.harness_name ?? "Unavailable"} · {run.harness_revision ?? "Unavailable"}</dd></div>
+                          <div><dt>Run config</dt><dd>{run.run_profile?.run_configuration_hash ?? "Unavailable"}</dd></div>
+                          <div><dt>Comparison group</dt><dd>{run.comparison_group ?? "Not assigned"}</dd></div>
+                        </dl>
                         <RunTaskExplorer run={run} />
                       </article>
                     );
@@ -659,7 +666,10 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
     setQuery(getUrlParam("task_query") ?? "");
   }, [isSelectedRun]);
 
-  const writeRunUrl = (next: { view?: TaskView; query?: string } = {}) => {
+  const writeRunUrl = (
+    next: { view?: TaskView; query?: string } = {},
+    history: "replace" | "push" = "push",
+  ) => {
     if (getUrlParam("model_provider") !== run.provider || getUrlParam("model_name") !== run.model_name) return;
     const nextView = next.view ?? view;
     const nextQuery = next.query ?? query;
@@ -667,7 +677,7 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
       run_release: run.release_key,
       task_view: nextView === "all" ? null : nextView,
       task_query: nextQuery || null,
-    });
+    }, { history });
   };
 
   return (
@@ -701,7 +711,7 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
           onChange={(event) => {
             const value = event.target.value;
             setQuery(value);
-            writeRunUrl({ query: value });
+            writeRunUrl({ query: value }, "replace");
           }}
           placeholder="Search family, task, domain, failed lane, or grader"
           aria-label="Search task evidence"
@@ -799,7 +809,7 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
               </div>
               <div className="signature-attempt-chips">
                 {signature.attempts.map((task) => (
-                  <span key={`${signature.key}-${task.attempt_index ?? 0}`} className={`signature-attempt-chip ${taskOutcome(task)}`}>
+                  <span key={taskAttemptKey(task)} className={`signature-attempt-chip ${taskOutcome(task)}`}>
                     Attempt {(task.attempt_index ?? 0) + 1}: {outcomeLabel(task)}
                   </span>
                 ))}
@@ -812,7 +822,7 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
       {presentation === "attempts" && (
         <div className="run-task-list">
           {tasks.map((task) => (
-            <article key={`${run.release_id}-${task.task_id}-${task.attempt_index ?? 0}`} className={`run-task-row ${taskOutcome(task)}`}>
+            <article key={`${run.release_id}-${taskAttemptKey(task)}`} className={`run-task-row ${taskOutcome(task)}`}>
               <header>
                 <div>
                   <strong>{task.title}</strong>
@@ -844,7 +854,7 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
         </div>
       )}
       <p className="run-task-boundary">
-        Failure labels expose deterministic grader contracts only. Raw model output, hidden expected values, and reasoning traces are excluded.
+        Structured public model outputs and deterministic verdicts are available in attempt-level forensics. Hidden expected values, gold-bearing evidence, and provider reasoning remain excluded.
       </p>
     </section>
   );
@@ -868,6 +878,10 @@ function taskOutcome(task: ModelTaskResult) {
   if (task.safe === false) return "unsafe";
   if (task.passed === false) return "safe-fail";
   return "unknown";
+}
+
+function taskAttemptKey(task: ModelTaskResult) {
+  return [task.task_id, task.attempt_index ?? "no-attempt", task.seed ?? "no-seed", task.run_id ?? "no-run"].join("::");
 }
 
 function outcomeLabel(task: ModelTaskResult) {
