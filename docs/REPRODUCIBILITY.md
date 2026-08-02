@@ -42,6 +42,32 @@ is an immutable-overwrite error. Do not rename or remove individual attempt arti
 summarizing; incomplete, duplicate, unknown-task, mixed-identity, or hash-drifted sets are retained
 as unranked evidence.
 
+The command above is the `public-core-v0.4` example; its 1,024-token cap is not the
+OpenKBP comparison contract. A run intended to join the current
+`public-real-workflows-pilot-v0.6` Ollama `reference-json-v2` group must use the
+group's exact 2,048-token cap and adapter settings. For the published Mistral Nemo
+artifact, that command shape is:
+
+```bash
+uv run medphys-bench run-release \
+  releases/public_real_workflows_pilot_v0_6.yaml \
+  --adapter ollama \
+  --model mistral-nemo:12b-instruct-2407-q4_K_M \
+  --model-revision sha256:daf6737417121831e572a9c482e92a221ee0c33537f35f1f857c7b4f7191df55 \
+  --results-dir runs/openkb-mistral-nemo \
+  --resume \
+  --seed 20260733 \
+  --temperature 0 \
+  --max-tokens 2048 \
+  --timeout 300 \
+  --ollama-num-ctx 4096 \
+  --ollama-keep-alive 0
+```
+
+The summarizer still decides comparability from the frozen manifest hashes; matching
+the visible flags alone does not override a different harness revision, adapter
+contract, seed policy, or model digest.
+
 Run manifest v1 remains readable for published history, but it is deliberately not resumable: it
 did not freeze the adapter-runtime settings needed to prove a campaign continued unchanged. Start a
 new results directory/revision when migrating an interrupted v1 campaign.

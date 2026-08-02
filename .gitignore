@@ -19,6 +19,8 @@ web/.vite/
 .playwright-cli/
 .claude-flow/
 web/test-results/
+output/playwright/
+results/candidates/
 *.tsbuildinfo
 data/restricted/
 data/private/

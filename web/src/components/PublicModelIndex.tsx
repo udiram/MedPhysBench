@@ -288,7 +288,7 @@ export function PublicModelIndex({ catalog, datasets }: PublicModelIndexProps) {
             }}>
               <option value="all">All systems</option>
               <option value="open">Open weights</option>
-              <option value="closed">Closed weights</option>
+              <option value="closed">Closed models</option>
               <option value="unknown">Unclassified</option>
             </select>
             <ChevronDown aria-hidden="true" />

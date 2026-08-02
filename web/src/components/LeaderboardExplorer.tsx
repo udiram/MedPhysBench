@@ -285,12 +285,12 @@ export function LeaderboardExplorer({
           </span>
         </label>
         <label className="field">
-          <span>Model source</span>
+          <span>Openness</span>
           <span className="select-wrap">
             <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as typeof sourceFilter)}>
-              <option value="all">Open + closed</option>
+              <option value="all">All systems</option>
               <option value="open">Open weights</option>
-              <option value="closed">Closed</option>
+              <option value="closed">Closed models</option>
               <option value="unknown">Unclassified</option>
             </select>
             <ChevronDown aria-hidden="true" />
@@ -326,6 +326,10 @@ export function LeaderboardExplorer({
       </div>
 
       <div className="table-frame">
+        <p className="table-scroll-hint">
+          <span aria-hidden="true">↔</span>
+          Swipe to compare safety, timing, and provenance.
+        </p>
         <div className="table-scroll" role="region" aria-label="Model leaderboard" tabIndex={0}>
           <table className="leaderboard-table">
             <caption className="sr-only">
@@ -641,7 +645,7 @@ function ModelDetailRow({
       </tr>
       {expanded && (
         <tr className="detail-row">
-          <td colSpan={12}>
+          <td colSpan={13}>
             <div className="detail-grid">
               <section>
                 <h4>Run summary</h4>

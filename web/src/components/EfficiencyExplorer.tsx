@@ -173,12 +173,12 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
 
       <div className="explorer-controls efficiency-controls">
         <label className="field">
-          <span>Model source</span>
+          <span>Openness</span>
           <span className="select-wrap">
             <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as SourceFilter)}>
-              <option value="all">Open + closed</option>
+              <option value="all">All systems</option>
               <option value="open">Open weights</option>
-              <option value="closed">Closed</option>
+              <option value="closed">Closed models</option>
               <option value="unknown">Unclassified</option>
             </select>
             <ChevronDown aria-hidden="true" />

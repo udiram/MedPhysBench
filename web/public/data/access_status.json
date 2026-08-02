@@ -180,6 +180,16 @@
     "note": "Groq-hosted model evaluated on the OpenKBP v0.6 release with three attempts per task."
   },
   {
+    "model": "mistral-nemo:12b-instruct-2407-q4_K_M",
+    "provider": "ollama",
+    "base_model_id": "mistralai/Mistral-Nemo-Instruct-2407",
+    "qualification_stage": "q2",
+    "status": "available",
+    "surface": "local_ollama",
+    "date": "2026-08-02",
+    "note": "Apache-2.0 Mistral Nemo 12B base evaluated through exact Ollama artifact sha256:daf6737417121831e572a9c482e92a221ee0c33537f35f1f857c7b4f7191df55. The complete 30-attempt OpenKBP Q2 matrix uses the frozen reference-json-v2 comparison settings; required-image tasks remain explicit unsupported-modality outcomes."
+  },
+  {
     "model": "gpt-5.6-sol",
     "provider": "codex-native",
     "base_model_id": "gpt-5.6-sol",

@@ -46,13 +46,13 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert status == rebuilt
     assert rebuilt["summary"] == {
         "planned_base_models": 50,
-        "access_qualified_base_models": 18,
-        "evaluated_base_models": 16,
-        "ranked_base_models": 16,
-        "workflow_qualified_base_models": 16,
-        "workflow_ranked_base_models": 16,
-        "published_system_configurations": 23,
-        "published_release_rows": 38,
+        "access_qualified_base_models": 19,
+        "evaluated_base_models": 17,
+        "ranked_base_models": 17,
+        "workflow_qualified_base_models": 17,
+        "workflow_ranked_base_models": 17,
+        "published_system_configurations": 24,
+        "published_release_rows": 39,
         "open_planned_models": 31,
         "closed_planned_models": 19,
         "vision_planned_models": 31,
@@ -70,7 +70,7 @@ def test_catalog_maps_system_configurations_to_unique_frozen_base_models() -> No
 
     assert len(keys) == len(set(keys))
     assert all(entry["base_model_id"] in frozen_ids for entry in catalog)
-    assert len({entry["base_model_id"] for entry in catalog}) == 18
+    assert len({entry["base_model_id"] for entry in catalog}) == 19
     assert sum(entry["base_model_id"] == "gpt-5.6-sol" for entry in catalog) == 6
 
 
@@ -136,8 +136,8 @@ def test_qwen25vl_7b_is_exactly_bound_through_access_and_workflow_results() -> N
 
 def test_workflow_qualified_counts_only_common_harness_real_workflow_release() -> None:
     status = build_fleet_status()
-    assert status["summary"]["workflow_qualified_base_models"] == 16
-    assert status["summary"]["workflow_ranked_base_models"] == 16
+    assert status["summary"]["workflow_qualified_base_models"] == 17
+    assert status["summary"]["workflow_ranked_base_models"] == 17
 
     gpt = next(
         row

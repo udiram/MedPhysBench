@@ -113,7 +113,7 @@ scored outcomes and remain canonical attempts; they are not transport retries.
 
 ## Current state
 
-The public website currently exposes 23 model configurations representing 18
+The public website currently exposes 24 model configurations representing 19
 unique base model identifiers across four release surfaces, including five
 completed Groq configurations and six GPT-5.6 effort configurations. These are
 not 22 unique base models. An Ollama Cloud access probe
@@ -124,7 +124,7 @@ network context. Neither event supports a model score.
 The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
 19 closed-weight, 31 declared vision-capable, and 11 stewards. After enforcing
 the current grader/scoring manifest contract, the derived funnel
-reports 18 access-qualified, 16 common-harness evaluated, and 16 officially
+reports 19 access-qualified, 17 common-harness evaluated, and 17 officially
 rankable base models. One fully attempted Groq row is excluded from evaluated/ranked
 counts because its provider-output failure artifacts lack model-response receipts and telemetry.
 GPT-5.6's complete native rows remain visible in the same
@@ -135,9 +135,9 @@ Its 12 required-image attempts are explicit unsupported-modality outcomes and al
 18 text attempts produced schema-valid outputs. Five additional digest-pinned local
 models completed the identical 30-attempt contract: Qwen 3 1.7B, 8B, and 14B;
 Qwen 2.5 7B Instruct; and Llama 3.2 3B. Each also completed the three-task adapter
-audit with schema-valid output and complete duration/token telemetry. The resulting
-six-system `reference-json-v2` comparison group is officially rankable within that
-frozen configuration only.
+audit with schema-valid output and complete duration/token telemetry. That initial
+six-system `reference-json-v2` comparison group became officially rankable within
+that frozen configuration only.
 Phi-4 Mini then completed the same digest-pinned Q1 and 30-attempt Q2 process as a
 seventh local text system. Its exact Ollama artifact revision, complete artifact set,
 execution window, environment, and per-file hashes are bound by the first committed
@@ -154,6 +154,15 @@ Unlike the text-only v2 rows, its twelve image-grid attempts were real model
 calls rather than unsupported-modality preflight outcomes. The sanitized
 artifact set and every file digest are bound by a second
 `common-harness-submission.v1` sidecar.
+Mistral Nemo 12B then completed the same 30-attempt v2 matrix through exact Ollama
+artifact `sha256:daf6737417121831e572a9c482e92a221ee0c33537f35f1f857c7b4f7191df55`.
+Its first complete development run used a non-comparable 1,024-token cap and is
+retained outside the public release as candidate evidence. The published rerun uses
+the frozen 2,048-token v2 cap, joins the existing comparison group, and binds all 30
+sanitized artifacts to a third attested submission sidecar.
+The resulting current v2 group contains nine exact model configurations. A complete
+campaign with any other token cap, adapter-settings hash, harness revision, or seed
+policy remains visible evidence but cannot enter that ranking group.
 
 Run manifest v2 now freezes and hashes credential-free adapter runtime settings.
 Resume rejects a context-window, endpoint, strict-schema, retry-policy, reasoning-

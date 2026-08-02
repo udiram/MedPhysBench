@@ -105,6 +105,14 @@
   },
   {
     "provider": "ollama",
+    "model_name": "mistral-nemo:12b-instruct-2407-q4_K_M",
+    "base_model_id": "mistralai/Mistral-Nemo-Instruct-2407",
+    "openness": "open",
+    "steward": "Mistral AI",
+    "family": "Mistral Nemo"
+  },
+  {
+    "provider": "ollama",
     "model_name": "phi4-mini:3.8b-q4_K_M",
     "base_model_id": "microsoft/Phi-4-mini-instruct",
     "openness": "open",

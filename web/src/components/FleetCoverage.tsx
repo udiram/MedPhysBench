@@ -121,12 +121,12 @@ export function FleetCoverage({ data }: Props) {
               </span>
             </label>
             <label className="field">
-              <span>Model source</span>
+              <span>Openness</span>
               <span className="select-wrap">
                 <select value={source} onChange={(event) => setSource(event.target.value as SourceFilter)}>
-                  <option value="all">Open + closed</option>
+                  <option value="all">All systems</option>
                   <option value="open">Open weights</option>
-                  <option value="closed">Closed weights</option>
+                  <option value="closed">Closed models</option>
                 </select>
                 <ChevronDown aria-hidden="true" />
               </span>

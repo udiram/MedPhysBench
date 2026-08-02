@@ -115,7 +115,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(payload, dict)
     rows = [*payload["models"], *payload.get("unranked_models", [])]
-    assert len(rows) == 20
+    assert len(rows) == 21
     v2_rows = [
         row
         for row in rows
@@ -124,6 +124,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     assert {row["model_name"] for row in v2_rows} == {
         "deepseek-r1:1.5b",
         "llama3.2:3b",
+        "mistral-nemo:12b-instruct-2407-q4_K_M",
         "phi4-mini:3.8b-q4_K_M",
         "qwen2.5:7b-instruct",
         "qwen2.5vl:7b-q4_K_M",
@@ -132,7 +133,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
         "qwen3:14b",
     }
     assert all(row["ranking_eligible"] is True for row in v2_rows)
-    assert {row["rank"] for row in v2_rows} == set(range(1, 9))
+    assert {row["rank"] for row in v2_rows} == set(range(1, 10))
     deepseek = next(row for row in rows if row["model_name"] == "deepseek-r1:1.5b")
     capability_failures = [task for task in deepseek["tasks"] if task.get("capability_failure")]
     assert len(capability_failures) == 12
@@ -171,6 +172,34 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
             "total_tokens": None,
         }
         assert task["response_receipt"] == {}
+
+
+def test_v2_ollama_group_freezes_the_published_sampling_and_adapter_contract() -> None:
+    result_root = REPO_ROOT / "results" / "releases" / "public-real-workflows-pilot-v0.6"
+    manifests: list[dict[str, object]] = []
+    for path in result_root.glob("*/*.json"):
+        payload = _load_json(path)
+        if not isinstance(payload, dict):
+            continue
+        manifest = payload.get("manifest")
+        if not isinstance(manifest, dict):
+            continue
+        model = manifest.get("model")
+        if isinstance(model, dict) and model.get("harness_revision") == "reference-json-v2":
+            manifests.append(manifest)
+
+    assert len(manifests) == 9 * 30
+    assert {manifest["max_tokens"] for manifest in manifests} == {2048}
+    assert {manifest["temperature"] for manifest in manifests} == {0.0}
+    assert {manifest["seed"] for manifest in manifests} == {20260731, 20260732, 20260733}
+    assert {manifest["adapter_settings_hash"] for manifest in manifests} == {
+        "b424732b3b1b2f4672d08e259526d7090484a1df832180809ca3494ea2a5ff75"
+    }
+    adapter_settings = [manifest["adapter_settings"] for manifest in manifests]
+    assert all(isinstance(settings, dict) for settings in adapter_settings)
+    assert {settings["context_window"] for settings in adapter_settings} == {4096}
+    assert {settings["keep_alive"] for settings in adapter_settings} == {"0"}
+    assert {settings["structured_output_mode"] for settings in adapter_settings} == {"json_schema"}
 
 
 @pytest.mark.parametrize(

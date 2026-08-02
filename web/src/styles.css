@@ -745,6 +745,21 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 .efficiency-table-wrap {
   border-bottom: 1px solid var(--line);
 }
+.table-scroll-hint {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font: 500 11px "IBM Plex Mono", monospace;
+  letter-spacing: 0.02em;
+}
+.table-scroll-hint span {
+  color: var(--accent);
+  font-size: 15px;
+}
 .table-scroll,
 .efficiency-table-wrap {
   max-width: 100%;
@@ -2397,7 +2412,23 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
     grid-template-columns: 1fr;
     gap: 8px;
   }
-  .leaderboard-table { min-width: 980px; }
+  .leaderboard-section .table-scroll-hint { display: flex; }
+  .leaderboard-section .leaderboard-table { min-width: 820px; }
+  .leaderboard-section .leaderboard-table thead th:nth-child(-n + 2),
+  .leaderboard-section .model-row > td:nth-child(-n + 2) { display: none; }
+  .leaderboard-section .leaderboard-table thead th:nth-child(3),
+  .leaderboard-section .model-row > td:nth-child(3) {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    min-width: 190px;
+    background: var(--surface);
+    box-shadow: 1px 0 0 var(--line);
+  }
+  .leaderboard-section .leaderboard-table thead th:nth-child(3) {
+    z-index: 3;
+    background: var(--surface-alt);
+  }
   .efficiency-chart { min-width: 720px; }
   .chart-panel { overflow-x: auto; }
   .chart-guide dl { grid-template-columns: 1fr; }
