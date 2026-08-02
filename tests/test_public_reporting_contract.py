@@ -78,3 +78,7 @@ def test_real_workflow_reporting_preserves_family_and_repeat_contract() -> None:
     assert payload["release"]["expected_attempts_per_task"] == 3
     assert payload["methodology"]["status"].startswith("public research pilot")
     assert "correlated" in payload["methodology"]["family_dependence"].lower()
+    rows = [*payload["models"], *payload.get("unranked_models", [])]
+    assert rows
+    for row in rows:
+        assert all(task.get("family_id") for task in row["tasks"])

@@ -10,6 +10,7 @@ import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { LeaderboardExplorer } from "./components/LeaderboardExplorer";
 import { PublicModelIndex } from "./components/PublicModelIndex";
+import { ResultForensics } from "./components/ResultForensics";
 import { useLeaderboard } from "./hooks/useLeaderboard";
 import { readEnumParam, setUrlParams } from "./lib/urlState";
 import type { AccessStatus, FleetStatus, ModelCatalogEntry, ReleaseView, Tg263Audit } from "./types";
@@ -143,6 +144,11 @@ function App() {
           loadError={selected.loadError}
           releaseView={releaseView}
           modelCatalog={modelCatalog}
+        />
+        <ResultForensics
+          data={selected.data}
+          modelCatalog={modelCatalog}
+          releaseView={releaseView}
         />
         <EfficiencyExplorer
           data={selected.data}

@@ -541,6 +541,7 @@ type TaskPresentation = "signatures" | "attempts";
 
 type TaskSignature = {
   key: string;
+  family_id: string;
   task_id: string;
   title: string;
   domain: string;
@@ -549,6 +550,7 @@ type TaskSignature = {
   safeFailCount: number;
   unsafeCount: number;
   unknownCount: number;
+  agreementLabel: string;
   repeatedLanes: Array<[string, number]>;
   repeatedGraders: Array<[string, number]>;
 };
@@ -582,6 +584,7 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
       !normalized ||
       task.title.toLowerCase().includes(normalized) ||
       task.task_id.toLowerCase().includes(normalized) ||
+      (task.family_id?.toLowerCase().includes(normalized) ?? false) ||
       task.domain.toLowerCase().includes(normalized) ||
       task.failed_lanes?.some((lane) => lane.toLowerCase().includes(normalized)) === true ||
       task.failed_graders?.some((grader) => grader.toLowerCase().includes(normalized)) === true;
@@ -590,12 +593,14 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
   const taskSignatures = useMemo<TaskSignature[]>(() => {
     const grouped = new Map<string, TaskSignature>();
     for (const task of tasks) {
-      const key = `${task.task_id}::${task.title}`;
+      const familyId = task.family_id ?? task.task_id;
+      const key = familyId;
       const current = grouped.get(key);
       const signature =
         current ??
         {
           key,
+          family_id: familyId,
           task_id: task.task_id,
           title: task.title,
           domain: task.domain,
@@ -604,6 +609,7 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
           safeFailCount: 0,
           unsafeCount: 0,
           unknownCount: 0,
+          agreementLabel: "Unanimous",
           repeatedLanes: [],
           repeatedGraders: [],
         };
@@ -620,6 +626,7 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
       .map((signature) => ({
         ...signature,
         attempts: [...signature.attempts].sort((left, right) => (left.attempt_index ?? 0) - (right.attempt_index ?? 0)),
+        agreementLabel: familyAgreementLabel(signature.attempts),
         repeatedLanes: topCounts(signature.attempts.flatMap((task) => task.failed_lanes ?? [])),
         repeatedGraders: topCounts(signature.attempts.flatMap((task) => task.failed_graders ?? [])),
       }))
@@ -631,6 +638,18 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
           left.title.localeCompare(right.title),
       );
   }, [tasks]);
+  const unstableFamilies = useMemo(
+    () => taskSignatures.filter((signature) => signature.agreementLabel !== "Unanimous").length,
+    [taskSignatures],
+  );
+  const failureDomains = useMemo(
+    () =>
+      topCounts(
+        tasks.filter((task) => taskOutcome(task) !== "safe-pass").map((task) => domainLabel(task.domain)),
+        3,
+      ),
+    [tasks],
+  );
   const topFailureLanes = useMemo(() => topCounts(tasks.flatMap((task) => task.failed_lanes ?? []), 3), [tasks]);
   const topFailureGraders = useMemo(() => topCounts(tasks.flatMap((task) => task.failed_graders ?? []), 3), [tasks]);
 
@@ -684,25 +703,35 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
             setQuery(value);
             writeRunUrl({ query: value });
           }}
-          placeholder="Search task, domain, failed lane, or grader"
+          placeholder="Search family, task, domain, failed lane, or grader"
           aria-label="Search task evidence"
         />
       </label>
       <div className="run-task-summary-grid">
         <article>
-          <span>Task signatures</span>
+          <span>Task families</span>
           <strong>{taskSignatures.length}</strong>
           <small>{tasks.length} attempt records in scope</small>
         </article>
         <article>
-          <span>Repeated failed lanes</span>
-          <strong>{topFailureLanes[0]?.[0] ?? "None"}</strong>
-          <small>{topFailureLanes[0] ? `${topFailureLanes[0][1]} attempt(s)` : "No lane failures recorded"}</small>
+          <span>Mixed-attempt families</span>
+          <strong>{unstableFamilies}</strong>
+          <small>{unstableFamilies ? "Not all repeated attempts agree" : "Every visible family is unanimous"}</small>
+        </article>
+        <article>
+          <span>Failure-heavy domain</span>
+          <strong>{failureDomains[0]?.[0] ?? "None"}</strong>
+          <small>{failureDomains[0] ? `${failureDomains[0][1]} failed attempt(s)` : "No failed attempts in scope"}</small>
         </article>
         <article>
           <span>Repeated failed graders</span>
           <strong>{topFailureGraders[0]?.[0] ?? "None"}</strong>
           <small>{topFailureGraders[0] ? `${topFailureGraders[0][1]} attempt(s)` : "No grader failures recorded"}</small>
+        </article>
+        <article>
+          <span>Repeated failed lanes</span>
+          <strong>{topFailureLanes[0]?.[0] ?? "None"}</strong>
+          <small>{topFailureLanes[0] ? `${topFailureLanes[0][1]} attempt(s)` : "No lane failures recorded"}</small>
         </article>
       </div>
       <div className="run-task-presentation" role="group" aria-label="Task evidence presentation">
@@ -711,7 +740,7 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
           aria-pressed={presentation === "signatures"}
           onClick={() => setPresentation("signatures")}
         >
-          Task signatures
+          Family view
         </button>
         <button
           type="button"
@@ -728,7 +757,7 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
               <header>
                 <div>
                   <strong>{signature.title}</strong>
-                  <span>{signature.task_id}</span>
+                  <span>{signature.family_id} · anchor {signature.task_id}</span>
                 </div>
                 <span className="signature-domain">{domainLabel(signature.domain)}</span>
               </header>
@@ -755,6 +784,10 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
                 )}
               </div>
               <div className="signature-reason-grid">
+                <div>
+                  <span>Attempt agreement</span>
+                  <strong>{signature.agreementLabel}</strong>
+                </div>
                 <div>
                   <span>Repeated lanes</span>
                   <strong>{signature.repeatedLanes.map(([name, count]) => `${name} (${count})`).join(", ") || "None"}</strong>
@@ -789,6 +822,7 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
               </header>
               <div className="run-task-meta">
                 <span>{domainLabel(task.domain)}</span>
+                <span>{task.family_id ?? task.task_id}</span>
                 <span>Attempt {(task.attempt_index ?? 0) + 1}</span>
                 <span>Seed {task.seed ?? "unavailable"}</span>
               </div>
@@ -863,4 +897,12 @@ function topCounts(values: string[], limit = 2) {
   return [...counts.entries()]
     .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
     .slice(0, limit);
+}
+
+function familyAgreementLabel(tasks: ModelTaskResult[]) {
+  const outcomes = [...new Set(tasks.map((task) => taskOutcome(task)))];
+  if (outcomes.length <= 1) return "Unanimous";
+  if (outcomes.includes("unsafe")) return "Mixed, includes unsafe";
+  if (outcomes.includes("safe-pass") && outcomes.includes("safe-fail")) return "Mixed pass/fail";
+  return "Mixed";
 }

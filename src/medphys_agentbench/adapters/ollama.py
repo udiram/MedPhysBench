@@ -14,11 +14,7 @@ from ..artifacts import ollama_image_payloads
 from ..contracts import ModelDescriptor, RuntimeTask
 from ..json_utils import StrictJsonError, decode_strict_json_object
 from ..prompting import SYSTEM_PROMPT, build_user_prompt
-from .base import AgentResult, public_endpoint_url
-
-
-class AdapterError(RuntimeError):
-    """A provider or response-contract failure."""
+from .base import AdapterError, AgentResult, UnsupportedCapabilityError, public_endpoint_url
 
 
 @dataclass
@@ -32,9 +28,10 @@ class OllamaAdapter:
     artifact_root: Path = Path.cwd()
     keep_alive: str | int | None = 0
     context_window: int = 4096
+    model_revision_override: str | None = None
 
     provider = "ollama"
-    harness_revision = "reference-json-v1"
+    harness_revision = "reference-json-v2"
 
     @property
     def name(self) -> str:
@@ -42,7 +39,7 @@ class OllamaAdapter:
 
     @property
     def model_revision(self) -> str:
-        return self.model_name
+        return self.model_revision_override or self.model_name
 
     def model_descriptor(self) -> ModelDescriptor:
         return ModelDescriptor(
@@ -64,6 +61,10 @@ class OllamaAdapter:
             "context_window": self.context_window,
             "keep_alive": self.keep_alive,
             "artifact_transport": "ollama_images",
+            "required_modality_preflight": "ollama_show_then_response_v1",
+            "model_identity_resolution": (
+                "ollama_tags_digest_v1" if self.model_revision_override else "mutable_model_tag"
+            ),
         }
 
     def execute(self, task: RuntimeTask) -> AgentResult:
@@ -71,6 +72,13 @@ class OllamaAdapter:
         user_message: dict[str, Any] = {"role": "user", "content": build_user_prompt(task)}
         images = ollama_image_payloads(task.context_artifacts, self.artifact_root)
         if images:
+            capabilities = self._declared_capabilities()
+            if capabilities is not None and "vision" not in capabilities:
+                declared = ", ".join(capabilities) or "none"
+                raise UnsupportedCapabilityError(
+                    f"Ollama model {self.model_name} cannot consume this task's required "
+                    f"image modality; /api/show declared capabilities: {declared}."
+                )
             user_message["images"] = images
         request_payload = {
             "model": self.model_name,
@@ -99,6 +107,15 @@ class OllamaAdapter:
         try:
             with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
                 raw = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as error:
+            body = error.read().decode("utf-8", errors="replace")[:1000]
+            if images and _is_unsupported_image_response(error.code, body):
+                raise UnsupportedCapabilityError(
+                    f"Ollama model {self.model_name} cannot consume this task's required image modality."
+                ) from error
+            raise AdapterError(
+                f"Ollama HTTP {error.code} for model {self.model_name}: {body}"
+            ) from error
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
             raise AdapterError(f"Ollama request failed for {self.model_name}: {error}") from error
 
@@ -133,6 +150,26 @@ class OllamaAdapter:
             },
         )
 
+    def _declared_capabilities(self) -> tuple[str, ...] | None:
+        """Read Ollama's model metadata without loading the model into memory."""
+        request = urllib.request.Request(
+            f"{self.base_url.rstrip('/')}/api/show",
+            data=json.dumps({"model": self.model_name}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=min(self.timeout_seconds, 30)) as response:
+                raw = json.loads(response.read().decode("utf-8"))
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+            return None
+        capabilities = raw.get("capabilities")
+        if not isinstance(capabilities, list) or not all(
+            isinstance(value, str) for value in capabilities
+        ):
+            return None
+        return tuple(sorted(set(capabilities)))
+
 
 def _parse_json_object(content: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Parse one exact JSON object without repair or duplicate-key ambiguity."""
@@ -148,3 +185,58 @@ def _parse_json_object(content: str) -> tuple[dict[str, Any], list[dict[str, Any
             }
         ]
     return parsed, []
+
+
+def _is_unsupported_image_response(status_code: int, body: str) -> bool:
+    if status_code not in {400, 422, 500}:
+        return False
+    normalized = body.lower()
+    return any(
+        marker in normalized
+        for marker in (
+            "does not support images",
+            "doesn't support images",
+            "image input is not supported",
+            "image inputs are not supported",
+            "vision is not supported",
+        )
+    )
+
+
+def resolve_ollama_model_revision(
+    model_name: str,
+    *,
+    base_url: str = "http://127.0.0.1:11434",
+    timeout_seconds: int = 30,
+) -> str:
+    """Resolve a mutable Ollama tag to the immutable local artifact digest."""
+    endpoint = public_endpoint_url(base_url)
+    request = urllib.request.Request(f"{endpoint}/api/tags", method="GET")
+    try:
+        with urllib.request.urlopen(request, timeout=min(timeout_seconds, 30)) as response:
+            raw = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as error:
+        body = error.read().decode("utf-8", errors="replace")[:1000]
+        raise AdapterError(f"Ollama model identity lookup failed with HTTP {error.code}: {body}") from error
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
+        raise AdapterError(f"Ollama model identity lookup failed: {error}") from error
+
+    models = raw.get("models") if isinstance(raw, dict) else None
+    if not isinstance(models, list):
+        raise AdapterError("Ollama /api/tags response did not contain a model list.")
+    for item in models:
+        if not isinstance(item, dict):
+            continue
+        if item.get("name") != model_name and item.get("model") != model_name:
+            continue
+        digest = item.get("digest")
+        if not isinstance(digest, str) or len(digest) != 64:
+            raise AdapterError(f"Ollama model {model_name} did not expose a valid SHA-256 digest.")
+        try:
+            int(digest, 16)
+        except ValueError as error:
+            raise AdapterError(
+                f"Ollama model {model_name} exposed a non-hexadecimal artifact digest."
+            ) from error
+        return f"sha256:{digest.lower()}"
+    raise AdapterError(f"Ollama model {model_name} was not found in /api/tags.")

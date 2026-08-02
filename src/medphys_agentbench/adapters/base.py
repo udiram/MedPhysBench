@@ -9,6 +9,18 @@ from urllib.parse import urlsplit, urlunsplit
 from ..contracts import ModelDescriptor, RuntimeTask
 
 
+class AdapterError(RuntimeError):
+    """A provider transport or response failure."""
+
+
+class UnsupportedCapabilityError(AdapterError):
+    """A declared model cannot consume a task's required input modality."""
+
+
+class ProviderOutputContractError(AdapterError):
+    """The model/provider failed to produce the declared structured output."""
+
+
 @dataclass(frozen=True)
 class AgentResult:
     final_output: dict[str, Any]

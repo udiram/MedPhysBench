@@ -11,7 +11,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from .adapters.base import AgentAdapter
-from .adapters.ollama import AdapterError, OllamaAdapter
+from .adapters.ollama import AdapterError, OllamaAdapter, resolve_ollama_model_revision
 from .adapters.openai_compatible import (
     OpenAICompatibleAdapter,
     ProviderOutputContractError,
@@ -59,6 +59,10 @@ def main() -> None:
         required=True,
     )
     run.add_argument("--model", required=True)
+    run.add_argument(
+        "--model-revision",
+        help="Exact provider revision or local artifact digest; Ollama resolves /api/tags when omitted.",
+    )
     run.add_argument("--output", type=Path, required=True)
     run.add_argument("--base-url")
     run.add_argument("--api-key-env")
@@ -85,6 +89,12 @@ def main() -> None:
         required=True,
     )
     run_release.add_argument("--model", action="append", required=True)
+    run_release.add_argument(
+        "--model-revision",
+        help=(
+            "Exact revision for a single --model; Ollama resolves each /api/tags digest when omitted."
+        ),
+    )
     run_release.add_argument("--results-dir", type=Path, default=Path("runs"))
     run_release.add_argument(
         "--attempts",
@@ -201,6 +211,13 @@ def main() -> None:
 
     if args.command == "run":
         task = load_task(args.task_file)
+        model_revision = _resolve_model_revision(
+            args.adapter,
+            args.model,
+            args.model_revision,
+            args.base_url,
+            args.timeout,
+        )
         adapter = _build_adapter(
             args.adapter,
             args.model,
@@ -216,6 +233,7 @@ def main() -> None:
             reasoning_effort=args.reasoning_effort,
             ollama_keep_alive=args.ollama_keep_alive,
             ollama_num_ctx=args.ollama_num_ctx,
+            model_revision_override=model_revision,
         )
         result = run_trial(
             task,
@@ -237,6 +255,18 @@ def main() -> None:
         attempts = args.attempts if args.attempts is not None else release.expected_attempts_per_task
         if attempts < 1:
             raise SystemExit("--attempts must be at least 1.")
+        if args.model_revision and len(args.model) != 1:
+            raise SystemExit("--model-revision can only be used with exactly one --model.")
+        model_revisions = {
+            model_name: _resolve_model_revision(
+                args.adapter,
+                model_name,
+                args.model_revision,
+                args.base_url,
+                args.timeout,
+            )
+            for model_name in args.model
+        }
 
         output_catalog: dict[str, list[Path]] = {}
         for model_name in args.model:
@@ -272,6 +302,7 @@ def main() -> None:
                     reasoning_effort=args.reasoning_effort,
                     ollama_keep_alive=args.ollama_keep_alive,
                     ollama_num_ctx=args.ollama_num_ctx,
+                    model_revision_override=model_revisions[model_name],
                 )
                 descriptor = resume_adapter.model_descriptor()
                 settings = adapter_runtime_settings(resume_adapter)
@@ -332,6 +363,7 @@ def main() -> None:
                         reasoning_effort=args.reasoning_effort,
                         ollama_keep_alive=args.ollama_keep_alive,
                         ollama_num_ctx=args.ollama_num_ctx,
+                        model_revision_override=model_revisions[model_name],
                     )
                     run_id = str(uuid4())
                     try:
@@ -541,6 +573,7 @@ def _build_adapter(
     reasoning_effort: str | None = None,
     ollama_keep_alive: str | int | None = 0,
     ollama_num_ctx: int = 4096,
+    model_revision_override: str | None = None,
 ) -> AgentAdapter:
     if adapter == "ollama":
         return OllamaAdapter(
@@ -552,6 +585,7 @@ def _build_adapter(
             max_tokens=max_tokens,
             keep_alive=ollama_keep_alive,
             context_window=ollama_num_ctx,
+            model_revision_override=model_revision_override,
         )
     presets = {
         "groq": ("groq", "https://api.groq.com/openai/v1", "GROQ_API_KEY"),
@@ -586,7 +620,31 @@ def _build_adapter(
         response_format=response_format,
         strict_schema=strict_schema,
         reasoning_effort=reasoning_effort,
+        model_revision_override=model_revision_override,
     )
+
+
+def _resolve_model_revision(
+    adapter: str,
+    model_name: str,
+    revision_override: str | None,
+    base_url: str | None,
+    timeout: int,
+) -> str | None:
+    if revision_override:
+        return revision_override
+    if adapter != "ollama":
+        return None
+    try:
+        return resolve_ollama_model_revision(
+            model_name,
+            base_url=base_url or "http://127.0.0.1:11434",
+            timeout_seconds=timeout,
+        )
+    except AdapterError as error:
+        raise SystemExit(
+            f"Cannot freeze the Ollama model identity for {model_name!r}: {error}"
+        ) from error
 
 
 def _slugify(value: str) -> str:

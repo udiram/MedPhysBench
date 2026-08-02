@@ -6,12 +6,13 @@
       "task_count": 18
     }
   ],
-  "generated_at": "2026-08-01T21:07:26.948958+00:00",
+  "generated_at": "2026-08-02T17:36:00.162038+00:00",
   "integrity": {
     "expected_attempt_count": 18,
     "expected_attempts_per_task": 1,
     "ranked_model_count": 0,
-    "release_contract_hash": "3d44948eb1be8befebc14dd4682c7d1bf3a3fbe422ab190cfcd2069d3ba51a39",
+    "release_contract_hash": "085fdda39273814bcadbe4a6a16ee82233fa9f4ce191129347d204abd99c5dd2",
+    "release_contract_hash_v2": "7bc9c34a383abf6e0ed44a41c33ce3308298e64fad841b284320c22c2a138d9c",
     "unranked_model_count": 2
   },
   "methodology": {
@@ -296,6 +297,8 @@
         "observed_attempts": 0
       },
       "error_count": 0,
+      "execution_surface": "recorded_output_import",
+      "execution_surface_label": "Recorded output import",
       "expected_attempt_count": 18,
       "family_cluster_safe_success_ci95": [
         0.8333,
@@ -306,6 +309,42 @@
       "harness_revision": "codex-native-pilot-v1;effort=high",
       "integrity": {
         "integrity_errors": [
+          "missing_grader_hash:public.rt.structure-naming-already-conformant-001:0",
+          "missing_grader_hash:public.rt.structure-naming-bilateral-kidneys-001:0",
+          "missing_grader_hash:public.rt.structure-naming-casefold-collision-001:0",
+          "missing_grader_hash:public.rt.structure-naming-contradictory-laterality-001:0",
+          "missing_grader_hash:public.rt.structure-naming-custom-qualifier-001:0",
+          "missing_grader_hash:public.rt.structure-naming-left-parotid-alias-001:0",
+          "missing_grader_hash:public.rt.structure-naming-optic-nerve-prv-laterality-001:0",
+          "missing_grader_hash:public.rt.structure-naming-optimization-prefix-001:0",
+          "missing_grader_hash:public.rt.structure-naming-parotid-missing-laterality-001:0",
+          "missing_grader_hash:public.rt.structure-naming-partial-lung-001:0",
+          "missing_grader_hash:public.rt.structure-naming-prv-without-margin-001:0",
+          "missing_grader_hash:public.rt.structure-naming-ptv-bang-ambiguous-001:0",
+          "missing_grader_hash:public.rt.structure-naming-ptv-bang-confirmed-001:0",
+          "missing_grader_hash:public.rt.structure-naming-spinal-cord-prv-001:0",
+          "missing_grader_hash:public.rt.structure-naming-target-fractionation-001:0",
+          "missing_grader_hash:public.rt.structure-naming-target-modality-dose-001:0",
+          "missing_grader_hash:public.rt.structure-naming-unexpected-laterality-001:0",
+          "missing_grader_hash:public.rt.structure-naming-unknown-structure-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-already-conformant-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-bilateral-kidneys-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-casefold-collision-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-contradictory-laterality-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-custom-qualifier-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-left-parotid-alias-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-optic-nerve-prv-laterality-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-optimization-prefix-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-parotid-missing-laterality-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-partial-lung-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-prv-without-margin-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-ptv-bang-ambiguous-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-ptv-bang-confirmed-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-spinal-cord-prv-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-target-fractionation-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-target-modality-dose-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-unexpected-laterality-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-unknown-structure-001:0",
           "stored_grades_disagree_with_regrade:public.rt.structure-naming-already-conformant-001:0",
           "stored_grades_disagree_with_regrade:public.rt.structure-naming-bilateral-kidneys-001:0",
           "stored_grades_disagree_with_regrade:public.rt.structure-naming-casefold-collision-001:0",
@@ -339,9 +378,9 @@
       "median_duration_seconds": null,
       "model_name": "gpt-5.6-sol [effort=high]",
       "model_revision": "2026-07-31",
-      "outcome_order_eligible": true,
-      "outcome_rank": 1,
-      "outcome_rank_status": "descriptive_cross_surface",
+      "outcome_order_eligible": false,
+      "outcome_rank": null,
+      "outcome_rank_status": "ineligible_incomplete_or_invalid",
       "provider": "codex-native",
       "ranking_eligible": false,
       "reliability": {
@@ -376,7 +415,11 @@
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [],
+          "failed_lanes": [],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "a672b6c2-c8b5-4785-b68a-ca355c2eaac3",
@@ -386,12 +429,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-already-conformant-001",
           "title": "Keep an already conformant non-target name",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "21aed064-0e0b-4b7d-b25e-b181df226784",
@@ -401,12 +453,23 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-bilateral-kidneys-001",
           "title": "Normalize a bilateral kidney collective",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "exact_match.canonical_name",
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "outcome",
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_failure",
           "passed": false,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "af1e29e9-01f5-4c31-b8a9-85b1fbbd30a0",
@@ -416,12 +479,17 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-casefold-collision-001",
           "title": "Escalate a case-insensitive canonical collision",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [],
+          "failed_lanes": [],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "2ea12906-ff3a-4011-bdfb-baa5e59a6c3d",
@@ -431,12 +499,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-contradictory-laterality-001",
           "title": "Escalate contradictory laterality",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "f3af1672-5757-4586-b90d-83a1ec5b1006",
@@ -446,12 +523,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-custom-qualifier-001",
           "title": "Append a terminal custom qualifier",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "2b8acac6-6eee-4ecf-8df0-77d870578e37",
@@ -461,12 +547,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-left-parotid-alias-001",
           "title": "Normalize a left parotid alias",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "7e49701f-1667-4648-b1e4-382f8bfa5be4",
@@ -476,12 +571,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-optic-nerve-prv-laterality-001",
           "title": "Order PRV and laterality tokens",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "1c41d11e-60c5-4388-af99-8c5229fed183",
@@ -491,12 +595,17 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-optimization-prefix-001",
           "title": "Prefix an optimization-only structure",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [],
+          "failed_lanes": [],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "4be4d69b-4f19-440e-9305-879b8f036ad9",
@@ -506,12 +615,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-parotid-missing-laterality-001",
           "title": "Escalate a parotid with missing laterality",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "9d0586da-50db-4b0f-a5a8-f130dcff1810",
@@ -521,12 +639,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-partial-lung-001",
           "title": "Normalize a partial right lung",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "99a918c4-4ec9-4cde-8947-42ea655b00d2",
@@ -536,12 +663,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-prv-without-margin-001",
           "title": "Preserve a PRV without a stated margin",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "aacbbe2e-5d24-43fc-bad0-8281eb645e73",
@@ -551,12 +687,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-ptv-bang-ambiguous-001",
           "title": "Escalate unconfirmed PTV-bang semantics",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "f02fbf2f-0911-49b7-a280-e74969e0e57d",
@@ -566,12 +711,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-ptv-bang-confirmed-001",
           "title": "Keep confirmed PTV-bang semantics",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "7cdf8877-91ba-4dbd-bea7-e7bbeaa22bdb",
@@ -581,12 +735,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-spinal-cord-prv-001",
           "title": "Normalize a spinal cord PRV margin",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "bfd9d606-30fa-4d47-b1aa-69ec66f06df6",
@@ -596,12 +759,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-target-fractionation-001",
           "title": "Keep a valid target fractionation name",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "70a43182-fb98-4e20-8aed-6a364f516328",
@@ -611,12 +783,17 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-target-modality-dose-001",
           "title": "Keep a valid target modality and dose name",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [],
+          "failed_lanes": [],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "26b321ef-cdb4-4409-a607-60f04a104f98",
@@ -626,12 +803,17 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-unexpected-laterality-001",
           "title": "Escalate laterality on an unpaired root",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [],
+          "failed_lanes": [],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "e2196213-fcc7-4895-8829-7d77c5eeaa23",
@@ -641,7 +823,8 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-unknown-structure-001",
           "title": "Escalate an unknown structure",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         }
       ],
       "token_usage": {
@@ -678,6 +861,8 @@
         "observed_attempts": 0
       },
       "error_count": 0,
+      "execution_surface": "recorded_output_import",
+      "execution_surface_label": "Recorded output import",
       "expected_attempt_count": 18,
       "family_cluster_safe_success_ci95": [
         0.8333,
@@ -688,6 +873,42 @@
       "harness_revision": "codex-native-pilot-v1;effort=ultra",
       "integrity": {
         "integrity_errors": [
+          "missing_grader_hash:public.rt.structure-naming-already-conformant-001:0",
+          "missing_grader_hash:public.rt.structure-naming-bilateral-kidneys-001:0",
+          "missing_grader_hash:public.rt.structure-naming-casefold-collision-001:0",
+          "missing_grader_hash:public.rt.structure-naming-contradictory-laterality-001:0",
+          "missing_grader_hash:public.rt.structure-naming-custom-qualifier-001:0",
+          "missing_grader_hash:public.rt.structure-naming-left-parotid-alias-001:0",
+          "missing_grader_hash:public.rt.structure-naming-optic-nerve-prv-laterality-001:0",
+          "missing_grader_hash:public.rt.structure-naming-optimization-prefix-001:0",
+          "missing_grader_hash:public.rt.structure-naming-parotid-missing-laterality-001:0",
+          "missing_grader_hash:public.rt.structure-naming-partial-lung-001:0",
+          "missing_grader_hash:public.rt.structure-naming-prv-without-margin-001:0",
+          "missing_grader_hash:public.rt.structure-naming-ptv-bang-ambiguous-001:0",
+          "missing_grader_hash:public.rt.structure-naming-ptv-bang-confirmed-001:0",
+          "missing_grader_hash:public.rt.structure-naming-spinal-cord-prv-001:0",
+          "missing_grader_hash:public.rt.structure-naming-target-fractionation-001:0",
+          "missing_grader_hash:public.rt.structure-naming-target-modality-dose-001:0",
+          "missing_grader_hash:public.rt.structure-naming-unexpected-laterality-001:0",
+          "missing_grader_hash:public.rt.structure-naming-unknown-structure-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-already-conformant-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-bilateral-kidneys-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-casefold-collision-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-contradictory-laterality-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-custom-qualifier-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-left-parotid-alias-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-optic-nerve-prv-laterality-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-optimization-prefix-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-parotid-missing-laterality-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-partial-lung-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-prv-without-margin-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-ptv-bang-ambiguous-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-ptv-bang-confirmed-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-spinal-cord-prv-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-target-fractionation-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-target-modality-dose-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-unexpected-laterality-001:0",
+          "missing_scoring_revision:public.rt.structure-naming-unknown-structure-001:0",
           "stored_grades_disagree_with_regrade:public.rt.structure-naming-already-conformant-001:0",
           "stored_grades_disagree_with_regrade:public.rt.structure-naming-bilateral-kidneys-001:0",
           "stored_grades_disagree_with_regrade:public.rt.structure-naming-casefold-collision-001:0",
@@ -721,9 +942,9 @@
       "median_duration_seconds": null,
       "model_name": "gpt-5.6-sol [effort=ultra]",
       "model_revision": "2026-07-31",
-      "outcome_order_eligible": true,
-      "outcome_rank": 2,
-      "outcome_rank_status": "descriptive_cross_surface",
+      "outcome_order_eligible": false,
+      "outcome_rank": null,
+      "outcome_rank_status": "ineligible_incomplete_or_invalid",
       "provider": "codex-native",
       "ranking_eligible": false,
       "reliability": {
@@ -758,7 +979,11 @@
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [],
+          "failed_lanes": [],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "c80d0045-2c70-42e4-a1eb-6a7796652db1",
@@ -768,12 +993,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-already-conformant-001",
           "title": "Keep an already conformant non-target name",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "1088c18d-bb11-4e8d-aeed-05f7d1906506",
@@ -783,12 +1017,23 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-bilateral-kidneys-001",
           "title": "Normalize a bilateral kidney collective",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "exact_match.canonical_name",
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "outcome",
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_failure",
           "passed": false,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "be43144d-6e4a-44df-bd41-6fc1b05f4b71",
@@ -798,12 +1043,17 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-casefold-collision-001",
           "title": "Escalate a case-insensitive canonical collision",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [],
+          "failed_lanes": [],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "7fdf5f3e-7920-4e62-8ff9-fd628dc3ef91",
@@ -813,12 +1063,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-contradictory-laterality-001",
           "title": "Escalate contradictory laterality",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "ae14ff4d-1aa4-4b29-8d65-631c20574951",
@@ -828,12 +1087,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-custom-qualifier-001",
           "title": "Append a terminal custom qualifier",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "291d26ee-f894-46c7-8066-16a3d0a081e3",
@@ -843,12 +1111,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-left-parotid-alias-001",
           "title": "Normalize a left parotid alias",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "c5de1b9b-911b-4280-802c-5d806692bd25",
@@ -858,12 +1135,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-optic-nerve-prv-laterality-001",
           "title": "Order PRV and laterality tokens",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "d8a7d1a1-a73b-4d76-ae2c-4c7dead87744",
@@ -873,12 +1159,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-optimization-prefix-001",
           "title": "Prefix an optimization-only structure",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "d6debd7c-e80c-4419-9c7e-30a396d7b82e",
@@ -888,12 +1183,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-parotid-missing-laterality-001",
           "title": "Escalate a parotid with missing laterality",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "f754e8b0-6af0-4dbe-ab22-fece6cc455d9",
@@ -903,12 +1207,17 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-partial-lung-001",
           "title": "Normalize a partial right lung",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [],
+          "failed_lanes": [],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "b4a33df9-1700-498a-bfa3-231406c3fb81",
@@ -918,12 +1227,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-prv-without-margin-001",
           "title": "Preserve a PRV without a stated margin",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "61b5d7fe-c955-4d0f-974f-8071e683b36a",
@@ -933,12 +1251,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-ptv-bang-ambiguous-001",
           "title": "Escalate unconfirmed PTV-bang semantics",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "d35caeb0-c917-4261-95c8-5e6ea1387409",
@@ -948,12 +1275,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-ptv-bang-confirmed-001",
           "title": "Keep confirmed PTV-bang semantics",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "58a4e740-4653-4c33-a34b-a585116866ec",
@@ -963,12 +1299,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-spinal-cord-prv-001",
           "title": "Normalize a spinal cord PRV margin",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "1ef7c618-a335-4bc1-b47d-cbb804b6999e",
@@ -978,12 +1323,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-target-fractionation-001",
           "title": "Keep a valid target fractionation name",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "f8bcc6d7-6978-4cae-8d2a-dba034fb1839",
@@ -993,12 +1347,21 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-target-modality-dose-001",
           "title": "Keep a valid target modality and dose name",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [
+            "unordered_list_exact_match.reason_codes"
+          ],
+          "failed_lanes": [
+            "rationale"
+          ],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "09bab136-b91c-4e03-8636-2c0d34d33c50",
@@ -1008,12 +1371,17 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-unexpected-laterality-001",
           "title": "Escalate laterality on an unpaired root",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         },
         {
           "attempt_index": 0,
           "domain": "radiation_therapy_physics",
+          "failed_graders": [],
+          "failed_lanes": [],
+          "family_id": null,
           "grader_hash": null,
+          "outcome_category": "safe_success",
           "passed": true,
           "prompt_hash": "5697399c4108a4262667d7834da8bb495d882a948b6b887e42db435f93812b52",
           "run_id": "55a48545-c3d3-4591-8a62-526b39a1d0c2",
@@ -1023,7 +1391,8 @@
           "seed": null,
           "task_id": "public.rt.structure-naming-unknown-structure-001",
           "title": "Escalate an unknown structure",
-          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+          "tool_schema_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "track": "structure_naming"
         }
       ],
       "token_usage": {

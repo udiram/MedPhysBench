@@ -20,16 +20,13 @@ from ..artifacts import openai_message_content
 from ..contracts import ModelDescriptor, RuntimeTask
 from ..json_utils import StrictJsonError, decode_strict_json_object
 from ..prompting import SYSTEM_PROMPT, build_user_prompt
-from .base import AgentResult, public_endpoint_url
-from .ollama import AdapterError
-
-
-class UnsupportedCapabilityError(AdapterError):
-    """A declared model cannot consume a task's required input modality."""
-
-
-class ProviderOutputContractError(AdapterError):
-    """The model/provider failed to produce the declared structured output."""
+from .base import (
+    AdapterError,
+    AgentResult,
+    ProviderOutputContractError,
+    UnsupportedCapabilityError,
+    public_endpoint_url,
+)
 
 
 @dataclass

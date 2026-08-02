@@ -49,6 +49,8 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
         "access_qualified_base_models": 16,
         "evaluated_base_models": 15,
         "ranked_base_models": 14,
+        "workflow_qualified_base_models": 10,
+        "workflow_ranked_base_models": 9,
         "published_system_configurations": 20,
         "published_release_rows": 30,
         "open_planned_models": 31,
@@ -111,3 +113,27 @@ def test_access_only_model_is_not_presented_as_evaluated() -> None:
     assert deepseek["access_qualified"] is True
     assert deepseek["evaluated"] is False
     assert deepseek["ranked"] is False
+    assert deepseek["workflow_qualified"] is False
+    assert deepseek["workflow_ranked"] is False
+
+
+def test_workflow_qualified_counts_only_real_workflow_release() -> None:
+    status = build_fleet_status()
+    assert status["summary"]["workflow_qualified_base_models"] == 10
+    assert status["summary"]["workflow_ranked_base_models"] == 9
+
+    gpt = next(
+        row
+        for row in status["models"]
+        if row["base_model_id"] == "gpt-5.6-sol"
+    )
+    assert gpt["evaluated"] is True
+    assert gpt["workflow_qualified"] is True
+
+    core_only = next(
+        row
+        for row in status["models"]
+        if row["base_model_id"] == "Qwen/Qwen3-14B"
+    )
+    assert core_only["evaluated"] is True
+    assert core_only["workflow_qualified"] is False

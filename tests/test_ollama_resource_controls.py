@@ -7,7 +7,11 @@ import urllib.request
 
 import pytest
 
-from medphys_agentbench.adapters.ollama import AdapterError, OllamaAdapter
+from medphys_agentbench.adapters.ollama import (
+    AdapterError,
+    OllamaAdapter,
+    UnsupportedCapabilityError,
+)
 from medphys_agentbench.task_loader import load_task
 
 
@@ -58,6 +62,55 @@ def test_ollama_defaults_unload_model_and_bound_context(monkeypatch: pytest.Monk
     assert result.final_output["answer_ratio"] == 0.25
 
 
+def test_ollama_preflights_declared_image_capability(monkeypatch: pytest.MonkeyPatch) -> None:
+    requested_urls: list[str] = []
+
+    def fake_urlopen(request: urllib.request.Request, timeout: int) -> _FakeResponse:
+        requested_urls.append(request.full_url)
+        assert timeout == 30
+        assert request.full_url.endswith("/api/show")
+        return _FakeResponse({"capabilities": ["completion", "thinking"]})
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    task = load_task(
+        "tasks/public/radiation_therapy/openkb_pt242_parotid_segmentation_001/task.yaml"
+    ).runtime_task()
+
+    with pytest.raises(UnsupportedCapabilityError, match="declared capabilities"):
+        OllamaAdapter(model_name="text-only-model").execute(task)
+
+    assert requested_urls == ["http://127.0.0.1:11434/api/show"]
+
+
+def test_ollama_classifies_unsupported_image_http_response(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = 0
+
+    def fake_urlopen(request: urllib.request.Request, **_kwargs: object) -> _FakeResponse:
+        nonlocal calls
+        calls += 1
+        if request.full_url.endswith("/api/show"):
+            return _FakeResponse({})
+        raise urllib.error.HTTPError(
+            request.full_url,
+            500,
+            "Internal Server Error",
+            {},
+            io.BytesIO(b'{"error":"this model does not support images"}'),
+        )
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    task = load_task(
+        "tasks/public/radiation_therapy/openkb_pt242_parotid_segmentation_001/task.yaml"
+    ).runtime_task()
+
+    with pytest.raises(UnsupportedCapabilityError, match="required image modality"):
+        OllamaAdapter(model_name="text-only-model").execute(task)
+
+    assert calls == 2
+
+
 @pytest.mark.parametrize(
     "base_url",
     [
@@ -89,6 +142,6 @@ def test_ollama_surfaces_overload_without_retrying(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr(urllib.request, "urlopen", fail)
     task = load_task("tasks/public/core_physics/inverse_square_001/task.yaml").runtime_task()
 
-    with pytest.raises(AdapterError, match="HTTP Error 429"):
+    with pytest.raises(AdapterError, match="HTTP 429"):
         OllamaAdapter(model_name="fixture-model").execute(task)
     assert calls == 1

@@ -7,6 +7,8 @@
     "access_qualified_base_models": 16,
     "evaluated_base_models": 15,
     "ranked_base_models": 14,
+    "workflow_qualified_base_models": 10,
+    "workflow_ranked_base_models": 9,
     "published_system_configurations": 20,
     "published_release_rows": 30,
     "open_planned_models": 31,
@@ -28,6 +30,8 @@
       "qualification_stage": "q2",
       "evaluated": true,
       "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
       "published_row_count": 1
@@ -45,6 +49,8 @@
       "qualification_stage": "q2",
       "evaluated": true,
       "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
       "published_row_count": 1
@@ -62,6 +68,8 @@
       "qualification_stage": "q2",
       "evaluated": true,
       "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
       "published_row_count": 1
@@ -79,6 +87,8 @@
       "qualification_stage": "q0",
       "evaluated": true,
       "ranked": true,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 1,
       "published_release_count": 1,
       "published_row_count": 1
@@ -96,6 +106,8 @@
       "qualification_stage": "q2",
       "evaluated": true,
       "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
       "published_row_count": 1
@@ -114,6 +126,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -132,6 +146,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -149,6 +165,8 @@
       "qualification_stage": "q0",
       "evaluated": true,
       "ranked": true,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 1,
       "published_release_count": 1,
       "published_row_count": 1
@@ -166,6 +184,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -183,6 +203,8 @@
       "qualification_stage": "q0",
       "evaluated": true,
       "ranked": true,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 1,
       "published_release_count": 1,
       "published_row_count": 1
@@ -200,6 +222,8 @@
       "qualification_stage": "q0",
       "evaluated": true,
       "ranked": true,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 1,
       "published_release_count": 1,
       "published_row_count": 1
@@ -217,6 +241,8 @@
       "qualification_stage": "q0",
       "evaluated": true,
       "ranked": true,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 1,
       "published_release_count": 1,
       "published_row_count": 1
@@ -234,6 +260,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -251,6 +279,8 @@
       "qualification_stage": "q2",
       "evaluated": true,
       "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
       "published_row_count": 1
@@ -268,6 +298,8 @@
       "qualification_stage": "q2",
       "evaluated": true,
       "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
       "published_row_count": 1
@@ -286,6 +318,8 @@
       "qualification_stage": "q2",
       "evaluated": true,
       "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 2,
       "published_row_count": 2
@@ -304,6 +338,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -322,6 +358,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -340,6 +378,8 @@
       "qualification_stage": "q2",
       "evaluated": true,
       "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 2,
       "published_row_count": 2
@@ -358,6 +398,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -376,6 +418,8 @@
       "qualification_stage": "q2",
       "evaluated": true,
       "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 2,
       "published_row_count": 2
@@ -394,6 +438,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -411,6 +457,8 @@
       "qualification_stage": "q1",
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -428,6 +476,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -445,6 +495,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -462,6 +514,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -480,6 +534,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -497,6 +553,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -515,6 +573,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -532,6 +592,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -550,6 +612,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -568,6 +632,8 @@
       "qualification_stage": "q2",
       "evaluated": true,
       "ranked": false,
+      "workflow_qualified": true,
+      "workflow_ranked": false,
       "system_configuration_count": 6,
       "published_release_count": 4,
       "published_row_count": 13
@@ -586,6 +652,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -604,6 +672,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -622,6 +692,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -640,6 +712,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -658,6 +732,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -676,6 +752,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -694,6 +772,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -712,6 +792,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -730,6 +812,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -748,6 +832,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -766,6 +852,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -784,6 +872,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -802,6 +892,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -820,6 +912,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -838,6 +932,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -856,6 +952,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -874,6 +972,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0
@@ -892,6 +992,8 @@
       "qualification_stage": null,
       "evaluated": false,
       "ranked": false,
+      "workflow_qualified": false,
+      "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
       "published_row_count": 0

@@ -7,12 +7,13 @@ type Props = {
 };
 
 type SourceFilter = "all" | "open" | "closed";
-type StageFilter = "all" | "ranked" | "evaluated" | "access" | "planned";
+type StageFilter = "all" | "workflow" | "ranked" | "evaluated" | "access" | "planned";
 
 const FUNNEL_STAGES = [
   ["planned_base_models", "Frozen panel", "Predeclared unique base IDs"],
   ["access_qualified_base_models", "Access qualified", "Live Q0 or later evidence"],
   ["evaluated_base_models", "Published", "At least one complete release matrix"],
+  ["workflow_qualified_base_models", "Workflow qualified", "Complete OpenKBP real-workflow matrix"],
   ["ranked_base_models", "Rankable", "Complete common-harness evidence"],
 ] as const;
 
@@ -29,6 +30,7 @@ export function FleetCoverage({ data }: Props) {
       const matchesSource = source === "all" || model.openness === source;
       const matchesStage =
         stage === "all" ||
+        (stage === "workflow" && model.workflow_qualified) ||
         (stage === "ranked" && model.ranked) ||
         (stage === "evaluated" && model.evaluated) ||
         (stage === "access" && model.access_qualified) ||
@@ -61,11 +63,12 @@ export function FleetCoverage({ data }: Props) {
       <div className="section-heading fleet-heading">
         <div>
           <p className="eyebrow">Fleet integrity</p>
-          <h2>{target} planned. {data.summary.evaluated_base_models} actually evaluated.</h2>
+          <h2>{target} planned. {data.summary.workflow_qualified_base_models} workflow-qualified. {data.summary.evaluated_base_models} published anywhere.</h2>
         </div>
         <p>
           The panel counts unique base model IDs—not effort settings, providers, aliases, or partial attempts. A model advances only
-          when the evidence for that stage exists.
+          when the evidence for that stage exists. The stricter workflow-qualified gate isolates the serious OpenKBP workflow slice from
+          smaller pilots.
         </p>
       </div>
 
@@ -133,6 +136,7 @@ export function FleetCoverage({ data }: Props) {
               <span className="select-wrap">
                 <select value={stage} onChange={(event) => setStage(event.target.value as StageFilter)}>
                   <option value="all">Every stage</option>
+                  <option value="workflow">Workflow qualified</option>
                   <option value="ranked">Rankable</option>
                   <option value="evaluated">Published evaluation</option>
                   <option value="access">Access qualified</option>
@@ -160,6 +164,8 @@ export function FleetCoverage({ data }: Props) {
 function FleetModelCard({ model }: { model: FleetStatusModel }) {
   const status = model.ranked
     ? "Rankable"
+    : model.workflow_qualified
+      ? "Workflow qualified"
     : model.evaluated
       ? "Published"
       : model.access_qualified
@@ -167,6 +173,8 @@ function FleetModelCard({ model }: { model: FleetStatusModel }) {
         : "Planned";
   const statusClass = model.ranked
     ? "ranked"
+    : model.workflow_qualified
+      ? "evaluated"
     : model.evaluated
       ? "evaluated"
       : model.access_qualified

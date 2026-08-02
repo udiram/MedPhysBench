@@ -22,6 +22,7 @@ DEFAULT_LEADERBOARDS = (
     REPO_ROOT / "web" / "public" / "data" / "public-real-workflows-pilot-v0.6.json",
 )
 DEFAULT_OUTPUT = REPO_ROOT / "web" / "public" / "data" / "fleet_status.json"
+WORKFLOW_QUALIFYING_RELEASE_IDS = {"public-real-workflows-pilot-v0.6"}
 
 COMPARABILITY_ONLY_ISSUES = {
     "unranked_noncommon_surface",
@@ -119,6 +120,8 @@ def build_fleet_status(
 
     evaluated_by_base: dict[str, bool] = defaultdict(bool)
     ranked_by_base: dict[str, bool] = defaultdict(bool)
+    workflow_evaluated_by_base: dict[str, bool] = defaultdict(bool)
+    workflow_ranked_by_base: dict[str, bool] = defaultdict(bool)
     releases_by_base: dict[str, set[str]] = defaultdict(set)
     row_count_by_base: dict[str, int] = defaultdict(int)
     visible_configurations: set[tuple[str, str]] = set()
@@ -146,6 +149,10 @@ def build_fleet_status(
                 evaluated_by_base[base_model_id] = True
                 if row.get("ranking_eligible") is True:
                     ranked_by_base[base_model_id] = True
+                if release_id in WORKFLOW_QUALIFYING_RELEASE_IDS:
+                    workflow_evaluated_by_base[base_model_id] = True
+                    if row.get("ranking_eligible") is True:
+                        workflow_ranked_by_base[base_model_id] = True
 
     model_rows: list[dict[str, Any]] = []
     for planned in fleet_models:
@@ -164,6 +171,8 @@ def build_fleet_status(
                 "qualification_stage": highest_stage,
                 "evaluated": evaluated_by_base[base_model_id],
                 "ranked": ranked_by_base[base_model_id],
+                "workflow_qualified": workflow_evaluated_by_base[base_model_id],
+                "workflow_ranked": workflow_ranked_by_base[base_model_id],
                 "system_configuration_count": len(configurations_by_base.get(base_model_id, set())),
                 "published_release_count": len(releases_by_base.get(base_model_id, set())),
                 "published_row_count": row_count_by_base[base_model_id],
@@ -179,6 +188,8 @@ def build_fleet_status(
             "access_qualified_base_models": sum(row["access_qualified"] for row in model_rows),
             "evaluated_base_models": sum(row["evaluated"] for row in model_rows),
             "ranked_base_models": sum(row["ranked"] for row in model_rows),
+            "workflow_qualified_base_models": sum(row["workflow_qualified"] for row in model_rows),
+            "workflow_ranked_base_models": sum(row["workflow_ranked"] for row in model_rows),
             "published_system_configurations": len(visible_configurations),
             "published_release_rows": sum(row_count_by_base.values()),
             "open_planned_models": sum(row["openness"] == "open" for row in model_rows),

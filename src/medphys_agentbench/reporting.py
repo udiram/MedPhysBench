@@ -447,6 +447,7 @@ def _task_result_row(item: dict[str, Any], task_catalog: dict[str, Any]) -> dict
     task = task_catalog[task_id]
     return {
         "task_id": task_id,
+        "family_id": task.family_id,
         "title": task.title,
         "domain": task.domain,
         "track": task.track,

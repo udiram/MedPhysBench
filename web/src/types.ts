@@ -59,6 +59,7 @@ export type Tg263Audit = {
 
 export type ModelTaskResult = {
   task_id: string;
+  family_id?: string | null;
   title: string;
   domain: string;
   track: string;
@@ -232,6 +233,8 @@ export type FleetStatusSummary = {
   access_qualified_base_models: number;
   evaluated_base_models: number;
   ranked_base_models: number;
+  workflow_qualified_base_models: number;
+  workflow_ranked_base_models: number;
   published_system_configurations: number;
   published_release_rows: number;
   open_planned_models: number;
@@ -251,6 +254,8 @@ export type FleetStatusModel = {
   qualification_stage: "q0" | "q1" | "q2" | "q3" | null;
   evaluated: boolean;
   ranked: boolean;
+  workflow_qualified: boolean;
+  workflow_ranked: boolean;
   system_configuration_count: number;
   published_release_count: number;
   published_row_count: number;
