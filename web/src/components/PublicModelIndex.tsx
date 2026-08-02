@@ -556,12 +556,28 @@ function ModelRegistryRow({
 }
 
 type TaskView = "all" | "safe-pass" | "safe-fail" | "unsafe" | "unknown";
+type TaskPresentation = "signatures" | "attempts";
+
+type TaskSignature = {
+  key: string;
+  task_id: string;
+  title: string;
+  domain: string;
+  attempts: ModelTaskResult[];
+  safePassCount: number;
+  safeFailCount: number;
+  unsafeCount: number;
+  unknownCount: number;
+  repeatedLanes: Array<[string, number]>;
+  repeatedGraders: Array<[string, number]>;
+};
 
 function RunTaskExplorer({ run }: { run: PublicRun }) {
   const isSelectedRun =
     getUrlParam("model_provider") === run.provider &&
     getUrlParam("model_name") === run.model_name &&
     getUrlParam("run_release") === run.release_key;
+  const [presentation, setPresentation] = useState<TaskPresentation>("signatures");
   const [view, setView] = useState<TaskView>(() =>
     isSelectedRun
       ? readEnumParam("task_view", ["all", "safe-pass", "safe-fail", "unsafe", "unknown"] as const, "all")
@@ -590,6 +606,52 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
       task.failed_graders?.some((grader) => grader.toLowerCase().includes(normalized)) === true;
     return matchesView && matchesQuery;
   });
+  const taskSignatures = useMemo<TaskSignature[]>(() => {
+    const grouped = new Map<string, TaskSignature>();
+    for (const task of tasks) {
+      const key = `${task.task_id}::${task.title}`;
+      const current = grouped.get(key);
+      const signature =
+        current ??
+        {
+          key,
+          task_id: task.task_id,
+          title: task.title,
+          domain: task.domain,
+          attempts: [],
+          safePassCount: 0,
+          safeFailCount: 0,
+          unsafeCount: 0,
+          unknownCount: 0,
+          repeatedLanes: [],
+          repeatedGraders: [],
+        };
+      signature.attempts.push(task);
+      const outcome = taskOutcome(task);
+      if (outcome === "safe-pass") signature.safePassCount += 1;
+      else if (outcome === "safe-fail") signature.safeFailCount += 1;
+      else if (outcome === "unsafe") signature.unsafeCount += 1;
+      else signature.unknownCount += 1;
+      grouped.set(key, signature);
+    }
+
+    return [...grouped.values()]
+      .map((signature) => ({
+        ...signature,
+        attempts: [...signature.attempts].sort((left, right) => (left.attempt_index ?? 0) - (right.attempt_index ?? 0)),
+        repeatedLanes: topCounts(signature.attempts.flatMap((task) => task.failed_lanes ?? [])),
+        repeatedGraders: topCounts(signature.attempts.flatMap((task) => task.failed_graders ?? [])),
+      }))
+      .sort(
+        (left, right) =>
+          right.unsafeCount - left.unsafeCount ||
+          right.safeFailCount - left.safeFailCount ||
+          left.safePassCount - right.safePassCount ||
+          left.title.localeCompare(right.title),
+      );
+  }, [tasks]);
+  const topFailureLanes = useMemo(() => topCounts(tasks.flatMap((task) => task.failed_lanes ?? []), 3), [tasks]);
+  const topFailureGraders = useMemo(() => topCounts(tasks.flatMap((task) => task.failed_graders ?? []), 3), [tasks]);
 
   useEffect(() => {
     if (!isSelectedRun) return;
@@ -645,37 +707,127 @@ function RunTaskExplorer({ run }: { run: PublicRun }) {
           aria-label="Search task evidence"
         />
       </label>
-      <div className="run-task-list">
-        {tasks.map((task) => (
-          <article key={`${run.release_id}-${task.task_id}-${task.attempt_index ?? 0}`} className={`run-task-row ${taskOutcome(task)}`}>
-            <header>
-              <div>
-                <strong>{task.title}</strong>
-                <span>{task.task_id}</span>
-              </div>
-              <span className="task-outcome-chip">{outcomeLabel(task)}</span>
-            </header>
-            <div className="run-task-meta">
-              <span>{domainLabel(task.domain)}</span>
-              <span>Attempt {(task.attempt_index ?? 0) + 1}</span>
-              <span>Seed {task.seed ?? "unavailable"}</span>
-            </div>
-            {(task.failed_lanes?.length || task.failed_graders?.length) ? (
-              <dl className="run-failure-contract">
-                <div><dt>Failed lanes</dt><dd>{task.failed_lanes?.join(", ") || "None recorded"}</dd></div>
-                <div><dt>Failed graders</dt><dd>{task.failed_graders?.join(", ") || "None recorded"}</dd></div>
-              </dl>
-            ) : null}
-            <dl className="run-provenance">
-              <div><dt>Run</dt><dd>{shortHash(task.run_id)}</dd></div>
-              <div><dt>Prompt</dt><dd>{shortHash(task.prompt_hash)}</dd></div>
-              <div><dt>Runtime</dt><dd>{shortHash(task.runtime_task_hash)}</dd></div>
-              <div><dt>Grader</dt><dd>{shortHash(task.grader_hash)}</dd></div>
-            </dl>
-          </article>
-        ))}
-        {tasks.length === 0 && <p className="run-task-empty">No task attempts match this view.</p>}
+      <div className="run-task-summary-grid">
+        <article>
+          <span>Task signatures</span>
+          <strong>{taskSignatures.length}</strong>
+          <small>{tasks.length} attempt records in scope</small>
+        </article>
+        <article>
+          <span>Repeated failed lanes</span>
+          <strong>{topFailureLanes[0]?.[0] ?? "None"}</strong>
+          <small>{topFailureLanes[0] ? `${topFailureLanes[0][1]} attempt(s)` : "No lane failures recorded"}</small>
+        </article>
+        <article>
+          <span>Repeated failed graders</span>
+          <strong>{topFailureGraders[0]?.[0] ?? "None"}</strong>
+          <small>{topFailureGraders[0] ? `${topFailureGraders[0][1]} attempt(s)` : "No grader failures recorded"}</small>
+        </article>
       </div>
+      <div className="run-task-presentation" role="group" aria-label="Task evidence presentation">
+        <button
+          type="button"
+          aria-pressed={presentation === "signatures"}
+          onClick={() => setPresentation("signatures")}
+        >
+          Task signatures
+        </button>
+        <button
+          type="button"
+          aria-pressed={presentation === "attempts"}
+          onClick={() => setPresentation("attempts")}
+        >
+          Raw attempts
+        </button>
+      </div>
+      {presentation === "signatures" && (
+        <div className="run-task-signatures">
+          {taskSignatures.map((signature) => (
+            <article key={`${run.release_id}-${signature.key}`} className="run-task-signature">
+              <header>
+                <div>
+                  <strong>{signature.title}</strong>
+                  <span>{signature.task_id}</span>
+                </div>
+                <span className="signature-domain">{domainLabel(signature.domain)}</span>
+              </header>
+              <div className="signature-outcome-bar" aria-label={`${signature.title} outcome distribution`}>
+                {signature.safePassCount > 0 && (
+                  <span className="safe-pass" style={{ flexGrow: signature.safePassCount }}>
+                    {signature.safePassCount} pass
+                  </span>
+                )}
+                {signature.safeFailCount > 0 && (
+                  <span className="safe-fail" style={{ flexGrow: signature.safeFailCount }}>
+                    {signature.safeFailCount} fail
+                  </span>
+                )}
+                {signature.unsafeCount > 0 && (
+                  <span className="unsafe" style={{ flexGrow: signature.unsafeCount }}>
+                    {signature.unsafeCount} unsafe
+                  </span>
+                )}
+                {signature.unknownCount > 0 && (
+                  <span className="unknown" style={{ flexGrow: signature.unknownCount }}>
+                    {signature.unknownCount} unknown
+                  </span>
+                )}
+              </div>
+              <div className="signature-reason-grid">
+                <div>
+                  <span>Repeated lanes</span>
+                  <strong>{signature.repeatedLanes.map(([name, count]) => `${name} (${count})`).join(", ") || "None"}</strong>
+                </div>
+                <div>
+                  <span>Repeated graders</span>
+                  <strong>{signature.repeatedGraders.map(([name, count]) => `${name} (${count})`).join(", ") || "None"}</strong>
+                </div>
+              </div>
+              <div className="signature-attempt-chips">
+                {signature.attempts.map((task) => (
+                  <span key={`${signature.key}-${task.attempt_index ?? 0}`} className={`signature-attempt-chip ${taskOutcome(task)}`}>
+                    Attempt {(task.attempt_index ?? 0) + 1}: {outcomeLabel(task)}
+                  </span>
+                ))}
+              </div>
+            </article>
+          ))}
+          {taskSignatures.length === 0 && <p className="run-task-empty">No task signatures match this view.</p>}
+        </div>
+      )}
+      {presentation === "attempts" && (
+        <div className="run-task-list">
+          {tasks.map((task) => (
+            <article key={`${run.release_id}-${task.task_id}-${task.attempt_index ?? 0}`} className={`run-task-row ${taskOutcome(task)}`}>
+              <header>
+                <div>
+                  <strong>{task.title}</strong>
+                  <span>{task.task_id}</span>
+                </div>
+                <span className="task-outcome-chip">{outcomeLabel(task)}</span>
+              </header>
+              <div className="run-task-meta">
+                <span>{domainLabel(task.domain)}</span>
+                <span>Attempt {(task.attempt_index ?? 0) + 1}</span>
+                <span>Seed {task.seed ?? "unavailable"}</span>
+              </div>
+              {(task.failed_lanes?.length || task.failed_graders?.length) ? (
+                <dl className="run-failure-contract">
+                  <div><dt>Failed lanes</dt><dd>{task.failed_lanes?.join(", ") || "None recorded"}</dd></div>
+                  <div><dt>Failed graders</dt><dd>{task.failed_graders?.join(", ") || "None recorded"}</dd></div>
+                </dl>
+              ) : null}
+              <dl className="run-provenance">
+                <div><dt>Run</dt><dd>{shortHash(task.run_id)}</dd></div>
+                <div><dt>Prompt</dt><dd>{shortHash(task.prompt_hash)}</dd></div>
+                <div><dt>Runtime</dt><dd>{shortHash(task.runtime_task_hash)}</dd></div>
+                <div><dt>Grader</dt><dd>{shortHash(task.grader_hash)}</dd></div>
+              </dl>
+            </article>
+          ))}
+          {tasks.length === 0 && <p className="run-task-empty">No task attempts match this view.</p>}
+        </div>
+      )}
       <p className="run-task-boundary">
         Failure labels expose deterministic grader contracts only. Raw model output, hidden expected values, and reasoning traces are excluded.
       </p>
@@ -727,4 +879,14 @@ function opennessLabel(value: ModelOpenness) {
 function telemetryCoverage(observed?: number, expected?: number) {
   if (observed == null || expected == null) return "Unavailable";
   return `${observed}/${expected}`;
+}
+
+function topCounts(values: string[], limit = 2) {
+  const counts = new Map<string, number>();
+  for (const value of values) {
+    counts.set(value, (counts.get(value) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .slice(0, limit);
 }

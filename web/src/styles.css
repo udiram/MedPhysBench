@@ -1890,6 +1890,131 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   min-height: 42px;
   padding: 0 12px 0 38px;
 }
+.run-task-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+.run-task-summary-grid article,
+.run-task-signature {
+  padding: 13px;
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+}
+.run-task-summary-grid span,
+.signature-reason-grid span,
+.signature-domain {
+  color: var(--muted);
+  font: 500 10px/1.45 "IBM Plex Mono", monospace;
+}
+.run-task-summary-grid strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--text);
+  font-size: 14px;
+}
+.run-task-summary-grid small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+}
+.run-task-presentation {
+  display: inline-flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+.run-task-presentation button {
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font: 500 10px/1.4 "IBM Plex Mono", monospace;
+}
+.run-task-presentation button[aria-pressed="true"] {
+  color: var(--text);
+  border-color: rgba(112, 184, 196, 0.36);
+  background: rgba(112, 184, 196, 0.12);
+}
+.run-task-signatures {
+  display: grid;
+  gap: 10px;
+  max-height: 560px;
+  margin-top: 10px;
+  overflow-y: auto;
+}
+.run-task-signature header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.run-task-signature header div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.run-task-signature header strong {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+}
+.run-task-signature header span {
+  overflow-wrap: anywhere;
+}
+.signature-outcome-bar {
+  display: flex;
+  gap: 1px;
+  min-height: 28px;
+  margin-top: 12px;
+  background: var(--line);
+}
+.signature-outcome-bar span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 8px;
+  color: var(--text);
+  font: 500 10px/1.4 "IBM Plex Mono", monospace;
+  white-space: nowrap;
+}
+.signature-outcome-bar .safe-pass { background: rgba(137, 197, 150, 0.18); color: #9ccfa7; }
+.signature-outcome-bar .safe-fail { background: rgba(217, 164, 65, 0.14); color: var(--accent); }
+.signature-outcome-bar .unsafe { background: rgba(239, 154, 125, 0.14); color: var(--danger); }
+.signature-outcome-bar .unknown { background: rgba(124, 134, 154, 0.16); color: var(--muted-strong); }
+.signature-reason-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.signature-reason-grid strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted-strong);
+  font: 500 10px/1.5 "IBM Plex Mono", monospace;
+  overflow-wrap: anywhere;
+}
+.signature-attempt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+.signature-attempt-chip {
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  color: var(--muted-strong);
+  font: 500 10px/1.35 "IBM Plex Mono", monospace;
+}
+.signature-attempt-chip.safe-pass { color: #9ccfa7; border-color: rgba(137, 197, 150, 0.34); }
+.signature-attempt-chip.safe-fail { color: var(--accent); border-color: rgba(217, 164, 65, 0.35); }
+.signature-attempt-chip.unsafe { color: var(--danger); border-color: rgba(239, 154, 125, 0.38); }
+.signature-attempt-chip.unknown { color: var(--muted-strong); border-color: rgba(124, 134, 154, 0.32); }
 .run-task-list {
   display: grid;
   gap: 1px;
@@ -2041,6 +2166,9 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   .registry-run-grid,
   .registry-run-card,
   .run-task-explorer,
+  .run-task-summary-grid,
+  .run-task-signatures,
+  .run-task-signature,
   .run-task-list,
   .run-task-row,
   .run-task-row > header,
@@ -2061,6 +2189,11 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   .run-task-row > header { flex-direction: column; }
   .run-provenance { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .run-failure-contract div { grid-template-columns: 1fr; gap: 4px; }
+  .run-task-summary-grid,
+  .signature-reason-grid {
+    grid-template-columns: 1fr;
+  }
+  .run-task-signature header { flex-direction: column; }
   .run-task-tabs {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
