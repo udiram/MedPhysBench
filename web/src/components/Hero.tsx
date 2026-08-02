@@ -12,6 +12,9 @@ export function Hero({ data, onReleaseViewChange, releaseView, repoUrl }: HeroPr
   const rankedCount = data ? data.integrity?.ranked_model_count ?? data.models.length : null;
   const reviewCount = data ? data.integrity?.unranked_model_count ?? data.unranked_models?.length ?? 0 : null;
   const taskCount = data?.tasks.length ?? null;
+  const familyCount = data?.release.family_count ?? null;
+  const attempts = data?.release.expected_attempts_per_task ?? null;
+  const boundary = releaseBoundary(releaseView);
 
   return (
     <section className="hero" id="benchmark">
@@ -43,11 +46,17 @@ export function Hero({ data, onReleaseViewChange, releaseView, repoUrl }: HeroPr
           Real-data pilot
         </button>
       </div>
-      <div className="hero-grid">
+      <div className="release-decision">
         <div className="hero-copy">
-          <p className="hero-release-title">{data?.release.title ?? fallbackReleaseTitle(releaseView)}</p>
-          <h1>Measure the work. Preserve the boundary.</h1>
-          <p className="hero-body">{releaseSummary(releaseView)}</p>
+          <div className="release-title-row">
+            <div>
+              <p className="hero-release-title">{data?.release.title ?? fallbackReleaseTitle(releaseView)}</p>
+              <h1>What this release can support</h1>
+            </div>
+            <span className={`release-maturity ${boundary.tone}`}>{boundary.status}</span>
+          </div>
+          <p className="hero-body">{boundary.allowed}</p>
+          <p className="claim-prohibited"><strong>Cannot support:</strong> {boundary.prohibited}</p>
           <div className="hero-links" aria-label="Primary benchmark links">
             <a href="#leaderboard">Results</a>
             <a href="#methodology">Methods</a>
@@ -56,10 +65,18 @@ export function Hero({ data, onReleaseViewChange, releaseView, repoUrl }: HeroPr
             </a>
           </div>
         </div>
-        <dl className="hero-stats">
+        <dl className="release-facts">
           <div>
             <dt>Public tasks</dt>
             <dd>{taskCount ?? "—"}</dd>
+          </div>
+          <div>
+            <dt>Independent families</dt>
+            <dd>{familyCount ?? "Not declared"}</dd>
+          </div>
+          <div>
+            <dt>Attempts / task</dt>
+            <dd>{attempts ?? "—"}</dd>
           </div>
           <div>
             <dt>Official rows</dt>
@@ -71,7 +88,7 @@ export function Hero({ data, onReleaseViewChange, releaseView, repoUrl }: HeroPr
           </div>
           <div>
             <dt>Human baseline</dt>
-            <dd>Recruiting</dd>
+            <dd>{releaseView === "real" ? "Recruiting" : "Not published"}</dd>
           </div>
         </dl>
       </div>
@@ -97,14 +114,25 @@ function fallbackReleaseTitle(releaseView: ReleaseView) {
   return "MedPhysBench OpenKBP Real-Workflow Pilot v0.6";
 }
 
-function releaseSummary(releaseView: ReleaseView) {
-  if (releaseView === "core") {
-    return "Research-grade medical-physics calculations, bounded interpretation, artifact checks, and escalation decisions under a common public harness.";
-  }
-  if (releaseView === "tg263") {
-    return "A collision-heavy structure-naming pilot where audited native GPT decision quality is reported separately from benchmark-authored rationale-label exactness.";
-  }
-  return "Ten tasks across two pinned OpenKBP head-and-neck cases: structure localization, dose interpretation, plan-criteria audit, data integrity, and TG-263 naming. Results are provisional research evidence, not clinical validation.";
+function releaseBoundary(releaseView: ReleaseView) {
+  if (releaseView === "real") return {
+    status: "public-pilot",
+    tone: "warn",
+    allowed: "Repeated-trial, research-only comparison on two pinned OpenKBP patient families within identical frozen harness groups.",
+    prohibited: "clinical validation, autonomous treatment planning, ten independent-patient claims, or human-level performance.",
+  };
+  if (releaseView === "tg263") return {
+    status: "public-development",
+    tone: "warn",
+    allowed: "Public development evidence for collision-aware TG-263 decisions and grader-contract auditing.",
+    prohibited: "cross-surface native ranking, clinical naming approval, or treatment-system validation.",
+  };
+  return {
+    status: "public-development",
+    tone: "neutral",
+    allowed: "Development and regression evidence across calculations, bounded interpretation, artifact checks, and escalation behavior.",
+    prohibited: "contamination-resistant frontier ranking, clinical competence, or human-level performance.",
+  };
 }
 
 function formatArtifactDate(value: string | undefined) {

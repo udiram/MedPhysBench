@@ -2,6 +2,7 @@
 
 import { startTransition, useEffect, useState } from "react";
 import { REPO_URL } from "./content";
+import { CapabilityExplorer } from "./components/CapabilityExplorer";
 import { EvidenceSections } from "./components/EvidenceSections";
 import { EfficiencyExplorer } from "./components/EfficiencyExplorer";
 import { Header } from "./components/Header";
@@ -23,7 +24,7 @@ function App() {
   const [tg263Audit, setTg263Audit] = useState<Tg263Audit | null>(null);
   const [accessStatus, setAccessStatus] = useState<AccessStatus[]>([]);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [releaseView, setReleaseView] = useState<ReleaseView>("real");
+  const [releaseView, setReleaseView] = useState<ReleaseView>("core");
   const selected = releaseView === "core" ? core : releaseView === "tg263" ? tg263 : realWorkflows;
 
   useEffect(() => {
@@ -74,6 +75,11 @@ function App() {
           loadError={selected.loadError}
           releaseView={releaseView}
           tg263Audit={tg263Audit}
+        />
+        <CapabilityExplorer
+          data={selected.data}
+          loadError={selected.loadError}
+          releaseView={releaseView}
         />
         <EfficiencyExplorer data={selected.data} releaseView={releaseView} />
         <EvidenceSections

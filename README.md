@@ -35,6 +35,8 @@ package, or evidence of autonomous clinical competence.
   OpenKBP pilot, and three GPT-5.6 OpenKBP effort audits with descriptive outcome ranks
 - Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
 - Plot and rank semantics: [`docs/VISUALIZATION_METHODS.md`](docs/VISUALIZATION_METHODS.md)
+- Frontier benchmark methods review: [`docs/BENCHMARK_METHODS_REVIEW.md`](docs/BENCHMARK_METHODS_REVIEW.md)
+- Public reporting standard: [`docs/PUBLIC_REPORTING_STANDARD.md`](docs/PUBLIC_REPORTING_STANDARD.md)
 - Core run package: [`results/releases/public-core-v0.4/`](results/releases/public-core-v0.4/)
 - Imaging run package: [`results/releases/public-imaging-pilot-v0.4/`](results/releases/public-imaging-pilot-v0.4/)
 - OpenKBP run package: [`results/releases/public-real-workflows-pilot-v0.6/`](results/releases/public-real-workflows-pilot-v0.6/)
@@ -49,6 +51,7 @@ package, or evidence of autonomous clinical competence.
 | If you want to… | Read or run |
 | --- | --- |
 | Understand the benchmark and current evidence | [Benchmark paper](docs/BENCHMARK_PAPER.md) · [Benchmark card](docs/BENCHMARK_CARD.md) |
+| Audit the benchmark methodology and reporting contract | [Methods review](docs/BENCHMARK_METHODS_REVIEW.md) · [Public reporting standard](docs/PUBLIC_REPORTING_STANDARD.md) |
 | Reproduce the public release | [Reproducibility guide](docs/REPRODUCIBILITY.md) · [Evaluation protocol](docs/EVALUATION_PROTOCOL.md) |
 | Inspect what could invalidate a score | [Threat model](docs/THREAT_MODEL.md) · [Data statement](docs/DATA_STATEMENT.md) |
 | Add a provider or model | [Adapter contract](docs/ADAPTER_CONTRACT.md) · [Model onboarding](docs/MODEL_ONBOARDING.md) |
@@ -74,6 +77,8 @@ package, or evidence of autonomous clinical competence.
 - A 97-task public catalog spanning core physics, RT physics, brachytherapy,
   imaging, nuclear medicine, radiation safety, informatics, QA, research methods, and
   TG-263-aligned structure naming; the frozen 64-task v0.4 snapshot remains the core comparison.
+- One additional development-only feasibility task is kept outside the public catalog; repository
+  validation therefore covers 98 authored task contracts in total.
 - Hash-pinned, attributed MRI, CT, PET, and OpenKBP fixtures with separately reported
   real-data pilots; image assets never carry hidden grader geometry into runtime.
 - A provisional two-patient OpenKBP lane covering parotid localization, dose-region

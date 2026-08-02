@@ -114,10 +114,15 @@ export function LeaderboardExplorer({
           <div className="results-summary-head">
             <div>
               <h3>Official harness-group ranks</h3>
-              <p>{data?.tasks.length ?? 0} public tasks</p>
+              <p>{data ? `${data.tasks.length} public tasks` : "Loading release contract"}</p>
             </div>
           </div>
-          {rankedRows.length > 0 ? (
+          {!data ? (
+            <div className="summary-empty summary-loading" role="status">
+              <strong>Loading the signed release bundle…</strong>
+              <p>Release identity is known; scored rows appear after integrity-checked JSON is available.</p>
+            </div>
+          ) : rankedRows.length > 0 ? (
             <div className="summary-table-wrap" role="region" aria-label="Ranked summary table" tabIndex={0}>
               <table className="summary-table">
                 <thead>
@@ -308,6 +313,14 @@ export function LeaderboardExplorer({
 }
 
 function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
+  if (!data) {
+    return (
+      <div className="visual-empty visual-loading" role="status">
+        <strong>Loading verified outcome evidence…</strong>
+        <p>The public release identifier is available; model rows are being read from the immutable result bundle.</p>
+      </div>
+    );
+  }
   const allRows = withDerivedOutcomeRanks([...(data?.models ?? []), ...(data?.unranked_models ?? [])]);
   const rows = allRows
     .filter((row) => row.outcome_rank != null)
@@ -379,6 +392,25 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
           );
         })}
       </svg>
+      <ol className="mobile-interval-list" aria-label="Safe success interval summary">
+        {rows.map((row) => {
+          const interval = intervalFor(row);
+          return (
+            <li key={row.model_name}>
+              <div>
+                <strong>{shortModelLabel(row.model_name)}</strong>
+                <span>{formatPercent(row.safe_success_rate)}</span>
+              </div>
+              <p>{row.ranking_eligible ? `${rankGroupLabel(row)} #${row.rank}` : `Outcome #${row.outcome_rank} · native audit`}</p>
+              <div className="mobile-interval-track" aria-hidden="true">
+                <i style={{ left: `${interval[0] * 100}%`, width: `${(interval[1] - interval[0]) * 100}%` }} />
+                <b style={{ left: `${row.safe_success_rate * 100}%` }} />
+              </div>
+              <small>95% CI {formatPercent(interval[0])}–{formatPercent(interval[1])}</small>
+            </li>
+          );
+        })}
+      </ol>
       <div className="outcome-plot-key" aria-label="Plot key">
         <span><i className="outcome-key-common" /> Official harness-group row</span>
         <span><i className="outcome-key-native" /> Complete native-surface row</span>

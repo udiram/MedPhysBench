@@ -1,20 +1,13 @@
 export const REPO_URL = "https://github.com/udiram/MedPhysBench";
 export const DOC_LINKS = [
   ["Benchmark paper", `${REPO_URL}/blob/main/docs/BENCHMARK_PAPER.md`],
+  ["Methods review", `${REPO_URL}/blob/main/docs/BENCHMARK_METHODS_REVIEW.md`],
+  ["Reporting standard", `${REPO_URL}/blob/main/docs/PUBLIC_REPORTING_STANDARD.md`],
   ["Results writeup", `${REPO_URL}/blob/main/docs/RESULTS.md`],
   ["Evaluation protocol", `${REPO_URL}/blob/main/docs/EVALUATION_PROTOCOL.md`],
   ["Reproducibility", `${REPO_URL}/blob/main/docs/REPRODUCIBILITY.md`],
-  ["Threat model", `${REPO_URL}/blob/main/docs/THREAT_MODEL.md`],
-  ["Imaging protocol", `${REPO_URL}/blob/main/docs/IMAGING_EVALUATION.md`],
-  ["Source policy", `${REPO_URL}/blob/main/docs/KNOWLEDGE_SOURCE_POLICY.md`],
-  ["Benchmark hardening", `${REPO_URL}/blob/main/docs/BENCHMARK_HARDENING.md`],
-  ["RT competency map", `${REPO_URL}/blob/main/docs/RT_COMPETENCY_MAP.md`],
-  ["AAPM coverage", `${REPO_URL}/blob/main/docs/AAPM_TASK_GROUP_COVERAGE.md`],
-  ["Planning sandbox", `${REPO_URL}/blob/main/docs/PLANNING_SANDBOX.md`],
   ["Human baseline", `${REPO_URL}/blob/main/docs/HUMAN_BASELINE_PROTOCOL.md`],
-  ["TG-263 benchmark", `${REPO_URL}/blob/main/docs/TG263_BENCHMARK.md`],
-  ["Free model evaluation", `${REPO_URL}/blob/main/docs/FREE_MODEL_EVALUATION.md`],
-  ["Benchmark card", `${REPO_URL}/blob/main/docs/BENCHMARK_CARD.md`],
+  ["All documentation", `${REPO_URL}/tree/main/docs`],
 ] as const;
 
 export const workflow = [
