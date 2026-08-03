@@ -143,6 +143,14 @@ rankable base models. One fully attempted Groq row is excluded from evaluated/ra
 counts because its provider-output failure artifacts lack model-response receipts and telemetry.
 GPT-5.6 Sol and Terra complete native rows remain visible in the same
 model index and attempt forensics, but do not inflate that common-harness funnel.
+
+The public `fleet-status.v2` projection now gives every frozen base ID a
+machine-derived readiness state, next gate, explanatory note, and any exact
+base-model-bound access evidence. “Planned route” means no Q0 evidence is
+committed; it is not a claim that an API handle, free quota, local artifact, or
+compatible hardware is currently available. The website can therefore filter the
+remaining 30 models by openness, route, and missing gate without inventing access
+reasons or confusing native GPT-5.6 evidence with common-harness qualification.
 `deepseek-r1:1.5b` completed a fresh 30-attempt Q2 matrix with artifact digest
 `sha256:e0979632db5a88d1a53884cb2a941772d10ff5d055aabaa6801c4e36f3a6c2d7`.
 Its 12 required-image attempts are explicit unsupported-modality outcomes and all

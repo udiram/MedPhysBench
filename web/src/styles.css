@@ -2386,7 +2386,7 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 }
 .fleet-funnel {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1px;
   margin: 26px 0 0;
   padding: 1px;
@@ -2487,7 +2487,12 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 }
 .fleet-result-count strong { font-size: 22px; font-weight: 500; line-height: 1; }
 .fleet-result-count span { margin-top: 4px; color: var(--muted); font: 500 9px "IBM Plex Mono", monospace; text-transform: uppercase; }
-.fleet-model-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); }
+.fleet-model-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr));
+  gap: 1px;
+  background: var(--line);
+}
 .fleet-model-card {
   min-width: 0;
   padding: 14px;
@@ -2527,6 +2532,40 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 }
 .fleet-model-card footer { display: flex; flex-wrap: wrap; gap: 5px 12px; margin: 11px 0 0 32px; }
 .fleet-model-card footer span { color: var(--muted); font: 500 9px/1.4 "IBM Plex Mono", monospace; }
+.fleet-card-details {
+  margin: 13px 0 0 32px;
+  border-top: 1px solid var(--line);
+}
+.fleet-card-details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  cursor: pointer;
+  list-style: none;
+}
+.fleet-card-details > summary::-webkit-details-marker { display: none; }
+.fleet-card-details > summary > span { display: grid; gap: 3px; }
+.fleet-card-details > summary small {
+  color: var(--muted);
+  font: 600 8px "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.fleet-card-details > summary strong { color: var(--muted-strong); font-size: 11px; font-weight: 500; }
+.fleet-card-details > summary svg { width: 15px; color: var(--accent); transition: transform 160ms ease; }
+.fleet-card-details[open] > summary svg { transform: rotate(180deg); }
+.fleet-card-readiness { padding: 2px 0 12px; }
+.fleet-card-readiness > p { margin: 0; color: var(--muted-strong); font-size: 11px; line-height: 1.65; }
+.fleet-card-readiness ul { display: grid; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.fleet-card-readiness li { padding: 10px; border: 1px solid var(--line); background: var(--surface-alt); }
+.fleet-card-readiness li > div { display: flex; justify-content: space-between; gap: 10px; }
+.fleet-card-readiness li strong { color: var(--text); font: 500 10px/1.45 "IBM Plex Mono", monospace; }
+.fleet-card-readiness li span { flex: 0 0 auto; color: var(--muted); font: 500 8px/1.5 "IBM Plex Mono", monospace; text-transform: uppercase; }
+.fleet-card-readiness li p { margin: 7px 0 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+.fleet-card-readiness .fleet-no-evidence { display: flex; align-items: flex-start; gap: 7px; margin-top: 10px; color: var(--accent); }
+.fleet-no-evidence svg { flex: 0 0 auto; width: 13px; margin-top: 2px; }
 .model-index-section {
   padding-block: 24px 36px;
   border-bottom: 1px solid var(--line);
@@ -2869,7 +2908,6 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
     grid-template-columns: 1fr;
   }
   .fleet-funnel,
-  .fleet-model-grid,
   .fleet-controls { grid-template-columns: 1fr; }
   .fleet-funnel li::after { display: none; }
   .release-title-row,

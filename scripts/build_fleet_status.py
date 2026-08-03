@@ -114,13 +114,28 @@ def build_fleet_status(
     if not isinstance(access, list):
         raise ValueError("Access status must be a list.")
     stages_by_base: dict[str, set[str]] = defaultdict(set)
+    access_evidence_by_base: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for entry in access:
-        if not isinstance(entry, dict) or entry.get("status") != "available":
+        if not isinstance(entry, dict):
             continue
         base_model_id = entry.get("base_model_id")
         stage = entry.get("qualification_stage")
-        if base_model_id in fleet_index and stage in STAGE_ORDER:
-            stages_by_base[str(base_model_id)].add(str(stage))
+        if base_model_id not in fleet_index:
+            continue
+        base_model_id = str(base_model_id)
+        access_evidence_by_base[base_model_id].append(
+            {
+                "provider": entry.get("provider"),
+                "model": str(entry["model"]),
+                "status": str(entry["status"]),
+                "qualification_stage": stage if stage in STAGE_ORDER else None,
+                "surface": str(entry["surface"]),
+                "date": str(entry["date"]),
+                "note": str(entry["note"]),
+            }
+        )
+        if entry.get("status") == "available" and stage in STAGE_ORDER:
+            stages_by_base[base_model_id].add(str(stage))
 
     evaluated_by_base: dict[str, bool] = defaultdict(bool)
     ranked_by_base: dict[str, bool] = defaultdict(bool)
@@ -177,6 +192,11 @@ def build_fleet_status(
         base_model_id = str(planned["base_model_id"])
         stages = stages_by_base.get(base_model_id, set())
         highest_stage = max(stages, key=STAGE_ORDER.get) if stages else None
+        readiness_state, next_gate, readiness_note = _readiness(
+            access_qualified=bool(stages),
+            evaluated=evaluated_by_base[base_model_id],
+            workflow_qualified=workflow_evaluated_by_base[base_model_id],
+        )
         model_rows.append(
             {
                 "base_model_id": base_model_id,
@@ -196,11 +216,19 @@ def build_fleet_status(
                 "system_configuration_count": len(configurations_by_base.get(base_model_id, set())),
                 "published_release_count": len(releases_by_base.get(base_model_id, set())),
                 "published_row_count": row_count_by_base[base_model_id],
+                "readiness_state": readiness_state,
+                "next_gate": next_gate,
+                "readiness_note": readiness_note,
+                "access_evidence": sorted(
+                    access_evidence_by_base.get(base_model_id, []),
+                    key=lambda item: (str(item["date"]), str(item["provider"]), str(item["model"])),
+                    reverse=True,
+                ),
             }
         )
 
     return {
-        "schema_version": "medphysbench.fleet-status.v1",
+        "schema_version": "medphysbench.fleet-status.v2",
         "generated_at": str(fleet["frozen_at"]),
         "fleet_id": str(fleet["fleet_id"]),
         "summary": {
@@ -219,6 +247,41 @@ def build_fleet_status(
         },
         "models": model_rows,
     }
+
+
+def _readiness(
+    *,
+    access_qualified: bool,
+    evaluated: bool,
+    workflow_qualified: bool,
+) -> tuple[str, str, str]:
+    if workflow_qualified:
+        return (
+            "workflow_qualified",
+            "q3_comparison",
+            "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger "
+            "family-diverse comparison release with external physics review and a matched human baseline.",
+        )
+    if evaluated:
+        return (
+            "evaluated",
+            "q2_workflow",
+            "Complete common-harness evidence exists on another public release. The next gate is the repeated-attempt "
+            "OpenKBP real-workflow matrix under one frozen configuration.",
+        )
+    if access_qualified:
+        return (
+            "access_qualified",
+            "q2_common_harness",
+            "Provider or local access has passed Q0 or later. The next gate is a complete, attested common-harness "
+            "matrix; partial attempts and native-only rows do not satisfy it.",
+        )
+    return (
+        "route_planned",
+        "q0_access",
+        "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider "
+        "handle or local artifact revision passes the access probe.",
+    )
 
 
 def main() -> None:

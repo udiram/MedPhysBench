@@ -98,7 +98,7 @@ package, or evidence of autonomous clinical competence.
 - Harness-group release ranks plus a clearly labeled descriptive cross-surface outcome order;
   incomplete or manifest-inconsistent runs remain published but receive neither.
 - Architecture, governance, evaluation, onboarding, and deployment documentation in [`docs/`](docs/).
-- Repository-wide validation of all thirteen JSON Schemas, every authored/runtime task projection,
+- Repository-wide validation of all fourteen JSON Schemas, every authored/runtime task projection,
   every artifact digest, constructed reference feasibility, and every published result artifact.
 - A unified browser model index that exposes open/closed and provider filters, release-specific
   scores, task-level outcome facets, failed grader contracts, exact configuration hashes, and

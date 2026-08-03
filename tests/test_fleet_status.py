@@ -38,7 +38,7 @@ def test_frozen_fleet_meets_preregistered_composition() -> None:
 
 
 def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
-    schema = _load_json(ROOT / "schemas" / "fleet-status.v1.schema.json")
+    schema = _load_json(ROOT / "schemas" / "fleet-status.v2.schema.json")
     status = _load_json(STATUS_PATH)
     assert isinstance(schema, dict)
     Draft202012Validator(schema, format_checker=FormatChecker()).validate(status)
@@ -63,6 +63,14 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert all("planned_routes" in entry for entry in rebuilt["models"])
     assert any("groq" in entry["planned_routes"] for entry in rebuilt["models"])
     assert any("ollama" in entry["planned_routes"] for entry in rebuilt["models"])
+    assert all(entry["readiness_note"] for entry in rebuilt["models"])
+    assert sum(entry["readiness_state"] == "workflow_qualified" for entry in rebuilt["models"]) == 20
+    assert sum(entry["readiness_state"] == "route_planned" for entry in rebuilt["models"]) == 27
+    terra = next(entry for entry in rebuilt["models"] if entry["base_model_id"] == "gpt-5.6-terra")
+    assert terra["readiness_state"] == "access_qualified"
+    assert terra["next_gate"] == "q2_common_harness"
+    assert terra["access_evidence"][0]["provider"] == "codex-native"
+    assert "fresh-context" in terra["access_evidence"][0]["note"]
 
 
 def test_catalog_maps_system_configurations_to_unique_frozen_base_models() -> None:

@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphysbench.org/schemas/fleet-status.v2.schema.json",
+  "title": "MedPhysBench public fleet status v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "generated_at", "fleet_id", "summary", "models"],
+  "properties": {
+    "schema_version": { "const": "medphysbench.fleet-status.v2" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "fleet_id": { "type": "string", "minLength": 1 },
+    "summary": { "$ref": "#/$defs/summary" },
+    "models": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/model" }
+    }
+  },
+  "$defs": {
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "planned_base_models",
+        "access_qualified_base_models",
+        "evaluated_base_models",
+        "ranked_base_models",
+        "workflow_qualified_base_models",
+        "workflow_ranked_base_models",
+        "published_system_configurations",
+        "published_release_rows",
+        "open_planned_models",
+        "closed_planned_models",
+        "vision_planned_models",
+        "steward_count"
+      ],
+      "properties": {
+        "planned_base_models": { "type": "integer", "minimum": 0 },
+        "access_qualified_base_models": { "type": "integer", "minimum": 0 },
+        "evaluated_base_models": { "type": "integer", "minimum": 0 },
+        "ranked_base_models": { "type": "integer", "minimum": 0 },
+        "workflow_qualified_base_models": { "type": "integer", "minimum": 0 },
+        "workflow_ranked_base_models": { "type": "integer", "minimum": 0 },
+        "published_system_configurations": { "type": "integer", "minimum": 0 },
+        "published_release_rows": { "type": "integer", "minimum": 0 },
+        "open_planned_models": { "type": "integer", "minimum": 0 },
+        "closed_planned_models": { "type": "integer", "minimum": 0 },
+        "vision_planned_models": { "type": "integer", "minimum": 0 },
+        "steward_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "access_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "model", "status", "qualification_stage", "surface", "date", "note"],
+      "properties": {
+        "provider": { "type": ["string", "null"] },
+        "model": { "type": "string", "minLength": 1 },
+        "status": { "type": "string", "minLength": 1 },
+        "qualification_stage": { "type": ["string", "null"], "enum": ["q0", "q1", "q2", "q3", null] },
+        "surface": { "type": "string", "minLength": 1 },
+        "date": { "type": "string", "format": "date" },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base_model_id",
+        "display_name",
+        "steward",
+        "family",
+        "openness",
+        "modalities",
+        "size_tier",
+        "planned_routes",
+        "access_qualified",
+        "qualification_stage",
+        "evaluated",
+        "ranked",
+        "workflow_qualified",
+        "workflow_ranked",
+        "system_configuration_count",
+        "published_release_count",
+        "published_row_count",
+        "readiness_state",
+        "next_gate",
+        "readiness_note",
+        "access_evidence"
+      ],
+      "properties": {
+        "base_model_id": { "type": "string", "minLength": 1 },
+        "display_name": { "type": "string", "minLength": 1 },
+        "steward": { "type": "string", "minLength": 1 },
+        "family": { "type": "string", "minLength": 1 },
+        "openness": { "enum": ["open", "closed"] },
+        "modalities": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["text", "image"] }
+        },
+        "size_tier": { "enum": ["small", "medium", "large", "frontier", "undisclosed"] },
+        "planned_routes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["anthropic", "aws_bedrock", "codex_native", "cohere", "google", "groq", "ollama", "openai", "self_hosted", "xai"] }
+        },
+        "access_qualified": { "type": "boolean" },
+        "qualification_stage": { "type": ["string", "null"], "enum": ["q0", "q1", "q2", "q3", null] },
+        "evaluated": { "type": "boolean" },
+        "ranked": { "type": "boolean" },
+        "workflow_qualified": { "type": "boolean" },
+        "workflow_ranked": { "type": "boolean" },
+        "system_configuration_count": { "type": "integer", "minimum": 0 },
+        "published_release_count": { "type": "integer", "minimum": 0 },
+        "published_row_count": { "type": "integer", "minimum": 0 },
+        "readiness_state": { "enum": ["route_planned", "access_qualified", "evaluated", "workflow_qualified"] },
+        "next_gate": { "enum": ["q0_access", "q2_common_harness", "q2_workflow", "q3_comparison"] },
+        "readiness_note": { "type": "string", "minLength": 20 },
+        "access_evidence": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/access_evidence" }
+        }
+      }
+    }
+  }
+}

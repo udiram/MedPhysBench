@@ -386,10 +386,22 @@ export type FleetStatusModel = {
   system_configuration_count: number;
   published_release_count: number;
   published_row_count: number;
+  readiness_state: "route_planned" | "access_qualified" | "evaluated" | "workflow_qualified";
+  next_gate: "q0_access" | "q2_common_harness" | "q2_workflow" | "q3_comparison";
+  readiness_note: string;
+  access_evidence: Array<{
+    provider: string | null;
+    model: string;
+    status: string;
+    qualification_stage: "q0" | "q1" | "q2" | "q3" | null;
+    surface: string;
+    date: string;
+    note: string;
+  }>;
 };
 
 export type FleetStatus = {
-  schema_version: "medphysbench.fleet-status.v1";
+  schema_version: "medphysbench.fleet-status.v2";
   generated_at: string;
   fleet_id: string;
   summary: FleetStatusSummary;

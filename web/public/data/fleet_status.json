@@ -1,5 +1,5 @@
 {
-  "schema_version": "medphysbench.fleet-status.v1",
+  "schema_version": "medphysbench.fleet-status.v2",
   "generated_at": "2026-08-02T12:00:00Z",
   "fleet_id": "public-fleet-v1",
   "summary": {
@@ -39,7 +39,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1
+      "published_row_count": 1,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-120b",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "groq_openai_compatible",
+          "date": "2026-08-01",
+          "note": "Groq-hosted open-weight model evaluated on the OpenKBP v0.6 release with three attempts per task."
+        }
+      ]
     },
     {
       "base_model_id": "openai/gpt-oss-20b",
@@ -63,7 +77,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1
+      "published_row_count": 1,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "groq",
+          "model": "openai/gpt-oss-20b",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "groq_openai_compatible",
+          "date": "2026-08-01",
+          "note": "Groq-hosted open-weight model evaluated on the OpenKBP v0.6 release with three attempts per task."
+        }
+      ]
     },
     {
       "base_model_id": "meta-llama/Llama-3.1-8B-Instruct",
@@ -88,7 +116,30 @@
       "workflow_ranked": true,
       "system_configuration_count": 2,
       "published_release_count": 1,
-      "published_row_count": 2
+      "published_row_count": 2,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "llama3.1:8b",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama",
+          "date": "2026-08-02",
+          "note": "Meta Llama 3.1 8B Instruct was evaluated through exact Ollama artifact sha256:46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e. An exact-source ten-task preflight preceded the complete 30-attempt Q2 matrix. The text-only route made 18 real calls; all 12 required-image attempts remain completed zero-score capability-unavailable outcomes rather than omissions or unsafe actions."
+        },
+        {
+          "provider": "groq",
+          "model": "llama-3.1-8b-instant",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "groq_openai_compatible",
+          "date": "2026-08-01",
+          "note": "Groq-hosted model evaluated on the OpenKBP v0.6 release with three attempts per task."
+        }
+      ]
     },
     {
       "base_model_id": "meta-llama/Llama-3.2-3B-Instruct",
@@ -112,7 +163,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 2,
-      "published_row_count": 2
+      "published_row_count": 2,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "llama3.2:3b",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama",
+          "date": "2026-08-02",
+          "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
+        }
+      ]
     },
     {
       "base_model_id": "meta-llama/Llama-3.3-70B-Instruct",
@@ -136,7 +201,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1
+      "published_row_count": 1,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "groq",
+          "model": "llama-3.3-70b-versatile",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "groq_openai_compatible",
+          "date": "2026-08-01",
+          "note": "Groq-hosted model evaluated on the OpenKBP v0.6 release with three attempts per task."
+        }
+      ]
     },
     {
       "base_model_id": "meta-llama/Llama-3.2-90B-Vision-Instruct",
@@ -160,7 +239,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
@@ -184,7 +267,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "Qwen/Qwen2.5-7B-Instruct",
@@ -208,7 +295,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 2,
-      "published_row_count": 2
+      "published_row_count": 2,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "qwen2.5:7b-instruct",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama",
+          "date": "2026-08-02",
+          "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
+        }
+      ]
     },
     {
       "base_model_id": "Qwen/Qwen2.5-72B-Instruct",
@@ -231,7 +332,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "Qwen/Qwen3-1.7B",
@@ -255,7 +360,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 2,
-      "published_row_count": 2
+      "published_row_count": 2,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "qwen3:1.7b",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama",
+          "date": "2026-08-02",
+          "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
+        }
+      ]
     },
     {
       "base_model_id": "Qwen/Qwen3-8B",
@@ -279,7 +398,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 2,
-      "published_row_count": 2
+      "published_row_count": 2,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "qwen3:8b",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama",
+          "date": "2026-08-02",
+          "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
+        }
+      ]
     },
     {
       "base_model_id": "Qwen/Qwen3-14B",
@@ -303,7 +436,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 2,
-      "published_row_count": 2
+      "published_row_count": 2,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "qwen3:14b",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama",
+          "date": "2026-08-02",
+          "note": "Digest-pinned local text model; 3/3 adapter-contract attempts were schema-valid and the complete 30-attempt OpenKBP Q2 matrix is published. Required-image tasks remain explicit unsupported-modality outcomes."
+        }
+      ]
     },
     {
       "base_model_id": "Qwen/Qwen3-32B",
@@ -326,7 +473,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "Qwen/Qwen3.5-4B",
@@ -350,7 +501,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1
+      "published_row_count": 1,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "qwen3.5:4b",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama",
+          "date": "2026-07-31",
+          "note": "Local text model; scored on the public development release."
+        }
+      ]
     },
     {
       "base_model_id": "Qwen/Qwen3.6-27B",
@@ -374,7 +539,21 @@
       "workflow_ranked": false,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1
+      "published_row_count": 1,
+      "readiness_state": "access_qualified",
+      "next_gate": "q2_common_harness",
+      "readiness_note": "Provider or local access has passed Q0 or later. The next gate is a complete, attested common-harness matrix; partial attempts and native-only rows do not satisfy it.",
+      "access_evidence": [
+        {
+          "provider": "groq",
+          "model": "qwen/qwen3.6-27b",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "groq_openai_compatible",
+          "date": "2026-08-01",
+          "note": "Groq-hosted model evaluated on the OpenKBP v0.6 release with three attempts per task."
+        }
+      ]
     },
     {
       "base_model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
@@ -399,7 +578,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 2,
-      "published_row_count": 2
+      "published_row_count": 2,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "qwen2.5vl:3b",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama_text_only",
+          "date": "2026-07-31",
+          "note": "Vision-capable model completed the 30-attempt OpenKBP v0.6 matrix through the local Ollama common harness."
+        }
+      ]
     },
     {
       "base_model_id": "Qwen/Qwen2.5-VL-7B-Instruct",
@@ -423,7 +616,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1
+      "published_row_count": 1,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "qwen2.5vl:7b-q4_K_M",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama_vision",
+          "date": "2026-08-02",
+          "note": "Apache-2.0 Qwen2.5-VL 7B base evaluated through exact Ollama artifact sha256:5ced39dfa4bac325dc183dd1e4febaa1c46b3ea28bce48896c8e69c1e79611cc. Four qualification calls covered structure naming, calculation, required escalation, and a real-image smoke task with schema, trace, token, latency, and image-transport evidence. The complete 30-attempt OpenKBP Q2 matrix contains real vision calls for all 12 image-grid attempts."
+        }
+      ]
     },
     {
       "base_model_id": "Qwen/Qwen2.5-VL-72B-Instruct",
@@ -447,7 +654,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "Qwen/Qwen3-VL-8B-Instruct",
@@ -472,7 +683,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 2,
-      "published_row_count": 2
+      "published_row_count": 2,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "qwen3-vl:8b",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama_text_only",
+          "date": "2026-07-31",
+          "note": "Vision-capable model completed the 30-attempt OpenKBP v0.6 matrix through the local Ollama common harness."
+        }
+      ]
     },
     {
       "base_model_id": "Qwen/Qwen3-VL-32B-Instruct",
@@ -496,7 +721,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "google/gemma-3-4b-it",
@@ -521,7 +750,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 2,
-      "published_row_count": 2
+      "published_row_count": 2,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "gemma3:4b",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama",
+          "date": "2026-07-31",
+          "note": "Local text model; scored on the public development release."
+        }
+      ]
     },
     {
       "base_model_id": "google/gemma-3-12b-it",
@@ -545,7 +788,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1
+      "published_row_count": 1,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "gemma3:12b-it-q4_K_M",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama_vision",
+          "date": "2026-08-02",
+          "note": "Gemma Terms of Use model evaluated through exact Ollama artifact sha256:f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a. A 10-task first-attempt preflight established schema, safety, receipt, token, duration, and real-image transport evidence before the immutable campaign resumed to the complete 30-attempt Q2 matrix. All 12 required-image attempts were real model calls."
+        }
+      ]
     },
     {
       "base_model_id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
@@ -569,7 +826,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1
+      "published_row_count": 1,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "deepseek-r1:1.5b",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama",
+          "date": "2026-08-02",
+          "note": "Completed the 30-attempt OpenKBP v0.6 matrix with a digest-pinned local artifact and 4,096-token context. Twelve image-grid attempts are explicit unsupported-modality failures; all 18 text attempts produced schema-valid outputs. The row is outcome-orderable but not officially ranked until a second system shares its exact reference-json-v2 configuration."
+        }
+      ]
     },
     {
       "base_model_id": "deepseek-ai/DeepSeek-R1",
@@ -592,7 +863,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "deepseek-ai/DeepSeek-V3-0324",
@@ -615,7 +890,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "mistralai/Mistral-Nemo-Instruct-2407",
@@ -638,7 +917,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1
+      "published_row_count": 1,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "mistral-nemo:12b-instruct-2407-q4_K_M",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama",
+          "date": "2026-08-02",
+          "note": "Apache-2.0 Mistral Nemo 12B base evaluated through exact Ollama artifact sha256:daf6737417121831e572a9c482e92a221ee0c33537f35f1f857c7b4f7191df55. The complete 30-attempt OpenKBP Q2 matrix uses the frozen reference-json-v2 comparison settings; required-image tasks remain explicit unsupported-modality outcomes."
+        }
+      ]
     },
     {
       "base_model_id": "mistralai/Pixtral-12B-2409",
@@ -662,7 +955,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1
+      "published_row_count": 1,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "hf.co/EnlistedGhost/Pixtral-12B-2409-GGUF:Q4_K_M",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama_vision_community_quantization",
+          "date": "2026-08-02",
+          "note": "Apache-2.0 Pixtral 12B evaluated through community Q4_K_M GGUF plus F32 vision projector at immutable Hugging Face revision f4b659266080c08cbceb36f8a1a387ced7a989a7. Local blobs match repository LFS SHA-256 values 80f05f4f031bd9cdcd073051e23d2e55d9b71136cc2832eaa0da4a4ea44ed67b and 25622e8033dd8d80aa00f1542dbd16898e65a2b99a3449b8070ad8d6eed75c5d. The exact Ollama manifest digest is sha256:bf98f2143bd35a699805b018855a12db0d5ddda0ce694772d4dd3c6b843a3286. This is a community quantization, not an official Mistral GGUF. All 12 required-image attempts were real model calls."
+        }
+      ]
     },
     {
       "base_model_id": "microsoft/Phi-4-mini-instruct",
@@ -685,7 +992,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1
+      "published_row_count": 1,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "phi4-mini:3.8b-q4_K_M",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama",
+          "date": "2026-08-02",
+          "note": "MIT-licensed Phi-4 Mini base evaluated through the digest-pinned Ollama artifact 78fad5d182a7c33065e153a5f8ba210754207ba9d91973f57dffa7f487363753. The three-task Q1 adapter audit preserved schema, trace, token, latency, and escalation evidence; the complete 30-attempt OpenKBP Q2 matrix is published with unsupported image tasks retained as scored capability outcomes."
+        }
+      ]
     },
     {
       "base_model_id": "microsoft/Phi-4-multimodal-instruct",
@@ -709,7 +1030,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "microsoft/phi-4",
@@ -732,7 +1057,21 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1
+      "published_row_count": 1,
+      "readiness_state": "workflow_qualified",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "phi4:14b",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama",
+          "date": "2026-08-02",
+          "note": "MIT-licensed Microsoft Phi-4 14B was evaluated through exact Ollama artifact sha256:ac896e5b8b34a1f4efa7b14d7520725140d5512484457fab45d2a4ea14c69dba. An exact-source 10-task preflight established schema, safety, receipt, token, and duration evidence before the campaign resumed to a complete 30-attempt Q2 matrix. The text-only route made 18 real calls; all 12 required-image attempts remain completed zero-score capability-unavailable outcomes rather than omissions or unsafe actions."
+        }
+      ]
     },
     {
       "base_model_id": "command-a-plus-05-2026",
@@ -757,7 +1096,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "gpt-5.6-sol",
@@ -782,7 +1125,21 @@
       "workflow_ranked": false,
       "system_configuration_count": 6,
       "published_release_count": 4,
-      "published_row_count": 13
+      "published_row_count": 13,
+      "readiness_state": "access_qualified",
+      "next_gate": "q2_common_harness",
+      "readiness_note": "Provider or local access has passed Q0 or later. The next gate is a complete, attested common-harness matrix; partial attempts and native-only rows do not satisfy it.",
+      "access_evidence": [
+        {
+          "provider": "codex-native",
+          "model": "gpt-5.6-sol",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "recorded_output_import",
+          "date": "2026-08-02",
+          "note": "Six effort configurations are published in the same public model index as all other systems. Three complete 30-attempt OpenKBP rows are outcome-orderable but remain non-ordinal because their native execution surface differs from the common harness."
+        }
+      ]
     },
     {
       "base_model_id": "gpt-5.6-terra",
@@ -807,7 +1164,21 @@
       "workflow_ranked": false,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1
+      "published_row_count": 1,
+      "readiness_state": "access_qualified",
+      "next_gate": "q2_common_harness",
+      "readiness_note": "Provider or local access has passed Q0 or later. The next gate is a complete, attested common-harness matrix; partial attempts and native-only rows do not satisfy it.",
+      "access_evidence": [
+        {
+          "provider": "codex-native",
+          "model": "gpt-5.6-terra",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "recorded_output_import",
+          "date": "2026-08-03",
+          "note": "One high-effort configuration is published from three fresh-context, independently captured sealed-batch attempts. The 30 deterministic result artifacts are outcome-orderable and fully bound to public capture records, but the row remains outside common-harness rank groups and has no token or latency telemetry."
+        }
+      ]
     },
     {
       "base_model_id": "gpt-5.6-luna",
@@ -832,7 +1203,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "gpt-5-mini",
@@ -856,7 +1231,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "gpt-5-nano",
@@ -880,7 +1259,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "gpt-4.1",
@@ -904,7 +1287,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "claude-fable-5",
@@ -928,7 +1315,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "claude-opus-5",
@@ -952,7 +1343,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "claude-sonnet-5",
@@ -976,7 +1371,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "claude-haiku-4-5-20251001",
@@ -1000,7 +1399,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "gemini-3.6-flash",
@@ -1024,7 +1427,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "gemini-3.5-flash",
@@ -1048,7 +1455,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "gemini-3.5-flash-lite",
@@ -1072,7 +1483,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "gemini-3.1-flash-lite",
@@ -1096,7 +1511,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "gemini-2.5-pro",
@@ -1120,7 +1539,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "gemini-2.5-flash",
@@ -1144,7 +1567,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "grok-4.5",
@@ -1168,7 +1595,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "amazon.nova-pro-v1:0",
@@ -1192,7 +1623,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     },
     {
       "base_model_id": "amazon.nova-lite-v1:0",
@@ -1216,7 +1651,11 @@
       "workflow_ranked": false,
       "system_configuration_count": 0,
       "published_release_count": 0,
-      "published_row_count": 0
+      "published_row_count": 0,
+      "readiness_state": "route_planned",
+      "next_gate": "q0_access",
+      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
+      "access_evidence": []
     }
   ]
 }

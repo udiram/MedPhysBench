@@ -1,14 +1,18 @@
-import { Check, ChevronDown, CircleDashed, Search } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, CircleDashed, Search } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
+import {
+  filterFleetModels,
+  fleetNextGateLabel,
+  fleetRouteLabel,
+  type FleetRouteFilter,
+  type FleetSourceFilter,
+  type FleetStageFilter,
+} from "../lib/fleetReadiness";
 import type { FleetStatus, FleetStatusModel } from "../types";
 
 type Props = {
   data: FleetStatus | null;
 };
-
-type SourceFilter = "all" | "open" | "closed";
-type StageFilter = "all" | "workflow" | "ranked" | "evaluated" | "access" | "planned";
-type RouteFilter = "all" | FleetStatusModel["planned_routes"][number];
 
 const FUNNEL_STAGES = [
   ["planned_base_models", "Frozen panel", "Predeclared unique base IDs"],
@@ -19,9 +23,9 @@ const FUNNEL_STAGES = [
 ] as const;
 
 export function FleetCoverage({ data }: Props) {
-  const [source, setSource] = useState<SourceFilter>("all");
-  const [stage, setStage] = useState<StageFilter>("all");
-  const [route, setRoute] = useState<RouteFilter>("all");
+  const [source, setSource] = useState<FleetSourceFilter>("all");
+  const [stage, setStage] = useState<FleetStageFilter>("all");
+  const [route, setRoute] = useState<FleetRouteFilter>("all");
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const routeOptions = useMemo(
@@ -31,26 +35,7 @@ export function FleetCoverage({ data }: Props) {
 
   const rows = useMemo(() => {
     if (!data) return [];
-    const normalized = deferredQuery.trim().toLowerCase();
-    return data.models.filter((model) => {
-      const matchesSource = source === "all" || model.openness === source;
-      const matchesStage =
-        stage === "all" ||
-        (stage === "workflow" && model.workflow_qualified) ||
-        (stage === "ranked" && model.ranked) ||
-        (stage === "evaluated" && model.evaluated) ||
-        (stage === "access" && model.access_qualified) ||
-        (stage === "planned" && !model.access_qualified);
-      const matchesRoute = route === "all" || model.planned_routes.includes(route);
-      const matchesQuery =
-        !normalized ||
-        model.display_name.toLowerCase().includes(normalized) ||
-        model.base_model_id.toLowerCase().includes(normalized) ||
-        model.steward.toLowerCase().includes(normalized) ||
-        model.family.toLowerCase().includes(normalized) ||
-        model.planned_routes.some((value) => routeLabel(value).toLowerCase().includes(normalized));
-      return matchesSource && matchesStage && matchesRoute && matchesQuery;
-    });
+    return filterFleetModels(data.models, { source, stage, route, query: deferredQuery });
   }, [data, deferredQuery, route, source, stage]);
 
   if (!data) {
@@ -131,7 +116,7 @@ export function FleetCoverage({ data }: Props) {
             <label className="field">
               <span>Openness</span>
               <span className="select-wrap">
-                <select value={source} onChange={(event) => setSource(event.target.value as SourceFilter)}>
+                <select value={source} onChange={(event) => setSource(event.target.value as FleetSourceFilter)}>
                   <option value="all">All systems</option>
                   <option value="open">Open weights</option>
                   <option value="closed">Closed models</option>
@@ -142,13 +127,14 @@ export function FleetCoverage({ data }: Props) {
             <label className="field">
               <span>Qualification</span>
               <span className="select-wrap">
-                <select value={stage} onChange={(event) => setStage(event.target.value as StageFilter)}>
+                <select value={stage} onChange={(event) => setStage(event.target.value as FleetStageFilter)}>
                   <option value="all">Every stage</option>
                   <option value="workflow">Workflow qualified</option>
                   <option value="ranked">Rankable</option>
                   <option value="evaluated">Published evaluation</option>
                   <option value="access">Access qualified</option>
-                  <option value="planned">Planned only</option>
+                  <option value="needs_evidence">Needs workflow evidence</option>
+                  <option value="planned">No access evidence</option>
                 </select>
                 <ChevronDown aria-hidden="true" />
               </span>
@@ -156,11 +142,11 @@ export function FleetCoverage({ data }: Props) {
             <label className="field">
               <span>Planned route</span>
               <span className="select-wrap">
-                <select value={route} onChange={(event) => setRoute(event.target.value as RouteFilter)}>
+                <select value={route} onChange={(event) => setRoute(event.target.value as FleetRouteFilter)}>
                   <option value="all">Any route</option>
                   {routeOptions.map((value) => (
                     <option key={value} value={value}>
-                      {routeLabel(value)}
+                      {fleetRouteLabel(value)}
                     </option>
                   ))}
                 </select>
@@ -221,19 +207,37 @@ function FleetModelCard({ model }: { model: FleetStatusModel }) {
         <span>{sizeTierLabel(model.size_tier)}</span>
         <span>{model.steward}</span>
         {model.system_configuration_count > 0 ? <span>{model.system_configuration_count} config{model.system_configuration_count === 1 ? "" : "s"}</span> : null}
-        <span>{model.planned_routes.map(routeLabel).join(" · ")}</span>
+        <span>{model.planned_routes.map(fleetRouteLabel).join(" · ")}</span>
       </footer>
+      <details className="fleet-card-details">
+        <summary>
+          <span>
+            <small>Next gate</small>
+            <strong>{fleetNextGateLabel(model.next_gate)}</strong>
+          </span>
+          <ChevronDown aria-hidden="true" />
+        </summary>
+        <div className="fleet-card-readiness">
+          <p>{model.readiness_note}</p>
+          {model.access_evidence.length > 0 ? (
+            <ul aria-label={`Access evidence for ${model.display_name}`}>
+              {model.access_evidence.map((evidence) => (
+                <li key={`${evidence.provider ?? "unknown"}:${evidence.model}:${evidence.date}`}>
+                  <div>
+                    <strong>{evidence.provider ?? "Undeclared provider"} · {evidence.model}</strong>
+                    <span>{evidence.qualification_stage?.toUpperCase() ?? evidence.status} · {evidence.date}</span>
+                  </div>
+                  <p>{evidence.note}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="fleet-no-evidence"><ArrowRight aria-hidden="true" /> Start with an exact Q0 route probe; do not infer availability from the planned provider list.</p>
+          )}
+        </div>
+      </details>
     </article>
   );
-}
-
-function routeLabel(value: FleetStatusModel["planned_routes"][number]) {
-  if (value === "self_hosted") return "Self-hosted";
-  if (value === "openai") return "OpenAI API";
-  if (value === "codex_native") return "Codex native";
-  if (value === "aws_bedrock") return "AWS Bedrock";
-  if (value === "xai") return "xAI";
-  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function sizeTierLabel(value: FleetStatusModel["size_tier"]) {
