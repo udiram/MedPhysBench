@@ -72,6 +72,13 @@ export type ModelCatalogEntry = {
   openness: ModelOpenness;
   steward: string;
   family: string;
+  artifact_provenance?: {
+    kind: "provider_hosted" | "official_local_build" | "community_quantization" | "native_agent_surface";
+    label: string;
+    source_url?: string;
+    source_revision?: string;
+    quantization?: string;
+  };
   notes?: string;
 };
 

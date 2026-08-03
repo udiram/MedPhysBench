@@ -662,6 +662,10 @@ def _public_response_receipt(item: dict[str, Any]) -> dict[str, Any]:
         "latency_ms",
         "content_sha256",
         "content_redacted",
+        "provider_request_id",
+        "http_status",
+        "error_code",
+        "error_body_sha256",
     )
     return {key: raw[key] for key in allowed if key in raw}
 
@@ -894,7 +898,7 @@ def _common_harness_receipt_errors(*, item: dict[str, Any]) -> list[str]:
         return [] if "unsupported_required_modality" in events else ["missing_capability_trace"]
 
     errors: list[str] = []
-    if "model_response" not in events:
+    if not {"model_response", "provider_output_contract_response"}.intersection(events):
         errors.append("missing_model_response_trace")
     raw_response = item.get("raw_response")
     if not isinstance(raw_response, dict) or not raw_response:

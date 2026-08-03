@@ -14,6 +14,14 @@ reference outputs, private files, or previous candidate outputs.
 6. Turn provider failures into explicit error artifacts; never synthesize a fallback answer.
 7. Keep native-agent evaluations in a separate track when the provider cannot honor the common harness.
 
+When a provider returns an HTTP response that explicitly rejects generated structured output, the
+attempt is a completed model/output-contract failure rather than a transport retry. Persist only a
+redacted receipt: provider/model identity, status and error code, response-body SHA-256, measured
+wall time, and a provider request ID when supplied. Never retain the rejected generation in public
+artifacts and never invent token usage that the provider did not return. A complete matrix with
+missing usage telemetry remains inspectable but cannot pass the current common-harness publication
+gate.
+
 ## Qualification tests
 
 - exact-object and duplicate-key parsing;
@@ -23,6 +31,7 @@ reference outputs, private files, or previous candidate outputs.
 - no access to authored grading fields;
 - error artifacts remain present in the expected attempt matrix;
 - public sanitization removes reasoning/private provider fields without removing score evidence.
+- output-contract rejections preserve a body digest and timing receipt without the rejected text.
 
 An adapter is not publication-ready until the qualification suite passes and one complete reference
 release summarizes as rank-eligible.

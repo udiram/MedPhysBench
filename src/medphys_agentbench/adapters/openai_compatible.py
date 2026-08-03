@@ -7,6 +7,7 @@ credentials or silently changing output contracts.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import time
@@ -136,8 +137,40 @@ class OpenAICompatibleAdapter:
                         "this task's required artifact modality."
                     ) from error
                 if error.code == 400 and "json_validate_failed" in body.lower():
+                    latency_ms = round((time.perf_counter() - started) * 1000, 2)
+                    provider_request_id = _first_header(
+                        error.headers,
+                        "x-request-id",
+                        "request-id",
+                        "x-groq-request-id",
+                    )
+                    response_trace = [
+                        *retry_trace,
+                        {
+                            "event": "provider_output_contract_response",
+                            "provider": self.provider,
+                            "model": self.model_name,
+                            "latency_ms": latency_ms,
+                            "http_status": error.code,
+                            "error_code": "json_validate_failed",
+                            "error_body_sha256": hashlib.sha256(body.encode("utf-8")).hexdigest(),
+                            "provider_request_id": provider_request_id,
+                        },
+                    ]
                     raise ProviderOutputContractError(
-                        f"{self.provider} model {self.model_name} failed the declared JSON output contract."
+                        f"{self.provider} model {self.model_name} failed the declared JSON output contract.",
+                        trace=response_trace,
+                        raw_response={
+                            "provider": self.provider,
+                            "model": self.model_name,
+                            "http_status": error.code,
+                            "error_code": "json_validate_failed",
+                            "error_body_sha256": hashlib.sha256(body.encode("utf-8")).hexdigest(),
+                            "latency_ms": latency_ms,
+                            "provider_request_id": provider_request_id,
+                            "content_redacted": True,
+                        },
+                        duration_seconds=latency_ms / 1000,
                     ) from error
                 if error.code == 429 and retry_index < self.max_rate_limit_retries:
                     delay_seconds = _rate_limit_delay(error, body, retry_index)
@@ -248,3 +281,13 @@ def _rate_limit_delay(error: urllib.error.HTTPError, body: str, retry_index: int
     if match:
         return min(max(float(match.group(1)) + 0.25, 0.25), 30.0)
     return min(2.0 ** retry_index, 30.0)
+
+
+def _first_header(headers: Any, *names: str) -> str | None:
+    if headers is None:
+        return None
+    for name in names:
+        value = headers.get(name)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return None

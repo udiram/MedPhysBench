@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import urllib.error
@@ -234,13 +235,16 @@ def test_openai_compatible_classifies_unsupported_required_artifact(
 def test_openai_compatible_classifies_provider_json_generation_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    headers = {"x-request-id": "req-json-failed"}
+    body = b'{"error":{"code":"json_validate_failed","failed_generation":"secret-output"}}'
+
     def reject_json(*_args: object, **_kwargs: object) -> None:
         raise urllib.error.HTTPError(
             "https://api.example.test/v1/chat/completions",
             400,
             "bad request",
-            {},
-            io.BytesIO(b'{"error":{"code":"json_validate_failed","failed_generation":""}}'),
+            headers,
+            io.BytesIO(body),
         )
 
     monkeypatch.setattr(urllib.request, "urlopen", reject_json)
@@ -252,5 +256,20 @@ def test_openai_compatible_classifies_provider_json_generation_failure(
         provider="test-provider",
     )
 
-    with pytest.raises(ProviderOutputContractError, match="JSON output contract"):
+    with pytest.raises(ProviderOutputContractError, match="JSON output contract") as captured:
         adapter.execute(task)
+
+    error = captured.value
+    assert error.duration_seconds is not None and error.duration_seconds > 0
+    assert error.raw_response == {
+        "provider": "test-provider",
+        "model": "json-failing-model",
+        "http_status": 400,
+        "error_code": "json_validate_failed",
+        "error_body_sha256": hashlib.sha256(body).hexdigest(),
+        "latency_ms": pytest.approx(error.duration_seconds * 1000),
+        "provider_request_id": "req-json-failed",
+        "content_redacted": True,
+    }
+    assert "secret-output" not in json.dumps(error.raw_response)
+    assert any(event["event"] == "provider_output_contract_response" for event in error.trace)

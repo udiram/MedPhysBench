@@ -2989,6 +2989,12 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   overflow-wrap: anywhere;
 }
 .run-provenance div { min-width: 0; }
+.run-provenance a {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}
+.run-provenance a:hover,
+.run-provenance a:focus-visible { color: var(--text); }
 .run-task-empty {
   margin: 0;
   padding: 28px 16px;

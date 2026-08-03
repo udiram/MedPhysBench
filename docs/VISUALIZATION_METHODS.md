@@ -72,6 +72,9 @@ counts, reduced deterministic grader verdicts without gold-bearing evidence, and
 a redacted provider/runtime receipt. Comparison-profile releases cannot opt in,
 even when their task contracts are public. Aggregate-only is the default. Exact model,
 harness, and run-configuration revisions are shown beside the attempt evidence.
+When a cataloged route publishes artifact-build provenance, the same run contract also labels the
+build class, quantization, immutable source revision, and source record. Community quantizations are
+therefore visible as system attributes rather than being styled or counted as separate base models.
 This follows HELM's prompt-level
 transparency principle while preserving the sealed-task boundary required by
 MedPhysBench.

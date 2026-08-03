@@ -20,6 +20,19 @@ class UnsupportedCapabilityError(AdapterError):
 class ProviderOutputContractError(AdapterError):
     """The model/provider failed to produce the declared structured output."""
 
+    def __init__(
+        self,
+        message: str,
+        *,
+        trace: list[dict[str, Any]] | None = None,
+        raw_response: dict[str, Any] | None = None,
+        duration_seconds: float | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.trace = list(trace or [])
+        self.raw_response = dict(raw_response or {})
+        self.duration_seconds = duration_seconds
+
 
 @dataclass(frozen=True)
 class AgentResult:

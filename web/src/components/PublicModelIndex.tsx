@@ -1070,6 +1070,37 @@ function ModelRegistryRow({
                             <div><dt>Harness</dt><dd>{run.harness_name ?? "Unavailable"} · {run.harness_revision ?? "Unavailable"}</dd></div>
                             <div><dt>Run config</dt><dd>{run.run_profile?.run_configuration_hash ?? "Unavailable"}</dd></div>
                             <div><dt>Comparison group</dt><dd>{run.comparison_group ?? "Not assigned"}</dd></div>
+                            {run.catalog_entry?.artifact_provenance ? (
+                              <>
+                                <div>
+                                  <dt>Artifact build</dt>
+                                  <dd>
+                                    {run.catalog_entry.artifact_provenance.label}
+                                    {run.catalog_entry.artifact_provenance.quantization
+                                      ? ` · ${run.catalog_entry.artifact_provenance.quantization}`
+                                      : ""}
+                                  </dd>
+                                </div>
+                                <div>
+                                  <dt>Artifact source</dt>
+                                  <dd>
+                                    {run.catalog_entry.artifact_provenance.source_url ? (
+                                      <a
+                                        href={run.catalog_entry.artifact_provenance.source_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                      >
+                                        {run.catalog_entry.artifact_provenance.source_revision
+                                          ? `Pinned source ${shortHash(run.catalog_entry.artifact_provenance.source_revision)}`
+                                          : "Source record"}
+                                      </a>
+                                    ) : (
+                                      run.catalog_entry.artifact_provenance.source_revision ?? "Not published"
+                                    )}
+                                  </dd>
+                                </div>
+                              </>
+                            ) : null}
                           </dl>
                           <div className="registry-run-actions">
                             <button type="button" onClick={() => focusRunForensics(run)}>

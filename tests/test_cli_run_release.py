@@ -10,7 +10,10 @@ import pytest
 from medphys_agentbench import cli
 from medphys_agentbench.adapters.base import AgentResult
 from medphys_agentbench.adapters.ollama import AdapterError
-from medphys_agentbench.adapters.openai_compatible import UnsupportedCapabilityError
+from medphys_agentbench.adapters.openai_compatible import (
+    ProviderOutputContractError,
+    UnsupportedCapabilityError,
+)
 from medphys_agentbench.contracts import ModelDescriptor
 from medphys_agentbench.release_loader import load_release
 from medphys_agentbench.reporting import summarize_release
@@ -197,6 +200,70 @@ def test_run_release_scores_unsupported_required_modality_as_completed_zero(
     assert "unranked_singleton_comparison_group" in row["integrity"][
         "integrity_errors"
     ]
+
+
+def test_run_release_preserves_provider_contract_failure_receipt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        cli,
+        "_build_adapter",
+        lambda *args, seed, **_kwargs: _FakeAdapter(str(args[1]), seed),
+    )
+    failure = ProviderOutputContractError(
+        "provider rejected generated JSON",
+        trace=[
+            {
+                "event": "provider_output_contract_response",
+                "provider": "fake",
+                "model": "contract-failing-model",
+                "http_status": 400,
+            }
+        ],
+        raw_response={
+            "provider": "fake",
+            "model": "contract-failing-model",
+            "http_status": 400,
+            "error_code": "json_validate_failed",
+            "error_body_sha256": "a" * 64,
+            "latency_ms": 125.0,
+            "content_redacted": True,
+        },
+        duration_seconds=0.125,
+    )
+    monkeypatch.setattr(
+        cli,
+        "run_trial",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(failure),
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "medphys-bench",
+            "run-release",
+            "releases/public_imaging_pilot_v0_4.yaml",
+            "--adapter",
+            "groq",
+            "--model",
+            "contract-failing-model",
+            "--results-dir",
+            str(tmp_path),
+        ],
+    )
+
+    cli.main()
+
+    artifacts = [json.loads(path.read_text(encoding="utf-8")) for path in sorted(tmp_path.rglob("*.json"))]
+    assert len(artifacts) == 5
+    assert all(item["status"] == "completed" for item in artifacts)
+    assert all(item["model_failure_kind"] == "provider_output_contract_failure" for item in artifacts)
+    assert all(item["duration_seconds"] == 0.125 for item in artifacts)
+    assert all(item["raw_response"]["error_body_sha256"] == "a" * 64 for item in artifacts)
+    assert all(
+        any(event["event"] == "provider_output_contract_response" for event in item["trace"])
+        for item in artifacts
+    )
 
 
 def test_run_release_resume_validates_and_fills_only_missing_attempts(

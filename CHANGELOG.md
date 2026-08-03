@@ -12,6 +12,8 @@
 
 ## Unreleased
 
+- Preserved redacted HTTP receipts, request IDs when supplied, body digests, and measured wall time when a provider rejects generated structured output; the failed attempt remains a scored zero and stays unranked when token usage is unavailable instead of gaining invented telemetry.
+- Added optional artifact-build provenance to model run contracts so official provider routes and community quantizations can be disclosed in the same forensic surface with pinned source revisions.
 - Enforced a default 50% task-family concentration ceiling at release load time, exposed the reviewed threshold in public reporting, and added strict-boundary and deterministic-error regressions so one correlated case family cannot quietly dominate a score.
 - Added a deterministic task-to-defect projection and task-level QA history in result forensics, including disclosed defect counts, severity, resolution state, and immutable score treatment without inferring release-wide defects onto unaffected tasks.
 - Froze a machine-readable 50-base-model fleet and added a deterministic public qualification funnel: 21 access-qualified, 19 common-harness evaluated and rankable under the current manifest contract, 27 published system configurations, 42 release rows, and no count inflation from aliases, provider routes, or GPT-5.6 effort settings.

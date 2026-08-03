@@ -382,6 +382,21 @@ def main() -> None:
                         }
                     except (UnsupportedCapabilityError, ProviderOutputContractError) as error:
                         grades = score_attempt(task, {})
+                        contract_trace = (
+                            list(error.trace)
+                            if isinstance(error, ProviderOutputContractError)
+                            else []
+                        )
+                        contract_receipt = (
+                            dict(error.raw_response)
+                            if isinstance(error, ProviderOutputContractError)
+                            else {}
+                        )
+                        contract_duration = (
+                            error.duration_seconds
+                            if isinstance(error, ProviderOutputContractError)
+                            else None
+                        )
                         failure_kind = (
                             "unsupported_required_modality"
                             if isinstance(error, UnsupportedCapabilityError)
@@ -408,14 +423,15 @@ def main() -> None:
                             "output": {},
                             "grades": [grade.to_dict() for grade in grades],
                             "trace": [
+                                *contract_trace,
                                 {
                                     "event": failure_kind,
                                     "provider": adapter.model_descriptor().provider,
                                     "model": adapter.model_descriptor().model_name,
-                                }
+                                },
                             ],
-                            "raw_response": {},
-                            "duration_seconds": 0.0,
+                            "raw_response": contract_receipt,
+                            "duration_seconds": contract_duration or 0.0,
                         }
                     except AdapterError as error:
                         payload = {
