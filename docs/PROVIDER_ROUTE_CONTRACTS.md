@@ -53,12 +53,15 @@ than an undocumented retry heuristic. [Groq Qwen 3.6 model contract](https://con
 [`local_ollama_routes_v1.yaml`](../fleet/local_ollama_routes_v1.yaml) freezes 16 existing,
 submission-attested local configurations. A separate
 [`local_ollama_candidate_routes_v1.yaml`](../fleet/local_ollama_candidate_routes_v1.yaml) isolates
-the digest-pinned Qwen3-VL 8B candidate so adding a probe target does not rewrite the attested route
-set. Each route binds the mutable Ollama
+the digest-pinned default Qwen3-VL 8B tag so its failed strict-output probe remains reproducible.
+That artifact declares Ollama's `qwen3-vl-thinking` renderer and is not promoted as the frozen
+Instruct base. [`local_ollama_candidate_routes_v2.yaml`](../fleet/local_ollama_candidate_routes_v2.yaml)
+separately pins the non-thinking `qwen3-vl:8b-instruct` artifact and its
+`qwen3-vl-instruct` renderer; the variants never share a route identity or receipt. Each route binds the mutable Ollama
 tag to its observed immutable artifact digest, exact base-model ID, 4,096-token context,
 JSON-schema output, and `keep_alive=0`. This route set does not add new scores: it makes the
 already-published current-contract local lane—and one explicitly unevaluated candidate—addressable
-by the same receipt-bound control plane used for hosted providers. The Qwen3-VL route must still
+by the same receipt-bound control plane used for hosted providers. The Qwen3-VL Instruct route must still
 produce a fresh access receipt, complete campaign, and attested submission before it can affect
 evaluated breadth or any score surface.
 

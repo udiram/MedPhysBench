@@ -483,13 +483,24 @@ def _usage_summary(results: list[dict[str, Any]]) -> dict[str, Any]:
         if total is not None:
             total_tokens.append(total)
 
-    observed = min(len(input_tokens), len(output_tokens))
+    observed_input = len(input_tokens)
+    observed_output = len(output_tokens)
+    observed_total = len(total_tokens)
     expected = len(provider_call_results)
     return {
-        "available": observed > 0,
-        "complete": observed == expected and expected > 0,
-        "observed_attempts": observed,
+        # The aggregate efficiency frontier is defined on total tokens. Providers
+        # that report only a trustworthy total are therefore measurable even when
+        # they do not expose a prompt/completion split.
+        "available": observed_total > 0,
+        "complete": observed_total == expected and expected > 0,
+        "observed_attempts": observed_total,
         "expected_attempts": expected,
+        "observed_input_attempts": observed_input,
+        "observed_output_attempts": observed_output,
+        "observed_total_attempts": observed_total,
+        "input_complete": observed_input == expected and expected > 0,
+        "output_complete": observed_output == expected and expected > 0,
+        "total_complete": observed_total == expected and expected > 0,
         "campaign_attempts": len(results),
         "capability_unavailable_attempts": len(results) - expected,
         "total_input_tokens": sum(input_tokens) if input_tokens else None,

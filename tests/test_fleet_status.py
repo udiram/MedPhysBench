@@ -76,8 +76,8 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
         "evaluated_vision_base_models": 5,
         "evaluated_steward_count": 6,
         "evaluated_size_tiers": ["medium", "small"],
-        "route_set_count": 4,
-        "declared_route_count": 29,
+        "route_set_count": 6,
+        "declared_route_count": 31,
     }
     assert all("size_tier" in entry for entry in rebuilt["models"])
     assert all("planned_routes" in entry for entry in rebuilt["models"])

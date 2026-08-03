@@ -12,6 +12,18 @@
 
 ## Unreleased
 
+- Corrected the Qwen3-VL candidate lineage: the default `qwen3-vl:8b` artifact exposes Ollama's
+  thinking renderer and failed the strict final-content canary, so its non-scoring failure receipt
+  is preserved. A distinct v2 route now pins `qwen3-vl:8b-instruct`, its non-thinking renderer, and
+  exact SHA-256 before any campaign may run.
+- Made the model registry provider-neutral by replacing the hard-coded Groq KPI with a data-derived
+  provider count. Exact task attempts now deep-link from the model workbench and leaderboard into
+  the shared forensics view.
+- Fixed total-token-only provider telemetry so complete total-token evidence is eligible for the
+  total-token frontier without falsely claiming prompt/completion splits; added independent split
+  and total coverage fields plus a regression test.
+- Renamed the hero's mixed unranked count from `Native outcome rows` to the accurate
+  `Descriptive-only rows`; native and common-harness exclusions remain distinguishable below.
 - Declared a digest-pinned Qwen3-VL 8B local route with vision transport, strict JSON Schema,
   4,096-token context, and `keep_alive=0`. Route declaration alone does not create access evidence,
   evaluated breadth, a score, or a rank; those remain gated on a fresh receipt and complete campaign.

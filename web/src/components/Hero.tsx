@@ -101,7 +101,7 @@ export function Hero({ data, onReleaseViewChange, releaseView, releaseEvidence, 
             <dd>{rankedCount ?? "—"}</dd>
           </div>
           <div>
-            <dt>Native outcome rows</dt>
+            <dt>Descriptive-only rows</dt>
             <dd>{reviewCount ?? "—"}</dd>
           </div>
           <div>

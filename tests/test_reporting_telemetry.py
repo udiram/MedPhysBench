@@ -23,6 +23,12 @@ def test_usage_summary_preserves_missing_telemetry() -> None:
         "complete": False,
         "observed_attempts": 1,
         "expected_attempts": 2,
+        "observed_input_attempts": 1,
+        "observed_output_attempts": 1,
+        "observed_total_attempts": 1,
+        "input_complete": False,
+        "output_complete": False,
+        "total_complete": False,
         "campaign_attempts": 2,
         "capability_unavailable_attempts": 0,
         "total_input_tokens": 100,
@@ -54,6 +60,26 @@ def test_usage_summary_accepts_openai_style_counts_from_trace() -> None:
 
     assert summary["complete"] is True
     assert summary["median_total_tokens"] == 20
+
+
+def test_usage_summary_accepts_total_only_telemetry_for_total_token_frontier() -> None:
+    summary = _usage_summary(
+        [
+            {"raw_response": {"usage": {"total_tokens": 123}}},
+            {"raw_response": {"usage": {"total_tokens": 177}}},
+        ]
+    )
+
+    assert summary["available"] is True
+    assert summary["complete"] is True
+    assert summary["observed_attempts"] == 2
+    assert summary["observed_total_attempts"] == 2
+    assert summary["total_complete"] is True
+    assert summary["input_complete"] is False
+    assert summary["output_complete"] is False
+    assert summary["median_total_tokens"] == 150
+    assert summary["median_input_tokens"] is None
+    assert summary["median_output_tokens"] is None
 
 
 def test_usage_summary_excludes_no_call_capability_failures_from_coverage() -> None:

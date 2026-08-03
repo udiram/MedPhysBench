@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { publicArtifactHref, taskAttemptKey } from "../src/lib/forensicsNavigation.ts";
+import { publicArtifactHref, taskAttemptKey, taskForensicsSelection } from "../src/lib/forensicsNavigation.ts";
 
 test("attempt IDs remain the canonical forensic navigation key", () => {
   const task = {
@@ -42,4 +42,55 @@ test("public artifact links accept only repository result JSON paths", () => {
   assert.equal(publicArtifactHref("results/releases/../private/attempt.json"), null);
   assert.equal(publicArtifactHref("governance/private.json"), null);
   assert.equal(publicArtifactHref("results/releases/pilot/model/attempt.txt"), null);
+});
+
+test("task drilldown binds the exact run and attempt without carrying stale filters", () => {
+  const row = {
+    provider: "groq",
+    model_name: "llama-3.3-70b-versatile",
+    model_revision: "provider-version-1",
+    harness_name: "medphysbench-openai-compatible",
+    harness_revision: "reference-json-v2",
+    attempt_count: 30,
+    completed_count: 30,
+    error_count: 0,
+    expected_attempt_count: 30,
+    task_success_rate: 0.6,
+    task_success_ci95: [0.4, 0.75],
+    safe_success_rate: 0.6,
+    safety_gate_rate: 1,
+    valid_output_rate: 1,
+    appropriate_escalation_rate: 1,
+    critical_unsafe_action_rate: 0,
+    any_pass_rate: 0.6,
+    all_pass_rate: 0.6,
+    average_duration_seconds: 1,
+    median_duration_seconds: 1,
+    lane_scores: {},
+    domain_safe_success: {},
+    ranking_eligible: false,
+    integrity: {
+      observed_attempt_keys: 30,
+      missing_attempt_keys: 0,
+      unexpected_attempt_keys: 0,
+      integrity_errors: [],
+    },
+    tasks: [],
+  };
+  const task = {
+    attempt_id: "b".repeat(64),
+    task_id: "rt-plan-001",
+    title: "Plan review",
+    domain: "radiation_therapy",
+    track: "workflow",
+    safe: true,
+  };
+
+  const selection = taskForensicsSelection(row, task);
+
+  assert.equal(selection.fx_provider, "groq");
+  assert.equal(selection.fx_task, "b".repeat(64));
+  assert.match(selection.fx_model, /groq/);
+  assert.equal(selection.fx_domain, null);
+  assert.equal(selection.fx_outcome, null);
 });

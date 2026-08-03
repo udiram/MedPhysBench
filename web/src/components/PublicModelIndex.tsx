@@ -6,7 +6,7 @@ import { resolveRunBaseModelId } from "../lib/modelIdentity";
 import { compareModelRuns, modelRunKey, modelRunUrlSelection, releasedModelRunKey } from "../lib/modelRunKey";
 import { buildModelWorkbench, compactWorkbenchIdentity } from "../lib/modelWorkbench";
 import { providerIdsForSlice } from "../lib/modelSlice";
-import { navigateToRunForensics } from "../lib/forensicsNavigation";
+import { navigateToRunForensics, navigateToTaskForensics, taskAttemptKey } from "../lib/forensicsNavigation";
 import { isCommonHarnessRun, isNativeRun } from "../lib/runSurface";
 import { scoreEvidenceAvailable } from "../lib/resultEvidence";
 import { matchesSearchText, normalizeSearchText } from "../lib/searchNormalization";
@@ -357,7 +357,7 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease
   const overallEvaluatedCount = new Set(allRuns.map((run) => run.model_base_id)).size;
   const openCount = groups.filter((group) => group.openness === "open").length;
   const closedCount = groups.filter((group) => group.openness === "closed").length;
-  const groqCount = groups.filter((group) => group.providers.includes("groq")).length;
+  const providerCount = new Set(groups.flatMap((group) => group.providers)).size;
 
   useEffect(() => {
     if (!allDatasetsReady || providerOptions.length === 0) return;
@@ -505,9 +505,9 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease
           <small>Shown under the current filters</small>
         </article>
         <article>
-          <span>Groq-hosted</span>
-          <strong>{groqCount}</strong>
-          <small>Shown under the current filters</small>
+          <span>Providers</span>
+          <strong>{providerCount}</strong>
+          <small>Data-derived from the current slice</small>
         </article>
       </div>
 
@@ -1541,9 +1541,15 @@ function RunTaskExplorer({ run, modelBase, runKey }: { run: PublicRun; modelBase
               </div>
               <div className="signature-attempt-chips">
                 {signature.attempts.map((task) => (
-                  <span key={taskAttemptKey(task)} className={`signature-attempt-chip ${taskOutcome(task)}`}>
+                  <button
+                    type="button"
+                    key={taskAttemptKey(task)}
+                    className={`signature-attempt-chip ${taskOutcome(task)}`}
+                    onClick={() => navigateToTaskForensics(run, task)}
+                    aria-label={`Inspect ${task.title}, attempt ${(task.attempt_index ?? 0) + 1} in forensics`}
+                  >
                     Attempt {(task.attempt_index ?? 0) + 1}: {outcomeLabel(task)}
-                  </span>
+                  </button>
                 ))}
               </div>
             </article>
@@ -1580,6 +1586,11 @@ function RunTaskExplorer({ run, modelBase, runKey }: { run: PublicRun; modelBase
                 <div><dt>Runtime</dt><dd>{shortHash(task.runtime_task_hash)}</dd></div>
                 <div><dt>Grader</dt><dd>{shortHash(task.grader_hash)}</dd></div>
               </dl>
+              <div className="run-task-actions">
+                <button type="button" onClick={() => navigateToTaskForensics(run, task)}>
+                  Inspect exact attempt
+                </button>
+              </div>
             </article>
           ))}
           {tasks.length === 0 && <p className="run-task-empty">No task attempts match this view.</p>}
@@ -1729,10 +1740,6 @@ function maxAvailable(left: number | null, right: number | null): number | null 
 
 function taskOutcome(task: ModelTaskResult) {
   return classifyAttemptOutcome(task);
-}
-
-function taskAttemptKey(task: ModelTaskResult) {
-  return [task.task_id, task.attempt_index ?? "no-attempt", task.seed ?? "no-seed", task.run_id ?? "no-run"].join("::");
 }
 
 function outcomeLabel(task: ModelTaskResult) {

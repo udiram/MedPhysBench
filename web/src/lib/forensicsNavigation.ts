@@ -39,3 +39,24 @@ export function navigateToRunForensics(row: ModelResult) {
     document.getElementById("forensics")?.scrollIntoView();
   }
 }
+
+export function navigateToTaskForensics(row: ModelResult, task: ModelTaskResult) {
+  setUrlParams(taskForensicsSelection(row, task), { history: "push" });
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new PopStateEvent("popstate"));
+  if (window.location.hash !== "#forensics") {
+    window.location.hash = "forensics";
+  } else {
+    document.getElementById("forensics")?.scrollIntoView();
+  }
+}
+
+export function taskForensicsSelection(row: ModelResult, task: ModelTaskResult) {
+  return {
+    fx_provider: row.provider,
+    fx_model: modelRunKey(row),
+    fx_domain: null,
+    fx_outcome: null,
+    fx_task: taskAttemptKey(task),
+  };
+}

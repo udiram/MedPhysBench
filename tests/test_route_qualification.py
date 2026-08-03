@@ -28,6 +28,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ROUTE_SET_PATH = ROOT / "fleet" / "model_routes_v1.yaml"
 LOCAL_OLLAMA_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_routes_v1.yaml"
 LOCAL_OLLAMA_CANDIDATE_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_candidate_routes_v1.yaml"
+LOCAL_OLLAMA_CANDIDATE_V2_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_candidate_routes_v2.yaml"
 PROVIDER_ROUTE_SET_PATH = ROOT / "fleet" / "provider_expansion_routes_v2.yaml"
 GROQ_REASONING_ROUTE_SET_PATH = ROOT / "fleet" / "groq_reasoning_routes_v2.yaml"
 RELEASE_FILE = "releases/public_real_workflows_pilot_v0_6.yaml"
@@ -245,6 +246,22 @@ def test_qwen3_vl_candidate_route_is_isolated_from_the_attested_route_set() -> N
     assert candidate.base_model_id == "Qwen/Qwen3-VL-8B-Instruct"
     assert candidate.model_revision == (
         "sha256:901cae73216286ea8c5aba8b46d307ff7188f737285ec500c795a12f05225d28"
+    )
+    assert candidate.modalities == ("text", "image")
+    assert str(candidate.ollama_keep_alive) == "0"
+    assert candidate.ollama_num_ctx == 4096
+
+
+def test_qwen3_vl_instruct_candidate_uses_the_non_thinking_artifact() -> None:
+    route_set = load_route_set(LOCAL_OLLAMA_CANDIDATE_V2_ROUTE_SET_PATH)
+
+    assert route_set.route_set_id == "local-ollama-candidate-routes-v2"
+    assert len(route_set.routes) == 1
+    candidate = route_set.route("ollama-qwen3-vl-8b-instruct")
+    assert candidate.base_model_id == "Qwen/Qwen3-VL-8B-Instruct"
+    assert candidate.model == "qwen3-vl:8b-instruct"
+    assert candidate.model_revision == (
+        "sha256:0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319"
     )
     assert candidate.modalities == ("text", "image")
     assert str(candidate.ollama_keep_alive) == "0"

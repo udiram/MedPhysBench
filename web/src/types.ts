@@ -326,6 +326,12 @@ export type ModelResult = {
     complete: boolean;
     observed_attempts: number;
     expected_attempts: number;
+    observed_input_attempts?: number;
+    observed_output_attempts?: number;
+    observed_total_attempts?: number;
+    input_complete?: boolean;
+    output_complete?: boolean;
+    total_complete?: boolean;
     total_input_tokens: number | null;
     total_output_tokens: number | null;
     total_tokens: number | null;
