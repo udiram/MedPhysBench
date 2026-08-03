@@ -176,16 +176,16 @@ The public `fleet-status.v3` projection now gives every frozen base ID a
 machine-derived readiness state, next gate, explanatory note, and any exact
 base-model-bound access evidence, including a direct attested-submission link when
 one exists. It also separates the planned-panel composition from the actually
-evaluated slice: the current common-harness slice contains 18 open-weight and zero
-closed-weight base models, seven base identities whose source model is vision-capable, six
+evaluated slice: the current common-harness slice contains 19 open-weight and zero
+closed-weight base models, seven base identities whose source model is vision-capable, seven
 image-capable evaluated routes, six stewards, and two
 size tiers. The OpenKBP field is explicitly a one-response workflow-view gate, not
 stateful workflow qualification. “Planned route” means no Q0 evidence is
 committed; it is not a claim that an API handle, free quota, local artifact, or
 compatible hardware is currently available. The website can therefore filter the
-remaining 32 models by openness, route, and missing gate without inventing access
+remaining 31 models by openness, route, and missing gate without inventing access
 reasons or confusing native GPT-5.6 evidence with common-harness qualification.
-Seven frozen route sets now declare 32 executable configurations. Eighteen are digest-pinned Ollama
+Eight frozen route sets now declare 35 executable configurations. Eighteen are digest-pinned Ollama
 routes corresponding exactly to current-contract submission sidecars, including the Phi-4 Multimodal
 route that records the text-only capability actually exposed by its community GGUF under Ollama. The remaining routes cover
 Groq and hosted-provider expansion candidates. Route presence is operational readiness metadata,

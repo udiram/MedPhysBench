@@ -24,8 +24,8 @@
       "medium",
       "small"
     ],
-    "route_set_count": 7,
-    "declared_route_count": 32
+    "route_set_count": 8,
+    "declared_route_count": 35
   },
   "completion_gate": {
     "required_base_model_count": 50,

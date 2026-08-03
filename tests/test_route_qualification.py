@@ -32,6 +32,7 @@ LOCAL_OLLAMA_CANDIDATE_V2_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_candid
 LOCAL_OLLAMA_CANDIDATE_V3_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_candidate_routes_v3.yaml"
 PROVIDER_ROUTE_SET_PATH = ROOT / "fleet" / "provider_expansion_routes_v2.yaml"
 GROQ_REASONING_ROUTE_SET_PATH = ROOT / "fleet" / "groq_reasoning_routes_v2.yaml"
+GROQ_STANDARD_ROUTE_SET_PATH = ROOT / "fleet" / "groq_standard_routes_v2.yaml"
 RELEASE_FILE = "releases/public_real_workflows_pilot_v0_6.yaml"
 
 
@@ -205,6 +206,36 @@ def test_qwen_reasoning_route_freezes_json_transport_and_multimodal_capability()
     assert route.max_tokens == 4096
     assert route.max_rate_limit_retries == 20
     assert route.modalities == ("text", "image")
+
+
+def test_groq_standard_v2_routes_freeze_one_exact_three_model_comparison_contract() -> None:
+    route_set = load_route_set(GROQ_STANDARD_ROUTE_SET_PATH)
+
+    assert route_set.route_set_id == "groq-standard-routes-v2"
+    assert {route.route_id for route in route_set.routes} == {
+        "groq-gpt-oss-120b-json-v2",
+        "groq-gpt-oss-20b-json-v2",
+        "groq-llama-3.3-70b-json-v2",
+    }
+    assert {route.base_model_id for route in route_set.routes} == {
+        "meta-llama/Llama-3.3-70B-Instruct",
+        "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
+    }
+    assert {route.provider for route in route_set.routes} == {"groq"}
+    assert {route.adapter for route in route_set.routes} == {"groq"}
+    assert {route.response_format for route in route_set.routes} == {"json_object"}
+    assert {route.strict_schema for route in route_set.routes} == {False}
+    assert {route.max_tokens for route in route_set.routes} == {4096}
+    assert {route.max_rate_limit_retries for route in route_set.routes} == {20}
+    assert {route.modalities for route in route_set.routes} == {("text",)}
+    assert all(route.reasoning_effort is None for route in route_set.routes)
+    assert all(route.reasoning_format is None for route in route_set.routes)
+    assert {route.route_id: route.route_spec_sha256 for route in route_set.routes} == {
+        "groq-gpt-oss-120b-json-v2": "b4943ed36f586cc530f1dd90c5d5786a7cbc1b6061e63d2b2727ac23108655a9",
+        "groq-gpt-oss-20b-json-v2": "fbff159021da651d34e1c9491b14b6ada3be4ecf68069ff27c05c089adb86bfd",
+        "groq-llama-3.3-70b-json-v2": "7a6692c9dce9d62bd1837465580115e3cd59bcd3c470e629351f31b582a9411c",
+    }
 
 
 def test_local_ollama_route_sets_bind_the_18_attested_reference_json_v2_submissions() -> None:

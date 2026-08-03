@@ -100,6 +100,12 @@ uv run python -m scripts.probes.openai_access_probe_v2 \
   fleet/groq_reasoning_routes_v2.yaml \
   --route-id groq-qwen-3.6-27b-json-v2
 
+# Three distinct frozen base models sharing one current comparison contract.
+# Probe each route independently before generating a multi-model campaign.
+uv run python -m scripts.probes.openai_access_probe_v2 \
+  fleet/groq_standard_routes_v2.yaml \
+  --route-id groq-gpt-oss-20b-json-v2
+
 # Local, digest-pinned example. Run one route at a time on the machine that
 # actually hosts Ollama; the probe is non-scoring and memory bounded.
 uv run python scripts/probes/ollama_access_probe.py \

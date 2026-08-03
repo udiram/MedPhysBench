@@ -1,0 +1,54 @@
+schema_version: medphysbench.model-routes.v1
+route_set_id: groq-standard-routes-v2
+fleet_file: fleet/public_fleet_v1.yaml
+fleet_id: public-fleet-v1
+frozen_at: "2026-08-03T21:15:00Z"
+routes:
+  - route_id: groq-llama-3.3-70b-json-v2
+    base_model_id: meta-llama/Llama-3.3-70B-Instruct
+    adapter: groq
+    provider: groq
+    model: llama-3.3-70b-versatile
+    model_revision: llama-3.3-70b-versatile
+    revision_basis: provider_alias
+    base_url: https://api.groq.com/openai/v1
+    api_key_env: GROQ_API_KEY
+    response_format: json_object
+    strict_schema: false
+    timeout_seconds: 300
+    max_tokens: 4096
+    max_rate_limit_retries: 20
+    access_ttl_seconds: 21600
+    modalities: [text]
+  - route_id: groq-gpt-oss-20b-json-v2
+    base_model_id: openai/gpt-oss-20b
+    adapter: groq
+    provider: groq
+    model: openai/gpt-oss-20b
+    model_revision: openai/gpt-oss-20b
+    revision_basis: provider_alias
+    base_url: https://api.groq.com/openai/v1
+    api_key_env: GROQ_API_KEY
+    response_format: json_object
+    strict_schema: false
+    timeout_seconds: 300
+    max_tokens: 4096
+    max_rate_limit_retries: 20
+    access_ttl_seconds: 21600
+    modalities: [text]
+  - route_id: groq-gpt-oss-120b-json-v2
+    base_model_id: openai/gpt-oss-120b
+    adapter: groq
+    provider: groq
+    model: openai/gpt-oss-120b
+    model_revision: openai/gpt-oss-120b
+    revision_basis: provider_alias
+    base_url: https://api.groq.com/openai/v1
+    api_key_env: GROQ_API_KEY
+    response_format: json_object
+    strict_schema: false
+    timeout_seconds: 300
+    max_tokens: 4096
+    max_rate_limit_retries: 20
+    access_ttl_seconds: 21600
+    modalities: [text]

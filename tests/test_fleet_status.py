@@ -79,8 +79,8 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
         "evaluated_image_route_base_models": 7,
         "evaluated_steward_count": 6,
         "evaluated_size_tiers": ["medium", "small"],
-        "route_set_count": 7,
-        "declared_route_count": 32,
+        "route_set_count": 8,
+        "declared_route_count": 35,
     }
     gate = rebuilt["completion_gate"]
     assert gate["required_base_model_count"] == 50
