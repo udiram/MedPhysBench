@@ -108,9 +108,7 @@ def main() -> None:
     run_release.add_argument("--model", action="append", required=True)
     run_release.add_argument(
         "--model-revision",
-        help=(
-            "Exact revision for a single --model; Ollama resolves each /api/tags digest when omitted."
-        ),
+        help=("Exact revision for a single --model; Ollama resolves each /api/tags digest when omitted."),
     )
     run_release.add_argument("--results-dir", type=Path, default=Path("runs"))
     run_release.add_argument(
@@ -343,9 +341,7 @@ def main() -> None:
                 model_dir = args.results_dir / release.release_id / _slugify(model_name)
                 for task in tasks:
                     for attempt_index in range(attempts):
-                        output_path = model_dir / (
-                            f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}.json"
-                        )
+                        output_path = model_dir / (f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}.json")
                         if output_path.exists():
                             _validate_resumable_attempt(
                                 output_path,
@@ -365,9 +361,7 @@ def main() -> None:
             for task in tasks:
                 for attempt_index in range(attempts):
                     attempt_seed = args.seed + attempt_index
-                    output_path = model_dir / (
-                        f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}.json"
-                    )
+                    output_path = model_dir / (f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}.json")
                     if output_path.exists():
                         print(
                             json.dumps(
@@ -416,20 +410,12 @@ def main() -> None:
                         }
                     except (UnsupportedCapabilityError, ProviderOutputContractError) as error:
                         grades = score_attempt(task, {})
-                        contract_trace = (
-                            list(error.trace)
-                            if isinstance(error, ProviderOutputContractError)
-                            else []
-                        )
+                        contract_trace = list(error.trace) if isinstance(error, ProviderOutputContractError) else []
                         contract_receipt = (
-                            dict(error.raw_response)
-                            if isinstance(error, ProviderOutputContractError)
-                            else {}
+                            dict(error.raw_response) if isinstance(error, ProviderOutputContractError) else {}
                         )
                         contract_duration = (
-                            error.duration_seconds
-                            if isinstance(error, ProviderOutputContractError)
-                            else None
+                            error.duration_seconds if isinstance(error, ProviderOutputContractError) else None
                         )
                         failure_kind = (
                             "unsupported_required_modality"
@@ -490,8 +476,10 @@ def main() -> None:
                             "raw_response": {},
                             "duration_seconds": 0.0,
                         }
-                        error_path = model_dir / "_transport_errors" / (
-                            f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}--{run_id}.json"
+                        error_path = (
+                            model_dir
+                            / "_transport_errors"
+                            / (f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}--{run_id}.json")
                         )
                         _write_json_exclusive(error_path, payload)
                         print(
@@ -510,8 +498,10 @@ def main() -> None:
                             raise
                         continue
                     except Exception as error:
-                        error_path = model_dir / "_internal_errors" / (
-                            f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}--{run_id}.json"
+                        error_path = (
+                            model_dir
+                            / "_internal_errors"
+                            / (f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}--{run_id}.json")
                         )
                         _write_json_exclusive(
                             error_path,
@@ -526,8 +516,7 @@ def main() -> None:
                             },
                         )
                         raise RuntimeError(
-                            f"Internal campaign error for {model_name} on {task.task_id}; "
-                            f"recorded at {error_path}."
+                            f"Internal campaign error for {model_name} on {task.task_id}; recorded at {error_path}."
                         ) from error
                     try:
                         _write_json_exclusive(output_path, payload)
@@ -620,9 +609,7 @@ def main() -> None:
         )
         model_slug = _slugify(f"{args.model}_effort_{args.reasoning_effort}")
         model_dir = args.results_dir / release.release_id / model_slug
-        output_paths = [
-            model_dir / f"{_slugify(task.task_id)}--attempt-{args.attempt_index}.json" for task in tasks
-        ]
+        output_paths = [model_dir / f"{_slugify(task.task_id)}--attempt-{args.attempt_index}.json" for task in tasks]
         existing_paths = [path for path in output_paths if path.exists()]
         if existing_paths:
             raise SystemExit(
@@ -723,9 +710,7 @@ def _resolve_model_revision(
             timeout_seconds=timeout,
         )
     except AdapterError as error:
-        raise SystemExit(
-            f"Cannot freeze the Ollama model identity for {model_name!r}: {error}"
-        ) from error
+        raise SystemExit(f"Cannot freeze the Ollama model identity for {model_name!r}: {error}") from error
 
 
 def _slugify(value: str) -> str:
@@ -806,18 +791,18 @@ def _validate_resumable_attempt(
         grades = score_attempt(task, output)
         expected_grades = [grade.to_dict() for grade in grades]
         stored_score = payload.get("score")
-        score_matches = isinstance(stored_score, (int, float)) and abs(
-            float(stored_score) - weighted_grade_score(grades)
-        ) <= 1e-12
+        score_matches = (
+            isinstance(stored_score, (int, float))
+            and not isinstance(stored_score, bool)
+            and abs(float(stored_score) - weighted_grade_score(grades)) <= 1e-12
+        )
         if (
             payload.get("grades") != expected_grades
             or payload.get("passed") is not grades_pass(grades)
             or payload.get("safe") is not grades_safe(grades)
             or not score_matches
         ):
-            raise SystemExit(
-                f"Cannot resume: completed result artifact {path} disagrees with deterministic regrading."
-            )
+            raise SystemExit(f"Cannot resume: completed result artifact {path} disagrees with deterministic regrading.")
     else:
         raise SystemExit(
             f"Cannot resume: legacy transport-error artifact {path} occupies an immutable attempt key. "

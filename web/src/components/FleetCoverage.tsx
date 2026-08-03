@@ -8,6 +8,7 @@ import {
   type FleetSourceFilter,
   type FleetStageFilter,
 } from "../lib/fleetReadiness";
+import { REPO_URL } from "../content";
 import type { FleetStatus, FleetStatusModel } from "../types";
 
 type Props = {
@@ -228,6 +229,15 @@ function FleetModelCard({ model }: { model: FleetStatusModel }) {
                     <span>{evidence.qualification_stage?.toUpperCase() ?? evidence.status} · {evidence.date}</span>
                   </div>
                   <p>{evidence.note}</p>
+                  {evidence.qualification_evidence ? (
+                    <a
+                      href={`${REPO_URL}/blob/main/${evidence.qualification_evidence.manifest_path}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Inspect attested submission · {evidence.qualification_evidence.submission_id}
+                    </a>
+                  ) : null}
                 </li>
               ))}
             </ul>

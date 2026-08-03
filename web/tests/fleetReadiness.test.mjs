@@ -36,6 +36,12 @@ const rows = [
       qualification_stage: "q2",
       surface: "openai_compatible",
       date: "2026-08-03",
+      promotion_basis: "attested_complete_q2",
+      qualification_evidence: {
+        kind: "common_harness_submission",
+        submission_id: "model-a-workflow-20260803",
+        manifest_path: "submissions/model-a-workflow-20260803.json",
+      },
       note: "Complete provider route evidence.",
     }],
   },
@@ -67,6 +73,8 @@ const rows = [
       qualification_stage: "q2",
       surface: "recorded_output_import",
       date: "2026-08-03",
+      promotion_basis: null,
+      qualification_evidence: null,
       note: "Fresh-context sealed-batch capture.",
     }],
   },
@@ -118,6 +126,11 @@ test("fleet search reaches route evidence and readiness notes", () => {
     filterFleetModels(rows, { source: "all", stage: "all", route: "all", query: "common-harness evidence does not" })
       .map((row) => row.base_model_id),
     ["closed/model-b"],
+  );
+  assert.deepEqual(
+    filterFleetModels(rows, { source: "all", stage: "all", route: "all", query: "model-a-workflow-20260803" })
+      .map((row) => row.base_model_id),
+    ["open/model-a"],
   );
 });
 

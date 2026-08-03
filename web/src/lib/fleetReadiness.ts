@@ -44,6 +44,8 @@ export function filterFleetModels(models: FleetStatusModel[], filters: FleetFilt
         evidence.model,
         evidence.surface,
         evidence.note,
+        evidence.qualification_evidence?.submission_id ?? "",
+        evidence.qualification_evidence?.manifest_path ?? "",
       ]),
     ]
       .join(" ")

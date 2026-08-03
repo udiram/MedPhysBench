@@ -20,16 +20,21 @@ from uuid import uuid4
 import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
+from .adapters.ollama import OllamaAdapter
+from .adapters.openai_compatible import OpenAICompatibleAdapter
 from .json_utils import stable_hash
 from .release_loader import BenchmarkRelease, load_release
 from .reporting import _release_contract_hash
 from .runner import (
+    SCORING_REVISION,
+    adapter_runtime_settings,
     grader_hash_for_task,
     prompt_hash_for_task,
     runtime_task_hash_for_task,
     system_prompt_hash,
     tool_schema_hash_for_task,
 )
+from .scoring import grades_pass, grades_safe, score_attempt, weighted_grade_score
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 CAMPAIGN_SCHEMA_PATH = REPOSITORY_ROOT / "schemas" / "campaign.v1.schema.json"
@@ -150,9 +155,7 @@ def load_campaign(path: str | Path) -> CampaignSpec:
     results_dir = _repository_path(str(payload["results_dir"]), "runs")
     release = load_release(release_path)
     if release.release_id != payload["release_id"]:
-        raise CampaignError(
-            f"campaign release_id {payload['release_id']!r} does not match {release.release_id!r}."
-        )
+        raise CampaignError(f"campaign release_id {payload['release_id']!r} does not match {release.release_id!r}.")
     attempts = int(payload["attempts"])
     if attempts != release.expected_attempts_per_task:
         raise CampaignError(
@@ -161,9 +164,7 @@ def load_campaign(path: str | Path) -> CampaignSpec:
         )
     observed_hash = release_contract_hash_v2(release, attempts)
     if payload["release_contract_hash_v2"] != observed_hash:
-        raise CampaignError(
-            "campaign release_contract_hash_v2 does not match the current frozen release contract."
-        )
+        raise CampaignError("campaign release_contract_hash_v2 does not match the current frozen release contract.")
 
     fleet = yaml.safe_load(fleet_path.read_text(encoding="utf-8"))
     if not isinstance(fleet, dict) or fleet.get("fleet_id") != payload["fleet_id"]:
@@ -178,8 +179,7 @@ def load_campaign(path: str | Path) -> CampaignSpec:
     if len(configuration_ids) != len(set(configuration_ids)):
         raise CampaignError("Campaign configuration_id values must be unique.")
     identities = [
-        (model.adapter, model.provider, model.model, model.model_revision, model.reasoning_effort)
-        for model in models
+        (model.adapter, model.provider, model.model, model.model_revision, model.reasoning_effort) for model in models
     ]
     if len(identities) != len(set(identities)):
         raise CampaignError("Campaign contains a duplicate evaluated system identity.")
@@ -367,7 +367,7 @@ def execute_campaign(
     dry_run: bool = False,
     environ: Mapping[str, str] | None = None,
     snapshot_provider: Callable[[Path], ResourceSnapshot] = capture_resource_snapshot,
-    command_runner: Callable[[list[str], Path], int] | None = None,
+    command_runner: Callable[[list[str], Path, Mapping[str, str]], int] | None = None,
     completion_verifier: Callable[[CampaignSpec, CampaignModel], dict[str, object]] | None = None,
 ) -> dict[str, object]:
     """Execute one model process at a time; result artifacts remain resume authority."""
@@ -431,13 +431,21 @@ def execute_campaign(
                     "resource_snapshot": snapshot.to_dict(),
                 },
             )
-            return_code = runner(build_model_command(spec, model), REPOSITORY_ROOT)
-            completion = verifier(spec, model) if return_code == 0 else {
-                "complete": False,
-                "completed_attempts": 0,
-                "missing_attempts": len(spec.release.load_tasks()) * spec.attempts,
-                "transport_error_count": 0,
-            }
+            return_code = runner(
+                build_model_command(spec, model),
+                REPOSITORY_ROOT,
+                _child_environment(environment, model),
+            )
+            completion = (
+                verifier(spec, model)
+                if return_code == 0
+                else {
+                    "complete": False,
+                    "completed_attempts": 0,
+                    "missing_attempts": len(spec.release.load_tasks()) * spec.attempts,
+                    "transport_error_count": 0,
+                }
+            )
             if return_code == 0 and completion["complete"] is True:
                 completed += 1
                 _append_event(
@@ -466,8 +474,7 @@ def execute_campaign(
             )
             if not spec.execution.continue_on_model_failure:
                 raise CampaignExecutionError(
-                    f"Campaign stopped after {model.configuration_id}: {failure_kind} "
-                    f"(child exit {return_code})."
+                    f"Campaign stopped after {model.configuration_id}: {failure_kind} (child exit {return_code})."
                 )
         status = "completed" if failed == 0 else "completed_with_failures"
         _append_event(
@@ -480,13 +487,18 @@ def execute_campaign(
 
 
 def verify_model_completion(spec: CampaignSpec, model: CampaignModel) -> dict[str, object]:
-    """Verify that a zero-exit child produced every canonical task/attempt key."""
+    """Verify the exact canonical matrix, manifest contract, and deterministic grades."""
     model_dir = spec.results_dir / spec.release_id / _slugify(model.model)
+    adapter = _adapter_for_model(model)
+    expected_descriptor = asdict(adapter.model_descriptor())
+    expected_adapter_settings = adapter_runtime_settings(adapter)
     expected = [
         (task, attempt_index, model_dir / f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}.json")
         for task in spec.release.load_tasks()
         for attempt_index in range(spec.attempts)
     ]
+    expected_paths = {path for _task, _attempt_index, path in expected}
+    unexpected = sorted(str(path) for path in model_dir.glob("*.json") if path not in expected_paths)
     completed = 0
     invalid: list[str] = []
     for task, attempt_index, path in expected:
@@ -499,26 +511,64 @@ def verify_model_completion(spec: CampaignSpec, model: CampaignModel) -> dict[st
             continue
         manifest = payload.get("manifest") if isinstance(payload, dict) else None
         descriptor = manifest.get("model") if isinstance(manifest, dict) else None
+        expected_manifest = {
+            "schema_version": "medeval.run.v2",
+            "task_id": task.task_id,
+            "task_version": task.version,
+            "model": expected_descriptor,
+            "adapter_settings": expected_adapter_settings,
+            "adapter_settings_hash": stable_hash(expected_adapter_settings),
+            "seed": model.seed + attempt_index,
+            "temperature": model.temperature,
+            "max_tokens": model.max_tokens,
+            "prompt_hash": prompt_hash_for_task(task),
+            "tool_schema_hash": tool_schema_hash_for_task(task),
+            "system_prompt_hash": system_prompt_hash(),
+            "runtime_task_hash": runtime_task_hash_for_task(task),
+            "grader_hash": grader_hash_for_task(task),
+            "scoring_revision": SCORING_REVISION,
+        }
+        output = payload.get("output") if isinstance(payload, dict) else None
+        mismatches = [] if isinstance(manifest, dict) else ["manifest"]
+        if isinstance(manifest, dict):
+            mismatches.extend(key for key, value in expected_manifest.items() if manifest.get(key) != value)
+            if not isinstance(manifest.get("run_id"), str) or not manifest["run_id"].strip():
+                mismatches.append("run_id")
         if (
             not isinstance(payload, dict)
             or payload.get("status") != "completed"
             or payload.get("attempt_index") != attempt_index
-            or not isinstance(manifest, dict)
-            or manifest.get("task_id") != task.task_id
             or not isinstance(descriptor, dict)
-            or descriptor.get("model_name") != model.model
-            or descriptor.get("model_revision") != model.model_revision
+            or mismatches
+            or not isinstance(output, dict)
+        ):
+            invalid.append(str(path))
+            continue
+        grades = score_attempt(task, output)
+        expected_grades = [grade.to_dict() for grade in grades]
+        stored_score = payload.get("score")
+        score_matches = (
+            isinstance(stored_score, (int, float))
+            and not isinstance(stored_score, bool)
+            and abs(float(stored_score) - weighted_grade_score(grades)) <= 1e-12
+        )
+        if (
+            payload.get("grades") != expected_grades
+            or payload.get("passed") is not grades_pass(grades)
+            or payload.get("safe") is not grades_safe(grades)
+            or not score_matches
         ):
             invalid.append(str(path))
             continue
         completed += 1
     transport_errors = len(list((model_dir / "_transport_errors").glob("*.json")))
     return {
-        "complete": completed == len(expected) and not invalid,
+        "complete": completed == len(expected) and not invalid and not unexpected,
         "expected_attempts": len(expected),
         "completed_attempts": completed,
         "missing_attempts": len(expected) - completed,
         "invalid_attempt_count": len(invalid),
+        "unexpected_attempt_count": len(unexpected),
         "transport_error_count": transport_errors,
     }
 
@@ -571,9 +621,7 @@ def _validate_model(model: CampaignModel) -> None:
         if model.api_key_env is None:
             raise CampaignError(f"Hosted configuration {model.configuration_id} must declare api_key_env.")
         if model.adapter == "openai-compatible" and model.base_url is None:
-            raise CampaignError(
-                f"OpenAI-compatible configuration {model.configuration_id} must declare base_url."
-            )
+            raise CampaignError(f"OpenAI-compatible configuration {model.configuration_id} must declare base_url.")
 
 
 def _reject_secret_material(value: Any, trail: tuple[str, ...] = ()) -> None:
@@ -648,8 +696,82 @@ def _existing_parent(path: Path) -> Path:
     return candidate
 
 
-def _run_child(command: list[str], cwd: Path) -> int:
-    return subprocess.run(command, cwd=cwd, check=False).returncode
+_CHILD_ENVIRONMENT_ALLOWLIST = {
+    "HOME",
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "LANG",
+    "LC_ALL",
+    "LC_CTYPE",
+    "NO_PROXY",
+    "PATH",
+    "PYTHONIOENCODING",
+    "PYTHONUTF8",
+    "REQUESTS_CA_BUNDLE",
+    "SSL_CERT_DIR",
+    "SSL_CERT_FILE",
+    "TMPDIR",
+    "http_proxy",
+    "https_proxy",
+    "no_proxy",
+}
+
+
+def _child_environment(environment: Mapping[str, str], model: CampaignModel) -> dict[str, str]:
+    """Pass only runtime essentials and the declared credential to a model child."""
+    child = {
+        key: value
+        for key, value in environment.items()
+        if key in _CHILD_ENVIRONMENT_ALLOWLIST and isinstance(value, str)
+    }
+    if model.api_key_env:
+        credential = environment.get(model.api_key_env)
+        if credential:
+            child[model.api_key_env] = credential
+    return child
+
+
+def _run_child(command: list[str], cwd: Path, environment: Mapping[str, str]) -> int:
+    return subprocess.run(command, cwd=cwd, env=dict(environment), check=False).returncode
+
+
+def _adapter_for_model(model: CampaignModel) -> OllamaAdapter | OpenAICompatibleAdapter:
+    """Construct a network-idle adapter solely to derive the frozen run contract."""
+    if model.adapter == "ollama":
+        return OllamaAdapter(
+            model_name=model.model,
+            base_url=model.base_url or "http://127.0.0.1:11434",
+            temperature=model.temperature,
+            seed=model.seed,
+            max_tokens=model.max_tokens,
+            timeout_seconds=model.timeout_seconds,
+            artifact_root=REPOSITORY_ROOT,
+            keep_alive=model.ollama_keep_alive,
+            context_window=model.ollama_num_ctx or 4096,
+            model_revision_override=model.model_revision,
+        )
+    default_urls = {
+        "groq": "https://api.groq.com/openai/v1",
+        "openai": "https://api.openai.com/v1",
+    }
+    base_url = model.base_url or default_urls.get(model.adapter)
+    if not base_url:
+        raise CampaignError(f"Cannot derive adapter contract for {model.configuration_id}: base_url is missing.")
+    return OpenAICompatibleAdapter(
+        model_name=model.model,
+        api_key="campaign-contract-placeholder",
+        base_url=base_url,
+        provider=model.provider,
+        temperature=model.temperature,
+        seed=model.seed,
+        max_tokens=model.max_tokens,
+        timeout_seconds=model.timeout_seconds,
+        response_format=model.response_format,
+        strict_schema=model.strict_schema,
+        reasoning_effort=model.reasoning_effort,
+        artifact_root=REPOSITORY_ROOT,
+        model_revision_override=model.model_revision,
+    )
 
 
 def _slugify(value: str) -> str:

@@ -60,6 +60,22 @@
         "qualification_stage": { "type": ["string", "null"], "enum": ["q0", "q1", "q2", "q3", null] },
         "surface": { "type": "string", "minLength": 1 },
         "date": { "type": "string", "format": "date" },
+        "promotion_basis": { "type": ["string", "null"], "enum": ["attested_complete_q2", null] },
+        "qualification_evidence": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["kind", "submission_id", "manifest_path"],
+              "properties": {
+                "kind": { "const": "common_harness_submission" },
+                "submission_id": { "type": "string", "minLength": 1 },
+                "manifest_path": { "type": "string", "pattern": "^submissions/[A-Za-z0-9._-]+\\.json$" }
+              }
+            }
+          ]
+        },
         "note": { "type": "string", "minLength": 1 }
       }
     },

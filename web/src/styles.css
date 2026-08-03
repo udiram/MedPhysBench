@@ -2564,6 +2564,14 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 .fleet-card-readiness li strong { color: var(--text); font: 500 10px/1.45 "IBM Plex Mono", monospace; }
 .fleet-card-readiness li span { flex: 0 0 auto; color: var(--muted); font: 500 8px/1.5 "IBM Plex Mono", monospace; text-transform: uppercase; }
 .fleet-card-readiness li p { margin: 7px 0 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+.fleet-card-readiness li > a {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--accent);
+  font: 600 9px/1.5 "IBM Plex Mono", monospace;
+  text-underline-offset: 3px;
+}
+.fleet-card-readiness li > a:hover { color: var(--text); }
 .fleet-card-readiness .fleet-no-evidence { display: flex; align-items: flex-start; gap: 7px; margin-top: 10px; color: var(--accent); }
 .fleet-no-evidence svg { flex: 0 0 auto; width: 13px; margin-top: 2px; }
 .model-index-section {

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphysbench.org/schemas/access-status.v1.schema.json",
+  "title": "MedPhysBench provider access ledger v1",
+  "type": "array",
+  "items": { "$ref": "#/$defs/entry" },
+  "$defs": {
+    "qualification_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "submission_id", "manifest_path"],
+      "properties": {
+        "kind": { "const": "common_harness_submission" },
+        "submission_id": { "type": "string", "minLength": 1 },
+        "manifest_path": {
+          "type": "string",
+          "pattern": "^submissions/[A-Za-z0-9._-]+\\.json$"
+        }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model", "status", "surface", "date", "note"],
+      "properties": {
+        "model": { "type": "string", "minLength": 1 },
+        "provider": { "type": "string", "minLength": 1 },
+        "base_model_id": { "type": "string", "minLength": 1 },
+        "qualification_stage": { "enum": ["q0", "q1", "q2", "q3"] },
+        "status": { "enum": ["available", "blocked"] },
+        "surface": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+        "date": { "type": "string", "format": "date" },
+        "promotion_basis": { "const": "attested_complete_q2" },
+        "qualification_chronology": {
+          "enum": ["preflight_before_full_q2", "backfilled_after_full_q2"]
+        },
+        "qualification_evidence": { "$ref": "#/$defs/qualification_evidence" },
+        "note": { "type": "string", "minLength": 20 }
+      },
+      "dependentRequired": {
+        "promotion_basis": ["qualification_chronology", "qualification_evidence"],
+        "qualification_chronology": ["promotion_basis", "qualification_evidence"],
+        "qualification_evidence": ["promotion_basis", "qualification_chronology"]
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "const": "available" } }, "required": ["status"] },
+          "then": {
+            "required": ["provider", "base_model_id", "qualification_stage"]
+          },
+          "else": {
+            "not": { "required": ["qualification_stage"] }
+          }
+        },
+        {
+          "if": { "required": ["promotion_basis"] },
+          "then": {
+            "properties": {
+              "status": { "const": "available" },
+              "qualification_stage": { "const": "q2" }
+            },
+            "required": ["status", "qualification_stage"]
+          }
+        }
+      ]
+    }
+  }
+}

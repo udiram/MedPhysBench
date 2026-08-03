@@ -38,7 +38,7 @@ review history, or institutional maturity.
 - serial, process-isolated, immutable-resume execution;
 - absolute and fractional memory floors plus a disk floor; and
 - one or more explicit system configurations with base-model ID, provider,
-  adapter, exact provider model handle/revision, response contract, sampling
+  adapter, declared provider model handle/revision string, response contract, sampling
   settings, timeout, and token cap.
 
 Hosted configurations store only the name of the credential environment variable.
@@ -66,6 +66,10 @@ validate schema and paths
 
 There is no shell interpolation and no user-authored command field. A fresh child
 process prevents client/runtime objects from accumulating across models. The
+child receives only a small runtime allowlist (`PATH`, locale, temporary directory,
+certificate/proxy settings, and similar process essentials) plus that model's one
+declared credential variable; unrelated API keys in the parent process are not
+inherited. The
 control plane does not shorten the release after rate limits or resource pressure.
 A transport failure remains in `_transport_errors`, the canonical attempt stays
 missing, and the configuration is not complete.
@@ -92,9 +96,11 @@ edit, deletion, reordering, or cross-manifest reuse breaks validation before new
 work begins.
 
 The canonical result tree remains authoritative. After every zero-exit child, the
-controller verifies the expected number of files and checks status, task ID,
-attempt index, model name, and model revision. `run-release --resume` performs the
-deeper adapter-settings/hash comparison and deterministic regrade.
+controller rejects missing or unexpected canonical files and rechecks status,
+attempt index, provider/model/harness identity, declared revision, adapter settings
+and hash, sampling settings, every task-contract hash, scoring revision, run ID,
+and deterministic grades, pass/safety flags, and score. `run-release --resume`
+performs the same class of validation before skipping any immutable attempt.
 
 ## Honest limits
 
@@ -104,6 +110,12 @@ remain future adapter work because providers expose materially different quota
 surfaces. Today the committed manifest proves a safe, reproducible 150-attempt
 Groq campaign plan for five frozen base models; it reports missing credentials in
 dry-run output without contacting Groq.
+
+Hosted model names may still be mutable provider aliases. Campaign v1 records the
+declared alias as the revision string but does not transform that alias into an
+immutable weight revision; provider response metadata and dated run receipts must
+remain visible, and later campaign schemas should bind route-probe receipts when a
+provider exposes stronger identity evidence.
 
 Public promotion still requires a complete common-harness submission, artifact
 tree hash, exact environment and model provenance, and the existing qualification

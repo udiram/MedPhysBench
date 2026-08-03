@@ -59,6 +59,13 @@ and modality support, rate limits, and whether the route can complete a frozen
 matrix without paid overage. Record failures in `access_status.json`; do not
 create a score row.
 
+The ledger is validated against `access-status.v1`: available routes must bind a
+provider, exact handle or base-level native surface, frozen base-model ID, and
+qualification stage; blocked routes cannot claim a stage. An attested Q2
+promotion additionally requires a resolvable common-harness submission sidecar.
+The derived website projection carries that sidecar reference into the model's
+readiness drawer so the evidence is inspectable without treating access as a score.
+
 ### Q1 — three-task adapter contract
 
 Run one schema task, one calculation/artifact task, and one required-escalation
@@ -146,7 +153,8 @@ model index and attempt forensics, but do not inflate that common-harness funnel
 
 The public `fleet-status.v2` projection now gives every frozen base ID a
 machine-derived readiness state, next gate, explanatory note, and any exact
-base-model-bound access evidence. “Planned route” means no Q0 evidence is
+base-model-bound access evidence, including a direct attested-submission link when
+one exists. “Planned route” means no Q0 evidence is
 committed; it is not a claim that an API handle, free quota, local artifact, or
 compatible hardware is currently available. The website can therefore filter the
 remaining 30 models by openness, route, and missing gate without inventing access

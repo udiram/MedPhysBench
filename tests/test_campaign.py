@@ -7,9 +7,11 @@ from pathlib import Path
 import pytest
 import yaml
 
+from medphys_agentbench.adapters.openai_compatible import OpenAICompatibleAdapter
 from medphys_agentbench.campaign import (
     CampaignError,
     CampaignExecutionError,
+    CampaignSpec,
     ResourceSnapshot,
     build_model_command,
     campaign_plan,
@@ -17,7 +19,10 @@ from medphys_agentbench.campaign import (
     load_campaign,
     resource_limit_failures,
     validate_event_ledger,
+    verify_model_completion,
 )
+from medphys_agentbench.runner import create_run_manifest
+from medphys_agentbench.scoring import grades_pass, grades_safe, score_attempt, weighted_grade_score
 
 ROOT = Path(__file__).resolve().parents[1]
 CAMPAIGN_PATH = ROOT / "campaigns" / "public_real_workflows_groq_v1.yaml"
@@ -41,6 +46,59 @@ def _write_variant(tmp_path: Path, mutate: object) -> Path:
     path = tmp_path / "campaign.yaml"
     path.write_text(yaml.safe_dump(payload, sort_keys=False), encoding="utf-8")
     return path
+
+
+def _write_valid_campaign_matrix(campaign: CampaignSpec) -> list[Path]:
+    model = campaign.models[0]
+    model_dir = campaign.results_dir / campaign.release_id / "llama_3_1_8b_instant"
+    paths: list[Path] = []
+    for task in campaign.release.load_tasks():
+        for attempt_index in range(campaign.attempts):
+            attempt_seed = model.seed + attempt_index
+            adapter = OpenAICompatibleAdapter(
+                model_name=model.model,
+                api_key="test-only",
+                base_url="https://api.groq.com/openai/v1",
+                provider=model.provider,
+                temperature=model.temperature,
+                seed=attempt_seed,
+                max_tokens=model.max_tokens,
+                timeout_seconds=model.timeout_seconds,
+                response_format=model.response_format,
+                strict_schema=model.strict_schema,
+                reasoning_effort=model.reasoning_effort,
+                artifact_root=ROOT,
+                model_revision_override=model.model_revision,
+            )
+            output: dict[str, object] = {}
+            grades = score_attempt(task, output)
+            path = model_dir / f"{task.task_id.replace('.', '_').replace('-', '_')}--attempt-{attempt_index + 1}.json"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                json.dumps(
+                    {
+                        "status": "completed",
+                        "attempt_index": attempt_index,
+                        "manifest": create_run_manifest(
+                            task,
+                            adapter,
+                            seed=attempt_seed,
+                            temperature=model.temperature,
+                            max_tokens=model.max_tokens,
+                            run_id=f"test-{task.task_id}-{attempt_index}",
+                        ).to_dict(),
+                        "output": output,
+                        "grades": [grade.to_dict() for grade in grades],
+                        "passed": grades_pass(grades),
+                        "safe": grades_safe(grades),
+                        "score": weighted_grade_score(grades),
+                    },
+                    sort_keys=True,
+                ),
+                encoding="utf-8",
+            )
+            paths.append(path)
+    return paths
 
 
 def test_committed_campaign_binds_five_frozen_models_and_release() -> None:
@@ -68,9 +126,7 @@ def test_committed_campaign_binds_five_frozen_models_and_release() -> None:
             "not present",
         ),
         (
-            lambda payload: payload["models"][1].update(
-                configuration_id=payload["models"][0]["configuration_id"]
-            ),
+            lambda payload: payload["models"][1].update(configuration_id=payload["models"][0]["configuration_id"]),
             "configuration_id values must be unique",
         ),
         (
@@ -86,9 +142,7 @@ def test_committed_campaign_binds_five_frozen_models_and_release() -> None:
             "secret-like values",
         ),
         (
-            lambda payload: payload["models"][0].update(
-                base_url="https://user:password@example.test/v1?token=secret"
-            ),
+            lambda payload: payload["models"][0].update(base_url="https://user:password@example.test/v1?token=secret"),
             "must not contain credentials",
         ),
         (
@@ -162,7 +216,7 @@ def test_execution_requires_credentials_before_writing_state(tmp_path: Path) -> 
             campaign,
             environ={},
             snapshot_provider=lambda _path: _safe_snapshot(),
-            command_runner=lambda _command, _cwd: 0,
+            command_runner=lambda _command, _cwd, _environment: 0,
         )
     assert not campaign.results_dir.exists()
 
@@ -176,7 +230,7 @@ def test_initial_resource_failure_writes_only_a_hash_chained_preflight_receipt(t
             campaign,
             environ={"GROQ_API_KEY": "test-only"},
             snapshot_provider=lambda _path: low,
-            command_runner=lambda command, _cwd: commands.append(command) or 0,
+            command_runner=lambda command, _cwd, _environment: commands.append(command) or 0,
         )
     assert commands == []
     state_dir = campaign.results_dir / "_campaigns" / campaign.campaign_id
@@ -192,14 +246,22 @@ def test_campaign_executes_serially_and_writes_hash_chained_resume_state(tmp_pat
     campaign = replace(load_campaign(CAMPAIGN_PATH), results_dir=tmp_path / "runs")
     commands: list[list[str]] = []
 
-    def runner(command: list[str], cwd: Path) -> int:
+    child_environments: list[dict[str, str]] = []
+
+    def runner(command: list[str], cwd: Path, environment: object) -> int:
         assert cwd == ROOT
         commands.append(command)
+        assert isinstance(environment, dict)
+        child_environments.append(environment)
         return 0
 
     report = execute_campaign(
         campaign,
-        environ={"GROQ_API_KEY": "test-only"},
+        environ={
+            "GROQ_API_KEY": "test-only",
+            "UNRELATED_API_KEY": "must-not-reach-child",
+            "PATH": "/test/bin",
+        },
         snapshot_provider=lambda _path: _safe_snapshot(),
         command_runner=runner,
         completion_verifier=lambda _spec, _model: {
@@ -214,9 +276,8 @@ def test_campaign_executes_serially_and_writes_hash_chained_resume_state(tmp_pat
     assert report["status"] == "completed"
     assert report["completed_models"] == 5
     assert len(commands) == 5
-    assert [command[command.index("--model") + 1] for command in commands] == [
-        model.model for model in campaign.models
-    ]
+    assert [command[command.index("--model") + 1] for command in commands] == [model.model for model in campaign.models]
+    assert all(environment == {"GROQ_API_KEY": "test-only", "PATH": "/test/bin"} for environment in child_environments)
 
     state_dir = campaign.results_dir / "_campaigns" / campaign.campaign_id
     state = json.loads((state_dir / "campaign.json").read_text(encoding="utf-8"))
@@ -245,7 +306,7 @@ def test_resource_pressure_stops_before_next_model_and_is_recorded(tmp_path: Pat
             campaign,
             environ={"GROQ_API_KEY": "test-only"},
             snapshot_provider=lambda _path: next(snapshots),
-            command_runner=lambda command, _cwd: commands.append(command) or 0,
+            command_runner=lambda command, _cwd, _environment: commands.append(command) or 0,
             completion_verifier=lambda _spec, _model: {"complete": True},
         )
     assert len(commands) == 1
@@ -266,7 +327,7 @@ def test_event_tampering_and_manifest_mutation_block_resume(tmp_path: Path) -> N
         campaign,
         environ={"GROQ_API_KEY": "test-only"},
         snapshot_provider=lambda _path: _safe_snapshot(),
-        command_runner=lambda _command, _cwd: 0,
+        command_runner=lambda _command, _cwd, _environment: 0,
         completion_verifier=lambda _spec, _model: {"complete": True},
     )
     state_dir = campaign.results_dir / "_campaigns" / campaign.campaign_id
@@ -283,7 +344,7 @@ def test_event_tampering_and_manifest_mutation_block_resume(tmp_path: Path) -> N
             changed,
             environ={"GROQ_API_KEY": "test-only"},
             snapshot_provider=lambda _path: _safe_snapshot(),
-            command_runner=lambda _command, _cwd: 0,
+            command_runner=lambda _command, _cwd, _environment: 0,
             completion_verifier=lambda _spec, _model: {"complete": True},
         )
 
@@ -295,7 +356,7 @@ def test_model_failures_are_recorded_without_erasing_later_models(tmp_path: Path
         campaign,
         environ={"GROQ_API_KEY": "test-only"},
         snapshot_provider=lambda _path: _safe_snapshot(),
-        command_runner=lambda _command, _cwd: next(return_codes),
+        command_runner=lambda _command, _cwd, _environment: next(return_codes),
         completion_verifier=lambda _spec, _model: {"complete": True},
     )
     assert report["status"] == "completed_with_failures"
@@ -318,7 +379,7 @@ def test_zero_exit_without_canonical_matrix_is_not_marked_complete(tmp_path: Pat
         campaign,
         environ={"GROQ_API_KEY": "test-only"},
         snapshot_provider=lambda _path: _safe_snapshot(),
-        command_runner=lambda _command, _cwd: 0,
+        command_runner=lambda _command, _cwd, _environment: 0,
     )
     assert report["status"] == "completed_with_failures"
     assert report["completed_models"] == 0
@@ -329,3 +390,50 @@ def test_zero_exit_without_canonical_matrix_is_not_marked_complete(tmp_path: Pat
     )
     assert events[-2]["event_type"] == "model_failed"
     assert events[-2]["details"]["failure_kind"] == "canonical_matrix_incomplete"
+
+
+def test_completion_verifier_rejects_contract_grade_and_tree_tampering(tmp_path: Path) -> None:
+    original = load_campaign(CAMPAIGN_PATH)
+    campaign = replace(
+        original,
+        results_dir=tmp_path / "runs",
+        models=(original.models[0],),
+    )
+    paths = _write_valid_campaign_matrix(campaign)
+    model = campaign.models[0]
+
+    baseline = verify_model_completion(campaign, model)
+    assert baseline["complete"] is True
+    assert baseline["completed_attempts"] == 30
+    assert baseline["invalid_attempt_count"] == 0
+    assert baseline["unexpected_attempt_count"] == 0
+
+    first_path = paths[0]
+    pristine = json.loads(first_path.read_text(encoding="utf-8"))
+
+    wrong_provider = json.loads(json.dumps(pristine))
+    wrong_provider["manifest"]["model"]["provider"] = "not-groq"
+    first_path.write_text(json.dumps(wrong_provider), encoding="utf-8")
+    assert verify_model_completion(campaign, model)["complete"] is False
+
+    wrong_settings = json.loads(json.dumps(pristine))
+    wrong_settings["manifest"]["adapter_settings"]["timeout_seconds"] = 1
+    first_path.write_text(json.dumps(wrong_settings), encoding="utf-8")
+    assert verify_model_completion(campaign, model)["complete"] is False
+
+    wrong_grade = json.loads(json.dumps(pristine))
+    wrong_grade["score"] = 1.0
+    first_path.write_text(json.dumps(wrong_grade), encoding="utf-8")
+    assert verify_model_completion(campaign, model)["complete"] is False
+
+    boolean_score = json.loads(json.dumps(pristine))
+    boolean_score["score"] = True
+    first_path.write_text(json.dumps(boolean_score), encoding="utf-8")
+    assert verify_model_completion(campaign, model)["complete"] is False
+
+    first_path.write_text(json.dumps(pristine), encoding="utf-8")
+    extra = first_path.parent / "unexpected-attempt.json"
+    extra.write_text("{}", encoding="utf-8")
+    completion = verify_model_completion(campaign, model)
+    assert completion["complete"] is False
+    assert completion["unexpected_attempt_count"] == 1

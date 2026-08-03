@@ -5,8 +5,9 @@ from pathlib import Path
 
 import pytest
 import yaml
-from jsonschema import Draft202012Validator, FormatChecker
+from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 
+from medphys_agentbench.qualification import validate_attested_q2_qualification
 from scripts.build_fleet_status import build_fleet_status
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -73,6 +74,46 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert "fresh-context" in terra["access_evidence"][0]["note"]
 
 
+def test_access_ledger_is_schema_valid_and_attested_promotions_resolve() -> None:
+    schema = _load_json(ROOT / "schemas" / "access-status.v1.schema.json")
+    access = _load_json(ACCESS_PATH)
+    assert isinstance(schema, dict)
+    assert isinstance(access, list)
+    validator = Draft202012Validator(schema, format_checker=FormatChecker())
+    validator.validate(access)
+
+    promoted = [entry for entry in access if entry.get("promotion_basis")]
+    assert len(promoted) == 13
+    for entry in promoted:
+        validate_attested_q2_qualification(
+            entry,
+            repository_root=ROOT,
+            provider=entry["provider"],
+            model_name=entry["model"],
+            base_model_id=entry["base_model_id"],
+        )
+
+
+def test_access_ledger_contract_rejects_ambiguous_promotion_and_blocked_stage() -> None:
+    schema = _load_json(ROOT / "schemas" / "access-status.v1.schema.json")
+    access = _load_json(ACCESS_PATH)
+    assert isinstance(schema, dict)
+    assert isinstance(access, list)
+    validator = Draft202012Validator(schema, format_checker=FormatChecker())
+
+    missing_evidence = json.loads(json.dumps(access))
+    promoted = next(entry for entry in missing_evidence if entry.get("promotion_basis"))
+    promoted.pop("qualification_evidence")
+    with pytest.raises(ValidationError):
+        validator.validate(missing_evidence)
+
+    blocked_stage = json.loads(json.dumps(access))
+    blocked = next(entry for entry in blocked_stage if entry["status"] == "blocked")
+    blocked["qualification_stage"] = "q2"
+    with pytest.raises(ValidationError):
+        validator.validate(blocked_stage)
+
+
 def test_catalog_maps_system_configurations_to_unique_frozen_base_models() -> None:
     fleet = yaml.safe_load(FLEET_PATH.read_text(encoding="utf-8"))
     catalog = _load_json(CATALOG_PATH)
@@ -135,9 +176,7 @@ def test_complete_v2_row_requires_attested_qualification_evidence(
 def test_v2_workflow_comparison_group_is_now_officially_ranked() -> None:
     status = build_fleet_status()
     deepseek = next(
-        row
-        for row in status["models"]
-        if row["base_model_id"] == "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+        row for row in status["models"] if row["base_model_id"] == "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
     )
     assert deepseek["qualification_stage"] == "q2"
     assert deepseek["access_qualified"] is True
@@ -149,11 +188,7 @@ def test_v2_workflow_comparison_group_is_now_officially_ranked() -> None:
 
 def test_qwen25vl_7b_is_exactly_bound_through_access_and_workflow_results() -> None:
     status = build_fleet_status()
-    qwen = next(
-        row
-        for row in status["models"]
-        if row["base_model_id"] == "Qwen/Qwen2.5-VL-7B-Instruct"
-    )
+    qwen = next(row for row in status["models"] if row["base_model_id"] == "Qwen/Qwen2.5-VL-7B-Instruct")
 
     assert qwen["qualification_stage"] == "q2"
     assert qwen["access_qualified"] is True
@@ -166,18 +201,10 @@ def test_qwen25vl_7b_is_exactly_bound_through_access_and_workflow_results() -> N
 
 def test_pixtral_community_quantization_is_attested_and_ranked() -> None:
     status = build_fleet_status()
-    pixtral = next(
-        row
-        for row in status["models"]
-        if row["base_model_id"] == "mistralai/Pixtral-12B-2409"
-    )
+    pixtral = next(row for row in status["models"] if row["base_model_id"] == "mistralai/Pixtral-12B-2409")
     catalog = _load_json(CATALOG_PATH)
     assert isinstance(catalog, list)
-    catalog_row = next(
-        row
-        for row in catalog
-        if row["base_model_id"] == "mistralai/Pixtral-12B-2409"
-    )
+    catalog_row = next(row for row in catalog if row["base_model_id"] == "mistralai/Pixtral-12B-2409")
     provenance = catalog_row["artifact_provenance"]
 
     assert pixtral["qualification_stage"] == "q2"
@@ -189,14 +216,10 @@ def test_pixtral_community_quantization_is_attested_and_ranked() -> None:
     assert pixtral["published_row_count"] == 1
     assert provenance["kind"] == "community_quantization"
     assert provenance["source_url"] == (
-        "https://huggingface.co/EnlistedGhost/Pixtral-12B-2409-GGUF/tree/"
-        "f4b659266080c08cbceb36f8a1a387ced7a989a7"
+        "https://huggingface.co/EnlistedGhost/Pixtral-12B-2409-GGUF/tree/f4b659266080c08cbceb36f8a1a387ced7a989a7"
     )
     assert provenance["source_revision"] == "f4b659266080c08cbceb36f8a1a387ced7a989a7"
-    assert {
-        (artifact["role"], artifact["sha256"], artifact["bytes"])
-        for artifact in provenance["artifacts"]
-    } == {
+    assert {(artifact["role"], artifact["sha256"], artifact["bytes"]) for artifact in provenance["artifacts"]} == {
         (
             "model_weights",
             "80f05f4f031bd9cdcd073051e23d2e55d9b71136cc2832eaa0da4a4ea44ed67b",
@@ -215,19 +238,11 @@ def test_workflow_qualified_counts_only_common_harness_real_workflow_release() -
     assert status["summary"]["workflow_qualified_base_models"] == 20
     assert status["summary"]["workflow_ranked_base_models"] == 20
 
-    gpt = next(
-        row
-        for row in status["models"]
-        if row["base_model_id"] == "gpt-5.6-sol"
-    )
+    gpt = next(row for row in status["models"] if row["base_model_id"] == "gpt-5.6-sol")
     assert gpt["evaluated"] is False
     assert gpt["workflow_qualified"] is False
     assert gpt["published_row_count"] > 0
 
-    planned_only = next(
-        row
-        for row in status["models"]
-        if row["base_model_id"] == "Qwen/Qwen3-32B"
-    )
+    planned_only = next(row for row in status["models"] if row["base_model_id"] == "Qwen/Qwen3-32B")
     assert planned_only["evaluated"] is False
     assert planned_only["workflow_qualified"] is False

@@ -15,6 +15,10 @@ from jsonschema import Draft202012Validator, FormatChecker
 from medphys_agentbench.artifacts import resolve_asset_reference
 from medphys_agentbench.campaign import load_campaign
 from medphys_agentbench.json_utils import decode_strict_json_object, stable_hash
+from medphys_agentbench.qualification import (
+    load_access_entries,
+    validate_attested_q2_qualification,
+)
 from medphys_agentbench.recorded_capture import validate_recorded_batch
 from medphys_agentbench.release_loader import load_release
 from medphys_agentbench.runner import adapter_runtime_settings
@@ -99,9 +103,7 @@ def _validate_task_grading_semantics(payload: dict[str, Any], path: Path) -> Non
     graders = payload["grading"].get("graders", [])
     limitations_graders = [grader for grader in graders if grader.get("field") == "limitations"]
     if not limitations_graders:
-        raise ValueError(
-            f"{path}: v0.7+ tasks requiring limitations must declare an explicit limitations grader."
-        )
+        raise ValueError(f"{path}: v0.7+ tasks requiring limitations must declare an explicit limitations grader.")
     if not any(bool(grader.get("required_for_pass", True)) for grader in limitations_graders):
         raise ValueError(f"{path}: at least one limitations grader must be required for pass.")
 
@@ -116,8 +118,7 @@ def _validate_defect_ledger_semantics(
         raise ValueError(f"{path}: defect_id values must be unique.")
 
     task_ids_by_release = {
-        release_id: {task.task_id for task in release.load_tasks()}
-        for release_id, release in releases_by_id.items()
+        release_id: {task.task_id for task in release.load_tasks()} for release_id, release in releases_by_id.items()
     }
     for entry in payload["entries"]:
         defect_id = str(entry["defect_id"])
@@ -139,9 +140,7 @@ def _validate_defect_ledger_semantics(
         if entry["status"] in {"fixed", "regraded"}:
             resolution = entry["resolution"]
             if resolution["status"] != "complete" or not resolution["replacement_artifact"]:
-                raise ValueError(
-                    f"{path}:{defect_id}: fixed/regraded defects require a complete replacement artifact."
-                )
+                raise ValueError(f"{path}:{defect_id}: fixed/regraded defects require a complete replacement artifact.")
 
 
 def validate_repository() -> dict[str, int]:
@@ -163,6 +162,7 @@ def validate_repository() -> dict[str, int]:
         "recorded_batch_v2": _validator("recorded-batch.v2.schema.json"),
         "defect_ledger": _validator("defect-ledger.v1.schema.json"),
         "campaign": _validator("campaign.v1.schema.json"),
+        "access_status": _validator("access-status.v1.schema.json"),
     }
 
     fleet_path = ROOT / "fleet" / "public_fleet_v1.yaml"
@@ -187,6 +187,49 @@ def validate_repository() -> dict[str, int]:
         raise ValueError(f"{fleet_status_path}: model projection order/content differs from frozen fleet.")
     if build_fleet_status() != fleet_status:
         raise ValueError(f"{fleet_status_path}: projection differs from current catalog, access, or releases.")
+
+    access_status_path = ROOT / "web" / "public" / "data" / "access_status.json"
+    access_status = load_access_entries(access_status_path)
+    _validate(validators["access_status"], access_status, access_status_path)
+    catalog_path = ROOT / "web" / "public" / "data" / "model_catalog.json"
+    catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+    if not isinstance(catalog, list) or not all(isinstance(entry, dict) for entry in catalog):
+        raise ValueError(f"{catalog_path}: model catalog must contain a list of objects.")
+    catalog_index = {
+        (str(entry["provider"]), str(entry["model_name"])): str(entry["base_model_id"]) for entry in catalog
+    }
+    catalog_provider_bases = {(str(entry["provider"]), str(entry["base_model_id"])) for entry in catalog}
+    access_keys: set[tuple[str, str, str]] = set()
+    for entry in access_status:
+        if entry["status"] != "available":
+            continue
+        base_model_id = str(entry["base_model_id"])
+        if base_model_id not in fleet_ids:
+            raise ValueError(
+                f"{access_status_path}: available route references model outside the frozen fleet: {base_model_id!r}."
+            )
+        provider_model = (str(entry["provider"]), str(entry["model"]))
+        exact_catalog_match = catalog_index.get(provider_model) == base_model_id
+        base_level_catalog_match = (
+            entry["model"] == base_model_id and (provider_model[0], base_model_id) in catalog_provider_bases
+        )
+        if not exact_catalog_match and not base_level_catalog_match:
+            raise ValueError(
+                f"{access_status_path}: available route {provider_model!r} is not bound to "
+                f"{base_model_id!r} in the public model catalog."
+            )
+        key = (*provider_model, base_model_id)
+        if key in access_keys:
+            raise ValueError(f"{access_status_path}: duplicate available route {key!r}.")
+        access_keys.add(key)
+        if entry.get("promotion_basis"):
+            validate_attested_q2_qualification(
+                entry,
+                repository_root=ROOT,
+                provider=provider_model[0],
+                model_name=provider_model[1],
+                base_model_id=base_model_id,
+            )
 
     release_paths = sorted((ROOT / "releases").glob("*.yaml"))
     releases_by_id = {}
@@ -271,6 +314,7 @@ def validate_repository() -> dict[str, int]:
             settings = manifest["adapter_settings"]
             if stable_hash(settings) != manifest["adapter_settings_hash"]:
                 raise ValueError(f"{path}: adapter_settings_hash does not match adapter_settings.")
+
             class _ManifestAdapter:
                 def __init__(self, runtime_settings: dict[str, Any]) -> None:
                     self._runtime_settings = runtime_settings

@@ -131,6 +131,8 @@ def build_fleet_status(
                 "qualification_stage": stage if stage in STAGE_ORDER else None,
                 "surface": str(entry["surface"]),
                 "date": str(entry["date"]),
+                "promotion_basis": entry.get("promotion_basis"),
+                "qualification_evidence": entry.get("qualification_evidence"),
                 "note": str(entry["note"]),
             }
         )

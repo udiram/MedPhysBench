@@ -396,6 +396,12 @@ export type FleetStatusModel = {
     qualification_stage: "q0" | "q1" | "q2" | "q3" | null;
     surface: string;
     date: string;
+    promotion_basis: "attested_complete_q2" | null;
+    qualification_evidence: {
+      kind: "common_harness_submission";
+      submission_id: string;
+      manifest_path: string;
+    } | null;
     note: string;
   }>;
 };
