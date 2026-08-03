@@ -42,7 +42,7 @@ type ViewMode = "score" | "tokens" | "time" | "reliability" | "certainty";
 type SourceFilter = "all" | "open" | "closed" | "unknown";
 type SurfaceFilter = "all" | "common" | "native";
 type SortDirection = "asc" | "desc";
-type TableSort = "safe_success" | "model" | "provider" | "attempts" | "surface" | "source" | "status";
+type TableSort = "safe_success" | "model" | "provider" | "attempts" | "tokens" | "time" | "surface" | "source" | "status";
 
 type TableScopeStats = {
   totalRows: number;
@@ -1134,7 +1134,16 @@ function EfficiencyTable({
             </th>
             <th>Input tokens</th>
             <th>Output tokens</th>
-            <th>Median time</th>
+            <th aria-sort={ariaSort("tokens")}>
+              <button type="button" className="sort-button" onClick={() => onSort("tokens")}>
+                Total tokens {tableSort === "tokens" ? sortGlyph : ""}
+              </button>
+            </th>
+            <th aria-sort={ariaSort("time")}>
+              <button type="button" className="sort-button" onClick={() => onSort("time")}>
+                Median time {tableSort === "time" ? sortGlyph : ""}
+              </button>
+            </th>
             <th>Telemetry coverage</th>
             <th aria-sort={ariaSort("status")}>
               <button type="button" className="sort-button" onClick={() => onSort("status")}>
@@ -1190,6 +1199,7 @@ function EfficiencyTable({
                 <td>{row.completed_count}/{row.expected_attempt_count}</td>
                 <td>{formatTokens(row.token_usage?.median_input_tokens)}</td>
                 <td>{formatTokens(row.token_usage?.median_output_tokens)}</td>
+                <td>{formatTokens(row.token_usage?.median_total_tokens)}</td>
                 <td>{formatDuration(row.median_duration_seconds)}</td>
                 <td>
                   <span>Tokens: {formatCoverage(row.token_usage?.observed_attempts, row.token_usage?.expected_attempts)}</span>
@@ -1503,6 +1513,24 @@ function compareRowsForTableSort(
     case "attempts":
       leftKey = left.row.attempt_count;
       rightKey = right.row.attempt_count;
+      break;
+    case "tokens":
+      if (left.row.token_usage?.median_total_tokens == null && right.row.token_usage?.median_total_tokens == null) {
+        return left.row.model_name.localeCompare(right.row.model_name);
+      }
+      if (left.row.token_usage?.median_total_tokens == null) return 1;
+      if (right.row.token_usage?.median_total_tokens == null) return -1;
+      leftKey = left.row.token_usage.median_total_tokens;
+      rightKey = right.row.token_usage.median_total_tokens;
+      break;
+    case "time":
+      if (left.row.median_duration_seconds == null && right.row.median_duration_seconds == null) {
+        return left.row.model_name.localeCompare(right.row.model_name);
+      }
+      if (left.row.median_duration_seconds == null) return 1;
+      if (right.row.median_duration_seconds == null) return -1;
+      leftKey = left.row.median_duration_seconds;
+      rightKey = right.row.median_duration_seconds;
       break;
     case "surface":
       leftKey = left.surface === "common" ? 1 : 0;

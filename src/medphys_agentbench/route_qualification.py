@@ -32,6 +32,12 @@ OPENAI_ACCESS_PROBE_V2_DEPENDENCIES = (
     "src/medphys_agentbench/json_utils.py",
     "src/medphys_agentbench/route_qualification.py",
 )
+OLLAMA_ACCESS_PROBE_V1_PATH = "scripts/probes/ollama_access_probe.py"
+OLLAMA_ACCESS_PROBE_V1_DEPENDENCIES = (
+    "src/medphys_agentbench/adapters/ollama.py",
+    "src/medphys_agentbench/json_utils.py",
+    "src/medphys_agentbench/route_qualification.py",
+)
 
 
 class RouteQualificationError(ValueError):
@@ -140,7 +146,11 @@ def load_route_set(path: str | Path, *, repository_root: Path = REPOSITORY_ROOT)
         if planned is None:
             raise RouteQualificationError(f"Route {route_id!r} references a model outside the frozen fleet.")
         planned_routes = {str(value) for value in planned.get("planned_routes", [])}
-        if str(item["provider"]) not in planned_routes and str(item["adapter"]) not in planned_routes:
+        if not _planned_surface_allowed(
+            planned_routes,
+            provider=str(item["provider"]),
+            adapter=str(item["adapter"]),
+        ):
             raise RouteQualificationError(
                 f"Route {route_id!r} uses an undeclared provider/adapter for {base_model_id!r}."
             )
@@ -238,6 +248,14 @@ def load_access_probe_receipt(
             OPENAI_ACCESS_PROBE_V2_DEPENDENCIES
         ):
             raise RouteQualificationError("OpenAI access probe v2 receipt dependency set mismatch.")
+    if payload["probe_version"] == "ollama-access-probe-v1":
+        if payload["probe_implementation_path"] != OLLAMA_ACCESS_PROBE_V1_PATH:
+            raise RouteQualificationError("Ollama access probe v1 receipt uses an unexpected implementation path.")
+        dependency_paths = [str(dependency["path"]) for dependency in dependencies]
+        if len(dependency_paths) != len(set(dependency_paths)) or set(dependency_paths) != set(
+            OLLAMA_ACCESS_PROBE_V1_DEPENDENCIES
+        ):
+            raise RouteQualificationError("Ollama access probe v1 receipt dependency set mismatch.")
     for dependency in dependencies:
         dependency_path = _probe_dependency_path(str(dependency["path"]), root)
         if not dependency_path.is_file():
@@ -408,6 +426,14 @@ def _validate_base_url(item: dict[str, Any], route_id: str) -> None:
         raise RouteQualificationError(
             f"base_url for route {route_id!r} must not contain credentials, query parameters, or fragments."
         )
+
+
+def _planned_surface_allowed(planned_routes: set[str], *, provider: str, adapter: str) -> bool:
+    if provider in planned_routes or adapter in planned_routes:
+        return True
+    # Local Ollama execution is a concrete self-hosted route for bases not yet split into a
+    # distinct hosted-vs-local planning surface.
+    return adapter == "ollama" and "self_hosted" in planned_routes
 
 
 def _validate_source_commit(

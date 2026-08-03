@@ -6,8 +6,13 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
+import scripts.rebuild_public_release as rebuild_public_release
 from medphys_agentbench.release_loader import load_release
 from scripts.build_fleet_status import build_fleet_status
+from scripts.rebuild_public_release import _build_projection, _require_ranked_submission_manifests
+from tests.test_regressions import _write_result
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "rebuild_public_release.py"
@@ -247,3 +252,98 @@ def test_rebuild_public_release_check_mode_detects_and_does_not_mutate(tmp_path:
     assert canonical_leaderboard.read_bytes() == baseline_canonical
     assert results_leaderboard.read_bytes() == baseline_results
     assert fleet_status.read_bytes() == baseline_fleet
+
+
+def test_rebuild_public_release_rejects_ranked_directories_without_submission_manifests(
+    tmp_path: Path,
+) -> None:
+    release_path = ROOT / "releases" / "public_dev_2026_07_31.yaml"
+    release = load_release(release_path)
+    for model_name in ("unsubmitted-alpha", "unsubmitted-beta"):
+        model_dir = tmp_path / release.release_id / model_name
+        model_dir.mkdir(parents=True)
+        for task in release.load_tasks():
+            _write_result(model_dir / f"{task.task_id}--attempt-1.json", task, model_name)
+
+    with pytest.raises(ValueError, match="validated common-harness submission manifest"):
+        _build_projection(
+            release_file=release_path,
+            results_root=tmp_path,
+            expected_attempts_per_task=None,
+            submissions_dir=tmp_path / "submissions",
+        )
+
+
+def test_ranked_submission_admission_rejects_duplicate_identity_sidecars(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    release_id = "release-a"
+    results_root = tmp_path / "results" / "releases"
+    (results_root / release_id / "model-a").mkdir(parents=True)
+    submissions_dir = tmp_path / "submissions"
+    submissions_dir.mkdir()
+    model = {
+        "provider": "provider-a",
+        "model_name": "model-a",
+        "model_revision": "revision-a",
+        "harness_name": "harness-a",
+        "harness_revision": "harness-revision-a",
+    }
+    for suffix in ("one", "two"):
+        (submissions_dir / f"submission-{suffix}.json").write_text(
+            json.dumps(
+                {
+                    "release_id": release_id,
+                    "results_directory": f"results/releases/{release_id}/model-a",
+                    "model": model,
+                }
+            ),
+            encoding="utf-8",
+        )
+    monkeypatch.setattr(rebuild_public_release, "ROOT", tmp_path)
+
+    with pytest.raises(ValueError, match="found 2"):
+        _require_ranked_submission_manifests(
+            leaderboard={"models": [model]},
+            release_id=release_id,
+            results_root=results_root,
+            submissions_dir=submissions_dir,
+        )
+
+
+def test_ranked_submission_admission_rejects_sidecar_outside_exact_release_tree(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    release_id = "release-a"
+    results_root = tmp_path / "results" / "releases"
+    (results_root / release_id / "model-a").mkdir(parents=True)
+    submissions_dir = tmp_path / "submissions"
+    submissions_dir.mkdir()
+    model = {
+        "provider": "provider-a",
+        "model_name": "model-a",
+        "model_revision": "revision-a",
+        "harness_name": "harness-a",
+        "harness_revision": "harness-revision-a",
+    }
+    (submissions_dir / "submission.json").write_text(
+        json.dumps(
+            {
+                "release_id": release_id,
+                "results_directory": "results/releases/release-b/model-a",
+                "model": model,
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(rebuild_public_release, "ROOT", tmp_path)
+
+    with pytest.raises(ValueError, match="does not bind a model directory"):
+        _require_ranked_submission_manifests(
+            leaderboard={"models": [model]},
+            release_id=release_id,
+            results_root=results_root,
+            submissions_dir=submissions_dir,
+        )

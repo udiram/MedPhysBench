@@ -65,6 +65,12 @@ uv run python scripts/probes/openai_access_probe.py \
   fleet/model_routes_v1.yaml \
   --route-id groq-gpt-oss-20b
 
+# Local qualification verifies the installed digest and a strict JSON canary
+# only. It does not load benchmark tasks or write a score.
+uv run python scripts/probes/ollama_access_probe.py \
+  fleet/local_ollama_routes_v1.yaml \
+  --route-id ollama-deepseek-r1-1-5b
+
 uv run medphys-bench generate-campaign \
   fleet/model_routes_v1.yaml \
   releases/public_real_workflows_pilot_v0_6.yaml \

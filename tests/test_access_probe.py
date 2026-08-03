@@ -17,6 +17,7 @@ from medphys_agentbench.route_qualification import (
     load_route_set,
     receipt_payload_with_hash,
 )
+from scripts.probes.ollama_access_probe import probe_ollama_route
 from scripts.probes.openai_access_probe import probe_openai_route
 from scripts.probes.openai_access_probe_v2 import probe_openai_route as probe_openai_route_v2
 
@@ -61,6 +62,16 @@ def _clock() -> Any:
     return lambda: next(values)
 
 
+def _ollama_clock() -> Any:
+    values = iter(
+        [
+            datetime(2026, 8, 3, 13, 0, 0, tzinfo=UTC),
+            datetime(2026, 8, 3, 13, 0, 1, tzinfo=UTC),
+        ]
+    )
+    return lambda: next(values)
+
+
 def _copy_v2_probe_contract(tmp_path: Path) -> None:
     labels = (
         "scripts/probes/openai_access_probe_v2.py",
@@ -72,6 +83,26 @@ def _copy_v2_probe_contract(tmp_path: Path) -> None:
         destination = tmp_path / label
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ROOT / label, destination)
+
+
+def _ollama_probe_repository(tmp_path: Path) -> tuple[Path, str]:
+    fleet_dir = tmp_path / "fleet"
+    fleet_dir.mkdir(parents=True)
+    shutil.copy2(ROOT / "fleet" / "public_fleet_v1.yaml", fleet_dir / "public_fleet_v1.yaml")
+    shutil.copy2(ROOT / "fleet" / "local_ollama_routes_v1.yaml", fleet_dir / "local_ollama_routes_v1.yaml")
+    labels = (
+        "scripts/probes/ollama_access_probe.py",
+        "src/medphys_agentbench/adapters/ollama.py",
+        "src/medphys_agentbench/json_utils.py",
+        "src/medphys_agentbench/route_qualification.py",
+    )
+    for label in labels:
+        destination = tmp_path / label
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / label, destination)
+    route_set_path = fleet_dir / "local_ollama_routes_v1.yaml"
+    load_route_set(route_set_path, repository_root=tmp_path)
+    return route_set_path, "ollama-qwen2-5vl-3b"
 
 
 def test_v1_probe_bytes_remain_frozen() -> None:
@@ -296,3 +327,147 @@ def test_probe_maps_provider_failures_without_persisting_raw_body(
     assert "sensitive" not in path.read_text(encoding="utf-8")
     if status == 429:
         assert payload["quota"]["status"] == "insufficient"
+
+
+def test_ollama_probe_writes_valid_local_runtime_receipt_without_scores(tmp_path: Path) -> None:
+    route_set_path, route_id = _ollama_probe_repository(tmp_path)
+    calls: list[str] = []
+
+    def opener(request: Any, **_kwargs: object) -> _FakeResponse:
+        url = request.full_url
+        calls.append(url)
+        if url.endswith("/api/tags"):
+            return _FakeResponse(
+                {
+                    "models": [
+                        {
+                            "name": "qwen2.5vl:3b",
+                            "model": "qwen2.5vl:3b",
+                            "digest": "sha256:fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1",
+                        }
+                    ]
+                }
+            )
+        if url.endswith("/api/show"):
+            return _FakeResponse({"capabilities": ["vision"]})
+        if url.endswith("/api/chat"):
+            payload = json.loads(bytes(request.data or b"").decode("utf-8"))
+            assert payload["options"]["num_predict"] == 64
+            assert payload["options"]["num_ctx"] == 4096
+            assert payload["keep_alive"] == 0
+            return _FakeResponse({"message": {"content": '{"status":"ok"}'}})
+        raise AssertionError(f"unexpected URL {url}")
+
+    path, payload = probe_ollama_route(
+        route_set_path,
+        route_id,
+        repository_root=tmp_path,
+        opener=opener,
+        now=_ollama_clock(),
+        source_commit="a" * 40,
+    )
+
+    route_set = load_route_set(route_set_path, repository_root=tmp_path)
+    receipt = load_access_probe_receipt(path, route_set, repository_root=tmp_path)
+    assert receipt.outcome == "available"
+    assert payload["quota"] == {"status": "sufficient", "source": "local_runtime"}
+    assert payload["sanitized_metadata"]["served_revision"] == (
+        "sha256:fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1"
+    )
+    assert payload["capabilities"]["observed"] == ["image", "json_schema", "strict_schema", "text"]
+    assert calls == [
+        "http://127.0.0.1:11434/api/tags",
+        "http://127.0.0.1:11434/api/show",
+        "http://127.0.0.1:11434/api/chat",
+    ]
+    assert not (tmp_path / "runs").exists()
+    assert not (tmp_path / "results").exists()
+
+
+def test_ollama_probe_rejects_digest_mismatch_before_canary(tmp_path: Path) -> None:
+    route_set_path, route_id = _ollama_probe_repository(tmp_path)
+    calls: list[str] = []
+
+    def opener(request: Any, **_kwargs: object) -> _FakeResponse:
+        url = request.full_url
+        calls.append(url)
+        if url.endswith("/api/tags"):
+            return _FakeResponse(
+                {
+                    "models": [
+                        {
+                            "name": "qwen2.5vl:3b",
+                            "model": "qwen2.5vl:3b",
+                            "digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                        }
+                    ]
+                }
+            )
+        raise AssertionError("canary should not run after a digest mismatch")
+
+    path, payload = probe_ollama_route(
+        route_set_path,
+        route_id,
+        repository_root=tmp_path,
+        opener=opener,
+        now=_ollama_clock(),
+        source_commit="a" * 40,
+    )
+
+    route_set = load_route_set(route_set_path, repository_root=tmp_path)
+    assert load_access_probe_receipt(path, route_set, repository_root=tmp_path).outcome == "contract_unsupported"
+    assert payload["outcome"] == "contract_unsupported"
+    assert payload["sanitized_metadata"]["error_code"] == "ollama_digest_mismatch"
+    assert calls == ["http://127.0.0.1:11434/api/tags"]
+
+
+@pytest.mark.parametrize(
+    ("failure_mode", "expected_outcome", "expected_error"),
+    [
+        ("daemon_unreachable", "network_error", "ollama_tags_unreachable"),
+        ("model_missing", "model_not_found", "ollama_model_not_found"),
+        ("invalid_canary", "contract_unsupported", "invalid_or_unreachable_probe_response"),
+    ],
+)
+def test_ollama_probe_records_typed_failures_without_score_artifacts(
+    tmp_path: Path,
+    failure_mode: str,
+    expected_outcome: str,
+    expected_error: str,
+) -> None:
+    route_set_path, route_id = _ollama_probe_repository(tmp_path)
+
+    def opener(request: Any, **_kwargs: object) -> _FakeResponse:
+        url = request.full_url
+        if url.endswith("/api/tags"):
+            if failure_mode == "daemon_unreachable":
+                raise urllib.error.URLError("local daemon unavailable")
+            models = [] if failure_mode == "model_missing" else [
+                {
+                    "name": "qwen2.5vl:3b",
+                    "model": "qwen2.5vl:3b",
+                    "digest": "sha256:fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1",
+                }
+            ]
+            return _FakeResponse({"models": models})
+        if url.endswith("/api/show"):
+            return _FakeResponse({"capabilities": ["vision"]})
+        if url.endswith("/api/chat"):
+            return _FakeResponse({"message": {"content": "not-json"}})
+        raise AssertionError(f"unexpected URL {url}")
+
+    path, payload = probe_ollama_route(
+        route_set_path,
+        route_id,
+        repository_root=tmp_path,
+        opener=opener,
+        now=_ollama_clock(),
+        source_commit="a" * 40,
+    )
+
+    route_set = load_route_set(route_set_path, repository_root=tmp_path)
+    receipt = load_access_probe_receipt(path, route_set, repository_root=tmp_path)
+    assert receipt.outcome == expected_outcome
+    assert payload["sanitized_metadata"]["error_code"] == expected_error
+    assert not (tmp_path / "runs").exists()
+    assert not (tmp_path / "results").exists()

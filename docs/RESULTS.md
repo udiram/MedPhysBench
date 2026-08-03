@@ -35,8 +35,8 @@ The machine-derived public status currently reports:
 | --- | ---: | --- |
 | Frozen panel | 50 | Selected before further score inspection |
 | Access qualified | 23 | Live Q0 or later access evidence exists |
-| Validly evaluated | 20 | At least one complete matrix satisfies the current manifest/scoring and execution-evidence contract |
-| Rankable | 20 | At least two systems share an exact frozen comparison group |
+| Validly evaluated | 16 | At least one submission-attested complete matrix satisfies the current manifest/scoring and execution-evidence contract |
+| Rankable | 16 | At least two attested systems share an exact frozen comparison group |
 
 The site exposes all 29 published system configurations and 47 release
 rows. Six GPT-5.6 Sol effort settings remain six auditable configurations
@@ -187,7 +187,7 @@ TG-263 naming audit. The CT and expert contours are derived from OpenKBP; the
 reference plan dose is OpenKBP's standardized synthetic plan. Every task requires
 qualified review or escalation and is regraded from the stored candidate output.
 
-Twenty-five API/local configurations completed three attempts per task. Four ran under
+Twenty-five API/local configurations completed three attempts per task. Four legacy rows ran under
 one memory-bounded Ollama harness (`temperature=0`, seeds
 `20260731`–`20260733`, 4,096-token context, 768 output-token cap). Five ran on
 Groq's OpenAI-compatible endpoint under one shared JSON-object contract with the
@@ -198,22 +198,25 @@ each identical provider/harness/configuration group with at least two systems; t
 separate descriptive outcome order spans every complete valid row.
 Exact ties on the declared safe-success, task-success, and safety-gate point estimates
 share a competition rank (`1, 1, 3`); names only determine the display order of tied rows.
-Together with four native GPT-5.6 audits, v0.6 contains 29 rows and 870 attempts:
-24 rows receive an official within-group rank, while one receipt-free Groq row and
-the four native rows remain visible but unranked.
+Together with four native GPT-5.6 audits, v0.6 contains 29 rows and 870 attempts.
+Sixteen submission-attested v2 rows receive an official within-group rank. Eight complete legacy
+Ollama/Groq rows remain visible but unranked because their attempt manifests lack the required
+adapter-settings hash; one receipt-free Groq row and the four native rows are also visible but
+unranked. Public defect `MPB-2026-003` records this fail-closed correction. The immutable attempts,
+scores, and descriptive outcome order are unchanged.
 
 The compact tables retain the attempt-level Wilson interval for sensitivity and
 historical continuity. The website and JSON make the two-family cluster interval
 primary and display both interval definitions for every row.
 
-| Rank | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens | Median time |
+| Legacy Ollama order | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens | Median time |
 | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 1 | `qwen3.5:4b` | 50.0% | 33.15–66.85% | 100.0% | 100.0% | 1,238 | 5.393 s |
 | 2 | `gemma3:4b` | 20.0% | 9.51–37.31% | 80.0% | 80.0% | 1,301.5 | 5.143 s |
 | 3 | `qwen2.5vl:3b` | 0.0% | 0.00–11.35% | 70.0% | 100.0% | 1,396 | 2.132 s |
 | 4 | `qwen3-vl:8b` | 0.0% | 0.00–11.35% | 0.0% | 0.0% | 1,311.5 | 5.250 s |
 
-| Groq rank | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens* | Median wall time* |
+| Legacy Groq order | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens* | Median wall time* |
 | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 1 | `llama-3.3-70b-versatile` | 60.0% | 42.32–75.41% | 100.0% | 60.0% | 991.5 | 1.770 s |
 | 1 | `openai/gpt-oss-20b` | 60.0% | 42.32–75.41% | 100.0% | 60.0% | 1,338 | 9.283 s |
@@ -249,6 +252,9 @@ the 12 no-call outcomes remain zero-score capability failures but are reported a
 capability unavailable rather than unsafe. The prior derived projection mixed those
 denominators; public defect `MPB-2026-002` records the correction without changing
 any primary safe-success score.
+The older four-system Ollama and four-system Groq tables above are descriptive historical orders,
+not current-contract rank groups. Their source artifacts predate adapter-settings-hash admission;
+`MPB-2026-003` records the rank reclassification and the new projection-level submission-sidecar gate.
 Fourteen rows completed bounded adapter audits before the full matrix. DeepSeek R1
 1.5B and Mistral Nemo advanced opportunistically through complete Q2 matrices and
 therefore disclose `backfilled_after_full_q2` qualification rather than claiming

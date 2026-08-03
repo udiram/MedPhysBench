@@ -61,30 +61,30 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert rebuilt["summary"] == {
         "planned_base_models": 50,
         "access_qualified_base_models": 23,
-        "evaluated_base_models": 20,
-        "ranked_base_models": 20,
-        "workflow_view_evaluated_base_models": 20,
-        "workflow_view_ranked_base_models": 20,
+        "evaluated_base_models": 16,
+        "ranked_base_models": 16,
+        "workflow_view_evaluated_base_models": 16,
+        "workflow_view_ranked_base_models": 16,
         "published_system_configurations": 29,
         "published_release_rows": 47,
         "open_planned_models": 31,
         "closed_planned_models": 19,
         "vision_planned_models": 31,
         "steward_count": 11,
-        "evaluated_open_base_models": 20,
+        "evaluated_open_base_models": 16,
         "evaluated_closed_base_models": 0,
-        "evaluated_vision_base_models": 6,
-        "evaluated_steward_count": 7,
-        "evaluated_size_tiers": ["large", "medium", "small"],
-        "route_set_count": 3,
-        "declared_route_count": 13,
+        "evaluated_vision_base_models": 5,
+        "evaluated_steward_count": 6,
+        "evaluated_size_tiers": ["medium", "small"],
+        "route_set_count": 4,
+        "declared_route_count": 29,
     }
     assert all("size_tier" in entry for entry in rebuilt["models"])
     assert all("planned_routes" in entry for entry in rebuilt["models"])
     assert any("groq" in entry["planned_routes"] for entry in rebuilt["models"])
     assert any("ollama" in entry["planned_routes"] for entry in rebuilt["models"])
     assert all(entry["readiness_note"] for entry in rebuilt["models"])
-    assert sum(entry["readiness_state"] == "workflow_view_evaluated" for entry in rebuilt["models"]) == 20
+    assert sum(entry["readiness_state"] == "workflow_view_evaluated" for entry in rebuilt["models"]) == 16
     assert sum(entry["readiness_state"] == "route_planned" for entry in rebuilt["models"]) == 27
     terra = next(entry for entry in rebuilt["models"] if entry["base_model_id"] == "gpt-5.6-terra")
     assert terra["readiness_state"] == "access_qualified"
@@ -254,8 +254,8 @@ def test_pixtral_community_quantization_is_attested_and_ranked() -> None:
 
 def test_workflow_view_counts_only_common_harness_openkbp_release() -> None:
     status = build_fleet_status()
-    assert status["summary"]["workflow_view_evaluated_base_models"] == 20
-    assert status["summary"]["workflow_view_ranked_base_models"] == 20
+    assert status["summary"]["workflow_view_evaluated_base_models"] == 16
+    assert status["summary"]["workflow_view_ranked_base_models"] == 16
 
     gpt = next(row for row in status["models"] if row["base_model_id"] == "gpt-5.6-sol")
     assert gpt["evaluated"] is False

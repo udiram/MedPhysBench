@@ -316,10 +316,11 @@
           "Stateful or end-to-end workflow completion claim"
         ]
       },
-      "defect_count": 2,
+      "defect_count": 3,
       "defect_ids": [
         "MPB-2026-001",
-        "MPB-2026-002"
+        "MPB-2026-002",
+        "MPB-2026-003"
       ],
       "evidence": {
         "artifact_audit": {

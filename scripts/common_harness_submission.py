@@ -70,7 +70,11 @@ def _catalog_entry(provider: str, model_name: str) -> dict[str, Any]:
     return matches[0]
 
 
-def validate_submission(manifest_path: Path) -> dict[str, Any]:
+def validate_submission(
+    manifest_path: Path,
+    *,
+    release_summary: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     payload = _load_json(manifest_path)
     schema = _load_json(SCHEMA_PATH)
     errors = sorted(
@@ -146,7 +150,9 @@ def validate_submission(manifest_path: Path) -> dict[str, Any]:
         expected_manifest_path=relative_manifest_path,
     )
 
-    summary = summarize_release(release, ROOT / "results" / "releases")
+    summary = release_summary or summarize_release(release, ROOT / "results" / "releases")
+    if summary.get("release", {}).get("release_id") != release.release_id:
+        raise ValueError("Provided release summary does not match the submission release_id.")
     if summary["integrity"]["release_contract_hash_v2"] != payload["release_contract_hash_v2"]:
         raise ValueError("release_contract_hash_v2 does not match the current frozen release contract.")
     rows = [*summary.get("models", []), *summary.get("unranked_models", [])]
@@ -175,7 +181,12 @@ def validate_submission(manifest_path: Path) -> dict[str, Any]:
     return {
         "submission_id": payload["submission_id"],
         "release_id": release.release_id,
+        "provider": model["provider"],
         "model_name": model["model_name"],
+        "model_revision": model["model_revision"],
+        "harness_name": model["harness_name"],
+        "harness_revision": model["harness_revision"],
+        "results_directory": payload["results_directory"],
         "artifact_count": len(actual_artifacts),
         "artifact_tree_sha256": payload["artifact_tree_sha256"],
         "ranking_eligible": True,

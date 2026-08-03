@@ -111,6 +111,13 @@ selected release has zero matching rows, producing an explicit empty state inste
 silent filter reset. Plot controls repeat the frozen-panel denominator (`evaluated/50`)
 so visible configuration counts cannot be mistaken for unique evaluated base-model breadth.
 
+The attempt-forensics surface also includes a horizontally scrollable model-by-task fingerprint
+matrix. Columns are exact task views ordered by observed difficulty, rows are exact run sets, and
+each cell exposes the safe-pass fraction plus unsafe, unavailable, safe-failure, or inconclusive
+counts. Selecting a cell opens its highest-severity attempt. The matrix labels every execution
+surface and explicitly warns that correlated task views are not independent patients or cases; it is
+a diagnostic heatmap table, never a cross-harness rank.
+
 ### Unified outcome interval plot
 
 The default plot is a horizontal dot-and-whisker view showing a bounded, high-signal slice of the
@@ -144,6 +151,12 @@ on the horizontal axis. Higher and farther left is better. A frontier is drawn o
 within each official harness group because native imports do not expose comparable
 usage or inference-time telemetry. Provider token counts remain tokenizer-specific,
 and no line connects Groq-hosted measurements to local Ollama measurements.
+The evidence table exposes median input, output, and total tokens separately and allows sorting by
+total tokens or median wall time. Missing telemetry stays explicit and sorts after observed values;
+it is never coerced to zero. TTFT and post-first-token throughput remain absent until every compared
+surface supplies those timestamp semantics under a frozen contract. This follows Artificial
+Analysis's separation of TTFT, output speed, and end-to-end response time rather than deriving them
+from one aggregate duration field.
 
 The default score chart shows at most 14 directly labeled rows and the dense evidence table shows
 at most 16. Both state the number displayed and provide an explicit show-all action. These are

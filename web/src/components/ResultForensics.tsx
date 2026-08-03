@@ -11,6 +11,7 @@ import type { TaskComparisonScope } from "../lib/taskComparison";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { normalizeForensicsOutcome } from "../types";
 import type { DefectLedger, ForensicsOutcomeCategory, Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, ReleaseView } from "../types";
+import { TaskFingerprintMatrix } from "./TaskFingerprintMatrix";
 
 type SourceFilter = "all" | "open" | "closed" | "unknown";
 type OutcomeFilter = "all" | "safe_success" | "safe_failure" | "unsafe" | "unavailable" | "inconclusive" | "capability_failure";
@@ -401,6 +402,29 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
               </span>
             </label>
           </div>
+
+          <TaskFingerprintMatrix
+            rows={visibleRows}
+            selectedRowKey={selected?.key ?? null}
+            onSelect={(nextModelKey, nextTaskKey) => {
+              setModelKey(nextModelKey);
+              setSelectedTaskKey(nextTaskKey);
+              setDomainFilter("all");
+              setOutcomeFilter("all");
+              setTaskQuery("");
+              setTaskWindowExpanded(false);
+              setUrlParams(
+                {
+                  fx_model: nextModelKey,
+                  fx_task: nextTaskKey,
+                  fx_domain: null,
+                  fx_outcome: null,
+                  fx_task_query: null,
+                },
+                { history: "push" },
+              );
+            }}
+          />
 
           {selectedRow ? (
             <>

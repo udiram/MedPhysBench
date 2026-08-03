@@ -125,6 +125,13 @@
         "required": ["probe_version"]
       },
       "then": { "required": ["probe_dependencies"] }
+    },
+    {
+      "if": {
+        "properties": { "probe_version": { "const": "ollama-access-probe-v1" } },
+        "required": ["probe_version"]
+      },
+      "then": { "required": ["probe_dependencies"] }
     }
   ],
   "$defs": {

@@ -260,6 +260,7 @@ def _write_result(
             "max_tokens": 1024,
             "sandbox_image_digest": "process-isolation-public-v0.2.0",
             "tool_environment_version": "public-fixtures-v0.2.0",
+            "adapter_settings_hash": "a" * 64,
             "prompt_hash": prompt_hash_for_task(task) if include_hashes else "wrong",
             "tool_schema_hash": tool_schema_hash_for_task(task) if include_hashes else "wrong",
             "system_prompt_hash": system_prompt_hash() if include_hashes else "wrong",
@@ -576,6 +577,26 @@ def test_release_summary_rejects_mixed_adapter_settings_hash(tmp_path: Path) -> 
     assert "mixed_run_configuration_manifest" in row["integrity"]["integrity_errors"]
 
 
+def test_release_summary_never_ranks_missing_adapter_settings_hash(tmp_path: Path) -> None:
+    release = load_release("releases/public_dev_2026_07_31.yaml")
+    tasks = release.load_tasks()
+    model_dir = tmp_path / release.release_id / "missing-adapter-settings"
+    model_dir.mkdir(parents=True)
+
+    for task in tasks:
+        result_file = model_dir / f"{task.task_id}--attempt-1.json"
+        _write_result(result_file, task, "missing-adapter-settings")
+        payload = json.loads(result_file.read_text(encoding="utf-8"))
+        payload["manifest"].pop("adapter_settings_hash")
+        result_file.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    summary = summarize_release(release, tmp_path)
+
+    assert summary["models"] == []
+    row = summary["unranked_models"][0]
+    assert "missing_adapter_settings_hash" in row["integrity"]["integrity_errors"]
+
+
 def test_release_summary_rejects_inconsistent_seed_policy(tmp_path: Path) -> None:
     release = load_release("releases/public_dev_2026_07_31.yaml")
     tasks = release.load_tasks()
@@ -766,7 +787,7 @@ def test_repository_contracts_and_public_artifacts_validate() -> None:
     assert counts["campaign_count"] == 1
     assert counts["submission_count"] >= 1
     assert counts["fleet_model_count"] == 50
-    assert counts["route_count"] == 13
+    assert counts["route_count"] == 29
     assert counts["release_count"] >= 1
     assert counts["review_evidence_count"] >= 1
     assert counts["release_evidence_count"] >= 1

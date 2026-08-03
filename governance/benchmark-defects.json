@@ -64,8 +64,34 @@
       "severity": "high",
       "status": "regraded",
       "summary": "No-call capability failures were mislabeled as unsafe model actions in derived public reporting."
+    },
+    {
+      "affected_release_ids": [
+        "public-real-workflows-pilot-v0.6"
+      ],
+      "affected_task_ids": [],
+      "category": "ranking_integrity",
+      "defect_id": "MPB-2026-003",
+      "evidence": [
+        "src/medphys_agentbench/reporting.py",
+        "scripts/rebuild_public_release.py",
+        "scripts/common_harness_submission.py",
+        "tests/test_regressions.py",
+        "tests/test_rebuild_public_release.py"
+      ],
+      "impact": "Eight legacy common-harness configurations were assigned official within-group ranks even though their attempt manifests did not carry the adapter-settings hash required by the published comparison contract. The public projection builder also did not itself require a validated submission sidecar for every ranked row, although repository-wide CI separately validated committed sidecars. Task scores and immutable attempts were unaffected; official-rank eligibility and unique evaluated/ranked fleet counts were overstated.",
+      "reported_at": "2026-08-03T13:56:07Z",
+      "resolution": {
+        "replacement_artifact": "web/public/data/public-real-workflows-pilot-v0.6.json",
+        "status": "complete",
+        "target_release_id": "public-real-workflows-pilot-v0.6"
+      },
+      "score_treatment": "The derived projection is reissued fail-closed. Common-harness attempts without a valid adapter-settings hash remain visible with their original scores but are unranked. Every officially ranked projection row must now resolve to exactly one strictly validated submission sidecar bound to its result directory. No immutable attempt or primary score is rewritten.",
+      "severity": "high",
+      "status": "regraded",
+      "summary": "Legacy rows lacking adapter-settings hashes were admitted to official rank groups, and the projection builder did not enforce submission-sidecar admission directly."
     }
   ],
   "schema_version": "medphysbench.defect-ledger.v1",
-  "updated_at": "2026-08-03T00:29:43Z"
+  "updated_at": "2026-08-03T13:56:07Z"
 }

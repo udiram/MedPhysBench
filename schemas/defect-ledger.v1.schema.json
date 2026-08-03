@@ -43,7 +43,7 @@
           "status": { "enum": ["reported", "confirmed", "fixed", "withdrawn", "regraded"] },
           "severity": { "enum": ["low", "medium", "high", "critical"] },
           "category": {
-            "enum": ["task_ambiguity", "grader_coverage", "fixture", "leakage", "provenance", "runtime", "rights"]
+            "enum": ["task_ambiguity", "grader_coverage", "fixture", "leakage", "provenance", "ranking_integrity", "runtime", "rights"]
           },
           "summary": { "type": "string", "minLength": 1 },
           "impact": { "type": "string", "minLength": 1 },

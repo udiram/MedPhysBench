@@ -187,9 +187,11 @@ with 100% safety-gate rate. Those GPT rows are deliberately unranked because the
 common adapter and did not provide equivalent isolation or sampling controls. Three local vision
 models also completed the separate imaging pilot. Twenty local configurations and five Groq-hosted
 configurations then completed three attempts on every OpenKBP v0.6 task. `qwen3.5:4b` led the four-system
-Ollama v1 group
-at 50.0% safe success; `llama-3.3-70b-versatile` and `openai/gpt-oss-20b` tied at 60.0% in the Groq
-group. GPT-5.6 Sol low, high, and ultra completed three native-surface attempts per OpenKBP task and
+Ollama v1 descriptive order at 50.0% safe success; `llama-3.3-70b-versatile` and
+`openai/gpt-oss-20b` tied at 60.0% in the Groq descriptive order. Those eight legacy configurations
+remain visible with their original scores but no longer receive official ranks because their attempt
+manifests lack the adapter-settings hash required by the published comparison contract. GPT-5.6 Sol
+low, high, and ultra completed three native-surface attempts per OpenKBP task and
 scored 66.67%, 76.67%, and 73.33%, respectively. GPT-5.6 Terra high added three independently
 captured fresh-context attempts per task and scored 63.33%, with 100% safety and output validity.
 Their descriptive outcome order is Sol high, Sol ultra, Sol low, then Terra high, but their Wilson
@@ -206,8 +208,10 @@ Mistral Nemo 12B, and a community-quantized Pixtral 12B route reached 10.0%; Qwe
 Qwen2.5-VL 3B, DeepSeek R1 1.5B, Llama 3.1 8B, and Llama 3.2 3B reached 0.0%.
 Every text-only model retained twelve explicit unsupported-image outcomes in the denominator;
 the six multimodal rows made real calls on all 30 attempts. The sixteen-system exact-configuration
-group now receives a within-group rank; it is not merged with
-the older Ollama, Groq, or native GPT-5.6 groups.
+group now receives the only official within-group ranks in v0.6; every ranked row is also bound to one
+strictly validated common-harness submission sidecar. It is not merged with the older Ollama, Groq,
+or native GPT-5.6 groups. Public defect `MPB-2026-003` records the fail-closed reclassification; no
+immutable attempt or primary score changed.
 The three added v2 rows are current-contract reruns of models already represented by
 immutable v1 history, so they deepen contract-comparable evidence without increasing
 unique base-model breadth. A Qwen3-VL 8B v2 rerun stopped after one attempt at the

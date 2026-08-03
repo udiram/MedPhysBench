@@ -50,6 +50,13 @@ current model contract documents text and image input, JSON-object mode, `reason
 and `reasoning_format: hidden`; those fields therefore form part of the new route identity rather
 than an undocumented retry heuristic. [Groq Qwen 3.6 model contract](https://console.groq.com/docs/model/qwen/qwen3.6-27b)
 
+[`local_ollama_routes_v1.yaml`](../fleet/local_ollama_routes_v1.yaml) freezes 16 existing,
+submission-attested local configurations as executable routes. Each route binds the mutable Ollama
+tag to its observed immutable artifact digest, exact base-model ID, 4,096-token context,
+JSON-schema output, and `keep_alive=0`. This route set does not add new scores: it makes the
+already-published current-contract local lane addressable by the same receipt-bound control plane
+used for hosted providers.
+
 ## Receipt integrity
 
 The original [`openai_access_probe.py`](../scripts/probes/openai_access_probe.py) remains byte-frozen
@@ -58,6 +65,13 @@ because historical receipts bind its exact SHA-256. New dialect routes use
 an exact dependency set covering the v1 probe, runtime request helper, strict JSON decoder, and
 route/receipt validator. The receipt loader rejects missing, extra, substituted, or modified
 dependencies and checks the same bytes in both the worktree and claimed source commit.
+
+The reviewed [`ollama_access_probe.py`](../scripts/probes/ollama_access_probe.py) applies the same
+principle to the local runtime. It verifies `/api/tags` against the exact route digest, checks
+declared text/vision capability through `/api/show`, and sends a 64-token strict-JSON canary through
+`/api/chat`. It records only sanitized capability, digest, timing, and outcome metadata. It never
+loads a benchmark task or retains a response body, and `keep_alive=0` unloads the probed model after
+the request.
 
 After committing the route and probe sources, qualify one route at a time:
 
@@ -71,6 +85,12 @@ python scripts/probes/openai_access_probe_v2.py \
 uv run python scripts/probes/openai_access_probe_v2.py \
   fleet/groq_reasoning_routes_v2.yaml \
   --route-id groq-qwen-3.6-27b-json-v2
+
+# Local, digest-pinned example. Run one route at a time on the machine that
+# actually hosts Ollama; the probe is non-scoring and memory bounded.
+uv run python scripts/probes/ollama_access_probe.py \
+  fleet/local_ollama_routes_v1.yaml \
+  --route-id ollama-deepseek-r1-1-5b
 ```
 
 The probe sends only a fixed JSON canary. It never loads a benchmark task, grader, expected answer,

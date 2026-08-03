@@ -27,12 +27,13 @@ package, or evidence of autonomous clinical competence.
 - TG-263 audit: `public-tg263-pilot-v0.5-audit` (separates primary naming decisions from exact benchmark reason-code labels)
 - Real-image pilot: `public-imaging-pilot-v0.4` (`5` real MRI, CT, and PET tasks)
 - OpenKBP real-data workflow-view pilot: `public-real-workflows-pilot-v0.6` (`10` one-response tasks from
-  `2` patient families; `20` ranked Ollama configurations, `4` ranked Groq
-  configurations, `1` quarantined Groq configuration, and `4` GPT-5.6 native audits;
-  `29` total rows—`24` ranked and `5` unranked—and `870` total attempt artifacts)
+  `2` patient families; `16` submission-attested Ollama v2 configurations with official ranks,
+  `8` complete legacy Ollama/Groq configurations retained descriptively, `1` quarantined Groq
+  configuration, and `4` GPT-5.6 native audits; `29` total rows—`16` ranked and `13` unranked—and
+  `870` total attempt artifacts)
 - Scored configurations through Monday, August 3, 2026: five common-harness local core models,
   six explicitly unranked GPT-5.6 core-effort pilots, two harder TG-263 native pilots,
-  three local models on the original image pilot, twenty-five API/local configurations on the
+  three local models on the original image pilot, twenty-five published API/local configurations on the
   OpenKBP pilot, and four GPT-5.6 OpenKBP audits with descriptive outcome ranks
 - Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
 - Frozen 50-base-model panel: [`fleet/public_fleet_v1.yaml`](fleet/public_fleet_v1.yaml)
@@ -89,6 +90,9 @@ package, or evidence of autonomous clinical competence.
 - A schema-driven, serial campaign controller with memory/disk preflight, one child process per
   model, exact release/fleet binding, canonical-matrix verification, and hash-chained resume receipts;
   new v2 manifests bind every configuration to a frozen route and unexpired access receipt.
+- A reviewed local-Ollama qualification lane with 16 digest-pinned routes, exact tag-to-artifact
+  verification, declared vision-capability checks, a 64-token strict-JSON canary, and `keep_alive=0`.
+  These routes operationalize existing evidence; they do not create or count scores.
 - Strict structured-output parsing: one exact JSON object, with no repair from Markdown wrappers,
   duplicate keys, trailing prose, or non-finite numbers.
 - A 97-task public catalog spanning core physics, RT physics, brachytherapy,
@@ -123,7 +127,7 @@ package, or evidence of autonomous clinical competence.
   sealed-batch hash, model revision, effort, attempt index, output-map digest, timestamps, declared
   transport tools, and all corresponding public result traces without storing hidden reasoning.
 - A machine-derived qualification funnel that reports `50` frozen base IDs, `23` access-qualified,
-  `20` validly evaluated under the current manifest contract, and `20` rankable—without counting six
+  `16` validly evaluated under the current manifest contract, and `16` rankable—without counting six
   GPT-5.6 effort settings as six models, treating historical legacy rows as current-contract evidence,
   or presenting a partial local campaign as a score.
 - Sixteen digest-pinned `reference-json-v2` OpenKBP rows now carry attested common-harness

@@ -13,6 +13,14 @@ from typing import Any
 from medphys_agentbench.release_loader import load_release
 from medphys_agentbench.reporting import summarize_release
 
+try:
+    from scripts.common_harness_submission import validate_submission
+except ModuleNotFoundError:  # Direct script execution places scripts/ rather than the repository on sys.path.
+    from common_harness_submission import validate_submission
+
+
+ROOT = Path(__file__).resolve().parents[1]
+
 
 def _load_build_fleet_status() -> Any:
     scripts_dir = Path(__file__).resolve().parent
@@ -44,12 +52,19 @@ def _build_projection(
     release_file: Path,
     results_root: Path,
     expected_attempts_per_task: int | None,
+    submissions_dir: Path,
 ) -> tuple[dict[str, Any], bytes]:
     release = load_release(release_file)
     leaderboard = summarize_release(
         release,
         results_root,
         expected_attempts_per_task=expected_attempts_per_task,
+    )
+    _require_ranked_submission_manifests(
+        leaderboard=leaderboard,
+        release_id=release.release_id,
+        results_root=results_root,
+        submissions_dir=submissions_dir,
     )
     evidence_timestamps = [
         str(task["created_at"])
@@ -60,6 +75,64 @@ def _build_projection(
     if evidence_timestamps:
         leaderboard["generated_at"] = max(evidence_timestamps)
     return leaderboard, _serialize_sorted(leaderboard)
+
+
+def _require_ranked_submission_manifests(
+    *,
+    leaderboard: dict[str, Any],
+    release_id: str,
+    results_root: Path,
+    submissions_dir: Path,
+) -> None:
+    ranked_rows = leaderboard.get("models", [])
+    if not ranked_rows:
+        return
+
+    manifest_paths = sorted(submissions_dir.glob("*.json"))
+    manifests: list[tuple[Path, dict[str, Any]]] = []
+    for path in manifest_paths:
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError(f"Cannot read submission manifest {path}: {exc}") from exc
+        if payload.get("release_id") == release_id:
+            manifests.append((path, payload))
+
+    expected_results_root = (results_root / release_id).resolve()
+    validated_paths: set[Path] = set()
+    for row in ranked_rows:
+        identity = (
+            row.get("provider"),
+            row.get("model_name"),
+            row.get("model_revision"),
+            row.get("harness_name"),
+            row.get("harness_revision"),
+        )
+        matches = [
+            (path, payload)
+            for path, payload in manifests
+            if (
+                payload.get("model", {}).get("provider"),
+                payload.get("model", {}).get("model_name"),
+                payload.get("model", {}).get("model_revision"),
+                payload.get("model", {}).get("harness_name"),
+                payload.get("model", {}).get("harness_revision"),
+            ) == identity
+        ]
+        if len(matches) != 1:
+            raise ValueError(
+                "Every officially ranked row must have exactly one validated common-harness submission manifest; "
+                f"found {len(matches)} for {identity}."
+            )
+        manifest_path, payload = matches[0]
+        submitted_results = (ROOT / str(payload["results_directory"])).resolve()
+        if submitted_results.parent != expected_results_root:
+            raise ValueError(
+                f"Submission {manifest_path} does not bind a model directory under {expected_results_root}."
+            )
+        if manifest_path not in validated_paths:
+            validate_submission(manifest_path, release_summary=leaderboard)
+            validated_paths.add(manifest_path)
 
 
 def _coerce_paths(*paths: Path) -> list[Path]:
@@ -118,6 +191,12 @@ def main() -> None:
         type=Path,
     )
     parser.add_argument("--expected-attempts", type=int)
+    parser.add_argument(
+        "--submissions-dir",
+        type=Path,
+        default=ROOT / "submissions",
+        help="Directory containing strict common-harness submission manifests required for every ranked row.",
+    )
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
@@ -129,6 +208,7 @@ def main() -> None:
         release_file=args.release_file,
         results_root=args.results_root,
         expected_attempts_per_task=args.expected_attempts,
+        submissions_dir=args.submissions_dir,
     )
 
     payloads = {

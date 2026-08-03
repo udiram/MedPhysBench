@@ -12,6 +12,20 @@
 
 ## Unreleased
 
+- Added a model-by-task fingerprint matrix to the public forensics workbench. Exact run sets share
+  one provider-neutral surface; hardest task views appear first; unsafe, unavailable, safe-failure,
+  mixed, and inconclusive outcomes remain distinct; and every cell opens its highest-severity exact
+  attempt artifact.
+- Made public-release admission fail closed: every officially ranked row now requires one exact,
+  schema-valid, artifact-attested common-harness submission sidecar and a valid 64-character
+  adapter-settings hash. Regraded eight complete legacy Ollama/Groq configurations as visible but
+  unranked and recorded the change as defect `MPB-2026-003`; immutable scores were not rewritten.
+- Added 16 digest-pinned local Ollama routes and a reviewed non-scoring probe that verifies the
+  installed artifact digest, declared text/vision capability, and a 64-token strict-JSON canary with
+  `keep_alive=0`. The routes operationalize existing evidence and do not inflate model coverage.
+- Added sortable median total-token and wall-time columns to the efficiency evidence table while
+  keeping missing telemetry explicit and last in either sort direction.
+
 - Bound legacy `campaign.v1` model entries to one exact declared executable route, closing
   base-model relabeling and invented alias/effort paths that could otherwise inflate evaluated
   fleet breadth. Added adversarial regressions for both attacks while retaining the stricter
@@ -87,8 +101,8 @@
   `reference-json-v2` comparison group: Qwen3.5 4B (50% safe success, 100% safety),
   Gemma 3 4B (20%, 100%), and Qwen2.5-VL 3B (0%, 70%; nine unsafe attempts).
   The group now contains 16 attested rows and the release contains 29 total rows,
-  24 ranked rows, five unranked rows, and 870 attempts. These reruns deepen evidence
-  for already counted base models and do not increase unique base-model breadth.
+  16 ranked rows, 13 unranked rows, and 870 attempts after fail-closed admission. These reruns deepen
+  evidence for already counted base models and do not increase unique base-model breadth.
 - Stopped the Qwen3-VL 8B v2 rerun after one attempt when free memory reached 22%;
   retained that partial run as unranked raw evidence and preserved the immutable
   legacy v1 release row.
@@ -123,7 +137,7 @@
 - Added optional artifact-build provenance to model run contracts so official provider routes and community quantizations can be disclosed in the same forensic surface with pinned source revisions.
 - Enforced a default 50% task-family concentration ceiling at release load time, exposed the reviewed threshold in public reporting, and added strict-boundary and deterministic-error regressions so one correlated case family cannot quietly dominate a score.
 - Added a deterministic task-to-defect projection and task-level QA history in result forensics, including disclosed defect counts, severity, resolution state, and immutable score treatment without inferring release-wide defects onto unaffected tasks.
-- Froze a machine-readable 50-base-model fleet and added a deterministic public qualification funnel: 23 access-qualified, 20 common-harness evaluated and rankable under the current manifest contract, 29 published system configurations, 47 release rows, and no count inflation from aliases, provider routes, or GPT-5.6 effort settings.
+- Froze a machine-readable 50-base-model fleet and added a deterministic public qualification funnel: 23 access-qualified, 16 common-harness evaluated and rankable under the current manifest contract, 29 published system configurations, 47 release rows, and no count inflation from aliases, provider routes, or GPT-5.6 effort settings.
 - Completed 480 digest-pinned OpenKBP attempts across sixteen exact local model configurations under the memory-bounded `reference-json-v2` harness, with preflight chronology, immutable resume, provider-call telemetry, and an attested artifact tree for every row.
 - Added a fully completed Pixtral 12B multimodal campaign through a pinned community Q4_K_M GGUF plus F32 vision projector: 30/30 real calls, 10.0% safe success, 60.0% safety, 100% schema validity, 43,128 total tokens, 41.562-second median wall time, a zero-change regrade, and exact source/model/projector SHA-256 provenance without mislabeling the build as official Mistral weights.
 - Published a second Llama 3.1 8B Instruct route through exact Ollama artifact `sha256:46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e`: 30/30 attempts, 0% safe success, 33.33% safety over 18 calls, 12 explicit capability-unavailable image attempts, 18,369 total tokens, and a 17.385-second median wall time. It remains grouped with—not counted separately from—the Groq-hosted route for base-model fleet breadth.

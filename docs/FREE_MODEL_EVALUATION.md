@@ -47,11 +47,12 @@ The repository now ships a strict OpenAI-compatible Chat Completions adapter and
 a Groq preset. It preserves the exact provider/model ID, response format,
 reasoning setting when supported, usage metadata, request IDs, and errors. A
 Groq run requires `GROQ_API_KEY`; the [official free-plan limits](https://console.groq.com/docs/rate-limits)
-are model-specific and mutable. On 2026-08-01, four chat-model IDs completed rankable
+are model-specific and mutable. On 2026-08-01, four chat-model IDs completed full historical
 public OpenKBP v0.6 matrices: `llama-3.1-8b-instant`,
 `llama-3.3-70b-versatile`, `openai/gpt-oss-20b`, and `openai/gpt-oss-120b`. A
 Qwen route reached all 30 task attempts but failed the provider output contract and remained
-unranked. The historical request is preserved; the corrected
+unranked. The four complete rows remain visible descriptively but are not current-contract rankable
+because their attempt manifests predate the required adapter-settings hash. The historical request is preserved; the corrected
 [`groq_reasoning_routes_v2.yaml`](../fleet/groq_reasoning_routes_v2.yaml) contract uses Groq's
 documented `reasoning_effort: none` and `reasoning_format: hidden` fields and still needs a fresh
 successful receipt plus complete rerun before promotion.

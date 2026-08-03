@@ -26,6 +26,7 @@ from medphys_agentbench.route_qualification import (
 
 ROOT = Path(__file__).resolve().parents[1]
 ROUTE_SET_PATH = ROOT / "fleet" / "model_routes_v1.yaml"
+LOCAL_OLLAMA_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_routes_v1.yaml"
 PROVIDER_ROUTE_SET_PATH = ROOT / "fleet" / "provider_expansion_routes_v2.yaml"
 GROQ_REASONING_ROUTE_SET_PATH = ROOT / "fleet" / "groq_reasoning_routes_v2.yaml"
 RELEASE_FILE = "releases/public_real_workflows_pilot_v0_6.yaml"
@@ -75,6 +76,70 @@ def _write_receipt(tmp_path: Path, route: ModelRoute, **overrides: object) -> Pa
     path = tmp_path / "receipts" / "access" / route.route_id / "probe.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(_receipt_payload(route, **overrides), sort_keys=True), encoding="utf-8")
+    return path
+
+
+def _write_ollama_receipt(tmp_path: Path, route: ModelRoute, **overrides: object) -> Path:
+    implementation = tmp_path / "scripts" / "probes" / "ollama_access_probe.py"
+    implementation.parent.mkdir(parents=True, exist_ok=True)
+    implementation.write_text("# reviewed ollama probe\n", encoding="utf-8")
+    dependencies = (
+        "src/medphys_agentbench/adapters/ollama.py",
+        "src/medphys_agentbench/json_utils.py",
+        "src/medphys_agentbench/route_qualification.py",
+    )
+    for label in dependencies:
+        dependency = tmp_path / label
+        dependency.parent.mkdir(parents=True, exist_ok=True)
+        dependency.write_text(f"# {label}\n", encoding="utf-8")
+    payload = receipt_payload_with_hash(
+        {
+            "schema_version": "medphysbench.access-probe-receipt.v1",
+            "receipt_id": f"probe-{route.route_id}-20260803t123100z",
+            "route_id": route.route_id,
+            "route_spec_sha256": route.route_spec_sha256,
+            "route_set_id": "local-ollama-routes-v1",
+            "fleet_id": "public-fleet-v1",
+            "base_model_id": route.base_model_id,
+            "adapter": route.adapter,
+            "provider": route.provider,
+            "model": route.model,
+            "model_revision": route.model_revision,
+            "probe_version": "ollama-access-probe-v1",
+            "probe_implementation_path": "scripts/probes/ollama_access_probe.py",
+            "probe_implementation_sha256": sha256(implementation.read_bytes()).hexdigest(),
+            "probe_dependencies": [
+                {"path": label, "content_sha256": sha256((tmp_path / label).read_bytes()).hexdigest()}
+                for label in dependencies
+            ],
+            "source_commit": "a" * 40,
+            "started_at": "2026-08-03T12:31:00Z",
+            "completed_at": "2026-08-03T12:31:01Z",
+            "expires_at": "2026-08-03T18:31:01Z",
+            "outcome": "available",
+            "capabilities": {
+                "observed": ["image", "json_schema", "strict_schema", "text"],
+                "inferred": list(route.modalities),
+            },
+            "quota": {"status": "sufficient", "source": "local_runtime"},
+            "sanitized_metadata": {
+                "endpoint_host": "127.0.0.1",
+                "http_status": 200,
+                "served_model": route.model,
+                "served_revision": (
+                    route.model_revision
+                    if str(route.model_revision).startswith("sha256:")
+                    else f"sha256:{route.model_revision}"
+                ),
+                "latency_ms": 42.0,
+                "response_contract": "json_schema",
+            },
+            **overrides,
+        }
+    )
+    path = tmp_path / "receipts" / "access" / route.route_id / "probe.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, sort_keys=True), encoding="utf-8")
     return path
 
 
@@ -139,6 +204,108 @@ def test_qwen_reasoning_route_freezes_json_transport_and_multimodal_capability()
     assert route.modalities == ("text", "image")
 
 
+def test_local_ollama_route_set_binds_the_16_attested_reference_json_v2_submissions() -> None:
+    route_set = load_route_set(LOCAL_OLLAMA_ROUTE_SET_PATH)
+
+    assert route_set.route_set_id == "local-ollama-routes-v1"
+    assert len(route_set.routes) == 16
+    assert {route.adapter for route in route_set.routes} == {"ollama"}
+    assert {route.provider for route in route_set.routes} == {"ollama"}
+    assert all(route.base_url == "http://127.0.0.1:11434" for route in route_set.routes)
+    assert all(route.response_format == "json_schema" for route in route_set.routes)
+    assert all(route.strict_schema is True for route in route_set.routes)
+    assert all(str(route.ollama_keep_alive) == "0" for route in route_set.routes)
+    assert all(route.ollama_num_ctx == 4096 for route in route_set.routes)
+    assert route_set.route("ollama-phi4-mini-3-8b-q4-k-m").model_revision == (
+        "78fad5d182a7c33065e153a5f8ba210754207ba9d91973f57dffa7f487363753"
+    )
+    assert route_set.route("ollama-qwen2-5vl-7b-q4-k-m").modalities == ("text", "image")
+    route_identities = {
+        (route.base_model_id, route.model, route.model_revision)
+        for route in route_set.routes
+    }
+    submission_identities = set()
+    for path in (ROOT / "submissions").glob("*.json"):
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        model = payload.get("model", {})
+        if model.get("provider") == "ollama" and model.get("harness_revision") == "reference-json-v2":
+            submission_identities.add(
+                (model["base_model_id"], model["model_name"], model["model_revision"])
+            )
+    assert route_identities == submission_identities
+
+
+def test_self_hosted_planned_model_can_bind_a_reviewed_local_ollama_route(tmp_path: Path) -> None:
+    fleet_dir = tmp_path / "fleet"
+    fleet_dir.mkdir(parents=True)
+    fleet_path = fleet_dir / "public_fleet_v1.yaml"
+    fleet_path.write_text(
+        yaml.safe_dump(
+            {
+                "schema_version": "medphysbench.model-fleet.v1",
+                "fleet_id": "public-fleet-v1",
+                "title": "Test fleet",
+                "frozen_at": "2026-08-03T12:00:00Z",
+                "target_base_model_count": 1,
+                "selection_policy_version": "test",
+                "models": [
+                    {
+                        "base_model_id": "microsoft/phi-4",
+                        "display_name": "Phi-4",
+                        "steward": "Microsoft",
+                        "family": "Phi",
+                        "openness": "open",
+                        "modalities": ["text"],
+                        "size_tier": "medium",
+                        "planned_routes": ["self_hosted"],
+                        "license": "MIT",
+                        "source_url": "https://example.invalid/phi-4",
+                    }
+                ],
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    route_path = fleet_dir / "local_ollama_routes_v1.yaml"
+    route_path.write_text(
+        yaml.safe_dump(
+            {
+                "schema_version": "medphysbench.model-routes.v1",
+                "route_set_id": "local-ollama-routes-v1",
+                "fleet_file": "fleet/public_fleet_v1.yaml",
+                "fleet_id": "public-fleet-v1",
+                "frozen_at": "2026-08-03T12:30:00Z",
+                "routes": [
+                    {
+                        "route_id": "ollama-phi4-14b",
+                        "base_model_id": "microsoft/phi-4",
+                        "adapter": "ollama",
+                        "provider": "ollama",
+                        "model": "phi4:14b",
+                        "model_revision": "sha256:ac896e5b8b34a1f4efa7b14d7520725140d5512484457fab45d2a4ea14c69dba",
+                        "revision_basis": "immutable_digest",
+                        "base_url": "http://127.0.0.1:11434",
+                        "response_format": "json_schema",
+                        "strict_schema": True,
+                        "timeout_seconds": 300,
+                        "max_tokens": 2048,
+                        "access_ttl_seconds": 21600,
+                        "modalities": ["text"],
+                        "ollama_keep_alive": 0,
+                        "ollama_num_ctx": 4096,
+                    }
+                ],
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+
+    route_set = load_route_set(route_path, repository_root=tmp_path)
+    assert route_set.route("ollama-phi4-14b").base_model_id == "microsoft/phi-4"
+
+
 def test_receipt_is_content_addressed_and_identity_bound(tmp_path: Path) -> None:
     route_set = load_route_set(ROUTE_SET_PATH)
     route = route_set.routes[0]
@@ -153,6 +320,20 @@ def test_receipt_is_content_addressed_and_identity_bound(tmp_path: Path) -> None
     payload["provider"] = "different-provider"
     path.write_text(json.dumps(payload), encoding="utf-8")
     with pytest.raises(RouteQualificationError, match="content hash mismatch"):
+        load_access_probe_receipt(path, route_set, repository_root=tmp_path)
+
+
+def test_ollama_receipt_requires_the_reviewed_dependency_set(tmp_path: Path) -> None:
+    route_set = load_route_set(LOCAL_OLLAMA_ROUTE_SET_PATH)
+    route = route_set.route("ollama-qwen2-5vl-3b")
+    path = _write_ollama_receipt(tmp_path, route)
+    assert load_access_probe_receipt(path, route_set, repository_root=tmp_path).outcome == "available"
+
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload["probe_dependencies"] = payload["probe_dependencies"][:-1]
+    payload = receipt_payload_with_hash({key: value for key, value in payload.items() if key != "content_sha256"})
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    with pytest.raises(RouteQualificationError, match="dependency set mismatch"):
         load_access_probe_receipt(path, route_set, repository_root=tmp_path)
 
 

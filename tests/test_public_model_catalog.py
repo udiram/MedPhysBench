@@ -307,6 +307,7 @@ def test_receipt_free_groq_batch_remains_visible_but_unranked() -> None:
     assert row["ranking_eligible"] is False
     assert row.get("outcome_rank") is None
     assert set(row["integrity"]["integrity_errors"]) == {
+        "missing_adapter_settings_hash",
         "missing_duration_telemetry",
         "missing_model_response_trace",
         "missing_provider_receipt",

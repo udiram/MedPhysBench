@@ -777,9 +777,18 @@ def _audit_model_results(
         ):
             errors.append("mixed_harness_revision_manifest")
 
+        adapter_settings_hash = manifest.get("adapter_settings_hash")
+        if not is_recorded_import:
+            if not adapter_settings_hash:
+                errors.append("missing_adapter_settings_hash")
+            elif not isinstance(adapter_settings_hash, str) or len(adapter_settings_hash) != 64 or any(
+                character not in "0123456789abcdef" for character in adapter_settings_hash
+            ):
+                errors.append("invalid_adapter_settings_hash")
+
         run_configurations.add(
             (
-                manifest.get("adapter_settings_hash"),
+                adapter_settings_hash,
                 manifest.get("temperature"),
                 manifest.get("max_tokens"),
                 manifest.get("sandbox_image_digest"),

@@ -1,12 +1,13 @@
 # Fifty-model fleet protocol
 
 Status: execution protocol; target matrix not yet complete  
-Review date: 2026-08-02
+Review date: 2026-08-03
 
 Machine-readable artifacts:
 
 - frozen selection: [`../fleet/public_fleet_v1.yaml`](../fleet/public_fleet_v1.yaml);
 - executable route candidates: [`../fleet/model_routes_v1.yaml`](../fleet/model_routes_v1.yaml);
+- digest-pinned local routes: [`../fleet/local_ollama_routes_v1.yaml`](../fleet/local_ollama_routes_v1.yaml);
 - public derived status: [`../web/public/data/fleet_status.json`](../web/public/data/fleet_status.json);
 - deterministic builder: [`../scripts/build_fleet_status.py`](../scripts/build_fleet_status.py).
 
@@ -161,9 +162,12 @@ network context. Neither event supports a model score.
 The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
 19 closed-weight, 31 declared vision-capable, and 11 stewards. After enforcing
 the current grader/scoring manifest contract, the derived funnel
-reports 23 access-qualified, 20 common-harness evaluated, and 20 officially
-rankable base models. One fully attempted Groq row is excluded from evaluated/ranked
-counts because its provider-output failure artifacts lack model-response receipts and telemetry.
+reports 23 access-qualified, 16 common-harness evaluated, and 16 officially
+rankable base models. Eight complete legacy Ollama/Groq configurations remain visible but are excluded
+from current-contract rank because their attempt manifests lack adapter-settings hashes; four of the
+affected base IDs have no separate v2 row and therefore leave the evaluated/ranked fleet funnel. One
+additional fully attempted Groq row remains excluded because its provider-output failure artifacts lack
+model-response receipts and telemetry.
 GPT-5.6 Sol and Terra complete native rows remain visible in the same
 model index and attempt forensics, but do not inflate that common-harness funnel.
 
@@ -171,14 +175,18 @@ The public `fleet-status.v3` projection now gives every frozen base ID a
 machine-derived readiness state, next gate, explanatory note, and any exact
 base-model-bound access evidence, including a direct attested-submission link when
 one exists. It also separates the planned-panel composition from the actually
-evaluated slice: the current common-harness slice contains 20 open-weight and zero
-closed-weight base models, six vision-capable base models, seven stewards, and three
+evaluated slice: the current common-harness slice contains 16 open-weight and zero
+closed-weight base models, five vision-capable base models, six stewards, and two
 size tiers. The OpenKBP field is explicitly a one-response workflow-view gate, not
 stateful workflow qualification. “Planned route” means no Q0 evidence is
 committed; it is not a claim that an API handle, free quota, local artifact, or
 compatible hardware is currently available. The website can therefore filter the
 remaining 30 models by openness, route, and missing gate without inventing access
 reasons or confusing native GPT-5.6 evidence with common-harness qualification.
+Four frozen route sets now declare 29 executable configurations. Sixteen are digest-pinned Ollama
+routes corresponding exactly to current-contract submission sidecars; the remaining routes cover
+Groq and hosted-provider expansion candidates. Route presence is operational readiness metadata,
+not a score, an access claim, or a unique-base-model completion.
 `deepseek-r1:1.5b` completed a fresh 30-attempt Q2 matrix with artifact digest
 `sha256:e0979632db5a88d1a53884cb2a941772d10ff5d055aabaa6801c4e36f3a6c2d7`.
 Its 12 required-image attempts are explicit unsupported-modality outcomes and all

@@ -1,0 +1,262 @@
+schema_version: medphysbench.model-routes.v1
+route_set_id: local-ollama-routes-v1
+fleet_file: fleet/public_fleet_v1.yaml
+fleet_id: public-fleet-v1
+frozen_at: "2026-08-03T12:30:00Z"
+routes:
+  - route_id: ollama-deepseek-r1-1-5b
+    base_model_id: deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+    adapter: ollama
+    provider: ollama
+    model: deepseek-r1:1.5b
+    model_revision: sha256:e0979632db5a88d1a53884cb2a941772d10ff5d055aabaa6801c4e36f3a6c2d7
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-gemma3-12b-it-q4-k-m
+    base_model_id: google/gemma-3-12b-it
+    adapter: ollama
+    provider: ollama
+    model: gemma3:12b-it-q4_K_M
+    model_revision: sha256:f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text, image]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-gemma3-4b
+    base_model_id: google/gemma-3-4b-it
+    adapter: ollama
+    provider: ollama
+    model: gemma3:4b
+    model_revision: sha256:a2af6cc3eb7fa8be8504abaf9b04e88f17a119ec3f04a3addf55f92841195f5a
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text, image]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-hf-co-enlistedghost-pixtral-12b-2409-gguf-q4-k-m
+    base_model_id: mistralai/Pixtral-12B-2409
+    adapter: ollama
+    provider: ollama
+    model: hf.co/EnlistedGhost/Pixtral-12B-2409-GGUF:Q4_K_M
+    model_revision: sha256:bf98f2143bd35a699805b018855a12db0d5ddda0ce694772d4dd3c6b843a3286
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text, image]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-llama3-1-8b
+    base_model_id: meta-llama/Llama-3.1-8B-Instruct
+    adapter: ollama
+    provider: ollama
+    model: llama3.1:8b
+    model_revision: sha256:46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-llama3-2-3b
+    base_model_id: meta-llama/Llama-3.2-3B-Instruct
+    adapter: ollama
+    provider: ollama
+    model: llama3.2:3b
+    model_revision: sha256:a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-mistral-nemo-12b-instruct-2407-q4-k-m
+    base_model_id: mistralai/Mistral-Nemo-Instruct-2407
+    adapter: ollama
+    provider: ollama
+    model: mistral-nemo:12b-instruct-2407-q4_K_M
+    model_revision: sha256:daf6737417121831e572a9c482e92a221ee0c33537f35f1f857c7b4f7191df55
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-phi4-14b
+    base_model_id: microsoft/phi-4
+    adapter: ollama
+    provider: ollama
+    model: phi4:14b
+    model_revision: sha256:ac896e5b8b34a1f4efa7b14d7520725140d5512484457fab45d2a4ea14c69dba
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-phi4-mini-3-8b-q4-k-m
+    base_model_id: microsoft/Phi-4-mini-instruct
+    adapter: ollama
+    provider: ollama
+    model: phi4-mini:3.8b-q4_K_M
+    model_revision: 78fad5d182a7c33065e153a5f8ba210754207ba9d91973f57dffa7f487363753
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-qwen2-5-7b-instruct
+    base_model_id: Qwen/Qwen2.5-7B-Instruct
+    adapter: ollama
+    provider: ollama
+    model: qwen2.5:7b-instruct
+    model_revision: sha256:845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-qwen2-5vl-3b
+    base_model_id: Qwen/Qwen2.5-VL-3B-Instruct
+    adapter: ollama
+    provider: ollama
+    model: qwen2.5vl:3b
+    model_revision: sha256:fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text, image]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-qwen2-5vl-7b-q4-k-m
+    base_model_id: Qwen/Qwen2.5-VL-7B-Instruct
+    adapter: ollama
+    provider: ollama
+    model: qwen2.5vl:7b-q4_K_M
+    model_revision: sha256:5ced39dfa4bac325dc183dd1e4febaa1c46b3ea28bce48896c8e69c1e79611cc
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text, image]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-qwen3-1-7b
+    base_model_id: Qwen/Qwen3-1.7B
+    adapter: ollama
+    provider: ollama
+    model: qwen3:1.7b
+    model_revision: sha256:8f68893c685c3ddff2aa3fffce2aa60a30bb2da65ca488b61fff134a4d1730e7
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-qwen3-14b
+    base_model_id: Qwen/Qwen3-14B
+    adapter: ollama
+    provider: ollama
+    model: qwen3:14b
+    model_revision: sha256:bdbd181c33f2ed1b31c972991882db3cf4d192569092138a7d29e973cd9debe8
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-qwen3-5-4b
+    base_model_id: Qwen/Qwen3.5-4B
+    adapter: ollama
+    provider: ollama
+    model: qwen3.5:4b
+    model_revision: sha256:2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096
+  - route_id: ollama-qwen3-8b
+    base_model_id: Qwen/Qwen3-8B
+    adapter: ollama
+    provider: ollama
+    model: qwen3:8b
+    model_revision: sha256:500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096

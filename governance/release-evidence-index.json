@@ -363,8 +363,8 @@
           "Stateful or end-to-end workflow completion claim"
         ]
       },
-      "defect_count": 2,
-      "defect_ids": ["MPB-2026-001", "MPB-2026-002"],
+      "defect_count": 3,
+      "defect_ids": ["MPB-2026-001", "MPB-2026-002", "MPB-2026-003"],
       "review_ledger": {
         "path": "reviews/public-real-workflows-pilot-v0.6.json",
         "sha256": "9c491835856ebeba5409c2bd08b9f129c5dee4699a6d935c9e8458268b11185a"
