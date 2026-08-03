@@ -1,0 +1,58 @@
+{
+  "adapter": "ollama",
+  "base_model_id": "microsoft/Phi-4-multimodal-instruct",
+  "capabilities": {
+    "inferred": [
+      "text"
+    ],
+    "observed": [
+      "json_schema",
+      "strict_schema",
+      "text"
+    ]
+  },
+  "completed_at": "2026-08-03T18:07:32Z",
+  "content_sha256": "0e4dae8825b8e4eb04fe21d823ccc9eb715f11d56ed193d2e1a227a27fb48faf",
+  "expires_at": "2026-08-04T00:07:32Z",
+  "fleet_id": "public-fleet-v1",
+  "model": "hf.co/ShayanCyan/phi4-multimodal-quantisized-gguf:Q4_K_M",
+  "model_revision": "sha256:3c73f00ac73b1f77b914aec830fbf2e2570aac6f538dd474e2d19dcb6cc9d62f",
+  "outcome": "available",
+  "probe_dependencies": [
+    {
+      "content_sha256": "5ddd56a52e1e8db9fa16eef85da749a7decd585a43fd2a56b51978c2af185ef6",
+      "path": "src/medphys_agentbench/adapters/ollama.py"
+    },
+    {
+      "content_sha256": "9074b67a24aa0bff1fae01685885a85c717b0e82e4e3b2b5744f8d0091100605",
+      "path": "src/medphys_agentbench/json_utils.py"
+    },
+    {
+      "content_sha256": "c13c16ba41399727772270992dec9bb44f7d620bc1e3a22ebc182834749ea5f2",
+      "path": "src/medphys_agentbench/route_qualification.py"
+    }
+  ],
+  "probe_implementation_path": "scripts/probes/ollama_access_probe.py",
+  "probe_implementation_sha256": "fdaa7e7e6023dc6972fade7fbe0ecb2ab605af01e6622b55a55a991d7753c924",
+  "probe_version": "ollama-access-probe-v1",
+  "provider": "ollama",
+  "quota": {
+    "source": "local_runtime",
+    "status": "sufficient"
+  },
+  "receipt_id": "ollama-phi4-multimodal-3-8b-q4-k-m-20260803t180732z",
+  "route_id": "ollama-phi4-multimodal-3-8b-q4-k-m",
+  "route_set_id": "local-ollama-candidate-routes-v3",
+  "route_spec_sha256": "17ea04ebabf5dcbcd72c60188d1b205adf6c6090f8a77bdb292eab0815f967be",
+  "sanitized_metadata": {
+    "endpoint_host": "127.0.0.1",
+    "http_status": 200,
+    "latency_ms": 1746.032,
+    "response_contract": "json_schema",
+    "served_model": "hf.co/ShayanCyan/phi4-multimodal-quantisized-gguf:Q4_K_M",
+    "served_revision": "sha256:3c73f00ac73b1f77b914aec830fbf2e2570aac6f538dd474e2d19dcb6cc9d62f"
+  },
+  "schema_version": "medphysbench.access-probe-receipt.v1",
+  "source_commit": "fe9f9fa6822fc44a7012e8c7207eaba91a13c32a",
+  "started_at": "2026-08-03T18:07:31Z"
+}
