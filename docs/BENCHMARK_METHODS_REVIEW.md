@@ -14,7 +14,7 @@ This review compares the current system with contemporary benchmark practice and
 
 ## Quantified evidence gap
 
-The current OpenKBP pilot contains ten task views from only two independent case families. That is
+The current OpenKBP pilot contains ten one-response task views from only two independent case families. That is
 useful for exercising the end-to-end release and forensic contracts, but it is far below a mature
 medical-agent task surface. For scale—not as a direct apples-to-apples target—
 [MedAgentBench](https://arxiv.org/abs/2501.14654) reports
@@ -137,5 +137,9 @@ The highest-value sequence is:
 4. add stateful RT workflow tasks and broader independent families;
 5. freeze pricing snapshots and publish cost per attempt and per safe success;
 6. seek external replication.
+
+The current OpenKBP rows must not be counted as that stateful milestone. The
+versioned receipt, final-state, exploit-test, and promotion requirements are
+defined in [STATEFUL_WORKFLOW_CONTRACT.md](STATEFUL_WORKFLOW_CONTRACT.md).
 
 Adding more public questions before these steps improves breadth but not benchmark defensibility.

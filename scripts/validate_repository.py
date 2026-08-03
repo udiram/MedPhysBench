@@ -156,12 +156,14 @@ def validate_repository() -> dict[str, int]:
         "result": _validator("result.v1.schema.json"),
         "release": _validator("release.v1.schema.json"),
         "review_evidence": _validator("review-evidence.v1.schema.json"),
+        "workflow_receipt": _validator("workflow-receipt.v1.schema.json"),
         "model_fleet": _validator("model-fleet.v1.schema.json"),
         "fleet_status_v1": _validator("fleet-status.v1.schema.json"),
         "fleet_status_v2": _validator("fleet-status.v2.schema.json"),
         "common_harness_submission": _validator("common-harness-submission.v1.schema.json"),
         "recorded_batch_v2": _validator("recorded-batch.v2.schema.json"),
         "defect_ledger": _validator("defect-ledger.v1.schema.json"),
+        "release_evidence_index": _validator("release-evidence-index.v1.schema.json"),
         "campaign_v1": _validator("campaign.v1.schema.json"),
         "campaign_v2": _validator("campaign.v2.schema.json"),
         "access_status": _validator("access-status.v1.schema.json"),
@@ -309,6 +311,23 @@ def validate_repository() -> dict[str, int]:
             extra = sorted(set(reviewed_task_ids).difference(expected_task_ids))
             raise ValueError(f"{path}: review task coverage mismatch; missing={missing}, extra={extra}.")
 
+    from scripts.build_public_release_evidence import validate_release_evidence_index
+
+    release_evidence_path = ROOT / "governance" / "release-evidence-index.json"
+    public_release_evidence_path = ROOT / "web" / "public" / "data" / "release_evidence.json"
+    if not release_evidence_path.is_file():
+        raise ValueError(f"{release_evidence_path}: canonical release evidence index is missing.")
+    if not public_release_evidence_path.is_file():
+        raise ValueError(f"{public_release_evidence_path}: public release evidence projection is missing.")
+
+    governance_release_evidence = _load_json(release_evidence_path)
+    public_release_evidence = _load_json(public_release_evidence_path)
+    _validate(validators["release_evidence_index"], governance_release_evidence, release_evidence_path)
+    _validate(validators["release_evidence_index"], public_release_evidence, public_release_evidence_path)
+    validate_release_evidence_index(governance_release_evidence, root=ROOT)
+    if public_release_evidence != governance_release_evidence:
+        raise ValueError(f"{public_release_evidence_path}: projection differs from canonical release evidence.")
+
     grader_mutation_count = 0
     task_paths = sorted((ROOT / "tasks").rglob("task.yaml"))
     for path in task_paths:
@@ -434,6 +453,7 @@ def validate_repository() -> dict[str, int]:
         "schema_count": len(validators),
         "release_count": len(release_paths),
         "review_evidence_count": len(review_paths),
+        "release_evidence_count": len(governance_release_evidence["releases"]),
         "defect_count": len(defect_ledger["entries"]),
         "task_count": len(task_paths),
         "result_count": len(result_paths),

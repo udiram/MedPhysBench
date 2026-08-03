@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphysbench.org/schemas/release-evidence-index.v1.schema.json",
+  "title": "MedPhysBench canonical release-evidence index v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "updated_at", "releases"],
+  "properties": {
+    "schema_version": { "const": "medphysbench.release-evidence-index.v1" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "releases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/releaseEvidence" }
+    }
+  },
+  "$defs": {
+    "nonEmptyStrings": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "evidenceCountState": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "completed", "target", "note"],
+      "properties": {
+        "status": {
+          "enum": ["complete", "recruiting", "pending", "blocked", "not_started", "not_applicable"]
+        },
+        "completed": { "type": "integer", "minimum": 0 },
+        "target": { "type": ["integer", "null"], "minimum": 1 },
+        "note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "releaseEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release_id",
+        "manifest_path",
+        "manifest_sha256",
+        "release_contract_hash_v2",
+        "task_count",
+        "family_count",
+        "max_family_share_observed",
+        "expected_attempts_per_task",
+        "allow_access_classes",
+        "integrity_profile",
+        "public_attempt_detail",
+        "maturity",
+        "exposure",
+        "interaction",
+        "evidence",
+        "claim_boundary",
+        "defect_count",
+        "defect_ids",
+        "review_ledger"
+      ],
+      "properties": {
+        "release_id": { "type": "string", "minLength": 1 },
+        "manifest_path": { "type": "string", "pattern": "^releases/[^/]+\\.yaml$" },
+        "manifest_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "release_contract_hash_v2": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "task_count": { "type": "integer", "minimum": 1 },
+        "family_count": { "type": "integer", "minimum": 1 },
+        "max_family_share_observed": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "expected_attempts_per_task": { "type": "integer", "minimum": 1 },
+        "allow_access_classes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["public", "gated", "restricted", "private"] }
+        },
+        "integrity_profile": { "enum": ["development", "pilot", "comparison"] },
+        "public_attempt_detail": { "enum": ["aggregate_only", "sanitized_output"] },
+        "maturity": {
+          "enum": ["public_development", "public_pilot", "protected_comparison", "retired"]
+        },
+        "exposure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["task_access", "contamination_risk", "protected_holdout"],
+          "properties": {
+            "task_access": { "enum": ["public", "restricted", "private"] },
+            "contamination_risk": { "enum": ["high", "managed", "low"] },
+            "protected_holdout": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["status", "note"],
+              "properties": {
+                "status": { "enum": ["operating", "not_operating", "retired"] },
+                "note": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        },
+        "interaction": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["depth", "trajectory_capture", "final_state_grading", "note"],
+          "properties": {
+            "depth": { "enum": ["single_response", "stateful_workflow", "mixed"] },
+            "trajectory_capture": { "enum": ["none", "partial", "complete"] },
+            "final_state_grading": { "type": "boolean" },
+            "note": { "type": "string", "minLength": 1 }
+          }
+        },
+        "evidence": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "reference_feasibility",
+            "independent_domain_review",
+            "human_baseline",
+            "data_rights_review",
+            "artifact_audit",
+            "independent_replication"
+          ],
+          "properties": {
+            "reference_feasibility": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["status", "note"],
+              "properties": {
+                "status": { "enum": ["passed", "failed", "partial", "pending"] },
+                "note": { "type": "string", "minLength": 1 }
+              }
+            },
+            "independent_domain_review": { "$ref": "#/$defs/evidenceCountState" },
+            "human_baseline": { "$ref": "#/$defs/evidenceCountState" },
+            "data_rights_review": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["status", "note"],
+              "properties": {
+                "status": {
+                  "enum": ["documented", "pending_independent_confirmation", "blocked", "not_applicable"]
+                },
+                "note": { "type": "string", "minLength": 1 }
+              }
+            },
+            "artifact_audit": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["status", "note"],
+              "properties": {
+                "status": {
+                  "enum": ["internal_complete", "independent_complete", "partial", "pending", "blocked"]
+                },
+                "note": { "type": "string", "minLength": 1 }
+              }
+            },
+            "independent_replication": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["status", "note"],
+              "properties": {
+                "status": { "enum": ["complete", "partial", "not_started", "blocked"] },
+                "note": { "type": "string", "minLength": 1 }
+              }
+            }
+          }
+        },
+        "claim_boundary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allowed", "prohibited"],
+          "properties": {
+            "allowed": { "$ref": "#/$defs/nonEmptyStrings" },
+            "prohibited": { "$ref": "#/$defs/nonEmptyStrings" }
+          }
+        },
+        "defect_count": { "type": "integer", "minimum": 0 },
+        "defect_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^MPB-[0-9]{4}-[0-9]{3}$" }
+        },
+        "review_ledger": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "sha256"],
+              "properties": {
+                "path": { "type": "string", "pattern": "^reviews/[^/]+\\.json$" },
+                "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

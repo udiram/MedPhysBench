@@ -4,6 +4,7 @@ import hashlib
 import json
 import subprocess
 import sys
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -140,6 +141,77 @@ def test_public_review_evidence_projection_matches_canonical_ledger() -> None:
         text=True,
     )
     assert completed.returncode == 0, completed.stderr or completed.stdout
+
+
+def test_release_evidence_projection_matches_canonical_ledger() -> None:
+    completed = subprocess.run(
+        [sys.executable, "scripts/build_public_release_evidence.py", "--check"],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert completed.returncode == 0, completed.stderr or completed.stdout
+
+    schema = json.loads(Path("schemas/release-evidence-index.v1.schema.json").read_text(encoding="utf-8"))
+    payload = json.loads(
+        Path("governance/release-evidence-index.json").read_text(encoding="utf-8")
+    )
+    Draft202012Validator(schema, format_checker=FormatChecker()).validate(payload)
+
+
+def test_release_evidence_rejects_manifest_count_and_review_hash_drift() -> None:
+    from scripts.build_public_release_evidence import validate_release_evidence_index
+
+    payload = json.loads(Path("governance/release-evidence-index.json").read_text(encoding="utf-8"))
+
+    tampered = deepcopy(payload)
+    tampered["releases"][0]["manifest_sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="manifest_sha256 mismatch"):
+        validate_release_evidence_index(tampered)
+
+    tampered = deepcopy(payload)
+    tampered["releases"][0]["family_count"] += 1
+    with pytest.raises(ValueError, match="family_count does not match"):
+        validate_release_evidence_index(tampered)
+
+    tampered = deepcopy(payload)
+    real = next(item for item in tampered["releases"] if item["release_id"] == "public-real-workflows-pilot-v0.6")
+    real["review_ledger"]["sha256"] = "0" * 64
+    with pytest.raises(ValueError, match="review ledger path or hash mismatch"):
+        validate_release_evidence_index(tampered)
+
+
+def test_release_evidence_fails_closed_on_overclaim_and_stateful_shortcuts() -> None:
+    from scripts.build_public_release_evidence import validate_release_evidence_index
+
+    payload = json.loads(Path("governance/release-evidence-index.json").read_text(encoding="utf-8"))
+
+    tampered = deepcopy(payload)
+    entry = tampered["releases"][0]
+    entry["claim_boundary"]["prohibited"] = ["Clinical use is prohibited."]
+    with pytest.raises(ValueError, match="incomplete human baseline"):
+        validate_release_evidence_index(tampered)
+
+    tampered = deepcopy(payload)
+    entry = tampered["releases"][0]
+    entry["interaction"] = {
+        **entry["interaction"],
+        "depth": "stateful_workflow",
+        "trajectory_capture": "none",
+        "final_state_grading": False,
+    }
+    with pytest.raises(ValueError, match="stateful_workflow requires complete trajectory"):
+        validate_release_evidence_index(tampered)
+
+
+def test_release_evidence_requires_exact_release_coverage() -> None:
+    from scripts.build_public_release_evidence import validate_release_evidence_index
+
+    payload = json.loads(Path("governance/release-evidence-index.json").read_text(encoding="utf-8"))
+    payload["releases"].pop()
+
+    with pytest.raises(ValueError, match="release evidence coverage mismatch"):
+        validate_release_evidence_index(payload)
 
 
 def test_public_defect_ledger_is_valid_and_matches_canonical_projection() -> None:

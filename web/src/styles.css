@@ -1551,6 +1551,7 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 }
 .release-maturity.warn { color: var(--accent); background: var(--accent-soft); }
 .release-maturity.neutral { color: var(--native); border-color: rgba(112, 184, 196, 0.3); }
+.release-maturity.bad { color: var(--danger); border-color: rgba(239, 154, 125, 0.32); }
 .claim-prohibited {
   max-width: 74ch;
   margin: 10px 0 0;

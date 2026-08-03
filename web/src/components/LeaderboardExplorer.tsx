@@ -15,6 +15,7 @@ import {
   shortHash,
 } from "../lib/format";
 import { modelRunKey } from "../lib/modelRunKey";
+import { releaseIdForView } from "../lib/releaseEvidence";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import { competitionRankMap } from "../lib/ranking";
 
@@ -761,7 +762,7 @@ function releaseTitle(view: ReleaseView) {
   if (view === "core") return "Core release results";
   if (view === "imaging") return "Imaging pilot";
   if (view === "tg263") return "TG-263 naming pilot";
-  return "OpenKBP real-workflow pilot";
+  return "OpenKBP real-data workflow-view pilot";
 }
 
 function releaseSummary(view: ReleaseView) {
@@ -774,14 +775,11 @@ function releaseSummary(view: ReleaseView) {
   if (view === "tg263") {
     return "Collision-aware structure naming where audited native GPT decision correctness stays separate from strict pilot rationale-label exactness.";
   }
-  return "A two-patient, ten-task OpenKBP pilot spanning image localization, dose interpretation, plan review, data integrity, and TG-263 naming. Official ranks are provisional within each identical frozen harness group.";
+  return "A two-patient, ten-task OpenKBP workflow-view pilot spanning image localization, dose interpretation, plan review, data integrity, and TG-263 naming. Official ranks are provisional within each identical frozen harness group.";
 }
 
 function fallbackReleaseId(view: ReleaseView) {
-  if (view === "core") return "public-core-v0.4";
-  if (view === "imaging") return "public-imaging-pilot-v0.4";
-  if (view === "tg263") return "public-tg263-pilot-v0.5";
-  return "public-real-workflows-pilot-v0.6";
+  return releaseIdForView(view);
 }
 
 function formatArtifactDate(value: string | undefined) {

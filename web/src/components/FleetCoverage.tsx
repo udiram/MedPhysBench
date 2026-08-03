@@ -19,7 +19,7 @@ const FUNNEL_STAGES = [
   ["planned_base_models", "Frozen panel", "Predeclared unique base IDs"],
   ["access_qualified_base_models", "Access qualified", "Live Q0 or later evidence"],
   ["evaluated_base_models", "Common-harness evaluated", "Complete current-contract matrix on a common adapter"],
-  ["workflow_qualified_base_models", "Workflow qualified", "Common-harness OpenKBP real-workflow matrix"],
+  ["workflow_qualified_base_models", "Workflow qualified", "Common-harness OpenKBP workflow-view matrix"],
   ["ranked_base_models", "Rankable", "Complete common-harness evidence"],
 ] as const;
 

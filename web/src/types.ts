@@ -35,6 +35,78 @@ export type ReviewEvidence = {
   };
 };
 
+export type EvidenceCountState = {
+  status: "complete" | "recruiting" | "pending" | "not_started" | "blocked" | "not_applicable";
+  completed: number;
+  target: number | null;
+  note: string;
+};
+
+export type ReleaseEvidence = {
+  release_id: string;
+  manifest_path: string;
+  manifest_sha256: string;
+  release_contract_hash_v2: string;
+  task_count: number;
+  family_count: number;
+  max_family_share_observed: number;
+  expected_attempts_per_task: number;
+  integrity_profile: "development" | "pilot" | "comparison";
+  allow_access_classes: Array<"public" | "gated" | "restricted" | "private">;
+  public_attempt_detail: "aggregate_only" | "sanitized_output";
+  maturity: "public_development" | "public_pilot" | "protected_comparison" | "retired";
+  exposure: {
+    task_access: "public" | "restricted" | "private";
+    contamination_risk: "high" | "managed" | "low";
+    protected_holdout: {
+      status: "operating" | "not_operating" | "retired";
+      note: string;
+    };
+  };
+  interaction: {
+    depth: "single_response" | "stateful_workflow" | "mixed";
+    trajectory_capture: "none" | "partial" | "complete";
+    final_state_grading: boolean;
+    note: string;
+  };
+  evidence: {
+    reference_feasibility: {
+      status: "passed" | "partial" | "pending" | "failed";
+      note: string;
+    };
+    independent_domain_review: EvidenceCountState;
+    human_baseline: EvidenceCountState;
+    data_rights_review: {
+      status: "documented" | "pending_independent_confirmation" | "blocked" | "not_applicable";
+      note: string;
+    };
+    artifact_audit: {
+      status: "internal_complete" | "independent_complete" | "partial" | "pending" | "blocked";
+      note: string;
+    };
+    independent_replication: {
+      status: "complete" | "partial" | "not_started" | "blocked";
+      note: string;
+    };
+  };
+  defect_count: number;
+  defect_ids: string[];
+  review_ledger: {
+    path: string;
+    sha256: string;
+  } | null;
+  claim_boundary: {
+    allowed: string[];
+    prohibited: string[];
+  };
+};
+
+export type ReleaseEvidenceIndex = {
+  schema_version: "medphysbench.release-evidence-index.v1";
+  updated_at: string;
+  releases: ReleaseEvidence[];
+};
+
 export type BenchmarkDefect = {
   defect_id: string;
   reported_at: string;

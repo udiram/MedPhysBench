@@ -44,7 +44,10 @@
       "Human-level or superhuman performance claim",
       "Clinical validation or treatment-planning competence claim",
       "Ten independent patient cases claim",
-      "Independent physicist review claim"
+      "Independent physicist review claim",
+      "Independent replication claim",
+      "Protected-holdout or contamination-resistant comparison claim",
+      "Stateful or end-to-end workflow completion claim"
     ]
   }
 }

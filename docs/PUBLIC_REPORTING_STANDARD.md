@@ -24,10 +24,21 @@ The header must include:
 - task count and independent family count as separate values;
 - the enforced maximum share of tasks permitted from one declared family;
 - expected attempts per task;
+- interaction depth (`single-response`, `stateful-workflow`, or `mixed`) and whether
+  complete trajectories plus final-state grading are present;
 - official comparison rows and observational/native rows;
 - one allowed-claim sentence and one prohibited-claim sentence.
 
 Missing evidence is shown as `not declared`, `not collected`, or `pending`; never as zero or an empty success state.
+
+The canonical source for release maturity, exposure, review, human baseline,
+rights, audit, replication, interaction depth, and claim boundaries is
+[`governance/release-evidence-index.json`](../governance/release-evidence-index.json).
+Repository validation recomputes manifest hashes, release-contract hashes,
+task/family counts, defect bindings, and review-ledger bindings before the exact
+projection is published to the website. UI code must fail closed when this
+record is missing, malformed, duplicated, or does not match the selected
+release; it must not substitute release-specific claims from component code.
 
 ## Ranking and comparison
 

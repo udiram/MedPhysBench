@@ -762,7 +762,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
 }
 
 function releaseLabel(releaseView: ReleaseView) {
-  if (releaseView === "real") return "the real-workflow release";
+  if (releaseView === "real") return "the real-data workflow-view release";
   if (releaseView === "tg263") return "the TG-263 pilot";
   if (releaseView === "imaging") return "the imaging pilot";
   return "the public core release";

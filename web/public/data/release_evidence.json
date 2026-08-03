@@ -1,0 +1,461 @@
+{
+  "releases": [
+    {
+      "allow_access_classes": [
+        "public"
+      ],
+      "claim_boundary": {
+        "allowed": [
+          "Public development and regression evidence across bounded medical-physics calculations, interpretation, artifact checks, and safe escalation.",
+          "Within-group comparison of complete rows under the frozen public-core-v0.4 harness."
+        ],
+        "prohibited": [
+          "Contamination-resistant frontier ranking or protected-holdout claims.",
+          "Independent physicist-review, human-level performance, or independent-replication claims.",
+          "Stateful workflow completion, clinical competence, or autonomous clinical action claims."
+        ]
+      },
+      "defect_count": 0,
+      "defect_ids": [],
+      "evidence": {
+        "artifact_audit": {
+          "note": "Repository CI validates schemas, immutable contracts, deterministic regrading, result completeness, and public projection consistency.",
+          "status": "internal_complete"
+        },
+        "data_rights_review": {
+          "note": "Repository-authored public tasks are CC0 and source/provenance declarations are retained; this is not an independent scientific review.",
+          "status": "documented"
+        },
+        "human_baseline": {
+          "completed": 0,
+          "note": "No release-matched human baseline is published.",
+          "status": "not_started",
+          "target": null
+        },
+        "independent_domain_review": {
+          "completed": 0,
+          "note": "No release-matched independent qualified-physicist review is published.",
+          "status": "not_started",
+          "target": 2
+        },
+        "independent_replication": {
+          "note": "No independent organization has published a release-matched reproduction.",
+          "status": "not_started"
+        },
+        "reference_feasibility": {
+          "note": "Repository validation constructs and deterministically regrades a schema-valid reference output for every task.",
+          "status": "passed"
+        }
+      },
+      "expected_attempts_per_task": 1,
+      "exposure": {
+        "contamination_risk": "high",
+        "protected_holdout": {
+          "note": "Task prompts, fixtures, and grading contracts are public development material and may be directly optimized against.",
+          "status": "not_operating"
+        },
+        "task_access": "public"
+      },
+      "family_count": 64,
+      "integrity_profile": "development",
+      "interaction": {
+        "depth": "single_response",
+        "final_state_grading": false,
+        "note": "Every task is one structured response; no interactive tool trajectory or sandbox final state is scored.",
+        "trajectory_capture": "none"
+      },
+      "manifest_path": "releases/public_core_v0_4.yaml",
+      "manifest_sha256": "5be05b371ab073b40dda0532c152355eb9442c2d370a4b18a55838dbd4e43797",
+      "maturity": "public_development",
+      "max_family_share_observed": 0.015625,
+      "public_attempt_detail": "sanitized_output",
+      "release_contract_hash_v2": "22a9b272df7bfb5ca2eff091481d77a1b61a40057f6ce744025dfdaf80011ea2",
+      "release_id": "public-core-v0.4",
+      "review_ledger": null,
+      "task_count": 64
+    },
+    {
+      "allow_access_classes": [
+        "public"
+      ],
+      "claim_boundary": {
+        "allowed": [
+          "Development and grader-hardening work on the expanded 82-task public task set.",
+          "Task-authoring, adapter, and regression testing under the frozen release contract."
+        ],
+        "prohibited": [
+          "A current protected or contamination-resistant leaderboard claim.",
+          "Independent physicist-review, human-level performance, or independent-replication claims.",
+          "Stateful workflow completion, clinical competence, or autonomous clinical action claims."
+        ]
+      },
+      "defect_count": 0,
+      "defect_ids": [],
+      "evidence": {
+        "artifact_audit": {
+          "note": "Repository CI validates schemas, authored reference feasibility, grader mutations, and release-contract integrity.",
+          "status": "internal_complete"
+        },
+        "data_rights_review": {
+          "note": "Repository-authored public tasks are CC0 and source/provenance declarations are retained; this is not an independent scientific review.",
+          "status": "documented"
+        },
+        "human_baseline": {
+          "completed": 0,
+          "note": "No release-matched human baseline is published.",
+          "status": "not_started",
+          "target": null
+        },
+        "independent_domain_review": {
+          "completed": 0,
+          "note": "No release-matched independent qualified-physicist review is published.",
+          "status": "not_started",
+          "target": 2
+        },
+        "independent_replication": {
+          "note": "No independent organization has published a release-matched reproduction.",
+          "status": "not_started"
+        },
+        "reference_feasibility": {
+          "note": "Repository validation constructs and deterministically regrades a schema-valid reference output for every task.",
+          "status": "passed"
+        }
+      },
+      "expected_attempts_per_task": 1,
+      "exposure": {
+        "contamination_risk": "high",
+        "protected_holdout": {
+          "note": "The expanded task set is public development material, not a protected comparison set.",
+          "status": "not_operating"
+        },
+        "task_access": "public"
+      },
+      "family_count": 82,
+      "integrity_profile": "development",
+      "interaction": {
+        "depth": "single_response",
+        "final_state_grading": false,
+        "note": "Every task is one structured response; no interactive tool trajectory or sandbox final state is scored.",
+        "trajectory_capture": "none"
+      },
+      "manifest_path": "releases/public_core_v0_5.yaml",
+      "manifest_sha256": "b716a5043e12a3c720f70e1908ea71547fb64bdd2e7821a3cae3b81473bedf4b",
+      "maturity": "public_development",
+      "max_family_share_observed": 0.012195121951219513,
+      "public_attempt_detail": "sanitized_output",
+      "release_contract_hash_v2": "088958a48278454062df7e89ebc9a481f0a47c1a668b45dbb38bfe99e0b38a34",
+      "release_id": "public-core-v0.5",
+      "review_ledger": null,
+      "task_count": 82
+    },
+    {
+      "allow_access_classes": [
+        "public"
+      ],
+      "claim_boundary": {
+        "allowed": [
+          "Smoke testing of task loading, deterministic grading, safety gates, and provider adapters.",
+          "Public development and regression work on the 16-task harness fixture."
+        ],
+        "prohibited": [
+          "Frontier-model ranking or protected-holdout claims.",
+          "Independent physicist-review, human-level performance, or independent-replication claims.",
+          "Stateful workflow completion, clinical competence, or autonomous clinical action claims."
+        ]
+      },
+      "defect_count": 0,
+      "defect_ids": [],
+      "evidence": {
+        "artifact_audit": {
+          "note": "Repository CI validates the release and every authored/runtime task contract.",
+          "status": "internal_complete"
+        },
+        "data_rights_review": {
+          "note": "Repository-authored public tasks are CC0 and source/provenance declarations are retained.",
+          "status": "documented"
+        },
+        "human_baseline": {
+          "completed": 0,
+          "note": "No release-matched human baseline is published.",
+          "status": "not_started",
+          "target": null
+        },
+        "independent_domain_review": {
+          "completed": 0,
+          "note": "No release-matched independent qualified-physicist review is published.",
+          "status": "not_started",
+          "target": 2
+        },
+        "independent_replication": {
+          "note": "No independent organization has published a release-matched reproduction.",
+          "status": "not_started"
+        },
+        "reference_feasibility": {
+          "note": "Repository validation constructs and deterministically regrades a schema-valid reference output for every task.",
+          "status": "passed"
+        }
+      },
+      "expected_attempts_per_task": 1,
+      "exposure": {
+        "contamination_risk": "high",
+        "protected_holdout": {
+          "note": "This compact release is a public harness-development fixture.",
+          "status": "not_operating"
+        },
+        "task_access": "public"
+      },
+      "family_count": 16,
+      "integrity_profile": "development",
+      "interaction": {
+        "depth": "single_response",
+        "final_state_grading": false,
+        "note": "Every task is one structured response; no interactive tool trajectory or sandbox final state is scored.",
+        "trajectory_capture": "none"
+      },
+      "manifest_path": "releases/public_dev_2026_07_31.yaml",
+      "manifest_sha256": "af09f1937b2e4fb3e672177b15e0ff0db9ae2cf55614679ae1b416c0c3f49b80",
+      "maturity": "public_development",
+      "max_family_share_observed": 0.0625,
+      "public_attempt_detail": "sanitized_output",
+      "release_contract_hash_v2": "59fe23891d470713415a8075ea8a1839471fe5bab5a3739c1c2a9e31d5589ef9",
+      "release_id": "public-dev-2026-07-31",
+      "review_ledger": null,
+      "task_count": 16
+    },
+    {
+      "allow_access_classes": [
+        "public"
+      ],
+      "claim_boundary": {
+        "allowed": [
+          "Research-only localization, coarse segmentation, and source-label evidence on five frozen public MRI, CT, and PET fixtures.",
+          "Development comparison of complete rows under the exact published image-task contracts."
+        ],
+        "prohibited": [
+          "Diagnostic validation, clinical contouring authority, or prospective reader-performance claims.",
+          "Contamination-resistant, independent-review, human-level, or independent-replication claims.",
+          "Stateful image-workstation or end-to-end clinical workflow completion claims."
+        ]
+      },
+      "defect_count": 0,
+      "defect_ids": [],
+      "evidence": {
+        "artifact_audit": {
+          "note": "Repository CI verifies pinned image hashes, task contracts, deterministic geometry graders, and public results.",
+          "status": "internal_complete"
+        },
+        "data_rights_review": {
+          "note": "Public source attribution and pinned asset hashes are published; an independent publication-rights review is not complete.",
+          "status": "pending_independent_confirmation"
+        },
+        "human_baseline": {
+          "completed": 0,
+          "note": "No human-reader or contouring baseline is published.",
+          "status": "not_started",
+          "target": null
+        },
+        "independent_domain_review": {
+          "completed": 0,
+          "note": "No release-matched independent imaging-physicist and modality-expert review is published.",
+          "status": "not_started",
+          "target": 2
+        },
+        "independent_replication": {
+          "note": "No independent organization has published a release-matched reproduction.",
+          "status": "not_started"
+        },
+        "reference_feasibility": {
+          "note": "Repository validation constructs and deterministically regrades a schema-valid reference output for every task.",
+          "status": "passed"
+        }
+      },
+      "expected_attempts_per_task": 1,
+      "exposure": {
+        "contamination_risk": "high",
+        "protected_holdout": {
+          "note": "The five image fixtures and task contracts are public and development-facing.",
+          "status": "not_operating"
+        },
+        "task_access": "public"
+      },
+      "family_count": 5,
+      "integrity_profile": "development",
+      "interaction": {
+        "depth": "single_response",
+        "final_state_grading": false,
+        "note": "Models return one structured localization, segmentation, or classification artifact; no interactive image workstation state is scored.",
+        "trajectory_capture": "none"
+      },
+      "manifest_path": "releases/public_imaging_pilot_v0_4.yaml",
+      "manifest_sha256": "7fb6dfe107141fd253feb27ee97c77f07e793bcbf885cdb43337399c471c3542",
+      "maturity": "public_pilot",
+      "max_family_share_observed": 0.2,
+      "public_attempt_detail": "sanitized_output",
+      "release_contract_hash_v2": "9028e88d7e3eb7369685b6af9f89f2635ad7f6b22e843e75d7e5932aa251dfdc",
+      "release_id": "public-imaging-pilot-v0.4",
+      "review_ledger": null,
+      "task_count": 5
+    },
+    {
+      "allow_access_classes": [
+        "public"
+      ],
+      "claim_boundary": {
+        "allowed": [
+          "Provisional common-harness model comparison on two pinned OpenKBP patient families",
+          "Deterministic feasibility and artifact-provenance evidence",
+          "Research-only evidence about bounded assistance and escalation behavior"
+        ],
+        "prohibited": [
+          "Human-level or superhuman performance claim",
+          "Clinical validation or treatment-planning competence claim",
+          "Ten independent patient cases claim",
+          "Independent physicist review claim",
+          "Independent replication claim",
+          "Protected-holdout or contamination-resistant comparison claim",
+          "Stateful or end-to-end workflow completion claim"
+        ]
+      },
+      "defect_count": 2,
+      "defect_ids": [
+        "MPB-2026-001",
+        "MPB-2026-002"
+      ],
+      "evidence": {
+        "artifact_audit": {
+          "note": "Repository validation binds task/result contracts, deterministic regrading, provider receipts, submissions, captures, defects, and public projections; no independent audit is published.",
+          "status": "internal_complete"
+        },
+        "data_rights_review": {
+          "note": "The official OpenKBP code/data repository and pinned dataset mirror declare MIT terms; CT origin and upstream challenge attribution are retained. Independent publication-rights review remains required before promoting the pilot beyond provisional status.",
+          "status": "pending_independent_confirmation"
+        },
+        "human_baseline": {
+          "completed": 0,
+          "note": "No human performance score is published. The preregistered collection protocol is in docs/HUMAN_BASELINE_PROTOCOL.md.",
+          "status": "recruiting",
+          "target": 30
+        },
+        "independent_domain_review": {
+          "completed": 0,
+          "note": "Two qualified radiation-therapy physicists must independently review every task before the release may be described as domain-reviewed.",
+          "status": "pending",
+          "target": 2
+        },
+        "independent_replication": {
+          "note": "No independent organization has published a release-matched reproduction.",
+          "status": "not_started"
+        },
+        "reference_feasibility": {
+          "note": "Repository validation constructs a schema-valid reference output for every task and deterministically regrades it.",
+          "status": "passed"
+        }
+      },
+      "expected_attempts_per_task": 3,
+      "exposure": {
+        "contamination_risk": "high",
+        "protected_holdout": {
+          "note": "Both OpenKBP families, prompts, fixtures, and grader contracts are public; this is not a contamination-resistant holdout.",
+          "status": "not_operating"
+        },
+        "task_access": "public"
+      },
+      "family_count": 2,
+      "integrity_profile": "pilot",
+      "interaction": {
+        "depth": "single_response",
+        "final_state_grading": false,
+        "note": "These are ten one-response views of two real-data families, not interactive treatment-planning or end-to-end workflow executions.",
+        "trajectory_capture": "none"
+      },
+      "manifest_path": "releases/public_real_workflows_pilot_v0_6.yaml",
+      "manifest_sha256": "c5f8e7642f78183304cd1f50e28a5086e4bb2404145ce7ef6708def1def91f94",
+      "maturity": "public_pilot",
+      "max_family_share_observed": 0.5,
+      "public_attempt_detail": "sanitized_output",
+      "release_contract_hash_v2": "c8bb7a810e9598eb37132884301449c1256447c90426f769fd028d3f7237909e",
+      "release_id": "public-real-workflows-pilot-v0.6",
+      "review_ledger": {
+        "path": "reviews/public-real-workflows-pilot-v0.6.json",
+        "sha256": "9c491835856ebeba5409c2bd08b9f129c5dee4699a6d935c9e8458268b11185a"
+      },
+      "task_count": 10
+    },
+    {
+      "allow_access_classes": [
+        "public"
+      ],
+      "claim_boundary": {
+        "allowed": [
+          "Public development evidence for conservative, collision-aware structure-naming decisions and safe escalation.",
+          "Audit of primary naming decisions separately from exact benchmark reason-code labels."
+        ],
+        "prohibited": [
+          "Clinical structure approval, live RTSTRUCT mutation, or treatment-system validation.",
+          "Contamination-resistant, independent-review, human-level, or independent-replication claims.",
+          "Stateful workflow or autonomous clinical naming claims."
+        ]
+      },
+      "defect_count": 0,
+      "defect_ids": [],
+      "evidence": {
+        "artifact_audit": {
+          "note": "Repository CI validates naming rules, grader mutations, exact task contracts, and the decision-versus-reason-code audit.",
+          "status": "internal_complete"
+        },
+        "data_rights_review": {
+          "note": "Tasks are independently authored and do not redistribute the AAPM worksheet; source-policy documentation is published.",
+          "status": "documented"
+        },
+        "human_baseline": {
+          "completed": 0,
+          "note": "No release-matched physicist baseline is published.",
+          "status": "not_started",
+          "target": null
+        },
+        "independent_domain_review": {
+          "completed": 0,
+          "note": "No release-matched independent qualified-physicist review is published.",
+          "status": "not_started",
+          "target": 2
+        },
+        "independent_replication": {
+          "note": "No independent organization has published a release-matched reproduction.",
+          "status": "not_started"
+        },
+        "reference_feasibility": {
+          "note": "Repository validation constructs and deterministically regrades a schema-valid reference output for every task.",
+          "status": "passed"
+        }
+      },
+      "expected_attempts_per_task": 1,
+      "exposure": {
+        "contamination_risk": "high",
+        "protected_holdout": {
+          "note": "The authored naming vocabulary, task prompts, and graders are public development material.",
+          "status": "not_operating"
+        },
+        "task_access": "public"
+      },
+      "family_count": 18,
+      "integrity_profile": "development",
+      "interaction": {
+        "depth": "single_response",
+        "final_state_grading": false,
+        "note": "Each item produces one collision-aware naming decision; no RTSTRUCT mutation or stateful clinical system interaction is performed.",
+        "trajectory_capture": "none"
+      },
+      "manifest_path": "releases/public_tg263_pilot_v0_5.yaml",
+      "manifest_sha256": "d45ad6f2c789f3b7381e0473ba4e9214ecdf00060f473156db405bbbe027ef90",
+      "maturity": "public_development",
+      "max_family_share_observed": 0.05555555555555555,
+      "public_attempt_detail": "sanitized_output",
+      "release_contract_hash_v2": "7bc9c34a383abf6e0ed44a41c33ce3308298e64fad841b284320c22c2a138d9c",
+      "release_id": "public-tg263-pilot-v0.5",
+      "review_ledger": null,
+      "task_count": 18
+    }
+  ],
+  "schema_version": "medphysbench.release-evidence-index.v1",
+  "updated_at": "2026-08-03T10:50:00Z"
+}

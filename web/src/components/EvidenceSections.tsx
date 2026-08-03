@@ -1,17 +1,18 @@
 import { ExternalLink } from "lucide-react";
 import { DOC_LINKS, domainDescriptions, workflow } from "../content";
 import { domainLabel, formatPercent, shortHash } from "../lib/format";
-import type { AccessStatus, DefectLedger, Leaderboard, ReleaseView, ReviewEvidence } from "../types";
+import { countStateLabel, evidenceStatusLabel, interactionDepthLabel, maturityLabel, releaseIdForView } from "../lib/releaseEvidence";
+import type { AccessStatus, DefectLedger, Leaderboard, ReleaseEvidence, ReleaseView } from "../types";
 
 type EvidenceSectionsProps = {
   accessStatus: AccessStatus[];
   data: Leaderboard | null;
   defectLedger: DefectLedger | null;
   releaseView: ReleaseView;
-  reviewEvidence: ReviewEvidence | null;
+  releaseEvidence: ReleaseEvidence | null;
 };
 
-export function EvidenceSections({ accessStatus, data, defectLedger, releaseView, reviewEvidence }: EvidenceSectionsProps) {
+export function EvidenceSections({ accessStatus, data, defectLedger, releaseView, releaseEvidence }: EvidenceSectionsProps) {
   const coverage = data?.coverage ?? buildCoverage(data?.tasks ?? []);
   const integrity = data?.integrity;
   const blocked = accessStatus.filter((item) => item.status !== "available");
@@ -44,8 +45,9 @@ export function EvidenceSections({ accessStatus, data, defectLedger, releaseView
               <li><strong>{rankedCount ?? "—"}</strong> official harness-group row{rankedCount === 1 ? "" : "s"}</li>
               <li><strong>{reviewCount ?? "—"}</strong> native outcome row{reviewCount === 1 ? "" : "s"}</li>
               {data?.release.family_count != null && <li><strong>{data.release.family_count}</strong> independent patient/task families</li>}
-              <li><strong>Human baseline</strong> {humanBaselineSummary(releaseView, reviewEvidence)}</li>
-              {releaseView === "real" && <li><strong>Provisional</strong> independent domain and publication-rights review pending</li>}
+              <li><strong>Human baseline</strong> {humanBaselineSummary(releaseEvidence)}</li>
+              <li><strong>Evidence maturity</strong> {releaseEvidence ? maturityLabel(releaseEvidence.maturity) : "unavailable"}</li>
+              <li><strong>Interaction depth</strong> {releaseEvidence ? interactionDepthLabel(releaseEvidence.interaction.depth) : "unavailable"}</li>
             </ul>
           </article>
 
@@ -186,6 +188,16 @@ export function EvidenceSections({ accessStatus, data, defectLedger, releaseView
             <h3>Access status</h3>
             <p>{blocked.length} blocked or retired handles kept separate from scored results.</p>
           </article>
+          <article>
+            <h3>External evidence</h3>
+            {releaseEvidence ? (
+              <p>
+                Domain review {countStateLabel(releaseEvidence.evidence.independent_domain_review)}; independent replication {evidenceStatusLabel(releaseEvidence.evidence.independent_replication.status)}.
+              </p>
+            ) : (
+              <p>Canonical evidence unavailable; no review or replication claim is inferred.</p>
+            )}
+          </article>
           <article className={affectedDefects.length ? "integrity-defect-card active" : "integrity-defect-card"}>
             <h3>Public defect ledger</h3>
             {!defectLedger ? (
@@ -211,11 +223,9 @@ export function EvidenceSections({ accessStatus, data, defectLedger, releaseView
   );
 }
 
-function humanBaselineSummary(releaseView: ReleaseView, reviewEvidence: ReviewEvidence | null) {
-  if (releaseView !== "real") return "not published";
-  if (!reviewEvidence) return "review ledger unavailable";
-  const state = reviewEvidence.human_baseline;
-  return `${state.completed}/${state.target} ${state.status}`;
+function humanBaselineSummary(releaseEvidence: ReleaseEvidence | null) {
+  if (!releaseEvidence) return "evidence unavailable";
+  return countStateLabel(releaseEvidence.evidence.human_baseline);
 }
 
 function buildCoverage(tasks: Leaderboard["tasks"]) {
@@ -248,8 +258,5 @@ function formatTrackLabel(value: string) {
 }
 
 function fallbackReleaseId(releaseView: ReleaseView) {
-  if (releaseView === "core") return "public-core-v0.4";
-  if (releaseView === "imaging") return "public-imaging-pilot-v0.4";
-  if (releaseView === "tg263") return "public-tg263-pilot-v0.5";
-  return "public-real-workflows-pilot-v0.6";
+  return releaseIdForView(releaseView);
 }

@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphysbench.org/schemas/workflow-receipt.v1.schema.json",
+  "title": "MedPhysBench stateful workflow receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "task_id",
+    "attempt_index",
+    "initial_state_hash",
+    "workflow_contract_hash",
+    "tools_observed",
+    "trajectory_summary",
+    "trajectory_sha256",
+    "final_state_tree_sha256",
+    "output_artifacts",
+    "grader_inputs_complete"
+  ],
+  "properties": {
+    "schema_version": { "const": "medphysbench.workflow-receipt.v1" },
+    "run_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$" },
+    "task_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{2,127}$" },
+    "attempt_index": { "type": "integer", "minimum": 0 },
+    "initial_state_hash": { "$ref": "#/$defs/sha256" },
+    "workflow_contract_hash": { "$ref": "#/$defs/sha256" },
+    "tools_observed": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/tool_observation" }
+    },
+    "trajectory_summary": { "$ref": "#/$defs/trajectory_summary" },
+    "trajectory_sha256": { "$ref": "#/$defs/sha256" },
+    "final_state_tree_sha256": { "$ref": "#/$defs/sha256" },
+    "output_artifacts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/output_artifact" }
+    },
+    "grader_inputs_complete": { "type": "boolean" }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "tool_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tool_name", "tool_kind", "call_count"],
+      "properties": {
+        "tool_name": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,127}$" },
+        "tool_kind": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,63}$" },
+        "call_count": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "trajectory_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["step_count", "assistant_turns", "tool_call_count", "terminal_state"],
+      "properties": {
+        "step_count": { "type": "integer", "minimum": 0 },
+        "assistant_turns": { "type": "integer", "minimum": 0 },
+        "tool_call_count": { "type": "integer", "minimum": 0 },
+        "terminal_state": { "enum": ["completed", "aborted", "timeout", "error"] }
+      }
+    },
+    "output_artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "bytes"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" },
+        "bytes": { "type": "integer", "minimum": 1 }
+      }
+    }
+  }
+}

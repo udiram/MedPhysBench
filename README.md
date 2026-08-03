@@ -26,7 +26,7 @@ package, or evidence of autonomous clinical competence.
 - TG-263 pilot: `public-tg263-pilot-v0.5` (`18` synthetic ambiguity, collision, normalization, and escalation tasks)
 - TG-263 audit: `public-tg263-pilot-v0.5-audit` (separates primary naming decisions from exact benchmark reason-code labels)
 - Real-image pilot: `public-imaging-pilot-v0.4` (`5` real MRI, CT, and PET tasks)
-- OpenKBP real-workflow pilot: `public-real-workflows-pilot-v0.6` (`10` tasks from
+- OpenKBP real-data workflow-view pilot: `public-real-workflows-pilot-v0.6` (`10` one-response tasks from
   `2` patient families; `20` ranked Ollama configurations, `4` ranked Groq
   configurations, `1` quarantined Groq configuration, and `4` GPT-5.6 native audits;
   `29` total rows—`24` ranked and `5` unranked—and `870` total attempt artifacts)
@@ -44,6 +44,7 @@ package, or evidence of autonomous clinical competence.
 - Imaging run package: [`results/releases/public-imaging-pilot-v0.4/`](results/releases/public-imaging-pilot-v0.4/)
 - OpenKBP run package: [`results/releases/public-real-workflows-pilot-v0.6/`](results/releases/public-real-workflows-pilot-v0.6/)
 - OpenKBP review ledger: [`reviews/public-real-workflows-pilot-v0.6.json`](reviews/public-real-workflows-pilot-v0.6.json)
+- Canonical release evidence index: [`governance/release-evidence-index.json`](governance/release-evidence-index.json)
 - Public defect ledger: [`governance/benchmark-defects.json`](governance/benchmark-defects.json)
 - Release writeup: [`docs/RESULTS.md`](docs/RESULTS.md)
 - Benchmark card: [`docs/BENCHMARK_CARD.md`](docs/BENCHMARK_CARD.md)
@@ -62,6 +63,7 @@ package, or evidence of autonomous clinical competence.
 | Submit auditable model results | [Contribution guide](CONTRIBUTING.md#result-submission-requirements) · [submission schema](schemas/common-harness-submission.v1.schema.json) |
 | Propose a task | [Contribution guide](CONTRIBUTING.md) · [Task catalog](docs/TASK_CATALOG.md) |
 | Understand the harder RT roadmap | [Benchmark hardening](docs/BENCHMARK_HARDENING.md) · [RT competency map](docs/RT_COMPETENCY_MAP.md) · [AAPM coverage](docs/AAPM_TASK_GROUP_COVERAGE.md) · [planning sandbox](docs/PLANNING_SANDBOX.md) · [TG-263 lane](docs/TG263_BENCHMARK.md) |
+| Understand the stateful-agent promotion gate | [Stateful workflow contract](docs/STATEFUL_WORKFLOW_CONTRACT.md) |
 | Audit the human-grounding claim | [Human baseline protocol](docs/HUMAN_BASELINE_PROTOCOL.md) · [review ledger](reviews/public-real-workflows-pilot-v0.6.json) |
 | Run models at no software cost | [Free-model evaluation](docs/FREE_MODEL_EVALUATION.md) |
 | Audit or run the 50-model expansion target | [Model fleet protocol](docs/MODEL_FLEET_PROTOCOL.md) · [campaign control plane](docs/CAMPAIGN_CONTROL_PLANE.md) |
@@ -69,6 +71,9 @@ package, or evidence of autonomous clinical competence.
 ## What is already real
 
 - Versioned task, runtime-task, run, result, and release contracts in [`schemas/`](schemas/).
+- A forward-looking [stateful workflow receipt schema](schemas/workflow-receipt.v1.schema.json)
+  and validator that bind initial state, allowed tools, trajectory evidence, final-state artifacts,
+  and grader-input completeness without upgrading any current one-response score.
 - Run manifest v2 freezes credential-free adapter settings—including endpoint, context window,
   structured-output mode, retry policy, and local model residency controls—so `--resume` cannot
   silently continue under a changed execution configuration.
@@ -99,7 +104,7 @@ package, or evidence of autonomous clinical competence.
 - Harness-group release ranks plus a clearly labeled descriptive cross-surface outcome order;
   incomplete or manifest-inconsistent runs remain published but receive neither.
 - Architecture, governance, evaluation, onboarding, and deployment documentation in [`docs/`](docs/).
-- Repository-wide validation of all eighteen JSON Schemas, every authored/runtime task projection,
+- Repository-wide validation of all twenty JSON Schemas, every authored/runtime task projection,
   every artifact digest, constructed reference feasibility, and every published result artifact.
 - A unified browser model index that exposes open/closed and provider filters, release-specific
   scores, task-level outcome facets, failed grader contracts, exact configuration hashes, and

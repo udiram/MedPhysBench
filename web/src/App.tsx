@@ -12,8 +12,9 @@ import { LeaderboardExplorer } from "./components/LeaderboardExplorer";
 import { PublicModelIndex } from "./components/PublicModelIndex";
 import { ResultForensics } from "./components/ResultForensics";
 import { useLeaderboard } from "./hooks/useLeaderboard";
+import { releaseEvidenceFor, releaseIdForView } from "./lib/releaseEvidence";
 import { readEnumParam, setUrlParams } from "./lib/urlState";
-import type { AccessStatus, DefectLedger, FleetStatus, ModelCatalogEntry, ReleaseView, ReviewEvidence, Tg263Audit } from "./types";
+import type { AccessStatus, DefectLedger, FleetStatus, ModelCatalogEntry, ReleaseEvidenceIndex, ReleaseView, Tg263Audit } from "./types";
 
 const LEADERBOARD_URL = "/data/leaderboard.json";
 const IMAGING_LEADERBOARD_URL = "/data/imaging_leaderboard.json";
@@ -23,7 +24,7 @@ const TG263_AUDIT_URL = "/data/public-tg263-pilot-v0.5-audit.json";
 const ACCESS_STATUS_URL = "/data/access_status.json";
 const MODEL_CATALOG_URL = "/data/model_catalog.json";
 const FLEET_STATUS_URL = "/data/fleet_status.json";
-const REAL_WORKFLOWS_REVIEW_URL = "/data/public-real-workflows-pilot-v0.6-review.json";
+const RELEASE_EVIDENCE_URL = "/data/release_evidence.json";
 const DEFECT_LEDGER_URL = "/data/benchmark-defects.json";
 
 function App() {
@@ -35,7 +36,7 @@ function App() {
   const [accessStatus, setAccessStatus] = useState<AccessStatus[]>([]);
   const [modelCatalog, setModelCatalog] = useState<ModelCatalogEntry[]>([]);
   const [fleetStatus, setFleetStatus] = useState<FleetStatus | null>(null);
-  const [realWorkflowsReview, setRealWorkflowsReview] = useState<ReviewEvidence | null>(null);
+  const [releaseEvidenceIndex, setReleaseEvidenceIndex] = useState<ReleaseEvidenceIndex | null>(null);
   const [defectLedger, setDefectLedger] = useState<DefectLedger | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [releaseView, setReleaseView] = useState<ReleaseView>("real");
@@ -47,6 +48,8 @@ function App() {
         : releaseView === "tg263"
           ? tg263
           : realWorkflows;
+  const selectedReleaseId = selected.data?.release.release_id ?? releaseIdForView(releaseView);
+  const selectedEvidence = releaseEvidenceFor(releaseEvidenceIndex, selectedReleaseId);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -72,10 +75,10 @@ function App() {
 
   useEffect(() => {
     const controller = new AbortController();
-    fetch(REAL_WORKFLOWS_REVIEW_URL, { signal: controller.signal })
-      .then((response) => (response.ok ? (response.json() as Promise<ReviewEvidence>) : null))
-      .then((payload) => startTransition(() => setRealWorkflowsReview(payload)))
-      .catch(() => setRealWorkflowsReview(null));
+    fetch(RELEASE_EVIDENCE_URL, { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<ReleaseEvidenceIndex>) : null))
+      .then((payload) => startTransition(() => setReleaseEvidenceIndex(payload)))
+      .catch(() => setReleaseEvidenceIndex(null));
     return () => controller.abort();
   }, []);
 
@@ -141,7 +144,7 @@ function App() {
           data={selected.data}
           onReleaseViewChange={handleReleaseViewChange}
           releaseView={releaseView}
-          reviewEvidence={releaseView === "real" ? realWorkflowsReview : null}
+          releaseEvidence={selectedEvidence}
           repoUrl={REPO_URL}
         />
         <PublicModelIndex
@@ -152,7 +155,7 @@ function App() {
             { key: "core", label: "Core v0.4", data: core.data },
             { key: "imaging", label: "Imaging pilot", data: imaging.data },
             { key: "tg263", label: "TG-263 pilot", data: tg263.data },
-            { key: "real", label: "OpenKBP real-workflow pilot", data: realWorkflows.data },
+            { key: "real", label: "OpenKBP real-data workflow-view pilot", data: realWorkflows.data },
           ]}
         />
         <nav className="results-subnav" aria-label="Results views">
@@ -180,7 +183,7 @@ function App() {
           loadError={selected.loadError}
           releaseView={releaseView}
           modelCatalog={modelCatalog}
-          reviewEvidence={releaseView === "real" ? realWorkflowsReview : null}
+          releaseEvidence={selectedEvidence}
         />
         <ResultForensics
           data={selected.data}
@@ -194,7 +197,7 @@ function App() {
           data={selected.data}
           defectLedger={defectLedger}
           releaseView={releaseView}
-          reviewEvidence={releaseView === "real" ? realWorkflowsReview : null}
+          releaseEvidence={selectedEvidence}
         />
       </main>
       <footer className="site-footer">

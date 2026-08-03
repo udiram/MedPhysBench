@@ -12,6 +12,16 @@
 
 ## Unreleased
 
+- Added a canonical, schema-validated release-evidence index covering all six release manifests.
+  Repository validation recomputes manifest/release hashes, task and family counts, defect bindings,
+  and review-ledger bindings; incomplete human, reviewer, holdout, replication, and interaction
+  evidence must remain explicit in prohibited claims.
+- Replaced release-specific UI caveats with that canonical evidence source across the hero,
+  evidence-quality matrix, and methods surface. Missing or duplicate evidence now fails closed,
+  while every visible release states whether it is single-response, stateful, or mixed.
+- Clarified that the OpenKBP v0.6 lane contains one-response real-data workflow views, not stateful
+  agent executions, and published the versioned workflow-receipt/final-state/exploit-test promotion
+  contract required before any future lane can claim stateful workflow evidence.
 - Added a backward-compatible, manifest-declared OpenAI request dialect for provider-specific
   sampling, completion-limit, structured-output, and reasoning fields. Legacy Groq adapter,
   route, and campaign hashes are golden-tested; omitted sampling fields are recorded as `null`.

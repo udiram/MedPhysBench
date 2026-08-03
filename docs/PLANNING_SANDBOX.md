@@ -3,6 +3,11 @@
 **Status:** integration specification; research-only; no live clinical systems
 **Source review:** 2026-07-31
 
+No current public score is an execution of this stateful contract. The OpenKBP
+v0.6 lane is a one-response real-data workflow-view pilot. Promotion to an
+interactive planner lane also requires the receipt and rank-eligibility gates in
+[STATEFUL_WORKFLOW_CONTRACT.md](STATEFUL_WORKFLOW_CONTRACT.md).
+
 MedPhysBench treats a planner as a versioned evaluation tool, not as clinical
 authority. A model may create or inspect a plan only inside a sealed research
 container containing synthetic or publication-cleared data, a fixed machine

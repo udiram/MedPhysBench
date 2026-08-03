@@ -1,8 +1,15 @@
 import { useMemo, useState } from "react";
 import { domainLabel, formatPercent, normalizeModelDisplayName, providerLabel } from "../lib/format";
 import { modelRunKey } from "../lib/modelRunKey";
+import {
+  countStateLabel,
+  countStateTone,
+  evidenceClaimText,
+  evidenceStatusLabel,
+  interactionDepthLabel,
+} from "../lib/releaseEvidence";
 import { isCommonHarnessRun } from "../lib/runSurface";
-import type { Leaderboard, ModelCatalogEntry, ModelResult, ReleaseView, ReviewEvidence } from "../types";
+import type { Leaderboard, ModelCatalogEntry, ModelResult, ReleaseEvidence, ReleaseView } from "../types";
 
 type ViewMode = "capability" | "failures" | "evidence";
 type ScopeMode = "official" | "native" | "all";
@@ -13,7 +20,7 @@ type Props = {
   loadError?: boolean;
   releaseView: ReleaseView;
   modelCatalog: ModelCatalogEntry[];
-  reviewEvidence: ReviewEvidence | null;
+  releaseEvidence: ReleaseEvidence | null;
 };
 
 type Family = {
@@ -23,7 +30,7 @@ type Family = {
   domain?: string;
 };
 
-export function CapabilityExplorer({ data, loadError = false, releaseView, modelCatalog, reviewEvidence }: Props) {
+export function CapabilityExplorer({ data, loadError = false, releaseView, modelCatalog, releaseEvidence }: Props) {
   const [view, setView] = useState<ViewMode>("capability");
   const [scope, setScope] = useState<ScopeMode>("all");
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
@@ -141,7 +148,7 @@ export function CapabilityExplorer({ data, loadError = false, releaseView, model
 
       {view === "capability" && <CapabilityMatrix rows={rows} families={families} scope={effectiveScope} />}
       {view === "failures" && <FailureBreakdown rows={rows} />}
-      {view === "evidence" && <EvidenceQuality data={data} releaseView={releaseView} reviewEvidence={reviewEvidence} />}
+      {view === "evidence" && <EvidenceQuality data={data} releaseView={releaseView} releaseEvidence={releaseEvidence} />}
     </section>
   );
 }
@@ -277,13 +284,13 @@ function FailureBreakdown({ rows }: { rows: ModelResult[] }) {
   );
 }
 
-function EvidenceQuality({ data, releaseView, reviewEvidence }: Pick<Props, "data" | "releaseView" | "reviewEvidence">) {
+function EvidenceQuality({ data, releaseView, releaseEvidence }: Pick<Props, "data" | "releaseView" | "releaseEvidence">) {
   const officialRows = data?.models ?? [];
   const completeRows = officialRows.filter((row) => row.completed_count === row.expected_attempt_count).length;
   const repeats = data?.release.expected_attempts_per_task ?? 1;
   const families = data?.release.family_count;
   const maxFamilyShare = data?.release.max_family_share;
-  const releaseMeta = evidenceFor(releaseView, reviewEvidence);
+  const releaseMeta = evidenceFor(releaseEvidence);
   const rows = [
     {
       label: "Comparable harness",
@@ -331,11 +338,11 @@ function EvidenceQuality({ data, releaseView, reviewEvidence }: Pick<Props, "dat
       <div className="claim-boundary-panel">
         <div>
           <strong>What this release can support</strong>
-          <p>{claimBoundary(releaseView).allowed}</p>
+          <p>{releaseEvidence ? evidenceClaimText(releaseEvidence.claim_boundary.allowed) : unavailableClaims.allowed}</p>
         </div>
         <div>
           <strong>What it cannot support</strong>
-          <p>{claimBoundary(releaseView).prohibited}</p>
+          <p>{releaseEvidence ? evidenceClaimText(releaseEvidence.claim_boundary.prohibited) : unavailableClaims.prohibited}</p>
         </div>
       </div>
     </div>
@@ -376,55 +383,39 @@ function familyForTask(taskId: string, track: string): [string, string] {
   return [track, label];
 }
 
-function evidenceFor(view: ReleaseView, reviewEvidence: ReviewEvidence | null) {
-  if (view === "real") {
-    if (!reviewEvidence) {
-      return [
-        { label: "Release review ledger", state: "Unavailable", tone: "bad", detail: "The signed public review ledger could not be loaded; no review or human-baseline claim is inferred." },
-      ];
-    }
-    const domainReview = reviewEvidence.independent_domain_review;
-    const humanBaseline = reviewEvidence.human_baseline;
-    const rights = reviewEvidence.data_rights_review;
+function evidenceFor(releaseEvidence: ReleaseEvidence | null) {
+  if (!releaseEvidence) {
     return [
-      { label: "Independent domain review", state: `${domainReview.completed}/${domainReview.target} · ${domainReview.status}`, tone: domainReview.status === "complete" ? "good" : "bad", detail: domainReview.note },
-      { label: "Human baseline", state: `${humanBaseline.completed}/${humanBaseline.target} · ${humanBaseline.status}`, tone: humanBaseline.status === "complete" ? "good" : "bad", detail: humanBaseline.note },
-      { label: "Publication rights review", state: rights.status.replaceAll("_", " "), tone: rights.status === "documented" ? "good" : "warn", detail: rights.note },
-      { label: "Protected holdout", state: "Not operating", tone: "bad", detail: "This public pilot is a development surface and is vulnerable to direct optimization." },
+      { label: "Canonical evidence record", state: "Unavailable", tone: "bad", detail: "No release-level evidence is inferred when the canonical record is missing, malformed, or duplicated." },
     ];
   }
-  if (view === "imaging") {
-    return [
-      { label: "Independent domain review", state: "Not complete", tone: "bad", detail: "The public imaging pilot has not yet cleared external physicist and imaging-expert review." },
-      { label: "Human baseline", state: "Not published", tone: "bad", detail: "No human-reader or contouring baseline is published for this pilot." },
-      { label: "Protected holdout", state: "Not operating", tone: "bad", detail: "The released imaging fixtures are public and development-facing, not contamination-resistant." },
-    ];
-  }
+  const evidence = releaseEvidence.evidence;
+  const holdout = releaseEvidence.exposure.protected_holdout;
+  const auditTone = evidence.artifact_audit.status === "independent_complete"
+    ? "good"
+    : evidence.artifact_audit.status === "internal_complete" || evidence.artifact_audit.status === "partial"
+      ? "warn"
+      : "bad";
+  const replicationTone = evidence.independent_replication.status === "complete"
+    ? "good"
+    : evidence.independent_replication.status === "partial"
+      ? "warn"
+      : "bad";
   return [
-    { label: "Independent domain review", state: "Not complete", tone: "bad", detail: "The public development lane has not passed an external physicist review gate." },
-    { label: "Human baseline", state: "Not published", tone: "bad", detail: "Scores are model-only research evidence and must not be described as human-level performance." },
-    { label: "Protected holdout", state: "Not operating", tone: "bad", detail: "Public tasks, prompts, and gold contracts are inspectable; use this lane for development and regression only." },
+    { label: "Independent domain review", state: countStateLabel(evidence.independent_domain_review), tone: countStateTone(evidence.independent_domain_review), detail: evidence.independent_domain_review.note },
+    { label: "Human baseline", state: countStateLabel(evidence.human_baseline), tone: countStateTone(evidence.human_baseline), detail: evidence.human_baseline.note },
+    { label: "Publication rights review", state: evidenceStatusLabel(evidence.data_rights_review.status), tone: evidence.data_rights_review.status === "documented" ? "good" : evidence.data_rights_review.status === "pending_independent_confirmation" ? "warn" : "bad", detail: evidence.data_rights_review.note },
+    { label: "Protected holdout", state: evidenceStatusLabel(holdout.status), tone: holdout.status === "operating" ? "good" : "bad", detail: holdout.note },
+    { label: "Artifact audit", state: evidenceStatusLabel(evidence.artifact_audit.status), tone: auditTone, detail: evidence.artifact_audit.note },
+    { label: "Independent replication", state: evidenceStatusLabel(evidence.independent_replication.status), tone: replicationTone, detail: evidence.independent_replication.note },
+    { label: "Interaction depth", state: interactionDepthLabel(releaseEvidence.interaction.depth), tone: releaseEvidence.interaction.depth === "stateful_workflow" && releaseEvidence.interaction.final_state_grading ? "good" : "warn", detail: releaseEvidence.interaction.note },
   ];
 }
 
-function claimBoundary(view: ReleaseView) {
-  if (view === "real") return {
-    allowed: "Provisional, repeated-trial comparison on two pinned OpenKBP families under declared frozen harness groups.",
-    prohibited: "Clinical validation, autonomous planning competence, ten independent-patient claims, or human-level performance.",
-  };
-  if (view === "tg263") return {
-    allowed: "Public development evidence for collision-aware TG-263 decisions and grader-contract auditing.",
-    prohibited: "Cross-surface native ranking, treatment-system naming validation, or autonomous structure approval.",
-  };
-  if (view === "imaging") return {
-    allowed: "Research-only evaluation on frozen public imaging fixtures and benchmark-authored segmentation or interpretation contracts.",
-    prohibited: "Diagnostic validation, clinical contouring authority, or prospective reader-performance claims.",
-  };
-  return {
-    allowed: "Public development and regression evidence across medical-physics knowledge, calculations, artifact checks, and escalation.",
-    prohibited: "Contamination-resistant frontier ranking, clinical competence, or human-level performance.",
-  };
-}
+const unavailableClaims = {
+  allowed: "No release-level claim is inferred while the canonical evidence record is unavailable.",
+  prohibited: "Do not infer review, human-baseline, holdout, audit, replication, or workflow maturity from score artifacts alone.",
+};
 
 function heatClass(rate: number | null) {
   if (rate == null) return "heat-na";
