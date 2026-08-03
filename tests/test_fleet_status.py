@@ -54,7 +54,7 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
         "workflow_qualified_base_models": 20,
         "workflow_ranked_base_models": 20,
         "published_system_configurations": 29,
-        "published_release_rows": 44,
+        "published_release_rows": 47,
         "open_planned_models": 31,
         "closed_planned_models": 19,
         "vision_planned_models": 31,
@@ -83,7 +83,7 @@ def test_access_ledger_is_schema_valid_and_attested_promotions_resolve() -> None
     validator.validate(access)
 
     promoted = [entry for entry in access if entry.get("promotion_basis")]
-    assert len(promoted) == 13
+    assert len(promoted) == 16
     for entry in promoted:
         validate_attested_q2_qualification(
             entry,

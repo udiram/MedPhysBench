@@ -185,7 +185,7 @@ official ranks. Six GPT-5.6 effort configurations completed the same sealed
 runtime batch on a native Codex conversation surface; three scored 100% and three scored 98.44%, all
 with 100% safety-gate rate. Those GPT rows are deliberately unranked because the surface was not the
 common adapter and did not provide equivalent isolation or sampling controls. Three local vision
-models also completed the separate imaging pilot. Seventeen local configurations and five Groq-hosted
+models also completed the separate imaging pilot. Twenty local configurations and five Groq-hosted
 configurations then completed three attempts on every OpenKBP v0.6 task. `qwen3.5:4b` led the four-system
 Ollama v1 group
 at 50.0% safe success; `llama-3.3-70b-versatile` and `openai/gpt-oss-20b` tied at 60.0% in the Groq
@@ -196,17 +196,22 @@ Their descriptive outcome order is Sol high, Sol ultra, Sol low, then Terra high
 intervals overlap. They appear on the same score, source-filter, and
 attempt-forensics surfaces as every API/local row; they have no official harness-group rank because
 the native surface lacks the common adapter and comparable token/time telemetry.
-Thirteen digest-pinned local configurations completed the same v2 matrix. Qwen2.5-VL 7B, Qwen 3
+Sixteen digest-pinned local configurations completed the same v2 matrix. Qwen3.5 4B led at
+50.0%. Qwen2.5-VL 7B, Qwen 3
 14B, and Qwen 3 8B each reached 40.0% safe success; the vision model separated
 itself through 100% schema validity and safety while making real calls on all
 twelve image tasks. Gemma 3 12B also reached 40.0% with 100% schema validity and
-safety on 30 real multimodal calls. Qwen 2.5 7B Instruct reached 30.0%; Phi-4 Mini, Phi-4 14B,
+safety on 30 real multimodal calls. Gemma 3 4B reached 20.0%; Qwen 2.5 7B Instruct reached 30.0%; Phi-4 Mini, Phi-4 14B,
 Mistral Nemo 12B, and a community-quantized Pixtral 12B route reached 10.0%; Qwen 3 1.7B,
-DeepSeek R1 1.5B, Llama 3.1 8B, and Llama 3.2 3B reached 0.0%.
+Qwen2.5-VL 3B, DeepSeek R1 1.5B, Llama 3.1 8B, and Llama 3.2 3B reached 0.0%.
 Every text-only model retained twelve explicit unsupported-image outcomes in the denominator;
-the three multimodal rows made real calls on all 30 attempts. The thirteen-system exact-configuration
+the six multimodal rows made real calls on all 30 attempts. The sixteen-system exact-configuration
 group now receives a within-group rank; it is not merged with
 the older Ollama, Groq, or native GPT-5.6 groups.
+The three added v2 rows are current-contract reruns of models already represented by
+immutable v1 history, so they deepen contract-comparable evidence without increasing
+unique base-model breadth. A Qwen3-VL 8B v2 rerun stopped after one attempt at the
+declared memory guard and remains unranked raw evidence; its legacy v1 row is unchanged.
 Full evidence is published in
 [`RESULTS.md`](RESULTS.md) and the release directories.
 

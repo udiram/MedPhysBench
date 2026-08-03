@@ -12,6 +12,23 @@ from scripts.common_harness_submission import validate_submission
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "submissions" / "phi4-mini-openkb-v0.6-20260802.json"
 PIXTRAL_MANIFEST = ROOT / "submissions" / "pixtral-12b-community-q4km-openkb-v0.6-20260802.json"
+CURRENT_CONTRACT_RERUNS = (
+    (
+        ROOT / "submissions" / "qwen3.5-4b-openkb-v0.6-20260803.json",
+        "qwen3.5:4b",
+        "sha256:2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd",
+    ),
+    (
+        ROOT / "submissions" / "gemma3-4b-openkb-v0.6-20260803.json",
+        "gemma3:4b",
+        "sha256:a2af6cc3eb7fa8be8504abaf9b04e88f17a119ec3f04a3addf55f92841195f5a",
+    ),
+    (
+        ROOT / "submissions" / "qwen2.5vl-3b-openkb-v0.6-20260803.json",
+        "qwen2.5vl:3b",
+        "sha256:fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1",
+    ),
+)
 
 
 def _write_manifest(tmp_path: Path, payload: dict) -> Path:
@@ -26,6 +43,22 @@ def test_committed_common_harness_submission_validates() -> None:
     assert summary["artifact_count"] == 30
     assert summary["ranking_eligible"] is True
     assert summary["model_name"] == "phi4-mini:3.8b-q4_K_M"
+
+
+@pytest.mark.parametrize(("manifest", "model_name", "model_revision"), CURRENT_CONTRACT_RERUNS)
+def test_current_contract_rerun_is_attested_and_revision_pinned(
+    manifest: Path,
+    model_name: str,
+    model_revision: str,
+) -> None:
+    summary = validate_submission(manifest)
+    payload = json.loads(manifest.read_text(encoding="utf-8"))
+
+    assert summary["artifact_count"] == 30
+    assert summary["ranking_eligible"] is True
+    assert summary["model_name"] == model_name
+    assert payload["model"]["model_revision"] == model_revision
+    assert payload["model"]["harness_revision"] == "reference-json-v2"
 
 
 def test_community_quantization_submission_binds_exact_artifact_provenance() -> None:

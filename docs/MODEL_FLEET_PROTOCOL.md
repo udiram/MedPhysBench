@@ -151,7 +151,7 @@ scored outcomes and remain canonical attempts; they are not transport retries.
 ## Current state
 
 The public website currently exposes 29 model configurations representing 23
-unique base model identifiers across four release surfaces, including five
+unique base model identifiers across 47 release rows and four release surfaces, including five
 completed Groq configurations, six GPT-5.6 Sol effort configurations, and one
 GPT-5.6 Terra configuration. These are not 29 unique base models. An Ollama Cloud access probe
 for `qwen3.5:397b-cloud` on 2026-08-02 returned HTTP 429 before a scored artifact
@@ -239,12 +239,22 @@ including all 12 image-grid attempts, achieved 10.0% safe success, 60.0% safety,
 100% schema validity, and passed a zero-change deterministic regrade. The attested public
 artifact tree is
 `sha256:6959930732876ef1b1bdf9e1a8da009be1cd79a0c31d38860e1e8fa42f0f4437`.
-All thirteen current v2 rows
+All sixteen current v2 rows
 now have their own sidecar with exact source commits, execution window, model
 identity, environment, and a SHA-256 inventory of every result artifact. The
 access ledger records whether qualification preceded the matrix or was backfilled
 from the complete attested matrix.
-The resulting current v2 group contains thirteen exact model configurations. A complete
+Three August 3 reruns added current-contract evidence for Qwen3.5 4B, Gemma 3 4B,
+and Qwen2.5-VL 3B without adding a unique base model. Their exact revisions are
+`sha256:2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd`,
+`sha256:a2af6cc3eb7fa8be8504abaf9b04e88f17a119ec3f04a3addf55f92841195f5a`, and
+`sha256:fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1`.
+They achieved 50%, 20%, and 0% safe success with safety rates of 100%, 100%, and
+70%, respectively. A Qwen3-VL 8B rerun was stopped after one attempt when free
+memory fell to 22%; that partial run remains unranked raw evidence and does not
+replace its immutable legacy v1 row.
+
+The resulting current v2 group contains sixteen exact model configurations. A complete
 campaign with any other token cap, adapter-settings hash, harness revision, or seed
 policy remains visible evidence but cannot enter that ranking group.
 

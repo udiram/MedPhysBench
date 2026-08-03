@@ -27,12 +27,12 @@ package, or evidence of autonomous clinical competence.
 - TG-263 audit: `public-tg263-pilot-v0.5-audit` (separates primary naming decisions from exact benchmark reason-code labels)
 - Real-image pilot: `public-imaging-pilot-v0.4` (`5` real MRI, CT, and PET tasks)
 - OpenKBP real-workflow pilot: `public-real-workflows-pilot-v0.6` (`10` tasks from
-  `2` patient families; `17` ranked Ollama configurations, `4` ranked Groq
+  `2` patient families; `20` ranked Ollama configurations, `4` ranked Groq
   configurations, `1` quarantined Groq configuration, and `4` GPT-5.6 native audits;
-  `780` total attempt artifacts)
+  `29` total rows—`24` ranked and `5` unranked—and `870` total attempt artifacts)
 - Scored configurations through Monday, August 3, 2026: five common-harness local core models,
   six explicitly unranked GPT-5.6 core-effort pilots, two harder TG-263 native pilots,
-  three local models on the original image pilot, twenty-two API/local configurations on the
+  three local models on the original image pilot, twenty-five API/local configurations on the
   OpenKBP pilot, and four GPT-5.6 OpenKBP audits with descriptive outcome ranks
 - Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
 - Frozen 50-base-model panel: [`fleet/public_fleet_v1.yaml`](fleet/public_fleet_v1.yaml)
@@ -117,6 +117,10 @@ package, or evidence of autonomous clinical competence.
   `20` validly evaluated under the current manifest contract, and `20` rankable—without counting six
   GPT-5.6 effort settings as six models, treating historical legacy rows as current-contract evidence,
   or presenting a partial local campaign as a score.
+- Sixteen digest-pinned `reference-json-v2` OpenKBP rows now carry attested common-harness
+  submission sidecars. Three reruns migrate Qwen3.5 4B, Gemma 3 4B, and Qwen2.5-VL 3B onto the
+  current contract; they deepen evidence for already counted base models and do not increase the
+  unique-base-model completion numerator.
 - Workflow-qualified accounting now separately reports which planned models have actually completed
   a repeated-trial workflow release instead of letting smaller pilot surfaces overstate benchmark
   breadth.

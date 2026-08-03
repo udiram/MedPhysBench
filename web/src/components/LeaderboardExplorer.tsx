@@ -14,6 +14,7 @@ import {
   secondaryScoreInterval,
   shortHash,
 } from "../lib/format";
+import { modelRunKey } from "../lib/modelRunKey";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import { competitionRankMap } from "../lib/ranking";
 
@@ -226,11 +227,14 @@ export function LeaderboardExplorer({
                 </thead>
                 <tbody>
                   {summaryRows.map((model) => (
-                    <tr key={`${model.provider}::${model.model_name}::${model.model_revision ?? "unknown"}`}>
+                    <tr key={modelRunKey(model)}>
                       <td>#{model.outcome_rank ?? "—"}</td>
                       <td>
                         {model.model_name}
-                        <small>{model.rank ? `${rankGroupLabel(model)} official #${model.rank}` : "No official group rank"}</small>
+                        <small>
+                          {model.rank ? `${rankGroupLabel(model)} official #${model.rank}` : "No official group rank"}
+                          {` · ${model.harness_revision ?? surfaceLabel(inferExecutionSurface(model))}`}
+                        </small>
                       </td>
                       <td>{formatPercent(model.safe_success_rate)}</td>
                       <td>
@@ -373,16 +377,19 @@ export function LeaderboardExplorer({
               </tr>
             </thead>
             <tbody>
-              {rows.map((model) => (
-                <ModelDetailRow
-                  key={model.model_name}
-                  domainFilter={domainFilter}
-                  expanded={expanded === model.model_name}
-                  source={modelSourceRow(model, catalogIndexForModelRow(model, catalogIndex))}
-                  model={model}
-                  onToggle={() => setExpanded((value) => (value === model.model_name ? null : model.model_name))}
-                />
-              ))}
+              {rows.map((model) => {
+                const runKey = modelRunKey(model);
+                return (
+                  <ModelDetailRow
+                    key={runKey}
+                    domainFilter={domainFilter}
+                    expanded={expanded === runKey}
+                    source={modelSourceRow(model, catalogIndexForModelRow(model, catalogIndex))}
+                    model={model}
+                    onToggle={() => setExpanded((value) => (value === runKey ? null : runKey))}
+                  />
+                );
+              })}
             </tbody>
           </table>
           {data && rows.length === 0 && (
@@ -484,7 +491,7 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
           const markerX = scaleX(row.safe_success_rate);
           return (
             <g
-              key={row.model_name}
+              key={modelRunKey(row)}
               className={inferExecutionSurface(row) === "common_harness" ? "interval-row common" : "interval-row native"}
             >
               <text x={margin.left - 18} y={y - 3} textAnchor="end" className="interval-model-label">{shortModelLabel(row.model_name)}</text>
@@ -512,7 +519,7 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
         {rows.map((row) => {
           const interval = intervalFor(row);
           return (
-            <li key={row.model_name}>
+            <li key={modelRunKey(row)}>
               <div>
                 <strong>{shortModelLabel(row.model_name)}</strong>
                 <span>{formatPercent(row.safe_success_rate)}</span>
@@ -568,7 +575,7 @@ function Tg263AuditChart({ audit }: { audit: Tg263Audit | null }) {
       </div>
       <div className="audit-bars" role="img" aria-label="Strict pilot score compared with audited decision correctness">
         {audit.models.map((model) => (
-          <article key={model.model_name} className="audit-bar-row">
+          <article key={`${model.provider}::${model.model_name}::${model.model_revision}`} className="audit-bar-row">
             <header>
               <strong>{model.model_name}</strong>
               <span>{model.attempt_count} attempts</span>
@@ -633,7 +640,9 @@ function ModelDetailRow({
             aria-label={`${expanded ? "Collapse" : "Expand"} ${model.model_name} run details`}
           >
             <span>{model.model_name}</span>
-            <small>{providerLabel(model.provider)}</small>
+            <small>
+              {providerLabel(model.provider)} · {model.harness_revision ?? surfaceLabel(inferExecutionSurface(model))}
+            </small>
           </button>
         </td>
         <td>{formatPercent(metricForDomain(model, domainFilter))}</td>

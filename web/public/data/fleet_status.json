@@ -10,7 +10,7 @@
     "workflow_qualified_base_models": 20,
     "workflow_ranked_base_models": 20,
     "published_system_configurations": 29,
-    "published_release_rows": 44,
+    "published_release_rows": 47,
     "open_planned_models": 31,
     "closed_planned_models": 19,
     "vision_planned_models": 31,
@@ -545,7 +545,7 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1,
+      "published_row_count": 2,
       "readiness_state": "workflow_qualified",
       "next_gate": "q3_comparison",
       "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
@@ -555,11 +555,15 @@
           "model": "qwen3.5:4b",
           "status": "available",
           "qualification_stage": "q2",
-          "surface": "local_ollama",
-          "date": "2026-07-31",
-          "promotion_basis": null,
-          "qualification_evidence": null,
-          "note": "Local text model; scored on the public development release."
+          "surface": "local_ollama_vision",
+          "date": "2026-08-03",
+          "promotion_basis": "attested_complete_q2",
+          "qualification_evidence": {
+            "kind": "common_harness_submission",
+            "submission_id": "qwen3.5-4b-openkb-v0.6-20260803",
+            "manifest_path": "submissions/qwen3.5-4b-openkb-v0.6-20260803.json"
+          },
+          "note": "Digest-pinned Qwen3.5 4B artifact sha256:2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd completed a 10-task one-attempt preflight before the full 30-attempt OpenKBP Q2 matrix. The current reference-json-v2 run used real image transport, a 4,096-token context, a 2,048-token output cap, and serial keep_alive=0 execution; all 30 outcomes were safe and 15 passed."
         }
       ]
     },
@@ -626,7 +630,7 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 2,
-      "published_row_count": 2,
+      "published_row_count": 3,
       "readiness_state": "workflow_qualified",
       "next_gate": "q3_comparison",
       "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
@@ -636,11 +640,15 @@
           "model": "qwen2.5vl:3b",
           "status": "available",
           "qualification_stage": "q2",
-          "surface": "local_ollama_text_only",
-          "date": "2026-07-31",
-          "promotion_basis": null,
-          "qualification_evidence": null,
-          "note": "Vision-capable model completed the 30-attempt OpenKBP v0.6 matrix through the local Ollama common harness."
+          "surface": "local_ollama_vision",
+          "date": "2026-08-03",
+          "promotion_basis": "attested_complete_q2",
+          "qualification_evidence": {
+            "kind": "common_harness_submission",
+            "submission_id": "qwen2.5vl-3b-openkb-v0.6-20260803",
+            "manifest_path": "submissions/qwen2.5vl-3b-openkb-v0.6-20260803.json"
+          },
+          "note": "Digest-pinned Qwen2.5-VL 3B artifact sha256:fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1 completed a 10-task one-attempt preflight before the full 30-attempt OpenKBP Q2 matrix. The current reference-json-v2 run used real image transport, a 4,096-token context, a 2,048-token output cap, and serial keep_alive=0 execution; no attempt passed and 9 outcomes failed the safety gate."
         }
       ]
     },
@@ -808,7 +816,7 @@
       "workflow_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 2,
-      "published_row_count": 2,
+      "published_row_count": 3,
       "readiness_state": "workflow_qualified",
       "next_gate": "q3_comparison",
       "readiness_note": "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
@@ -818,11 +826,15 @@
           "model": "gemma3:4b",
           "status": "available",
           "qualification_stage": "q2",
-          "surface": "local_ollama",
-          "date": "2026-07-31",
-          "promotion_basis": null,
-          "qualification_evidence": null,
-          "note": "Local text model; scored on the public development release."
+          "surface": "local_ollama_vision",
+          "date": "2026-08-03",
+          "promotion_basis": "attested_complete_q2",
+          "qualification_evidence": {
+            "kind": "common_harness_submission",
+            "submission_id": "gemma3-4b-openkb-v0.6-20260803",
+            "manifest_path": "submissions/gemma3-4b-openkb-v0.6-20260803.json"
+          },
+          "note": "Digest-pinned Gemma 3 4B artifact sha256:a2af6cc3eb7fa8be8504abaf9b04e88f17a119ec3f04a3addf55f92841195f5a completed a 10-task one-attempt preflight before the full 30-attempt OpenKBP Q2 matrix. The current reference-json-v2 run used real image transport, a 4,096-token context, a 2,048-token output cap, and serial keep_alive=0 execution; all 30 outcomes were safe and 6 passed."
         }
       ]
     },

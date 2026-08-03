@@ -12,6 +12,20 @@
 
 ## Unreleased
 
+- Made immutable same-model v1/v2 rows independently addressable throughout the model index,
+  leaderboard, capability matrix, efficiency plots, downloads, and task drilldowns. The current
+  ranking contract is the default selection, while legacy rows remain visible with explicit
+  harness labels and distinct forensic URLs.
+- Promoted three immutable 30-attempt OpenKBP reruns into the current
+  `reference-json-v2` comparison group: Qwen3.5 4B (50% safe success, 100% safety),
+  Gemma 3 4B (20%, 100%), and Qwen2.5-VL 3B (0%, 70%; nine unsafe attempts).
+  The group now contains 16 attested rows and the release contains 29 total rows,
+  24 ranked rows, five unranked rows, and 870 attempts. These reruns deepen evidence
+  for already counted base models and do not increase unique base-model breadth.
+- Stopped the Qwen3-VL 8B v2 rerun after one attempt when free memory reached 22%;
+  retained that partial run as unranked raw evidence and preserved the immutable
+  legacy v1 release row.
+
 - Moved the frozen-fleet methodology below the primary result and forensic surfaces,
   added a non-zero loading skeleton for the cross-release model registry, and promoted
   source, provider, and execution-surface badges into collapsed model rows.
@@ -42,8 +56,8 @@
 - Added optional artifact-build provenance to model run contracts so official provider routes and community quantizations can be disclosed in the same forensic surface with pinned source revisions.
 - Enforced a default 50% task-family concentration ceiling at release load time, exposed the reviewed threshold in public reporting, and added strict-boundary and deterministic-error regressions so one correlated case family cannot quietly dominate a score.
 - Added a deterministic task-to-defect projection and task-level QA history in result forensics, including disclosed defect counts, severity, resolution state, and immutable score treatment without inferring release-wide defects onto unaffected tasks.
-- Froze a machine-readable 50-base-model fleet and added a deterministic public qualification funnel: 23 access-qualified, 20 common-harness evaluated and rankable under the current manifest contract, 29 published system configurations, 44 release rows, and no count inflation from aliases, provider routes, or GPT-5.6 effort settings.
-- Completed 390 digest-pinned OpenKBP attempts across thirteen exact local model configurations under the memory-bounded `reference-json-v2` harness, with preflight chronology, immutable resume, provider-call telemetry, and an attested artifact tree for every row.
+- Froze a machine-readable 50-base-model fleet and added a deterministic public qualification funnel: 23 access-qualified, 20 common-harness evaluated and rankable under the current manifest contract, 29 published system configurations, 47 release rows, and no count inflation from aliases, provider routes, or GPT-5.6 effort settings.
+- Completed 480 digest-pinned OpenKBP attempts across sixteen exact local model configurations under the memory-bounded `reference-json-v2` harness, with preflight chronology, immutable resume, provider-call telemetry, and an attested artifact tree for every row.
 - Added a fully completed Pixtral 12B multimodal campaign through a pinned community Q4_K_M GGUF plus F32 vision projector: 30/30 real calls, 10.0% safe success, 60.0% safety, 100% schema validity, 43,128 total tokens, 41.562-second median wall time, a zero-change regrade, and exact source/model/projector SHA-256 provenance without mislabeling the build as official Mistral weights.
 - Published a second Llama 3.1 8B Instruct route through exact Ollama artifact `sha256:46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e`: 30/30 attempts, 0% safe success, 33.33% safety over 18 calls, 12 explicit capability-unavailable image attempts, 18,369 total tokens, and a 17.385-second median wall time. It remains grouped with—not counted separately from—the Groq-hosted route for base-model fleet breadth.
 - Added Microsoft Phi-4 14B as an evidence-complete local row: 30/30 attempts, 10.0% safe success, 100% safety over 18 evaluable provider calls, 12 explicit capability-unavailable image attempts, 18,126 total tokens, and a 30.142-second median provider-call wall time.

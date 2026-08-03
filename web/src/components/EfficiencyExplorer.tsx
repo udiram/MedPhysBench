@@ -659,7 +659,7 @@ function EfficiencyScatter({
     [...available]
       .sort((left, right) => right.row.safe_success_rate - left.row.safe_success_rate)
       .map((entry, index, ordered) => [
-        entry.row.model_name,
+        entry.key,
         MARGIN.top + 12 + index * ((HEIGHT - MARGIN.top - MARGIN.bottom - 24) / Math.max(ordered.length - 1, 1)),
       ]),
   );
@@ -713,7 +713,7 @@ function EfficiencyScatter({
         {frontiers.map(({ rows: frontier }) =>
           frontier.length > 1 ? (
             <polyline
-              key={`frontier-${frontier[0]?.model_name ?? "empty"}`}
+              key={`frontier-${frontier[0] ? modelRunKey(frontier[0]) : "empty"}`}
               points={frontier
                 .map((row) => `${x(xValue(row, mode) as number)},${y(row.safe_success_rate)}`)
                 .join(" ")}
@@ -733,7 +733,7 @@ function EfficiencyScatter({
           const pointLabel = `${shortModelName(row.model_name)}: ${formatPercent(row.safe_success_rate)} safe success; `;
           const metricLabel = mode === "tokens" ? formatTokens(value) : formatDuration(value);
           const intervalLabel = `${formatPercent(safeBand[0])} to ${formatPercent(safeBand[1])}`;
-          const labelY = labelPositions.get(row.model_name) ?? py;
+          const labelY = labelPositions.get(modelKey) ?? py;
           const labelX = WIDTH - MARGIN.right + 24;
           const pointColor = providerColor(row.provider);
           const highlight = frontierKeys.has(modelKey) || focused === modelKey;
@@ -1125,13 +1125,25 @@ function focusRunForensics(model: ModelResult) {
 }
 
 function downloadTaskLedger(model: ModelResult, format: "csv" | "json") {
-  const safeName = `${model.model_name.replaceAll(" ", "_").replaceAll("[", "-").replaceAll("]", "")}-${model.provider}`;
+  const safeSegment = (value: string) => value.toLowerCase().replaceAll(/[^a-z0-9._-]+/g, "-").replaceAll(/^-+|-+$/g, "");
+  const contract = model.run_profile?.run_configuration_hash
+    ?? model.model_revision
+    ?? model.comparison_group
+    ?? "unversioned";
+  const safeName = [model.model_name, model.provider, model.harness_revision ?? "recorded", contract]
+    .map((value) => safeSegment(value))
+    .join("-");
   const filename = `${safeName}-task-ledger.${format}`;
 
   if (format === "json") {
     const payload = {
       model: model.model_name,
       provider: model.provider,
+      model_revision: model.model_revision,
+      harness_name: model.harness_name,
+      harness_revision: model.harness_revision,
+      comparison_group: model.comparison_group,
+      run_configuration_hash: model.run_profile?.run_configuration_hash,
       safe_success_rate: model.safe_success_rate,
       task_success_rate: model.task_success_rate,
       tasks: model.tasks,

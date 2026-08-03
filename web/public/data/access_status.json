@@ -5,9 +5,16 @@
     "base_model_id": "Qwen/Qwen3.5-4B",
     "qualification_stage": "q2",
     "status": "available",
-    "surface": "local_ollama",
-    "date": "2026-07-31",
-    "note": "Local text model; scored on the public development release."
+    "surface": "local_ollama_vision",
+    "date": "2026-08-03",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "qwen3.5-4b-openkb-v0.6-20260803",
+      "manifest_path": "submissions/qwen3.5-4b-openkb-v0.6-20260803.json"
+    },
+    "note": "Digest-pinned Qwen3.5 4B artifact sha256:2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4eefd completed a 10-task one-attempt preflight before the full 30-attempt OpenKBP Q2 matrix. The current reference-json-v2 run used real image transport, a 4,096-token context, a 2,048-token output cap, and serial keep_alive=0 execution; all 30 outcomes were safe and 15 passed."
   },
   {
     "model": "qwen3:14b",
@@ -83,9 +90,16 @@
     "base_model_id": "google/gemma-3-4b-it",
     "qualification_stage": "q2",
     "status": "available",
-    "surface": "local_ollama",
-    "date": "2026-07-31",
-    "note": "Local text model; scored on the public development release."
+    "surface": "local_ollama_vision",
+    "date": "2026-08-03",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "gemma3-4b-openkb-v0.6-20260803",
+      "manifest_path": "submissions/gemma3-4b-openkb-v0.6-20260803.json"
+    },
+    "note": "Digest-pinned Gemma 3 4B artifact sha256:a2af6cc3eb7fa8be8504abaf9b04e88f17a119ec3f04a3addf55f92841195f5a completed a 10-task one-attempt preflight before the full 30-attempt OpenKBP Q2 matrix. The current reference-json-v2 run used real image transport, a 4,096-token context, a 2,048-token output cap, and serial keep_alive=0 execution; all 30 outcomes were safe and 6 passed."
   },
   {
     "model": "phi4-mini:3.8b-q4_K_M",
@@ -171,9 +185,16 @@
     "base_model_id": "Qwen/Qwen2.5-VL-3B-Instruct",
     "qualification_stage": "q2",
     "status": "available",
-    "surface": "local_ollama_text_only",
-    "date": "2026-07-31",
-    "note": "Vision-capable model completed the 30-attempt OpenKBP v0.6 matrix through the local Ollama common harness."
+    "surface": "local_ollama_vision",
+    "date": "2026-08-03",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "qwen2.5vl-3b-openkb-v0.6-20260803",
+      "manifest_path": "submissions/qwen2.5vl-3b-openkb-v0.6-20260803.json"
+    },
+    "note": "Digest-pinned Qwen2.5-VL 3B artifact sha256:fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1 completed a 10-task one-attempt preflight before the full 30-attempt OpenKBP Q2 matrix. The current reference-json-v2 run used real image transport, a 4,096-token context, a 2,048-token output cap, and serial keep_alive=0 execution; no attempt passed and 9 outcomes failed the safety gate."
   },
   {
     "model": "qwen2.5vl:7b-q4_K_M",

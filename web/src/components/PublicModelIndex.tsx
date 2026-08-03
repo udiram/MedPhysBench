@@ -3,6 +3,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { domainLabel, formatBytes, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
 import { groupIntegrityIssues, integrityIssueHeadline } from "../lib/integrity";
 import { resolveRunBaseModelId } from "../lib/modelIdentity";
+import { compareModelRuns, modelRunKey, modelRunUrlSelection, releasedModelRunKey } from "../lib/modelRunKey";
 import { providerIdsForSlice } from "../lib/modelSlice";
 import { navigateToRunForensics } from "../lib/forensicsNavigation";
 import { isCommonHarnessRun, isNativeRun } from "../lib/runSurface";
@@ -619,11 +620,8 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease
             </thead>
             <tbody>
               {groups.map((group) => {
-                const runKey = group.catalogEntries[0]
-                  ? `${group.catalogEntries[0].provider}::${group.catalogEntries[0].model_name}`
-                  : group.runs[0]
-                    ? `${group.runs[0].provider}::${group.runs[0].model_name}`
-                    : null;
+                const preferredRun = [...group.runs].sort(compareModelRuns)[0] ?? null;
+                const selectedRun = preferredRun ? modelRunUrlSelection(preferredRun) : null;
                 return (
                   <ModelRegistryRow
                     key={group.key}
@@ -631,11 +629,14 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease
                     familyPeers={familyPeersByBase.get(group.base_model_id) ?? []}
                     group={group}
                     selectedProvider={provider}
-                    runKey={runKey}
                     onToggle={() => {
                       const nextExpanded = expanded === group.key ? null : group.key;
                       setExpanded(nextExpanded);
-                      writeExplorerUrl({ expanded: nextExpanded, runKey: nextExpanded ? (runKey ?? null) : null });
+                      writeExplorerUrl({
+                        expanded: nextExpanded,
+                        runKey: nextExpanded ? (selectedRun?.runKey ?? null) : null,
+                        runRelease: nextExpanded ? (selectedRun?.runRelease ?? null) : null,
+                      });
                     }}
                   />
                 );
@@ -658,20 +659,16 @@ function ModelRegistryRow({
   expanded,
   familyPeers,
   onToggle,
-  runKey,
   selectedProvider,
 }: {
   group: ModelGroup;
   expanded: boolean;
   familyPeers: ModelGroup[];
   onToggle: () => void;
-  runKey?: string | null;
   selectedProvider: string;
 }) {
   const sortedRuns = [...group.runs].sort(
-    (left, right) =>
-      right.safe_success_rate - left.safe_success_rate ||
-      left.release_id.localeCompare(right.release_id),
+    compareModelRuns,
   );
   const variantSummaries = useMemo(() => summarizeVariants(sortedRuns), [sortedRuns]);
   const sliceProviders = providerIdsForSlice(
@@ -1027,7 +1024,7 @@ function ModelRegistryRow({
                       const unavailable = run.tasks.filter((task) => taskOutcome(task) === "unavailable").length;
                       const unknown = run.tasks.filter((task) => taskOutcome(task) === "unknown").length;
                       return (
-                        <article key={`${run.release_id}-${run.model_name}`} className="registry-run-card">
+                        <article key={releasedModelRunKey(run)} className="registry-run-card">
                           <header>
                             <div>
                               <strong>{run.model_name}</strong>
@@ -1139,7 +1136,7 @@ function ModelRegistryRow({
                               Open attempt forensics
                             </button>
                           </div>
-                          <RunTaskExplorer run={run} modelBase={group.key} runKey={`${run.provider}::${run.model_name}`} />
+                          <RunTaskExplorer run={run} modelBase={group.key} runKey={modelRunKey(run)} />
                         </article>
                       );
                     })
@@ -1286,7 +1283,7 @@ function RunTaskExplorer({ run, modelBase, runKey }: { run: PublicRun; modelBase
     next: { view?: TaskView; query?: string } = {},
     history: "replace" | "push" = "push",
   ) => {
-    if (getUrlParam("model_base") !== modelBase || getUrlParam("model_key") !== runKey) return;
+    if (getUrlParam("model_base") !== modelBase) return;
     const nextView = next.view ?? view;
     const nextQuery = next.query ?? query;
     setUrlParams(

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { domainLabel, formatPercent, normalizeModelDisplayName, providerLabel } from "../lib/format";
+import { modelRunKey } from "../lib/modelRunKey";
 import { isCommonHarnessRun } from "../lib/runSurface";
 import type { Leaderboard, ModelCatalogEntry, ModelResult, ReleaseView, ReviewEvidence } from "../types";
 
@@ -163,10 +164,13 @@ function CapabilityMatrix({ rows, families, scope }: { rows: ModelResult[]; fami
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={row.model_name}>
+              <tr key={modelRunKey(row)}>
                 <th scope="row">
                   <strong>{shortModel(row.model_name)}</strong>
-                  <span>{row.ranking_eligible ? `${rankGroupLabel(row)} #${row.rank ?? "—"}` : `Outcome #${row.outcome_rank ?? "—"} · native`}</span>
+                  <span>
+                    {row.ranking_eligible ? `${rankGroupLabel(row)} #${row.rank ?? "—"}` : `Outcome #${row.outcome_rank ?? "—"} · native`}
+                    {` · ${row.harness_revision ?? "recorded"}`}
+                  </span>
                 </th>
                 {families.map((family) => {
                   const attempts = row.tasks.filter((task) => family.taskIds.has(task.task_id));
@@ -245,10 +249,10 @@ function FailureBreakdown({ rows }: { rows: ModelResult[] }) {
           ).length;
           const safeFailure = Math.max(0, total - success - unsafe - unavailable);
           return (
-            <article key={row.model_name} className="failure-row">
+            <article key={modelRunKey(row)} className="failure-row">
               <header>
                 <strong>{shortModel(row.model_name)}</strong>
-                <span>{total} recorded attempts</span>
+                <span>{row.harness_revision ?? "recorded"} · {total} attempts</span>
               </header>
               <div className="failure-stack" aria-label={`${row.model_name}: ${success} safe successes, ${safeFailure} safe failures, ${unsafe} unsafe outcomes, ${unavailable} capability-unavailable outcomes`}>
                 <i className="failure-success" style={{ width: `${share(success, total)}%` }} />
