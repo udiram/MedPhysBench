@@ -59,8 +59,14 @@ Instruct base. [`local_ollama_candidate_routes_v2.yaml`](../fleet/local_ollama_c
 separately pins the non-thinking `qwen3-vl:8b-instruct` artifact and its
 `qwen3-vl-instruct` renderer; the variants never share a route identity or receipt. Each route binds the mutable Ollama
 tag to its observed immutable artifact digest, exact base-model ID, 4,096-token context,
-JSON-schema output, and `keep_alive=0`. This route set does not add new scores: it makes the
-already-published current-contract local lane—and one explicitly unevaluated candidate—addressable
+JSON-schema output, and `keep_alive=0`. The separate
+[`local_ollama_candidate_routes_v3.yaml`](../fleet/local_ollama_candidate_routes_v3.yaml)
+pins the community Q4_K_M Phi-4 Multimodal artifact to its observed Ollama manifest digest.
+Ollama exposes that imported GGUF as text-only because no vision projector is present, so the
+route declares only `text`; required-image tasks must remain explicit capability-unavailable
+outcomes unless a separately frozen projector-backed route is qualified. These candidate route
+sets do not add scores: they make the already-published current-contract local lane and explicit
+unevaluated candidates addressable
 by the same receipt-bound control plane used for hosted providers. The Qwen3-VL Instruct route must still
 produce a fresh access receipt, complete campaign, and attested submission before it can affect
 evaluated breadth or any score surface.

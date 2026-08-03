@@ -29,6 +29,7 @@ ROUTE_SET_PATH = ROOT / "fleet" / "model_routes_v1.yaml"
 LOCAL_OLLAMA_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_routes_v1.yaml"
 LOCAL_OLLAMA_CANDIDATE_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_candidate_routes_v1.yaml"
 LOCAL_OLLAMA_CANDIDATE_V2_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_candidate_routes_v2.yaml"
+LOCAL_OLLAMA_CANDIDATE_V3_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_candidate_routes_v3.yaml"
 PROVIDER_ROUTE_SET_PATH = ROOT / "fleet" / "provider_expansion_routes_v2.yaml"
 GROQ_REASONING_ROUTE_SET_PATH = ROOT / "fleet" / "groq_reasoning_routes_v2.yaml"
 RELEASE_FILE = "releases/public_real_workflows_pilot_v0_6.yaml"
@@ -265,6 +266,22 @@ def test_qwen3_vl_instruct_candidate_uses_the_non_thinking_artifact() -> None:
         "sha256:0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319"
     )
     assert candidate.modalities == ("text", "image")
+    assert str(candidate.ollama_keep_alive) == "0"
+    assert candidate.ollama_num_ctx == 4096
+
+
+def test_phi4_multimodal_candidate_records_the_observed_text_only_ollama_surface() -> None:
+    route_set = load_route_set(LOCAL_OLLAMA_CANDIDATE_V3_ROUTE_SET_PATH)
+
+    assert route_set.route_set_id == "local-ollama-candidate-routes-v3"
+    assert len(route_set.routes) == 1
+    candidate = route_set.route("ollama-phi4-multimodal-3-8b-q4-k-m")
+    assert candidate.base_model_id == "microsoft/Phi-4-multimodal-instruct"
+    assert candidate.model == "hf.co/ShayanCyan/phi4-multimodal-quantisized-gguf:Q4_K_M"
+    assert candidate.model_revision == (
+        "sha256:3c73f00ac73b1f77b914aec830fbf2e2570aac6f538dd474e2d19dcb6cc9d62f"
+    )
+    assert candidate.modalities == ("text",)
     assert str(candidate.ollama_keep_alive) == "0"
     assert candidate.ollama_num_ctx == 4096
 

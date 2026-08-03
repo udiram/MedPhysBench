@@ -183,8 +183,10 @@ committed; it is not a claim that an API handle, free quota, local artifact, or
 compatible hardware is currently available. The website can therefore filter the
 remaining 33 models by openness, route, and missing gate without inventing access
 reasons or confusing native GPT-5.6 evidence with common-harness qualification.
-Six frozen route sets now declare 31 executable configurations. Seventeen are digest-pinned Ollama
-routes corresponding exactly to current-contract submission sidecars; the remaining routes cover
+Seven frozen route sets now declare 32 executable configurations. Seventeen are digest-pinned Ollama
+routes corresponding exactly to current-contract submission sidecars; one additional digest-pinned
+Phi-4 Multimodal candidate records the text-only capability actually exposed by its community GGUF
+under Ollama, and the remaining routes cover
 Groq and hosted-provider expansion candidates. Route presence is operational readiness metadata,
 not a score, an access claim, or a unique-base-model completion.
 `deepseek-r1:1.5b` completed a fresh 30-attempt Q2 matrix with artifact digest
