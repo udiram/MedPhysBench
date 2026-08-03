@@ -118,7 +118,7 @@ scored outcomes and remain canonical attempts; they are not transport retries.
 
 ## Current state
 
-The public website currently exposes 27 model configurations representing 21
+The public website currently exposes 28 model configurations representing 22
 unique base model identifiers across four release surfaces, including five
 completed Groq configurations and six GPT-5.6 effort configurations. These are
 not 27 unique base models. An Ollama Cloud access probe
@@ -129,7 +129,7 @@ network context. Neither event supports a model score.
 The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
 19 closed-weight, 31 declared vision-capable, and 11 stewards. After enforcing
 the current grader/scoring manifest contract, the derived funnel
-reports 21 access-qualified, 19 common-harness evaluated, and 19 officially
+reports 22 access-qualified, 20 common-harness evaluated, and 20 officially
 rankable base models. One fully attempted Groq row is excluded from evaluated/ranked
 counts because its provider-output failure artifacts lack model-response receipts and telemetry.
 GPT-5.6's complete native rows remain visible in the same
@@ -189,12 +189,21 @@ The route is a second configuration of the already evaluated Llama 3.1 base mode
 so it expands system evidence without inflating the 50-base-model completion count.
 Its attested artifact tree is
 `sha256:85e99ed20a2ade2ad8be287d365a906bf0ac1bc1825dad389f9471f3e1723a25`.
-All twelve current v2 rows
+Pixtral 12B then completed the same preflight and 30-attempt multimodal matrix through
+Ollama manifest `sha256:bf98f2143bd35a699805b018855a12db0d5ddda0ce694772d4dd3c6b843a3286`.
+Because the tested GGUF is community-published, the catalog pins the immutable source
+revision, identifies the post-trained Mistral parent, and records separate SHA-256 and
+byte-size evidence for the model weights and F32 vision projector. It made 30 real calls,
+including all 12 image-grid attempts, achieved 10.0% safe success, 60.0% safety, and
+100% schema validity, and passed a zero-change deterministic regrade. The attested public
+artifact tree is
+`sha256:6959930732876ef1b1bdf9e1a8da009be1cd79a0c31d38860e1e8fa42f0f4437`.
+All thirteen current v2 rows
 now have their own sidecar with exact source commits, execution window, model
 identity, environment, and a SHA-256 inventory of every result artifact. The
 access ledger records whether qualification preceded the matrix or was backfilled
 from the complete attested matrix.
-The resulting current v2 group contains twelve exact model configurations. A complete
+The resulting current v2 group contains thirteen exact model configurations. A complete
 campaign with any other token cap, adapter-settings hash, harness revision, or seed
 policy remains visible evidence but cannot enter that ranking group.
 

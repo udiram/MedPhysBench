@@ -34,11 +34,11 @@ The machine-derived public status currently reports:
 | Qualification gate | Unique base models | Meaning |
 | --- | ---: | --- |
 | Frozen panel | 50 | Selected before further score inspection |
-| Access qualified | 20 | Live Q0 or later access evidence exists |
-| Validly evaluated | 18 | At least one complete matrix satisfies the current manifest/scoring and execution-evidence contract |
-| Rankable | 18 | At least two systems share an exact frozen comparison group |
+| Access qualified | 22 | Live Q0 or later access evidence exists |
+| Validly evaluated | 20 | At least one complete matrix satisfies the current manifest/scoring and execution-evidence contract |
+| Rankable | 20 | At least two systems share an exact frozen comparison group |
 
-The site exposes all 25 published system configurations and 40 release
+The site exposes all 28 published system configurations and 43 release
 rows. Six GPT-5.6 effort settings therefore remain six auditable configurations
 of one base model, while Groq-hosted and local routes of the same open-weight
 base also count once toward breadth. Five legacy core-only base models remain
@@ -186,11 +186,11 @@ TG-263 naming audit. The CT and expert contours are derived from OpenKBP; the
 reference plan dose is OpenKBP's standardized synthetic plan. Every task requires
 qualified review or escalation and is regraded from the stored candidate output.
 
-Twenty-one API/local configurations completed three attempts per task. Four ran under
+Twenty-two API/local configurations completed three attempts per task. Four ran under
 one memory-bounded Ollama harness (`temperature=0`, seeds
 `20260731`–`20260733`, 4,096-token context, 768 output-token cap). Five ran on
 Groq's OpenAI-compatible endpoint under one shared JSON-object contract with the
-same temperature, seeds, and output-token cap. Twelve ran under the digest-pinned
+same temperature, seeds, and output-token cap. Thirteen ran under the digest-pinned
 `reference-json-v2` Ollama contract with the same seeds, a 4,096-token context,
 and 2,048-token output cap. Official ranks are computed within
 each identical provider/harness/configuration group with at least two systems; the
@@ -215,7 +215,7 @@ primary and display both interval definitions for every row.
 | 1 | `openai/gpt-oss-20b` | 60.0% | 42.32–75.41% | 100.0% | 60.0% | 1,338 | 9.283 s |
 | 3 | `openai/gpt-oss-120b` | 50.0% | 33.15–66.85% | 100.0% | 60.0% | 1,371.5 | 10.268 s |
 | 4 | `llama-3.1-8b-instant` | 0.0% | 0.00–11.35% | 27.78% | 60.0% | 1,002 | 8.343 s |
-| — | `qwen/qwen3.6-27b` | 0.0% | 0.00–11.35% | 0.0% | 0.0% | unavailable | unavailable |
+| — | `qwen/qwen3.6-27b` | evidence unavailable | evidence unavailable | unavailable | 0.0% | unavailable | unavailable |
 
 | Ollama v2 rank | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens* | Median wall time* |
 | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -227,13 +227,14 @@ primary and display both interval definitions for every row.
 | 6 | `phi4-mini:3.8b-q4_K_M` | 10.0% | 3.46–25.62% | 100.0% | 60.0% | 938.5 | 9.632 s |
 | 6 | `phi4:14b` | 10.0% | 3.46–25.62% | 100.0% | 60.0% | 969.5 | 30.142 s |
 | 8 | `mistral-nemo:12b-instruct-2407-q4_K_M` | 10.0% | 3.46–25.62% | 66.67% | 60.0% | 1,053.5 | 26.964 s |
-| 9 | `qwen3:1.7b` | 0.0% | 0.00–11.35% | 100.0% | 60.0% | 1,029 | 6.420 s |
-| 10 | `deepseek-r1:1.5b` | 0.0% | 0.00–11.35% | 50.0% | 60.0% | 1,616 | 14.805 s |
-| 11 | `llama3.1:8b` | 0.0% | 0.00–11.35% | 33.33% | 60.0% | 954.5 | 17.385 s |
-| 11 | `llama3.2:3b` | 0.0% | 0.00–11.35% | 33.33% | 60.0% | 950.5 | 7.708 s |
+| 9 | `hf.co/EnlistedGhost/Pixtral-12B-2409-GGUF:Q4_K_M` | 10.0% | 3.46–25.62% | 60.0% | 100.0% | 1,379.5 | 41.562 s |
+| 10 | `qwen3:1.7b` | 0.0% | 0.00–11.35% | 100.0% | 60.0% | 1,029 | 6.420 s |
+| 11 | `deepseek-r1:1.5b` | 0.0% | 0.00–11.35% | 50.0% | 60.0% | 1,616 | 14.805 s |
+| 12 | `llama3.1:8b` | 0.0% | 0.00–11.35% | 33.33% | 60.0% | 954.5 | 17.385 s |
+| 12 | `llama3.2:3b` | 0.0% | 0.00–11.35% | 33.33% | 60.0% | 950.5 | 7.708 s |
 
-All twelve v2 rows completed the same 30-attempt matrix with exact local artifact
-digests. Gemma 3 12B and Qwen2.5-VL 7B each made 30 real calls, including all 12
+All thirteen v2 rows completed the same 30-attempt matrix with exact local artifact
+digests. Gemma 3 12B, Qwen2.5-VL 7B, and Pixtral 12B each made 30 real calls, including all 12
 required-image attempts; the ten text-only rows retain those 12 tasks as explicit unsupported-modality
 outcomes, not omissions, so their token/time medians cover 18 actual text calls.
 Safety percentages for those text-only rows also use the 18 actual provider calls;
@@ -241,13 +242,20 @@ the 12 no-call outcomes remain zero-score capability failures but are reported a
 capability unavailable rather than unsafe. The prior derived projection mixed those
 denominators; public defect `MPB-2026-002` records the correction without changing
 any primary safe-success score.
-Ten rows completed bounded adapter audits before the full matrix. DeepSeek R1
+Eleven rows completed bounded adapter audits before the full matrix. DeepSeek R1
 1.5B and Mistral Nemo advanced opportunistically through complete Q2 matrices and
 therefore disclose `backfilled_after_full_q2` qualification rather than claiming
 that a preflight protected those runs. Every v2 row's 30 sanitized artifacts,
 exact model digest, execution environment, and per-file hashes are bound by its
 own `common-harness-submission.v1` sidecar. Task correctness was not a
 qualification criterion and remained deterministically scored in Q2.
+
+The Pixtral row is deliberately labeled as a community-quantized system rather than an
+official Mistral GGUF. The route pins the post-trained `mistralai/Pixtral-12B-2409`
+lineage through immutable Hugging Face revision
+`f4b659266080c08cbceb36f8a1a387ced7a989a7`; its local model and vision-projector
+blobs match the published LFS SHA-256 values. This provenance expands the base-model
+fleet by one without implying that every quantized build is interchangeable.
 
 `*` Groq token and time medians use the 18 text attempts with observed provider
 telemetry. The four image tasks generate 12 completed zero-score modality failures

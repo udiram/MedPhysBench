@@ -26,6 +26,19 @@ export function formatTokens(value: number | null | undefined) {
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(value);
 }
 
+export function formatBytes(value: number | null | undefined) {
+  if (value == null || !Number.isFinite(value) || value < 0) return "Unavailable";
+  const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+  let amount = value;
+  let unitIndex = 0;
+  while (amount >= 1024 && unitIndex < units.length - 1) {
+    amount /= 1024;
+    unitIndex += 1;
+  }
+  const digits = unitIndex === 0 ? 0 : amount >= 10 ? 1 : 2;
+  return `${amount.toFixed(digits)} ${units[unitIndex]}`;
+}
+
 export function shortHash(value: string | undefined) {
   if (!value) return "—";
   return `${value.slice(0, 10)}…${value.slice(-6)}`;

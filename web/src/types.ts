@@ -78,6 +78,11 @@ export type ModelCatalogEntry = {
     source_url?: string;
     source_revision?: string;
     quantization?: string;
+    artifacts?: Array<{
+      role: string;
+      sha256: string;
+      bytes?: number;
+    }>;
   };
   notes?: string;
 };

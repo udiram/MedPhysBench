@@ -214,5 +214,33 @@
     "openness": "open",
     "steward": "Meta",
     "family": "Llama 3.1"
+  },
+  {
+    "provider": "ollama",
+    "model_name": "hf.co/EnlistedGhost/Pixtral-12B-2409-GGUF:Q4_K_M",
+    "base_model_id": "mistralai/Pixtral-12B-2409",
+    "openness": "open",
+    "steward": "Mistral AI / community quantizer",
+    "family": "Pixtral",
+    "artifact_provenance": {
+      "kind": "community_quantization",
+      "label": "Community GGUF with F32 vision projector",
+      "source_url": "https://huggingface.co/EnlistedGhost/Pixtral-12B-2409-GGUF/tree/f4b659266080c08cbceb36f8a1a387ced7a989a7",
+      "source_revision": "f4b659266080c08cbceb36f8a1a387ced7a989a7",
+      "quantization": "Q4_K_M",
+      "artifacts": [
+        {
+          "role": "model_weights",
+          "sha256": "80f05f4f031bd9cdcd073051e23d2e55d9b71136cc2832eaa0da4a4ea44ed67b",
+          "bytes": 7703795680
+        },
+        {
+          "role": "vision_projector",
+          "sha256": "25622e8033dd8d80aa00f1542dbd16898e65a2b99a3449b8070ad8d6eed75c5d",
+          "bytes": 1739863968
+        }
+      ]
+    },
+    "notes": "The local model and projector blobs match the immutable repository LFS SHA-256 values. This is not an official Mistral-distributed GGUF build."
   }
 ]

@@ -146,6 +146,7 @@ function App() {
         />
         <FleetCoverage data={fleetStatus} />
         <PublicModelIndex
+          activeRelease={releaseView}
           catalog={modelCatalog}
           fleetStatus={fleetStatus}
           datasets={[
@@ -155,6 +156,12 @@ function App() {
             { key: "real", label: "OpenKBP real-workflow pilot", data: realWorkflows.data },
           ]}
         />
+        <nav className="results-subnav" aria-label="Results views">
+          <span>Results views</span>
+          <a href="#leaderboard">Leaderboard</a>
+          <a href="#efficiency">Plots</a>
+          <a href="#forensics">Attempt forensics</a>
+        </nav>
         <LeaderboardExplorer
           data={selected.data}
           accessStatus={accessStatus}
@@ -162,6 +169,11 @@ function App() {
           loadError={selected.loadError}
           releaseView={releaseView}
           tg263Audit={tg263Audit}
+        />
+        <EfficiencyExplorer
+          data={selected.data}
+          modelCatalog={modelCatalog}
+          releaseView={releaseView}
         />
         <CapabilityExplorer
           data={selected.data}
@@ -173,11 +185,6 @@ function App() {
         <ResultForensics
           data={selected.data}
           defectLedger={defectLedger}
-          modelCatalog={modelCatalog}
-          releaseView={releaseView}
-        />
-        <EfficiencyExplorer
-          data={selected.data}
           modelCatalog={modelCatalog}
           releaseView={releaseView}
         />

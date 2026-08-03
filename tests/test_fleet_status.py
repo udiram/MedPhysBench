@@ -47,13 +47,13 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert status == rebuilt
     assert rebuilt["summary"] == {
         "planned_base_models": 50,
-        "access_qualified_base_models": 21,
-        "evaluated_base_models": 19,
-        "ranked_base_models": 19,
-        "workflow_qualified_base_models": 19,
-        "workflow_ranked_base_models": 19,
-        "published_system_configurations": 27,
-        "published_release_rows": 42,
+        "access_qualified_base_models": 22,
+        "evaluated_base_models": 20,
+        "ranked_base_models": 20,
+        "workflow_qualified_base_models": 20,
+        "workflow_ranked_base_models": 20,
+        "published_system_configurations": 28,
+        "published_release_rows": 43,
         "open_planned_models": 31,
         "closed_planned_models": 19,
         "vision_planned_models": 31,
@@ -75,7 +75,7 @@ def test_catalog_maps_system_configurations_to_unique_frozen_base_models() -> No
 
     assert len(keys) == len(set(keys))
     assert all(entry["base_model_id"] in frozen_ids for entry in catalog)
-    assert len({entry["base_model_id"] for entry in catalog}) == 21
+    assert len({entry["base_model_id"] for entry in catalog}) == 22
     assert sum(entry["base_model_id"] == "gpt-5.6-sol" for entry in catalog) == 6
 
 
@@ -155,10 +155,56 @@ def test_qwen25vl_7b_is_exactly_bound_through_access_and_workflow_results() -> N
     assert qwen["published_row_count"] == 1
 
 
+def test_pixtral_community_quantization_is_attested_and_ranked() -> None:
+    status = build_fleet_status()
+    pixtral = next(
+        row
+        for row in status["models"]
+        if row["base_model_id"] == "mistralai/Pixtral-12B-2409"
+    )
+    catalog = _load_json(CATALOG_PATH)
+    assert isinstance(catalog, list)
+    catalog_row = next(
+        row
+        for row in catalog
+        if row["base_model_id"] == "mistralai/Pixtral-12B-2409"
+    )
+    provenance = catalog_row["artifact_provenance"]
+
+    assert pixtral["qualification_stage"] == "q2"
+    assert pixtral["access_qualified"] is True
+    assert pixtral["evaluated"] is True
+    assert pixtral["ranked"] is True
+    assert pixtral["workflow_qualified"] is True
+    assert pixtral["workflow_ranked"] is True
+    assert pixtral["published_row_count"] == 1
+    assert provenance["kind"] == "community_quantization"
+    assert provenance["source_url"] == (
+        "https://huggingface.co/EnlistedGhost/Pixtral-12B-2409-GGUF/tree/"
+        "f4b659266080c08cbceb36f8a1a387ced7a989a7"
+    )
+    assert provenance["source_revision"] == "f4b659266080c08cbceb36f8a1a387ced7a989a7"
+    assert {
+        (artifact["role"], artifact["sha256"], artifact["bytes"])
+        for artifact in provenance["artifacts"]
+    } == {
+        (
+            "model_weights",
+            "80f05f4f031bd9cdcd073051e23d2e55d9b71136cc2832eaa0da4a4ea44ed67b",
+            7703795680,
+        ),
+        (
+            "vision_projector",
+            "25622e8033dd8d80aa00f1542dbd16898e65a2b99a3449b8070ad8d6eed75c5d",
+            1739863968,
+        ),
+    }
+
+
 def test_workflow_qualified_counts_only_common_harness_real_workflow_release() -> None:
     status = build_fleet_status()
-    assert status["summary"]["workflow_qualified_base_models"] == 19
-    assert status["summary"]["workflow_ranked_base_models"] == 19
+    assert status["summary"]["workflow_qualified_base_models"] == 20
+    assert status["summary"]["workflow_ranked_base_models"] == 20
 
     gpt = next(
         row

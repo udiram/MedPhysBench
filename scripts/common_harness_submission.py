@@ -153,6 +153,8 @@ def validate_submission(manifest_path: Path) -> dict[str, Any]:
     catalog = _catalog_entry(model["provider"], model["model_name"])
     if catalog.get("base_model_id") != model["base_model_id"]:
         raise ValueError("Submission base_model_id does not match the public model catalog.")
+    if model.get("artifact_provenance") != catalog.get("artifact_provenance"):
+        raise ValueError("Submission artifact_provenance does not match the public model catalog.")
     resolved_manifest_path = manifest_path.resolve()
     submissions_root = (ROOT / "submissions").resolve()
     relative_manifest_path = (
@@ -265,6 +267,11 @@ def build_submission(args: argparse.Namespace) -> dict[str, Any]:
                 "provider", "model_name", "model_revision", "harness_name", "harness_revision"
             )},
             "base_model_id": catalog["base_model_id"],
+            **(
+                {"artifact_provenance": catalog["artifact_provenance"]}
+                if "artifact_provenance" in catalog
+                else {}
+            ),
         },
         "results_directory": args.results_directory,
         "artifact_tree_sha256": _artifact_tree_hash(artifacts),

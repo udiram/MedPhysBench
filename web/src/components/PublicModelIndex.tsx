@@ -1,10 +1,12 @@
 import { ChevronDown, Search } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
+import { domainLabel, formatBytes, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
 import { groupIntegrityIssues, integrityIssueHeadline } from "../lib/integrity";
 import { resolveRunBaseModelId } from "../lib/modelIdentity";
 import { providerIdsForSlice } from "../lib/modelSlice";
+import { navigateToRunForensics } from "../lib/forensicsNavigation";
 import { isCommonHarnessRun, isNativeRun } from "../lib/runSurface";
+import { scoreEvidenceAvailable } from "../lib/resultEvidence";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { classifyAttemptOutcome } from "../types";
 import type {
@@ -28,6 +30,7 @@ type PublicModelIndexProps = {
   catalog: ModelCatalogEntry[];
   fleetStatus: FleetStatus | null;
   datasets: ReleaseDataset[];
+  activeRelease: PublicReleaseKey;
 };
 
 type PublicRun = ModelResult & {
@@ -105,26 +108,14 @@ function sizeTierLabel(value: FleetStatusModel["size_tier"] | undefined) {
 }
 
 function focusRunForensics(run: PublicRun) {
-  setUrlParams(
-    {
-      fx_provider: run.provider,
-      fx_model: `${run.provider}::${run.model_name}`,
-      fx_domain: null,
-      fx_outcome: null,
-      fx_task: null,
-    },
-    { history: "push" },
-  );
-  if (typeof window !== "undefined") {
-    window.location.hash = "forensics";
-  }
+  navigateToRunForensics(run);
 }
 
-export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModelIndexProps) {
+export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease }: PublicModelIndexProps) {
   const [query, setQuery] = useState("");
   const [openness, setOpenness] = useState<ModelOpenness | "all">("all");
   const [provider, setProvider] = useState<string>("all");
-  const [release, setRelease] = useState<PublicReleaseKey | "all">("all");
+  const [release, setRelease] = useState<PublicReleaseKey | "all">(activeRelease);
   const [surface, setSurface] = useState<"all" | "common" | "native">("all");
   const [expanded, setExpanded] = useState<string | null>(null);
   const deferredQuery = useDeferredValue(query);
@@ -403,7 +394,7 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
       setQuery(getUrlParam("model_query") ?? "");
       setOpenness(readEnumParam("openness", ["all", "open", "closed", "unknown"] as const, "all"));
       setProvider(getUrlParam("provider") ?? "all");
-      setRelease(readEnumParam("model_release", ["all", "core", "imaging", "tg263", "real"] as const, "all"));
+      setRelease(readEnumParam("model_release", ["all", "core", "imaging", "tg263", "real"] as const, activeRelease));
       setSurface(readEnumParam("surface", ["all", "common", "native"] as const, "all"));
       const modelBase = getUrlParam("model_base");
       const modelProvider = getUrlParam("model_provider");
@@ -414,7 +405,13 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
     handlePopState();
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [catalogByProviderModel]);
+  }, [activeRelease, catalogByProviderModel]);
+
+  useEffect(() => {
+    if (getUrlParam("model_release") == null) {
+      setRelease(activeRelease);
+    }
+  }, [activeRelease]);
 
   const writeExplorerUrl = (overrides: {
     query?: string;
@@ -451,7 +448,7 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
         model_query: nextQuery || null,
         openness: nextOpenness === "all" ? null : nextOpenness,
         provider: nextProvider === "all" ? null : nextProvider,
-        model_release: nextRelease === "all" ? null : nextRelease,
+        model_release: nextRelease === activeRelease ? null : nextRelease,
         surface: nextSurface === "all" ? null : nextSurface,
         model_base: nextExpanded,
         model_key: nextExpanded ? (overrides.runKey ?? null) : null,
@@ -470,8 +467,8 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
       <div className="section-heading">
         <h2>Explore every model</h2>
         <p>
-          One presentation. Explicit execution context. Every planned public model stays in this index, with filters that
-          change the slice without inventing cross-release comparability.
+          One presentation with explicit execution context. The active release is selected by default; choose all releases
+          only for evidence discovery, not cross-release ranking.
         </p>
       </div>
 
@@ -598,7 +595,7 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
                 <th>Providers</th>
                 <th>Family</th>
                 <th>Releases</th>
-                <th>Best published</th>
+                <th>{release === "all" ? "Best across releases" : "Best in release"}</th>
                 <th>Common runs</th>
                 <th>Other runs</th>
               </tr>
@@ -700,6 +697,7 @@ function ModelRegistryRow({
       ),
     };
   }, [allTasks]);
+  const evidenceStatus = modelEvidenceStatus(sortedRuns, group.best_safe_success_rate);
 
   return (
     <>
@@ -718,6 +716,9 @@ function ModelRegistryRow({
               {sliceProviders.length > 0 ? ` · ${sliceProviders.map((item) => providerLabel(item)).join(" + ")}` : ""}
               {variantSummaries.length > 0 ? ` · ${variantSummaries.length} variant${variantSummaries.length === 1 ? "" : "s"}` : ""}
               {familyPeers.length > 1 ? ` · ${familyPeers.length} systems in ${group.family_name}` : ""}
+            </small>
+            <small className={`registry-row-status ${evidenceStatus.kind}`}>
+              {evidenceStatus.label}
             </small>
           </button>
         </td>
@@ -1099,6 +1100,15 @@ function ModelRegistryRow({
                                     )}
                                   </dd>
                                 </div>
+                                {run.catalog_entry.artifact_provenance.artifacts?.map((artifact) => (
+                                  <div key={`${artifact.role}:${artifact.sha256}`}>
+                                    <dt>{artifact.role.replaceAll("_", " ")}</dt>
+                                    <dd title={artifact.sha256}>
+                                      SHA-256 {shortHash(artifact.sha256)}
+                                      {artifact.bytes ? ` · ${formatBytes(artifact.bytes)}` : ""}
+                                    </dd>
+                                  </div>
+                                ))}
                               </>
                             ) : null}
                           </dl>
@@ -1271,7 +1281,7 @@ function RunTaskExplorer({ run, modelBase, runKey }: { run: PublicRun; modelBase
 
   return (
     <section className="run-task-explorer" aria-label={`${run.model_name} task evidence for ${run.release_title}`}>
-      <div className="run-task-tabs" role="tablist" aria-label="Task outcome filter">
+      <div className="run-task-tabs" role="group" aria-label="Task outcome filter">
         {([
           ["all", "All attempts"],
           ["safe-pass", "Passes"],
@@ -1283,8 +1293,7 @@ function RunTaskExplorer({ run, modelBase, runKey }: { run: PublicRun; modelBase
           <button
             key={value}
             type="button"
-            role="tab"
-            aria-selected={view === value}
+            aria-pressed={view === value}
             onClick={() => {
               setView(value);
               writeRunUrl({ view: value });
@@ -1513,9 +1522,30 @@ function mergeCounts(entries: Array<[string, number]>, values: string[]) {
 }
 
 function explicitSafeSuccessRate(run: PublicRun): number | null {
+  if (!scoreEvidenceAvailable(run)) return null;
   if (run.tasks.length === 0 || run.tasks.length !== run.attempt_count) return null;
   if (!run.tasks.every((task) => typeof task.passed === "boolean")) return null;
   return run.tasks.filter((task) => task.passed === true && task.safe).length / run.tasks.length;
+}
+
+function modelEvidenceStatus(runs: PublicRun[], bestScore: number | null) {
+  if (runs.some((run) => run.ranking_eligible)) {
+    return {
+      kind: "official",
+      label: `Official group-ranked evidence${bestScore == null ? "" : ` · ${formatPercent(bestScore)}`}`,
+    };
+  }
+  if (runs.some((run) => scoreEvidenceAvailable(run) && isNativeRun(run))) {
+    return {
+      kind: "native",
+      label: `Native descriptive evidence${bestScore == null ? "" : ` · ${formatPercent(bestScore)}`}`,
+    };
+  }
+  if (runs.some((run) => !scoreEvidenceAvailable(run))) {
+    return { kind: "incomplete", label: "Unranked · execution evidence incomplete" };
+  }
+  if (runs.length > 0) return { kind: "unranked", label: "Unranked · no eligible comparison group" };
+  return { kind: "planned", label: "No published run in this release" };
 }
 
 function summarizeVariants(runs: PublicRun[]): ModelVariantSummary[] {

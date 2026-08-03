@@ -6,7 +6,8 @@ every chart has a table or text fallback.
 
 ## Design references
 
-The public site borrows four established benchmark conventions:
+The public site borrows established benchmark conventions while keeping MedPhysBench's
+comparability boundary explicit:
 
 - [SWE-bench Verified](https://www.swebench.com/verified.html) separates benchmark
   versions and standardizes the harness for apples-to-apples model comparison.
@@ -25,6 +26,13 @@ The public site borrows four established benchmark conventions:
   model quality with speed and price. MedPhysBench currently publishes provider-
   reported tokens and common-harness wall time; cost remains absent until a frozen,
   auditable pricing snapshot exists.
+- [HELM](https://crfm-helm.readthedocs.io/en/v0.5.15/) combines a unified provider-facing
+  leaderboard with prompt/response inspection. MedPhysBench likewise keeps providers on one
+  evidence surface and makes the individual task/attempt record the unit of audit.
+- [LiveBench](https://github.com/livebench/livebench) publishes task/category breakdowns,
+  refreshed releases, and confidence intervals while targeting questions that avoid immediate
+  frontier saturation. MedPhysBench uses the same motivation for versioned releases, protected
+  holdouts, direct interval display, and retirement review.
 
 ## Views and semantics
 
@@ -44,7 +52,9 @@ reported result.
 
 ### Cross-release model index and evidence drilldown
 
-The first results surface is a discovery index, not an ordinal leaderboard. It
+The first results surface is a discovery index, not an ordinal leaderboard. It defaults to the
+currently selected release; an explicit all-release mode exists for evidence discovery and never
+creates a cross-release rank. It
 joins every public model/release row to a versioned source-availability catalog,
 then allows filtering by model name, provider, release, execution surface, and
 open-weight versus closed-weight status. Provider and weight availability are
@@ -84,13 +94,17 @@ execution surface, expanded model row, selected release card, forensic run set,
 domain, outcome, and selected task survive refresh and can be shared as a direct
 link for audit or review.
 
-### Outcome interval plot
+### Unified outcome interval plot
 
-The primary plot is a horizontal dot-and-whisker view. The point is safe task
-success and the whisker is its Wilson 95% interval. Models are direct-labeled.
-Circles denote officially ranked harness-group rows; diamonds denote complete native-surface
-rows. Native rows can receive a descriptive `outcome_rank`, but never an official
-`rank` unless they satisfy the common-harness contract.
+The default plot is a horizontal dot-and-whisker view that includes every row surviving the
+same release/source/provider/surface filters. The point is safe task success and the whisker is
+the release's primary 95% interval: family-cluster where declared, otherwise Wilson. Models are
+direct-labeled. Filled circles denote officially ranked common-harness rows, hollow circles denote
+visible but unranked common-harness rows, and diamonds denote complete native-surface rows. GPT-5.6,
+Groq, and Ollama therefore share one score axis. Shape and row annotations communicate execution
+comparability; provider or model family never creates a separate visual leaderboard. Native rows
+can receive a descriptive `outcome_rank`, but never an official `rank` unless they satisfy the
+common-harness contract.
 
 The point-estimate order is deliberately not a significance claim. Readers should
 not infer an effort or model difference when intervals overlap, particularly in the
@@ -107,6 +121,11 @@ on the horizontal axis. Higher and farther left is better. A frontier is drawn o
 within each official harness group because native imports do not expose comparable
 usage or inference-time telemetry. Provider token counts remain tokenizer-specific,
 and no line connects Groq-hosted measurements to local Ollama measurements.
+
+MedPhysBench does not publish a single composite capability/efficiency index. A weighted index would
+hide value judgments about medical-physics domain importance, safety, latency, cost, and missing
+telemetry unless its weights, version policy, and sensitivity analysis were frozen first. The site
+instead keeps score, reliability, time, and tokens as linked but separable views.
 
 ### Reliability profile
 

@@ -1,0 +1,251 @@
+{
+  "adapter_source_commit": "13451ae119fe25a527c9a74babf2b64ad2fa3b4c",
+  "artifact_tree_sha256": "6959930732876ef1b1bdf9e1a8da009be1cd79a0c31d38860e1e8fa42f0f4437",
+  "artifacts": [
+    {
+      "bytes": 5091,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_high_dose_segmentation_001--attempt-1.json",
+      "sha256": "37c2a437755c2e16edf9143739b29e583ca2609a0ad6c46af90c8beaf11b229d"
+    },
+    {
+      "bytes": 5091,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_high_dose_segmentation_001--attempt-2.json",
+      "sha256": "84668f7f2d56a85163f41fc6639234efc7d995a9cf2bb173ebfc7080bced8416"
+    },
+    {
+      "bytes": 5089,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_high_dose_segmentation_001--attempt-3.json",
+      "sha256": "ef66d60a76871112482b2356a7da024669e8c3e5ed163790ca1c38c11fde0bde"
+    },
+    {
+      "bytes": 4728,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_parotid_segmentation_001--attempt-1.json",
+      "sha256": "824e48200ca2fdcae4ad41e0aeb6c8907d27f5b517fb6e44bf9eceeb6a3fd60e"
+    },
+    {
+      "bytes": 4730,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_parotid_segmentation_001--attempt-2.json",
+      "sha256": "63c56ebdf3146e2398601ac3d7332bb21432069fc6ff998d9d5ff48fcfeec0cc"
+    },
+    {
+      "bytes": 4730,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_parotid_segmentation_001--attempt-3.json",
+      "sha256": "c02c0eb46586fbb8836f10bd5647c159c6c8573368512ceb6879666d1ffbe928"
+    },
+    {
+      "bytes": 6428,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_plan_criteria_audit_001--attempt-1.json",
+      "sha256": "4be410f9bd83e4bd5f11ba961ddcb2872cc3cc946121544cf183daa356d63736"
+    },
+    {
+      "bytes": 6428,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_plan_criteria_audit_001--attempt-2.json",
+      "sha256": "27033bf0dd7d30c9c9691e438795097dd96258dfefd56a93807df0d4e4c0f805"
+    },
+    {
+      "bytes": 6428,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_plan_criteria_audit_001--attempt-3.json",
+      "sha256": "4e884a8194ffab3a11700cf0222054374c9190f8b0f1564179b8a72ea5fdca7d"
+    },
+    {
+      "bytes": 5704,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_structure_inventory_001--attempt-1.json",
+      "sha256": "39715392cf52d330dc9fc71b6c1b1b262a7ca7587539bf9f6f5ce21ae1048b3d"
+    },
+    {
+      "bytes": 5704,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_structure_inventory_001--attempt-2.json",
+      "sha256": "c3ee6f718b403c58db7b5fd4d8c5abaa0644350f3ce712e84c1493ea5740389a"
+    },
+    {
+      "bytes": 5703,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_structure_inventory_001--attempt-3.json",
+      "sha256": "05ef30645e2ea3d15a0fc801cb4cbb295111b590c0c8872329ff95ae350ac076"
+    },
+    {
+      "bytes": 5219,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_tg263_naming_audit_001--attempt-1.json",
+      "sha256": "7c4f988558e986bfb4c5f531ae1622b4ba029c4d81ebcbc585c29e7aa51a0598"
+    },
+    {
+      "bytes": 5219,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_tg263_naming_audit_001--attempt-2.json",
+      "sha256": "4e235aa6539906739273728453fee7e8e490236e8c64cc5d1583830f9a5faf5a"
+    },
+    {
+      "bytes": 5218,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_tg263_naming_audit_001--attempt-3.json",
+      "sha256": "4326bfddb49d652fc1b4a3b5986ac3fd650509c7a3ad598e528d60112ec707d1"
+    },
+    {
+      "bytes": 5091,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_high_dose_segmentation_001--attempt-1.json",
+      "sha256": "ca60b15542f57c0429d7d0d8b3cab6e3f9c4e73d17a873f906bb7d1968d9b182"
+    },
+    {
+      "bytes": 5091,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_high_dose_segmentation_001--attempt-2.json",
+      "sha256": "0bd9b43cde8f087d94a8444fa6e7b34084fdb30335bbfcc19e9ba4c79f584952"
+    },
+    {
+      "bytes": 5091,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_high_dose_segmentation_001--attempt-3.json",
+      "sha256": "dd35dd6ab4f6721e7b3d98e67aec640090839d0a55a10d91d8e69db1a70a0c13"
+    },
+    {
+      "bytes": 4730,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_parotid_segmentation_001--attempt-1.json",
+      "sha256": "116ce9eb5cac6bdcf1cca6e374f05d64a79d6bfbfc5590ab035bf6189a85df8f"
+    },
+    {
+      "bytes": 4730,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_parotid_segmentation_001--attempt-2.json",
+      "sha256": "dc75bae022253b9900b4985dc10ab5becc8b05e1b20337644cfeae69dd1ce976"
+    },
+    {
+      "bytes": 4728,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_parotid_segmentation_001--attempt-3.json",
+      "sha256": "69087fc1978c49034f142c26b4d4100b979b3ef5cb1484da9a3292c27e80b077"
+    },
+    {
+      "bytes": 5885,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_plan_criteria_audit_001--attempt-1.json",
+      "sha256": "f63b0c975977d23aa3597e8967677a3480128c5f9977b8821467b9198349b3fe"
+    },
+    {
+      "bytes": 5885,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_plan_criteria_audit_001--attempt-2.json",
+      "sha256": "0bcb9d86406214d5db50f486d2b8037f2f2781bd69b01f4cc3a301744edb4b76"
+    },
+    {
+      "bytes": 5885,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_plan_criteria_audit_001--attempt-3.json",
+      "sha256": "48c8f5129d02a45af9765966a1f2a7ad720b60bdb56f5e78416f3725a4c5ddec"
+    },
+    {
+      "bytes": 5804,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_structure_inventory_001--attempt-1.json",
+      "sha256": "c52f2acb38748e73ae1efd674306bb5adfcff7fe1f4cbcaf171d04dc8c3262e6"
+    },
+    {
+      "bytes": 5804,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_structure_inventory_001--attempt-2.json",
+      "sha256": "ebb4ee94ad3a1d3e76e805b67390ef0ac63e2ef283b483d2c8164fe488327d50"
+    },
+    {
+      "bytes": 5803,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_structure_inventory_001--attempt-3.json",
+      "sha256": "b17a7c37fe57fae0f8ae734ad74c047ad9b643bb01c4ea0b552c38a03264993d"
+    },
+    {
+      "bytes": 5219,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_tg263_naming_audit_001--attempt-1.json",
+      "sha256": "ed1e04f6d3e6966b570d46a55015a47c083d2af04eb1a1e576aba94c86527056"
+    },
+    {
+      "bytes": 5219,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_tg263_naming_audit_001--attempt-2.json",
+      "sha256": "2f0a72ec842520950de48e6dfc774a16c45689989ecd630e46cafcc828482aa5"
+    },
+    {
+      "bytes": 5219,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_tg263_naming_audit_001--attempt-3.json",
+      "sha256": "e9dd54f983808c506d11c7d3e094e00c749c3094ccd4b11470ef2d21bf617b27"
+    }
+  ],
+  "attestations": {
+    "common_harness_unmodified": true,
+    "complete_unfiltered_artifact_set": true,
+    "no_credentials_or_phi": true,
+    "no_manual_output_edits": true,
+    "no_runtime_gold_or_grader_access": true,
+    "redistribution_permitted": true
+  },
+  "budget": {
+    "estimated_cost_usd": 0.0,
+    "funding": "local_compute"
+  },
+  "environment": {
+    "accelerator": "Apple Silicon unified-memory GPU",
+    "architecture": "arm64",
+    "hardware_summary": "24 GB Apple Silicon Mac; serial single-model execution with 4,096-token context and keep_alive=0",
+    "os": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "runtime_versions": {
+      "ollama": "0.32.5",
+      "python": "3.14.0"
+    }
+  },
+  "execution_finished_at": "2026-08-03T03:30:52.386906+00:00",
+  "execution_started_at": "2026-08-03T03:04:04.024372+00:00",
+  "harness_source_commit": "13451ae119fe25a527c9a74babf2b64ad2fa3b4c",
+  "model": {
+    "artifact_provenance": {
+      "artifacts": [
+        {
+          "bytes": 7703795680,
+          "role": "model_weights",
+          "sha256": "80f05f4f031bd9cdcd073051e23d2e55d9b71136cc2832eaa0da4a4ea44ed67b"
+        },
+        {
+          "bytes": 1739863968,
+          "role": "vision_projector",
+          "sha256": "25622e8033dd8d80aa00f1542dbd16898e65a2b99a3449b8070ad8d6eed75c5d"
+        }
+      ],
+      "kind": "community_quantization",
+      "label": "Community GGUF with F32 vision projector",
+      "quantization": "Q4_K_M",
+      "source_revision": "f4b659266080c08cbceb36f8a1a387ced7a989a7",
+      "source_url": "https://huggingface.co/EnlistedGhost/Pixtral-12B-2409-GGUF/tree/f4b659266080c08cbceb36f8a1a387ced7a989a7"
+    },
+    "base_model_id": "mistralai/Pixtral-12B-2409",
+    "harness_name": "medphysbench-ollama",
+    "harness_revision": "reference-json-v2",
+    "model_name": "hf.co/EnlistedGhost/Pixtral-12B-2409-GGUF:Q4_K_M",
+    "model_revision": "sha256:bf98f2143bd35a699805b018855a12db0d5ddda0ce694772d4dd3c6b843a3286",
+    "provider": "ollama"
+  },
+  "release_contract_hash_v2": "c8bb7a810e9598eb37132884301449c1256447c90426f769fd028d3f7237909e",
+  "release_file": "releases/public_real_workflows_pilot_v0_6.yaml",
+  "release_id": "public-real-workflows-pilot-v0.6",
+  "repo_commit": "13451ae119fe25a527c9a74babf2b64ad2fa3b4c",
+  "results_directory": "results/releases/public-real-workflows-pilot-v0.6/hf_co_enlistedghost_pixtral_12b_2409_gguf_q4_k_m",
+  "schema_version": "medphysbench.common-harness-submission.v1",
+  "submission_id": "pixtral-12b-community-q4km-openkb-v0.6-20260802",
+  "submission_kind": "managed_local",
+  "submitted_at": "2026-08-03T03:32:59.235449+00:00",
+  "submitter": {
+    "affiliation": "MedPhysBench",
+    "name": "MedPhysBench benchmark operator"
+  }
+}

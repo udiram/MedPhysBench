@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
 import { defectsForTask } from "../lib/defects";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
+import { modelRunKey } from "../lib/modelRunKey";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { normalizeForensicsOutcome } from "../types";
 import type { DefectLedger, ForensicsOutcomeCategory, Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, ReleaseView } from "../types";
@@ -76,7 +77,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
       .filter((row) => row.tasks.some((task) => task.outcome_category || task.capability_failure))
       .map((row) => {
         const source = catalogIndex[`${row.provider}::${row.model_name}`]?.openness ?? "unknown";
-        return { key: `${row.provider}::${row.model_name}`, row, source };
+        return { key: modelRunKey(row), row, source };
       })
       .sort((left, right) => {
         const leftRank = left.row.outcome_rank ?? left.row.rank ?? Number.POSITIVE_INFINITY;
@@ -287,7 +288,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                 }}>
                   {visibleRows.map((entry) => (
                     <option key={entry.key} value={entry.key}>
-                      {entry.row.model_name}
+                      {entry.row.model_name} · {entry.row.harness_revision ?? inferExecutionSurface(entry.row)}
                     </option>
                   ))}
                 </select>

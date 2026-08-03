@@ -36,10 +36,15 @@ grading, and safety/escalation measurement. There are important adjacent efforts
 ## Frontier-style eval patterns
 
 - [HELM](https://crfm.stanford.edu/helm/) / [paper](https://arxiv.org/abs/2211.09110) — scenario-by-metric evaluation rather than a single score.
+- [HELM documentation](https://crfm-helm.readthedocs.io/en/v0.5.15/) — unified provider evaluation plus prompt/response inspection.
 - [GAIA](https://huggingface.co/datasets/gaia-benchmark/GAIA) / [paper](https://arxiv.org/abs/2311.12983) — realistic assistant tasks, difficulty levels, public/private access pattern.
 - [AgentBench](https://github.com/THUDM/AgentBench) — multiple environments and agent tracks.
 - [OSWorld](https://osworld-v1.xlang.ai/) / [paper](https://arxiv.org/abs/2404.07972) — environment-state outcomes, not answer preference alone.
 - [SWE-bench Verified](https://www.swebench.com/verified.html) and [OpenAI’s description](https://openai.com/index/introducing-swe-bench-verified/) — reproducible environments, hidden tests, and human task-quality review.
+- [SWE-bench evaluation artifacts](https://github.com/SWE-bench/SWE-bench/blob/main/docs/guides/evaluation.md) — per-instance result and execution-log reporting.
+- [LiveBench paper](https://livebench.ai/livebench.pdf) and [repository](https://github.com/livebench/livebench) — refreshed task releases, category/task projections, bootstrap uncertainty, and anti-saturation design.
+- [Humanity's Last Exam](https://lastexam.ai/) — expert questions, private holdout, accuracy, and calibration reporting with explicit claim limits.
+- [Artificial Analysis intelligence methodology](https://artificialanalysis.ai/methodology/intelligence-benchmarking) — repeated runs, uncertainty, benchmark-version history, and linked quality/efficiency views.
 - [OpenAI evaluation best practices](https://developers.openai.com/api/docs/guides/evaluation-best-practices) — task-specific, continuous, calibrated evaluation guidance.
 - [Anthropic — Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents) — task/trial/grader language and agent reliability metrics.
 - [Google Cloud agent evaluation overview](https://docs.cloud.google.com/gemini-enterprise-agent-platform/optimize/evaluation/evaluate-agents) — outcome and trajectory evaluation concepts.

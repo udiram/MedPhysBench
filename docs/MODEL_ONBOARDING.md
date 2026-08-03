@@ -33,6 +33,26 @@ If a provider does not expose a weight or immutable revision, label results
 `operationally_replayable`, not weight-reproducible. If a vendor changes an alias,
 create a new row rather than overwriting historical results.
 
+### Community build identity gate
+
+A community quantization is a distinct tested system artifact, not automatically an official
+publisher build. Before it can enter a comparison group:
+
+1. pin an immutable source revision rather than a mutable repository branch or serving tag;
+2. establish the lineage from the tested artifact to the exact post-trained base model, including
+   any intermediate finetune rather than relying only on embedded `base_model` metadata;
+3. match every locally loaded weight, projector, or adapter blob to a published SHA-256 value and
+   record its byte size and role;
+4. preserve the provider-facing manifest digest separately from source-blob hashes;
+5. label the build class, publisher, quantization, and any auxiliary vision artifact in the public
+   catalog and run drilldown; and
+6. reject the route if the declared modality, prompt template, license, or parent identity remains
+   ambiguous.
+
+Passing this gate supports artifact reproducibility. It does not show that the quantized route is
+behaviorally equivalent to another build of the same base model, so scores remain configuration-level
+evidence even though fleet breadth counts the base model only once.
+
 ## 2. Adapter conformance suite
 
 Before measuring medical-physics performance, every adapter must pass a provider-

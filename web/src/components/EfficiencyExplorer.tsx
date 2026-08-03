@@ -13,6 +13,10 @@ import {
   secondaryScoreInterval,
 } from "../lib/format";
 import { isCommonHarnessRun, isNativeRun, surfaceKind } from "../lib/runSurface";
+import { navigateToRunForensics } from "../lib/forensicsNavigation";
+import { modelRunKey } from "../lib/modelRunKey";
+import { scoreEvidenceAvailable, scoreEvidenceKind } from "../lib/resultEvidence";
+import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { classifyAttemptOutcome } from "../types";
 import type {
   Leaderboard,
@@ -23,7 +27,7 @@ import type {
   ReleaseView,
 } from "../types";
 
-type ViewMode = "tokens" | "time" | "reliability";
+type ViewMode = "score" | "tokens" | "time" | "reliability";
 type SourceFilter = "all" | "open" | "closed" | "unknown";
 type SurfaceFilter = "all" | "common" | "native";
 
@@ -50,7 +54,7 @@ const PROVIDER_SWATCHES: Record<string, string> = {
 };
 
 export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
-  const [mode, setMode] = useState<ViewMode>("tokens");
+  const [mode, setMode] = useState<ViewMode>("score");
   const [rankedOnly, setRankedOnly] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
   const [providerFilter, setProviderFilter] = useState("all");
@@ -78,7 +82,7 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
 
     return allRows
       .map((row) => {
-        const key = modelRowKey(row);
+        const key = modelRunKey(row);
         const source = modelSource(row, catalogIndex);
         const surface = resolveSurface(row);
         return { key, row, source, surface };
@@ -109,11 +113,13 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
   }, [allRows, catalogIndex, deferredQuery, rankedOnly, sourceFilter, surfaceFilter, providerFilter]);
 
   useEffect(() => {
+    if (!data) return;
     if (providerFilter === "all") return;
     if (!availableProviders.includes(providerFilter)) {
       setProviderFilter("all");
+      setUrlParams({ eff_provider: null });
     }
-  }, [availableProviders, providerFilter]);
+  }, [availableProviders, data, providerFilter]);
 
   const focusedModel = useMemo(
     () => rows.find((entry) => entry.key === focused)?.row ?? null,
@@ -147,6 +153,34 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
     [availableProviders, rows],
   );
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncFromUrl = () => {
+      setMode(readEnumParam("eff_mode", ["score", "tokens", "time", "reliability"] as const, "score"));
+      setSourceFilter(readEnumParam("eff_source", ["all", "open", "closed", "unknown"] as const, "all"));
+      setProviderFilter(getUrlParam("eff_provider") ?? "all");
+      setSurfaceFilter(readEnumParam("eff_surface", ["all", "common", "native"] as const, "all"));
+      setRankedOnly(getUrlParam("eff_ranked") === "1");
+      setQuery(getUrlParam("eff_query") ?? "");
+      setFocused(getUrlParam("eff_focus"));
+    };
+    syncFromUrl();
+    window.addEventListener("popstate", syncFromUrl);
+    return () => window.removeEventListener("popstate", syncFromUrl);
+  }, []);
+
+  useEffect(() => {
+    if (data && focused && !rows.some((entry) => entry.key === focused)) {
+      setFocused(null);
+      setUrlParams({ eff_focus: null });
+    }
+  }, [data, focused, rows]);
+
+  const selectRow = (key: string) => {
+    setFocused(key);
+    setUrlParams({ eff_focus: key }, { history: "push" });
+  };
+
   return (
     <section className="efficiency-section" id="efficiency">
       <div className="section-heading">
@@ -160,6 +194,7 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
       <div className="efficiency-toolbar">
         <div className="view-switch" role="group" aria-label="Efficiency chart view">
           {[
+            ["score", "Score intervals"],
             ["tokens", "Tokens frontier"],
             ["time", "Time frontier"],
             ["reliability", "Reliability"],
@@ -168,7 +203,11 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
               key={value}
               type="button"
               aria-pressed={mode === value}
-              onClick={() => setMode(value as ViewMode)}
+              onClick={() => {
+                const nextMode = value as ViewMode;
+                setMode(nextMode);
+                setUrlParams({ eff_mode: nextMode === "score" ? null : nextMode }, { history: "push" });
+              }}
             >
               {label}
             </button>
@@ -182,10 +221,14 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
           <input
             type="checkbox"
             checked={rankedOnly}
-            onChange={(event) => setRankedOnly(event.target.checked)}
+            onChange={(event) => {
+              const checked = event.target.checked;
+              setRankedOnly(checked);
+              setUrlParams({ eff_ranked: checked ? "1" : null }, { history: "push" });
+            }}
           />
           <span aria-hidden="true" />
-          Comparable runs only
+          Official group-ranked rows only
         </label>
       </div>
 
@@ -193,7 +236,11 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
         <label className="field">
           <span>Openness</span>
           <span className="select-wrap">
-            <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value as SourceFilter)}>
+            <select value={sourceFilter} onChange={(event) => {
+              const value = event.target.value as SourceFilter;
+              setSourceFilter(value);
+              setUrlParams({ eff_source: value === "all" ? null : value }, { history: "push" });
+            }}>
               <option value="all">All systems</option>
               <option value="open">Open weights</option>
               <option value="closed">Closed models</option>
@@ -205,7 +252,11 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
         <label className="field">
           <span>Provider</span>
           <span className="select-wrap">
-            <select value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}>
+            <select value={providerFilter} onChange={(event) => {
+              const value = event.target.value;
+              setProviderFilter(value);
+              setUrlParams({ eff_provider: value === "all" ? null : value }, { history: "push" });
+            }}>
               <option value="all">All providers</option>
               {availableProviders.map((value) => (
                   <option key={value} value={value}>
@@ -219,7 +270,11 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
         <label className="field">
           <span>Execution surface</span>
           <span className="select-wrap">
-            <select value={surfaceFilter} onChange={(event) => setSurfaceFilter(event.target.value as SurfaceFilter)}>
+            <select value={surfaceFilter} onChange={(event) => {
+              const value = event.target.value as SurfaceFilter;
+              setSurfaceFilter(value);
+              setUrlParams({ eff_surface: value === "all" ? null : value }, { history: "push" });
+            }}>
               <option value="all">All surfaces</option>
               <option value="common">Common harness</option>
               <option value="native">Native/imported</option>
@@ -233,14 +288,18 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
             <Search aria-hidden="true" />
             <input
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                const value = event.target.value;
+                setQuery(value);
+                setUrlParams({ eff_query: value || null });
+              }}
               placeholder="Model, provider, or harness revision"
             />
           </span>
         </label>
         <label className="field">
           <span>Rows shown</span>
-          <div className="model-count-mini">
+          <div className="model-count-mini" role="status" aria-live="polite">
             <strong>{rows.length}</strong> displayed · {filteredCommonCount} common, {filteredNativeCount} native
           </div>
         </label>
@@ -250,10 +309,17 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
         <div
           className="chart-panel"
           role="region"
-          aria-label={mode === "reliability" ? "Reliability profile chart" : `Efficiency ${mode} chart`}
-          tabIndex={0}
+          aria-label={
+            mode === "score"
+              ? "Score interval chart"
+              : mode === "reliability"
+                ? "Reliability profile chart"
+                : `Efficiency ${mode} chart`
+          }
         >
-          {mode === "reliability" ? (
+          {mode === "score" ? (
+            <ScoreIntervalPlot rows={rows} onFocus={setFocused} onSelect={selectRow} focused={focused} />
+          ) : mode === "reliability" ? (
             <ReliabilityProfile rows={rows} onFocus={setFocused} />
           ) : (
             <EfficiencyScatter rows={rows} mode={mode} onFocus={setFocused} focused={focused} />
@@ -263,20 +329,38 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
           <h3>Reading guide</h3>
           <dl>
             <div>
-              <dt><span className="guide-mark ranked" /> Common harness</dt>
-              <dd>Comparable runs from frozen contracts and published release protocol.</dd>
+              <dt><span className="guide-mark ranked" /> Official rank group</dt>
+              <dd>Complete common-harness rows eligible for comparison inside one frozen contract.</dd>
+            </div>
+            <div>
+              <dt><span className="guide-mark common-unranked" /> Common, unranked</dt>
+              <dd>Same adapter class, but missing evidence or peer comparability prevents an official rank.</dd>
             </div>
             <div>
               <dt><span className="guide-mark native" /> Native/import surface</dt>
-              <dd>Visible for continuity with separate execution context; these points remain part of the evidence set.</dd>
+              <dd>Shown in the same view with a distinct execution context; it never inherits a common-harness rank.</dd>
             </div>
             <div>
-              <dt><span className="guide-line" /> Pareto frontier</dt>
-              <dd>Built only from rows with complete telemetry; no point should be both more expensive and less accurate within its frozen comparison group.</dd>
+              {mode === "score" ? (
+                <>
+                  <dt><span className="guide-line interval" /> 95% interval</dt>
+                  <dd>The release-declared primary interval; family-cluster intervals are used when available.</dd>
+                </>
+              ) : mode === "reliability" ? (
+                <>
+                  <dt><span className="guide-line profile" /> Rate profile</dt>
+                  <dd>Safe success, repeat agreement, schema validity, and safety retain separate denominators.</dd>
+                </>
+              ) : (
+                <>
+                  <dt><span className="guide-line" /> Pareto frontier</dt>
+                  <dd>Built only from complete telemetry inside one frozen comparison group.</dd>
+                </>
+              )}
             </div>
             <div>
-              <dt><span className="guide-missing" /> Telemetry unavailable</dt>
-              <dd>Missing telemetry rows are explicitly listed and never rendered as zero.</dd>
+              <dt><span className="guide-missing" /> Measurement unavailable</dt>
+              <dd>Missing score, token, or time evidence is labeled unavailable and never rendered as zero.</dd>
             </div>
           </dl>
           {providerLegend.length > 0 ? (
@@ -303,6 +387,7 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
         rows={rows}
         focused={focused}
         onFocus={setFocused}
+        onSelect={selectRow}
         modelSourceMap={Object.fromEntries(rows.map((entry) => [entry.key, entry.source]))}
       />
 
@@ -311,6 +396,7 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
           model={focusedModel}
           source={focusedSource ?? "unknown"}
           surface={focusedSurface ?? "all"}
+          onInspectAttempts={() => focusRunForensics(focusedModel)}
         />
       )}
 
@@ -334,12 +420,176 @@ function resolveSurface(row: ModelResult): SurfaceFilter {
   return "native";
 }
 
-function modelRowKey(row: ModelResult) {
-  return `${row.provider}::${row.model_name}::${row.execution_surface ?? row.run_profile?.harness_revision ?? "default"}`;
-}
-
 function modelSource(row: ModelResult, catalogIndex: Record<string, ModelCatalogEntry>): ModelOpenness {
   return catalogIndex[`${row.provider}::${row.model_name}`]?.openness ?? "unknown";
+}
+
+function ScoreIntervalPlot({
+  rows,
+  onFocus,
+  onSelect,
+  focused,
+}: {
+  rows: ScopedRow[];
+  onFocus: (value: string) => void;
+  onSelect: (value: string) => void;
+  focused: string | null;
+}) {
+  const ordered = [...rows].sort(
+    (left, right) =>
+      Number(scoreEvidenceAvailable(right.row)) - Number(scoreEvidenceAvailable(left.row)) ||
+      right.row.safe_success_rate - left.row.safe_success_rate ||
+      left.row.model_name.localeCompare(right.row.model_name),
+  );
+
+  if (ordered.length === 0) {
+    return (
+      <div className="chart-empty" role="status">
+        <strong>No score rows match this slice</strong>
+        <p>Change a provider, openness, execution-surface, or comparability filter to restore rows.</p>
+      </div>
+    );
+  }
+
+  const width = 920;
+  const margin = { top: 42, right: 105, bottom: 48, left: 260 };
+  const rowHeight = 34;
+  const height = margin.top + margin.bottom + ordered.length * rowHeight;
+  const x = (value: number) => margin.left + value * (width - margin.left - margin.right);
+  const officialGroups = new Set(
+    ordered
+      .filter((entry) => entry.row.ranking_eligible)
+      .map((entry) => entry.row.comparison_group ?? entry.row.rank_group ?? entry.row.harness_revision),
+  ).size;
+
+  return (
+    <>
+      <div className="chart-insight-head">
+        <h3>Every visible system on one evidence scale</h3>
+        <p>
+          Point estimates and primary 95% intervals share one scale. Ordering across frozen comparison groups is
+          descriptive; official ranks remain group-specific.
+        </p>
+      </div>
+      <div className="chart-keyline">
+        <span>Higher is better. Wider intervals mean less precise evidence.</span>
+        <span>{ordered.length} rows · {officialGroups} official groups · {ordered.reduce((sum, entry) => sum + entry.row.attempt_count, 0)} attempts</span>
+      </div>
+      <svg
+        className="score-interval-chart"
+        viewBox={`0 0 ${width} ${height}`}
+        aria-hidden="true"
+        focusable="false"
+      >
+        {[0, 0.25, 0.5, 0.75, 1].map((tick) => (
+          <g key={tick}>
+            <line
+              x1={x(tick)}
+              x2={x(tick)}
+              y1={margin.top - 10}
+              y2={height - margin.bottom}
+              className="chart-grid"
+            />
+            <text x={x(tick)} y={height - 15} textAnchor="middle" className="chart-axis-label">
+              {Math.round(tick * 100)}%
+            </text>
+          </g>
+        ))}
+        {ordered.map((entry, index) => {
+          const row = entry.row;
+          const centerY = margin.top + index * rowHeight + rowHeight / 2;
+          const scoreAvailable = scoreEvidenceAvailable(row);
+          const interval = scoreAvailable ? safeSuccessInterval(row) : null;
+          const color = providerColor(row.provider);
+          const mark = row.ranking_eligible ? "ranked" : entry.surface === "common" ? "common-unranked" : "native";
+          const label = shortModelName(row.model_name);
+          return (
+            <g
+              key={entry.key}
+              className={`score-interval-row ${mark}${focused === entry.key ? " active" : ""}`}
+              onMouseEnter={() => onFocus(entry.key)}
+              onClick={() => onSelect(entry.key)}
+            >
+              {focused === entry.key ? (
+                <rect
+                  x={8}
+                  y={centerY - rowHeight / 2 + 2}
+                  width={width - 16}
+                  height={rowHeight - 4}
+                  className="score-row-focus"
+                />
+              ) : null}
+              <line x1={16} x2={width - 16} y1={centerY + rowHeight / 2} y2={centerY + rowHeight / 2} className="score-row-rule" />
+              <text x={16} y={centerY - 2} className="score-model-label">
+                {label}
+              </text>
+              <text x={16} y={centerY + 11} className="score-model-context">
+                {providerLabel(row.provider)} · {entry.source === "open" ? "open weights" : entry.source === "closed" ? "closed" : "source unclassified"} · {comparisonGroupLabel(row)}
+              </text>
+              {scoreAvailable && interval ? (
+                <>
+                  <line x1={x(interval[0])} x2={x(interval[1])} y1={centerY} y2={centerY} className="score-ci" style={{ stroke: color }} />
+                  <line x1={x(interval[0])} x2={x(interval[0])} y1={centerY - 5} y2={centerY + 5} className="score-ci" style={{ stroke: color }} />
+                  <line x1={x(interval[1])} x2={x(interval[1])} y1={centerY - 5} y2={centerY + 5} className="score-ci" style={{ stroke: color }} />
+                  {mark === "ranked" ? (
+                    <circle cx={x(row.safe_success_rate)} cy={centerY} r={5.5} className="score-mark ranked" style={{ fill: color }} />
+                  ) : mark === "common-unranked" ? (
+                    <circle cx={x(row.safe_success_rate)} cy={centerY} r={5.5} className="score-mark common-unranked" style={{ stroke: color }} />
+                  ) : (
+                    <path
+                      d={`M ${x(row.safe_success_rate)} ${centerY - 6} L ${x(row.safe_success_rate) + 6} ${centerY} L ${x(row.safe_success_rate)} ${centerY + 6} L ${x(row.safe_success_rate) - 6} ${centerY} Z`}
+                      className="score-mark native"
+                      style={{ stroke: color }}
+                    />
+                  )}
+                </>
+              ) : null}
+              <text x={width - 16} y={centerY + 4} textAnchor="end" className="score-value-label">
+                {scoreAvailable ? formatPercent(row.safe_success_rate) : "Evidence unavailable"}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+      <ol className="score-interval-mobile-list" aria-label="Safe task success interval rows">
+        {ordered.map((entry) => {
+          const row = entry.row;
+          const scoreAvailable = scoreEvidenceAvailable(row);
+          const interval = scoreAvailable ? safeSuccessInterval(row) : null;
+          const label = shortModelName(row.model_name);
+          const context = `${providerLabel(row.provider)} · ${comparisonGroupLabel(row)}`;
+          const ariaLabel = scoreAvailable && interval
+            ? `${label}, ${formatPercent(row.safe_success_rate)} safe success, interval ${formatPercent(interval[0])} to ${formatPercent(interval[1])}, ${context}`
+            : `${label}, score evidence unavailable, ${context}`;
+          return (
+            <li key={entry.key}>
+              <button
+                type="button"
+                aria-label={ariaLabel}
+                aria-pressed={focused === entry.key}
+                onFocus={() => onFocus(entry.key)}
+                onClick={() => onSelect(entry.key)}
+              >
+                <span className="score-mobile-heading">
+                  <strong>{label}</strong>
+                  <b>{scoreAvailable ? formatPercent(row.safe_success_rate) : "Evidence unavailable"}</b>
+                </span>
+                <small>{context}</small>
+                {scoreAvailable && interval ? (
+                  <span className="score-mobile-track" aria-hidden="true">
+                    <i style={{ left: `${interval[0] * 100}%`, width: `${(interval[1] - interval[0]) * 100}%` }} />
+                    <b style={{ left: `${row.safe_success_rate * 100}%`, background: providerColor(row.provider) }} />
+                  </span>
+                ) : (
+                  <span className="score-mobile-missing">Open the row to inspect the integrity failure.</span>
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ol>
+    </>
+  );
 }
 
 function EfficiencyScatter({
@@ -390,7 +640,7 @@ function EfficiencyScatter({
   const y = (value: number) => MARGIN.top + (1 - value) * (HEIGHT - MARGIN.top - MARGIN.bottom);
   const frontiers = paretoFrontiers(available.map((entry) => entry.row), mode);
   const frontierKeys = new Set(
-    frontiers.flatMap(({ rows: frontier }) => frontier.map((row) => modelRowKey(row))),
+    frontiers.flatMap(({ rows: frontier }) => frontier.map((row) => modelRunKey(row))),
   );
   const labelPositions = new Map(
     [...available]
@@ -596,8 +846,12 @@ function ReliabilityProfile({
         <span>Valid output</span>
         <span>Safety gate</span>
       </div>
-      {[...rows].sort((left, right) => right.row.safe_success_rate - left.row.safe_success_rate).map((entry) => {
+      {[...rows].sort((left, right) =>
+        Number(scoreEvidenceAvailable(right.row)) - Number(scoreEvidenceAvailable(left.row)) ||
+        right.row.safe_success_rate - left.row.safe_success_rate,
+      ).map((entry) => {
         const row = entry.row;
+        const scoreAvailable = scoreEvidenceAvailable(row);
         return (
           <button
             type="button"
@@ -610,7 +864,7 @@ function ReliabilityProfile({
               {shortModelName(row.model_name)}
               <small>{isCommonHarnessRun(row) ? "common" : "native"}</small>
             </span>
-            <ReliabilityCell value={row.safe_success_rate} />
+            <ReliabilityCell value={scoreAvailable ? row.safe_success_rate : null} />
             <ReliabilityCell value={row.reliability?.all_attempts_agree_rate ?? null} />
             <ReliabilityCell value={row.valid_output_rate} />
             <ReliabilityCell value={row.safety_gate_rate} />
@@ -636,11 +890,13 @@ function EfficiencyTable({
   rows,
   focused,
   onFocus,
+  onSelect,
   modelSourceMap,
 }: {
   rows: ScopedRow[];
   focused: string | null;
   onFocus: (value: string) => void;
+  onSelect: (value: string) => void;
   modelSourceMap: Record<string, ModelOpenness>;
 }) {
   return (
@@ -658,6 +914,7 @@ function EfficiencyTable({
             <th>Median time</th>
             <th>Telemetry coverage</th>
             <th>Attempts</th>
+            <th>Status</th>
             <th>Surface</th>
             <th>Source</th>
           </tr>
@@ -666,28 +923,35 @@ function EfficiencyTable({
           {rows.map((entry) => {
             const row = entry.row;
             const source = modelSourceMap[entry.key] ?? entry.source;
+            const scoreAvailable = scoreEvidenceAvailable(row);
             return (
               <tr key={entry.key} className={focused === entry.key ? "focused" : undefined} onMouseEnter={() => onFocus(entry.key)}>
                 <td>
                   <button
                     type="button"
                     onFocus={() => onFocus(entry.key)}
-                    onClick={() => onFocus(entry.key)}
+                    onClick={() => onSelect(entry.key)}
                   >
                     {shortModelName(row.model_name)}
                   </button>
                 </td>
                 <td>{providerLabel(row.provider)}</td>
-                <td>{formatPercent(row.safe_success_rate)}</td>
+                <td>{scoreAvailable ? formatPercent(row.safe_success_rate) : "Evidence unavailable"}</td>
                 <td>
-                  {formatPercent(safeSuccessInterval(row)[0])}–{formatPercent(safeSuccessInterval(row)[1])}
-                  <small>{primaryScoreIntervalLabel(row)}</small>
-                  {secondaryScoreInterval(row) ? (
-                    <small>
-                      Wilson {formatPercent(secondaryScoreInterval(row)?.[0])}–
-                      {formatPercent(secondaryScoreInterval(row)?.[1])}
-                    </small>
-                  ) : null}
+                  {scoreAvailable ? (
+                    <>
+                      {formatPercent(safeSuccessInterval(row)[0])}–{formatPercent(safeSuccessInterval(row)[1])}
+                      <small>{primaryScoreIntervalLabel(row)}</small>
+                      {secondaryScoreInterval(row) ? (
+                        <small>
+                          Wilson {formatPercent(secondaryScoreInterval(row)?.[0])}–
+                          {formatPercent(secondaryScoreInterval(row)?.[1])}
+                        </small>
+                      ) : null}
+                    </>
+                  ) : (
+                    <small>Integrity checks prevent a performance interval.</small>
+                  )}
                 </td>
                 <td>{formatTokens(row.token_usage?.median_input_tokens)}</td>
                 <td>{formatTokens(row.token_usage?.median_output_tokens)}</td>
@@ -697,6 +961,7 @@ function EfficiencyTable({
                   <small>Time: {formatCoverage(row.duration_telemetry?.observed_attempts, row.duration_telemetry?.expected_attempts)}</small>
                 </td>
                 <td>{row.completed_count}/{row.expected_attempt_count}</td>
+                <td>{rowEvidenceStatus(row)}</td>
                 <td>{entry.surface === "common" ? "Common harness" : "Native/import"}</td>
                 <td>{sourceLabel(source)}</td>
               </tr>
@@ -712,10 +977,12 @@ function RunDiagnosticsPanel({
   model,
   source,
   surface,
+  onInspectAttempts,
 }: {
   model: ModelResult;
   source: ModelOpenness;
   surface: SurfaceFilter;
+  onInspectAttempts: () => void;
 }) {
   const tasks = model.tasks ?? [];
   const safePasses = tasks.filter((task) => taskClassForOutcome(task) === "safe-pass").length;
@@ -740,6 +1007,9 @@ function RunDiagnosticsPanel({
           {surface === "common" ? "Common harness" : "Native/import"}
         </p>
         <div className="section-actions">
+          <button type="button" onClick={onInspectAttempts}>
+            Inspect attempts and graders
+          </button>
           <button
             type="button"
             onClick={() => downloadTaskLedger(model, "csv")}
@@ -835,6 +1105,10 @@ function RunDiagnosticsPanel({
       ) : null}
     </section>
   );
+}
+
+function focusRunForensics(model: ModelResult) {
+  navigateToRunForensics(model);
 }
 
 function downloadTaskLedger(model: ModelResult, format: "csv" | "json") {
@@ -947,6 +1221,22 @@ function safeSuccessInterval(row: ModelResult): [number, number] {
   return primaryScoreInterval(row);
 }
 
+function comparisonGroupLabel(row: ModelResult) {
+  if (isNativeRun(row)) return "native/import";
+  if (row.harness_revision === "reference-json-v1") return "local JSON v1";
+  if (row.harness_revision === "reference-json-v2") return "local JSON v2";
+  if (row.harness_revision?.includes("openai-chat-json-v1")) return "hosted JSON v1";
+  return row.comparison_group ? "frozen comparison group" : "no comparison group";
+}
+
+function rowEvidenceStatus(row: ModelResult) {
+  const kind = scoreEvidenceKind(row, isNativeRun(row));
+  if (kind === "incomplete") return "Evidence incomplete";
+  if (kind === "official") return `Official · ${comparisonGroupLabel(row)}`;
+  if (kind === "native_descriptive") return "Native descriptive";
+  return "Common harness · unranked";
+}
+
 function xValue(row: ModelResult, mode: "tokens" | "time") {
   const value = mode === "tokens" ? row.token_usage?.median_total_tokens : row.median_duration_seconds;
   return typeof value === "number" && Number.isFinite(value) ? value : null;
@@ -992,10 +1282,17 @@ function providerColor(provider: string) {
 
 function shortModelName(value: string) {
   return value
+    .replace(/^hf\.co\/EnlistedGhost\/Pixtral-12B-2409-GGUF:Q4_K_M$/i, "Pixtral 12B Q4_K_M")
     .replace("gpt-5.6-sol", "GPT-5.6")
-    .replace("openai/", "")
-    .replace("llama-", "Llama ")
-    .replace("qwen/", "Qwen ")
+    .replace(/^openai\//i, "")
+    .replace(/^llama-/i, "Llama ")
+    .replace(/^llama(?=\d)/i, "Llama ")
+    .replace(/^qwen\//i, "Qwen ")
+    .replace(/^qwen(?=\d)/i, "Qwen ")
+    .replace(/^gemma(?=\d)/i, "Gemma ")
+    .replace(/^phi4(?=[:.-])/i, "Phi-4")
+    .replace(/^mistral-nemo/i, "Mistral Nemo")
+    .replace(/^deepseek-r1/i, "DeepSeek R1")
     .replace("[effort=", "(")
     .replace("]", ")");
 }
