@@ -76,6 +76,7 @@ def test_real_workflow_reporting_preserves_family_and_repeat_contract() -> None:
 
     assert payload["release"]["integrity_profile"] == "pilot"
     assert payload["release"]["family_count"] == 2
+    assert payload["release"]["max_family_share"] == 0.5
     assert payload["release"]["expected_attempts_per_task"] == 3
     assert payload["methodology"]["status"].startswith("public research pilot")
     assert "correlated" in payload["methodology"]["family_dependence"].lower()

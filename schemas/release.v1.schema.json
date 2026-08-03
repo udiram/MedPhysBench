@@ -33,6 +33,12 @@
       "description": "Public evidence projection. Sanitized outputs are permitted only for fully public development/pilot releases, never comparison releases.",
       "enum": ["aggregate_only", "sanitized_output"]
     },
+    "max_family_share": {
+      "description": "Maximum fraction of release tasks permitted to share one family_id. Tasks without family_id are treated as independent task-ID families. Defaults to 0.5.",
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
     "task_files": {
       "type": "array",
       "minItems": 1,

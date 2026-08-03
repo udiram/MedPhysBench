@@ -1743,6 +1743,13 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   font-style: normal;
   color: var(--muted-strong);
 }
+.forensics-task-card .forensics-task-qa {
+  width: fit-content;
+  padding: 3px 6px;
+  border: 1px solid rgba(217, 164, 65, 0.36);
+  color: var(--accent);
+  background: rgba(217, 164, 65, 0.08);
+}
 .forensics-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1787,6 +1794,53 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   color: var(--muted-strong);
   font-size: 12px;
   line-height: 1.55;
+}
+.forensics-qa-note {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(217, 164, 65, 0.34);
+  border-left: 3px solid var(--accent);
+  background: rgba(217, 164, 65, 0.06);
+}
+.forensics-qa-note > header,
+.forensics-qa-note article > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+.forensics-qa-note > header strong {
+  color: var(--accent);
+  font: 600 10px/1.4 "IBM Plex Mono", monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.forensics-qa-note > header span,
+.forensics-qa-note article > div span {
+  color: var(--muted);
+  font: 500 10px/1.4 "IBM Plex Mono", monospace;
+  text-align: right;
+  text-transform: capitalize;
+}
+.forensics-qa-note article {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.forensics-qa-note article p {
+  margin: 6px 0;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.forensics-qa-note article small {
+  display: block;
+  color: var(--muted-strong);
+  font-size: 11px;
+  letter-spacing: 0;
+  line-height: 1.5;
+  text-transform: none;
 }
 .forensics-failure-columns {
   display: grid;
@@ -2570,6 +2624,10 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   }
   .forensics-evidence-heading { align-items: flex-start; flex-direction: column; }
   .forensics-evidence-heading small { text-align: left; }
+  .forensics-qa-note > header,
+  .forensics-qa-note article > div { align-items: flex-start; flex-direction: column; }
+  .forensics-qa-note > header span,
+  .forensics-qa-note article > div span { text-align: left; }
   .capability-toolbar .view-switch,
   .scope-switch { width: 100%; overflow-x: auto; }
   .scope-switch button { flex: 1 0 auto; }

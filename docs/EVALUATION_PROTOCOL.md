@@ -58,6 +58,10 @@ Rules:
   exposure in `contamination_tags`.
 - Treat model “benchmark awareness” as a signal requiring investigation, not as
   evidence of model quality.
+- Declare `family_id` before evaluation and enforce a release-level family-concentration
+  ceiling. The default public contract rejects any release in which one family contributes
+  more than 50% of tasks; a specialized release may use a different threshold only through
+  an explicit reviewed manifest field. Statistical intervals still cluster by family.
 
 ## 4. Trial protocol
 

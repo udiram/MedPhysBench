@@ -1,16 +1,18 @@
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
+import { defectsForTask } from "../lib/defects";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { normalizeForensicsOutcome } from "../types";
-import type { ForensicsOutcomeCategory, Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, ReleaseView } from "../types";
+import type { DefectLedger, ForensicsOutcomeCategory, Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, ReleaseView } from "../types";
 
 type SourceFilter = "all" | "open" | "closed" | "unknown";
 type OutcomeFilter = "all" | "safe_success" | "safe_failure" | "unsafe" | "unavailable" | "inconclusive" | "capability_failure";
 
 type Props = {
   data: Leaderboard | null;
+  defectLedger: DefectLedger | null;
   modelCatalog: ModelCatalogEntry[];
   releaseView: ReleaseView;
 };
@@ -37,7 +39,7 @@ type DomainSummaryRow = {
 
 const OUTCOME_ORDER: OutcomeKey[] = ["safe_success", "safe_failure", "unsafe", "unavailable", "inconclusive"];
 
-export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
+export function ResultForensics({ data, defectLedger, modelCatalog, releaseView }: Props) {
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>(() => readEnumParam("fx_source", ["all", "open", "closed", "unknown"] as const, "all"));
   const [providerFilter, setProviderFilter] = useState(() => getUrlParam("fx_provider") ?? "all");
   const [modelKey, setModelKey] = useState<string>(() => getUrlParam("fx_model") ?? "");
@@ -141,6 +143,10 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
   const selectedTaskUnavailable = selectedTask
     ? normalizeForensicsOutcome(selectedTask.outcome_category, selectedTask.capability_failure === true) === "unavailable"
     : false;
+  const selectedTaskDefects = useMemo(
+    () => defectsForTask(defectLedger, selectedTask?.task_id ?? ""),
+    [defectLedger, selectedTask?.task_id],
+  );
 
   useEffect(() => {
     if (!selectedRow) return;
@@ -383,6 +389,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                           <div className="forensics-task-grid">
                             {tasks.map((task, index) => {
                               const currentKey = taskKey(task, index);
+                              const taskDefectCount = defectsForTask(defectLedger, task.task_id).length;
                               return (
                               <button
                                 key={currentKey}
@@ -400,6 +407,9 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                                   {task.seed != null ? ` · seed ${task.seed}` : ""}
                                 </small>
                                 {task.model_failure_kind ? <small>{failureKindLabel(task.model_failure_kind)}</small> : null}
+                                {taskDefectCount > 0 ? (
+                                  <small className="forensics-task-qa">QA history · {taskDefectCount} disclosed</small>
+                                ) : null}
                                 <em>{outcomeLabel(task.outcome_category, task.capability_failure === true)}</em>
                               </button>
                               );
@@ -517,6 +527,24 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                             <p>
                               The run declared the required modality unavailable before inference. The zero score and grader failures below describe the absent submission against the frozen task contract; they are not unsafe model actions and do not enter provider-call safety or telemetry denominators.
                             </p>
+                          </div>
+                        ) : null}
+                        {selectedTaskDefects.length > 0 ? (
+                          <div className="forensics-qa-note" role="note">
+                            <header>
+                              <strong>Benchmark QA history</strong>
+                              <span>{selectedTaskDefects.length} disclosed item{selectedTaskDefects.length === 1 ? "" : "s"}</span>
+                            </header>
+                            {selectedTaskDefects.map((defect) => (
+                              <article key={defect.defect_id}>
+                                <div>
+                                  <strong>{defect.defect_id}</strong>
+                                  <span>{defect.severity} · {defect.status}</span>
+                                </div>
+                                <p>{defect.summary}</p>
+                                <small>{defect.score_treatment}</small>
+                              </article>
+                            ))}
                           </div>
                         ) : null}
                         <dl className="forensics-meta compact">

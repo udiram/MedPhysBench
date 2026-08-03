@@ -172,6 +172,7 @@ function App() {
         />
         <ResultForensics
           data={selected.data}
+          defectLedger={defectLedger}
           modelCatalog={modelCatalog}
           releaseView={releaseView}
         />

@@ -67,5 +67,41 @@
     }
   ],
   "schema_version": "medphysbench.defect-ledger.v1",
+  "task_index": {
+    "public.rt.openkb-pt242-high-dose-segmentation-001": [
+      "MPB-2026-001",
+      "MPB-2026-002"
+    ],
+    "public.rt.openkb-pt242-parotid-segmentation-001": [
+      "MPB-2026-001",
+      "MPB-2026-002"
+    ],
+    "public.rt.openkb-pt242-plan-criteria-audit-001": [
+      "MPB-2026-001"
+    ],
+    "public.rt.openkb-pt242-structure-inventory-001": [
+      "MPB-2026-001"
+    ],
+    "public.rt.openkb-pt242-tg263-naming-audit-001": [
+      "MPB-2026-001"
+    ],
+    "public.rt.openkb-pt289-high-dose-segmentation-001": [
+      "MPB-2026-001",
+      "MPB-2026-002"
+    ],
+    "public.rt.openkb-pt289-parotid-segmentation-001": [
+      "MPB-2026-001",
+      "MPB-2026-002"
+    ],
+    "public.rt.openkb-pt289-plan-criteria-audit-001": [
+      "MPB-2026-001"
+    ],
+    "public.rt.openkb-pt289-structure-inventory-001": [
+      "MPB-2026-001"
+    ],
+    "public.rt.openkb-pt289-tg263-naming-audit-001": [
+      "MPB-2026-001"
+    ]
+  },
   "updated_at": "2026-08-03T00:29:43Z"
 }

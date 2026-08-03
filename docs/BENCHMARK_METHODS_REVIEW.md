@@ -4,6 +4,12 @@ Status: adopted design review, 2026-08-01
 
 MedPhysBench is already unusually strict for an early domain benchmark: task and runtime views are separated, releases and run identities are immutable, scored artifacts are deterministically regraded, rank eligibility is explicit, and native execution surfaces are not silently merged with common-harness rankings. The limiting factor is now evidence maturity, not basic harness construction.
 
+Release loading now also enforces a declared task-family concentration ceiling (50% by
+default), and the public forensic view projects only explicitly scoped defect records onto
+individual tasks. These controls reduce correlated-case score inflation and make known QA
+limitations inspectable at the same level as model evidence; neither substitutes for a
+larger, independently reviewed family set.
+
 This review compares the current system with contemporary benchmark practice and records what MedPhysBench will adopt next. It does not convert a public development release into clinical or human-comparison evidence.
 
 ## Lessons from leading benchmarks

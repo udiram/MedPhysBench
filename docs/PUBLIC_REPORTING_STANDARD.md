@@ -22,6 +22,7 @@ The header must include:
 - release identifier and artifact date;
 - maturity label: `public-development`, `public-pilot`, `domain-reviewed`, `human-baselined`, `protected-comparison`, or `externally-replicated`;
 - task count and independent family count as separate values;
+- the enforced maximum share of tasks permitted from one declared family;
 - expected attempts per task;
 - official comparison rows and observational/native rows;
 - one allowed-claim sentence and one prohibited-claim sentence.
@@ -63,6 +64,11 @@ Missing evidence is shown as `not declared`, `not collected`, or `pending`; neve
 ## Capability and failure reporting
 
 The primary statistical drill-down unit is a declared task family, not a raw attempt. A display may also group task types into descriptive capability areas, but it must label those separately and must not imply that capability areas are independent patients, cases, or families. Each cell should show safe success and the number of attempts. Raw attempts remain available in provenance views.
+
+When a public defect is explicitly bound to a task, the task drilldown must show its
+defect identifier, severity, disposition, and score treatment beside the attempt evidence.
+Release-only defects remain visible at release scope and must not be projected onto every
+task. A corrected derived view never silently rewrites the immutable underlying attempt.
 
 The website may partition attempts into the following mutually exclusive categories:
 

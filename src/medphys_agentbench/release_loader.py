@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass
+from math import isfinite
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +14,7 @@ from .contracts import AccessClass, ContractError, TaskSpec
 from .task_loader import load_task
 
 REPOSITORY_TASKS_ROOT = (Path(__file__).resolve().parents[2] / "tasks").resolve()
+DEFAULT_MAX_FAMILY_SHARE = 0.5
 
 
 @dataclass(frozen=True)
@@ -25,6 +28,7 @@ class BenchmarkRelease:
     expected_attempts_per_task: int = 1
     integrity_profile: str = "development"
     public_attempt_detail: str = "aggregate_only"
+    max_family_share: float = DEFAULT_MAX_FAMILY_SHARE
 
     def load_tasks(self) -> tuple[TaskSpec, ...]:
         tasks = tuple(load_task(path) for path in self.task_files)
@@ -45,6 +49,26 @@ class BenchmarkRelease:
                     f"Release {self.release_id!r} uses integrity_profile {self.integrity_profile!r} "
                     f"but tasks lack family_id: {missing_family_ids}."
                 )
+        family_counts = Counter(task.family_id or task.task_id for task in tasks)
+        violating_families = sorted(
+            (
+                (family_id, task_count)
+                for family_id, task_count in family_counts.items()
+                if task_count / len(tasks) > self.max_family_share
+            ),
+            key=lambda item: (-item[1], item[0]),
+        )
+        if violating_families:
+            details = "; ".join(
+                f"family_id {family_id!r} has {task_count} of {len(tasks)} tasks "
+                f"({task_count / len(tasks):.2%})"
+                for family_id, task_count in violating_families
+            )
+            raise ContractError(
+                f"Release {self.release_id!r} exceeds max_family_share "
+                f"{self.max_family_share:.2%}: {details}. Rebalance release.task_files or set "
+                "an explicit reviewed release.max_family_share threshold."
+            )
         return tasks
 
 
@@ -107,6 +131,16 @@ def load_release(release_file: str | Path) -> BenchmarkRelease:
         raise ContractError(
             "release.public_attempt_detail cannot expose answers for a comparison-profile release."
         )
+    max_family_share_raw = raw.get("max_family_share", DEFAULT_MAX_FAMILY_SHARE)
+    if isinstance(max_family_share_raw, bool) or not isinstance(max_family_share_raw, (int, float)):
+        raise ContractError(
+            "release.max_family_share must be a finite number greater than 0 and at most 1."
+        )
+    max_family_share = float(max_family_share_raw)
+    if not isfinite(max_family_share) or not 0 < max_family_share <= 1:
+        raise ContractError(
+            "release.max_family_share must be a finite number greater than 0 and at most 1."
+        )
 
     return BenchmarkRelease(
         schema_version=str(raw["schema_version"]),
@@ -118,4 +152,5 @@ def load_release(release_file: str | Path) -> BenchmarkRelease:
         expected_attempts_per_task=expected_attempts_per_task,
         integrity_profile=integrity_profile,
         public_attempt_detail=public_attempt_detail,
+        max_family_share=max_family_share,
     )

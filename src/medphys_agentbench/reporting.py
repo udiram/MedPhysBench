@@ -120,6 +120,7 @@ def summarize_release(
             "integrity_profile": release.integrity_profile,
             "public_attempt_detail": release.public_attempt_detail,
             "family_count": len({task.family_id or task.task_id for task in tasks}),
+            "max_family_share": release.max_family_share,
         },
         "integrity": {
             "expected_attempts_per_task": expected_attempts,

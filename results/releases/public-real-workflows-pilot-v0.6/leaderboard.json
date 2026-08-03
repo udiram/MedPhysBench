@@ -60953,6 +60953,7 @@
     "expected_attempts_per_task": 3,
     "family_count": 2,
     "integrity_profile": "pilot",
+    "max_family_share": 0.5,
     "public_attempt_detail": "sanitized_output",
     "release_id": "public-real-workflows-pilot-v0.6",
     "schema_version": "medeval.release.v1",

@@ -275,6 +275,7 @@ function EvidenceQuality({ data, releaseView, reviewEvidence }: Pick<Props, "dat
   const completeRows = officialRows.filter((row) => row.completed_count === row.expected_attempt_count).length;
   const repeats = data?.release.expected_attempts_per_task ?? 1;
   const families = data?.release.family_count;
+  const maxFamilyShare = data?.release.max_family_share;
   const releaseMeta = evidenceFor(releaseView, reviewEvidence);
   const rows = [
     {
@@ -300,6 +301,14 @@ function EvidenceQuality({ data, releaseView, reviewEvidence }: Pick<Props, "dat
       state: families == null ? "Not declared" : families >= 10 ? "Broad" : "Limited",
       tone: families != null && families >= 10 ? "good" : "warn",
       detail: families == null ? "No family structure is declared for this release." : `${families} independent family unit${families === 1 ? "" : "s"}; correlated task views are not counted as independent patients.`,
+    },
+    {
+      label: "Family concentration guard",
+      state: maxFamilyShare == null ? "Not declared" : "Enforced",
+      tone: maxFamilyShare == null ? "warn" : "good",
+      detail: maxFamilyShare == null
+        ? "This historical projection does not publish a task-family cap."
+        : `No family may contribute more than ${formatPercent(maxFamilyShare)} of tasks without an explicit reviewed override.`,
     },
     ...releaseMeta,
   ];

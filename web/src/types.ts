@@ -57,6 +57,7 @@ export type BenchmarkDefect = {
 export type DefectLedger = {
   schema_version: "medphysbench.defect-ledger.v1";
   updated_at: string;
+  task_index?: Record<string, string[]>;
   entries: BenchmarkDefect[];
 };
 
@@ -305,6 +306,7 @@ export type Leaderboard = {
     integrity_profile?: "development" | "pilot" | "comparison";
     public_attempt_detail?: "aggregate_only" | "sanitized_output";
     family_count?: number;
+    max_family_share?: number;
   };
   integrity: {
     expected_attempts_per_task?: number;

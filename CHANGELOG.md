@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Enforced a default 50% task-family concentration ceiling at release load time, exposed the reviewed threshold in public reporting, and added strict-boundary and deterministic-error regressions so one correlated case family cannot quietly dominate a score.
+- Added a deterministic task-to-defect projection and task-level QA history in result forensics, including disclosed defect counts, severity, resolution state, and immutable score treatment without inferring release-wide defects onto unaffected tasks.
 - Froze a machine-readable 50-base-model fleet and added a deterministic public qualification funnel: 21 access-qualified, 19 common-harness evaluated and rankable under the current manifest contract, 26 published system configurations, 41 release rows, and no count inflation from aliases or GPT-5.6 effort settings.
 - Completed 330 digest-pinned OpenKBP attempts across eleven exact local model configurations under the memory-bounded `reference-json-v2` harness, with preflight chronology, immutable resume, provider-call telemetry, and an attested artifact tree for every row.
 - Added Microsoft Phi-4 14B as an evidence-complete local row: 30/30 attempts, 10.0% safe success, 100% safety over 18 evaluable provider calls, 12 explicit capability-unavailable image attempts, 18,126 total tokens, and a 30.142-second median provider-call wall time.

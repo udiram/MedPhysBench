@@ -1,6 +1,6 @@
 import { ExternalLink } from "lucide-react";
 import { DOC_LINKS, domainDescriptions, workflow } from "../content";
-import { domainLabel, shortHash } from "../lib/format";
+import { domainLabel, formatPercent, shortHash } from "../lib/format";
 import type { AccessStatus, DefectLedger, Leaderboard, ReleaseView, ReviewEvidence } from "../types";
 
 type EvidenceSectionsProps = {
@@ -174,6 +174,12 @@ export function EvidenceSections({ accessStatus, data, defectLedger, releaseView
             <article>
               <h3>Independence unit</h3>
               <p>{data.release.family_count} declared families; task views are not counted as independent patients.</p>
+            </article>
+          )}
+          {data?.release.max_family_share != null && (
+            <article>
+              <h3>Family concentration guard</h3>
+              <p>No one family may exceed {formatPercent(data.release.max_family_share)} of release tasks without an explicit reviewed override.</p>
             </article>
           )}
           <article>
