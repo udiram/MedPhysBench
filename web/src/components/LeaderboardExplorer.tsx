@@ -21,6 +21,7 @@ import {
   limitEvidenceRows,
 } from "../lib/efficiencyScope";
 import { releaseIdForView } from "../lib/releaseEvidence";
+import { versionedDataUrl } from "../lib/dataAssets";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import { competitionRankMap } from "../lib/ranking";
 import { rowVisibleInResultsScope, type ResultsScope } from "../lib/resultsScope";
@@ -56,10 +57,10 @@ const SORT_KEYS: Array<{ key: SortKey; label: string }> = [
 ];
 
 const RELEASE_DOWNLOAD: Record<ReleaseView, string> = {
-  core: "/data/leaderboard.json",
-  imaging: "/data/imaging_leaderboard.json",
-  tg263: "/data/tg263_leaderboard.json",
-  real: "/data/public-real-workflows-pilot-v0.6.json",
+  core: versionedDataUrl("/data/leaderboard.json"),
+  imaging: versionedDataUrl("/data/imaging_leaderboard.json"),
+  tg263: versionedDataUrl("/data/tg263_leaderboard.json"),
+  real: versionedDataUrl("/data/public-real-workflows-pilot-v0.6.json"),
 };
 
 type ModelOpenness = "open" | "closed" | "unknown";

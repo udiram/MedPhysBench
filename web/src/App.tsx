@@ -14,20 +14,21 @@ import { ResultForensics } from "./components/ResultForensics";
 import { ResultsScopeBar } from "./components/ResultsScopeBar";
 import { useLeaderboard } from "./hooks/useLeaderboard";
 import { releaseEvidenceFor, releaseIdForView } from "./lib/releaseEvidence";
+import { versionedDataUrl } from "./lib/dataAssets";
 import type { ResultsScope } from "./lib/resultsScope";
 import { readEnumParam, setUrlParams } from "./lib/urlState";
 import type { AccessStatus, DefectLedger, FleetStatus, ModelCatalogEntry, ReleaseEvidenceIndex, ReleaseView, Tg263Audit } from "./types";
 
-const LEADERBOARD_URL = "/data/leaderboard.json";
-const IMAGING_LEADERBOARD_URL = "/data/imaging_leaderboard.json";
-const REAL_WORKFLOWS_LEADERBOARD_URL = "/data/public-real-workflows-pilot-v0.6.json";
-const TG263_LEADERBOARD_URL = "/data/tg263_leaderboard.json";
-const TG263_AUDIT_URL = "/data/public-tg263-pilot-v0.5-audit.json";
-const ACCESS_STATUS_URL = "/data/access_status.json";
-const MODEL_CATALOG_URL = "/data/model_catalog.json";
-const FLEET_STATUS_URL = "/data/fleet_status.json";
-const RELEASE_EVIDENCE_URL = "/data/release_evidence.json";
-const DEFECT_LEDGER_URL = "/data/benchmark-defects.json";
+const LEADERBOARD_URL = versionedDataUrl("/data/leaderboard.json");
+const IMAGING_LEADERBOARD_URL = versionedDataUrl("/data/imaging_leaderboard.json");
+const REAL_WORKFLOWS_LEADERBOARD_URL = versionedDataUrl("/data/public-real-workflows-pilot-v0.6.json");
+const TG263_LEADERBOARD_URL = versionedDataUrl("/data/tg263_leaderboard.json");
+const TG263_AUDIT_URL = versionedDataUrl("/data/public-tg263-pilot-v0.5-audit.json");
+const ACCESS_STATUS_URL = versionedDataUrl("/data/access_status.json");
+const MODEL_CATALOG_URL = versionedDataUrl("/data/model_catalog.json");
+const FLEET_STATUS_URL = versionedDataUrl("/data/fleet_status.json");
+const RELEASE_EVIDENCE_URL = versionedDataUrl("/data/release_evidence.json");
+const DEFECT_LEDGER_URL = versionedDataUrl("/data/benchmark-defects.json");
 
 function App() {
   const core = useLeaderboard(LEADERBOARD_URL);
