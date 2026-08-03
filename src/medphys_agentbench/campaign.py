@@ -75,6 +75,7 @@ class CampaignExecution:
     resume: bool
     fail_fast_attempts: bool
     continue_on_model_failure: bool
+    resource_recovery_wait_seconds: int
 
 
 @dataclass(frozen=True)
@@ -254,7 +255,12 @@ def load_campaign(path: str | Path) -> CampaignSpec:
         results_dir_label=str(payload["results_dir"]),
         results_dir=results_dir,
         attempts=attempts,
-        execution=CampaignExecution(**payload["execution"]),
+        execution=CampaignExecution(
+            **{
+                "resource_recovery_wait_seconds": 0,
+                **payload["execution"],
+            }
+        ),
         resource_limits=CampaignResourceLimits(**payload["resource_limits"]),
         models=models,
         generated_at=str(payload["generated_at"]) if payload.get("generated_at") else None,
@@ -322,6 +328,8 @@ def build_model_command(spec: CampaignSpec, model: CampaignModel) -> list[str]:
             str(spec.resource_limits.minimum_available_memory_gib),
             "--minimum-free-disk-gib",
             str(spec.resource_limits.minimum_free_disk_gib),
+            "--resource-recovery-wait-seconds",
+            str(spec.execution.resource_recovery_wait_seconds),
         ]
     )
     if model.base_url:

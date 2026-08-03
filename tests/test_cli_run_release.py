@@ -405,6 +405,58 @@ def test_run_release_resource_guard_blocks_before_adapter_or_result_commit(
     assert "memory fraction" in receipt["failures"][0]
 
 
+def test_run_release_resource_guard_waits_for_recovery_before_starting_attempt(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    gib = 1024**3
+    snapshots = iter(
+        [
+            ResourceSnapshot(32 * gib, 8 * gib, 100 * gib, "test", str(tmp_path)),
+            ResourceSnapshot(32 * gib, 24 * gib, 100 * gib, "test", str(tmp_path)),
+        ]
+    )
+    safe = ResourceSnapshot(32 * gib, 24 * gib, 100 * gib, "test", str(tmp_path))
+    sleep_calls: list[float] = []
+    monkeypatch.setattr(cli, "capture_resource_snapshot", lambda _path: next(snapshots, safe))
+    monkeypatch.setattr(cli.time, "sleep", sleep_calls.append)
+    monkeypatch.setattr(
+        cli,
+        "_build_adapter",
+        lambda *args, seed, **_kwargs: _FakeAdapter(str(args[1]), seed),
+    )
+    monkeypatch.setattr(cli, "run_trial", lambda *_args, **_kwargs: _FakeResult())
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "medphys-bench",
+            "run-release",
+            "releases/public_imaging_pilot_v0_4.yaml",
+            "--adapter",
+            "groq",
+            "--model",
+            "recovering-model",
+            "--results-dir",
+            str(tmp_path),
+            "--minimum-available-memory-fraction",
+            "0.35",
+            "--minimum-available-memory-gib",
+            "6",
+            "--minimum-free-disk-gib",
+            "10",
+            "--resource-recovery-wait-seconds",
+            "1",
+        ],
+    )
+
+    cli.main()
+
+    model_dir = tmp_path / "public-imaging-pilot-v0.4" / "recovering_model"
+    assert len(list(model_dir.glob("*.json"))) == 5
+    assert not (model_dir / "_resource_blocks").exists()
+    assert sleep_calls == [1]
+
+
 def test_run_release_resource_guard_preserves_existing_then_recovers_missing_attempts(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

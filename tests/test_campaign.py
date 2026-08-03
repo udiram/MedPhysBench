@@ -113,7 +113,17 @@ def test_committed_campaign_binds_five_frozen_models_and_release() -> None:
     assert campaign.execution.max_parallel_models == 1
     assert campaign.execution.process_isolation is True
     assert campaign.execution.resume is True
+    assert campaign.execution.resource_recovery_wait_seconds == 0
     assert campaign.resource_limits.minimum_available_memory_fraction == 0.30
+
+
+def test_qwen_recovery_campaign_freezes_wait_and_new_result_root() -> None:
+    campaign = load_campaign(ROOT / "campaigns" / "qwen3-vl-8b-instruct-openkb-q2-v3.yaml")
+
+    assert campaign.manifest_hash == "9c1212f15ffbe4a25383fcac259c846aba53c007ebbbf53341f79e685ab12c2a"
+    assert campaign.execution.resource_recovery_wait_seconds == 30
+    assert campaign.results_dir_label == "runs/qwen3-vl-8b-instruct-openkb-q2-v3"
+    assert campaign.resource_limits.minimum_available_memory_fraction == 0.35
 
 
 @pytest.mark.parametrize(
@@ -194,6 +204,7 @@ def test_command_is_shell_free_resumable_and_never_contains_secret_value() -> No
     assert command[command.index("--minimum-available-memory-fraction") + 1] == "0.3"
     assert command[command.index("--minimum-available-memory-gib") + 1] == "4"
     assert command[command.index("--minimum-free-disk-gib") + 1] == "10"
+    assert command[command.index("--resource-recovery-wait-seconds") + 1] == "0"
     assert "GROQ_API_KEY" in command
     assert "literal-secret" not in " ".join(command)
 

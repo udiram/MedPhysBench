@@ -493,6 +493,7 @@ def test_campaign_generation_is_deterministic_and_does_not_create_run_state(tmp_
 
     assert dump_campaign_yaml(first) == dump_campaign_yaml(second)
     assert first["schema_version"] == "medeval.campaign.v2"
+    assert first["execution"]["resource_recovery_wait_seconds"] == 0
     assert [model["route_id"] for model in first["models"]] == sorted(receipts)
     assert all(model["access_receipt_sha256"] for model in first["models"])
     assert not (tmp_path / "runs").exists()

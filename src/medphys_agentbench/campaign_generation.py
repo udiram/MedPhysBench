@@ -40,6 +40,7 @@ def generate_campaign_payload(
     minimum_available_memory_fraction: float = 0.30,
     minimum_available_memory_gib: float = 4,
     minimum_free_disk_gib: float = 10,
+    resource_recovery_wait_seconds: int = 0,
     repository_root: Path = REPOSITORY_ROOT,
 ) -> dict[str, Any]:
     """Build a byte-stable campaign payload without contacting a provider or writing run state."""
@@ -96,6 +97,7 @@ def generate_campaign_payload(
             "resume": True,
             "fail_fast_attempts": True,
             "continue_on_model_failure": True,
+            "resource_recovery_wait_seconds": resource_recovery_wait_seconds,
         },
         "resource_limits": {
             "minimum_available_memory_fraction": minimum_available_memory_fraction,

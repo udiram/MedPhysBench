@@ -51,7 +51,8 @@
         "process_isolation": { "const": true },
         "resume": { "const": true },
         "fail_fast_attempts": { "type": "boolean" },
-        "continue_on_model_failure": { "type": "boolean" }
+        "continue_on_model_failure": { "type": "boolean" },
+        "resource_recovery_wait_seconds": { "type": "integer", "minimum": 0, "maximum": 120 }
       }
     },
     "resource_limits": {

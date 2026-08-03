@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import sys
+import time
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
@@ -24,6 +25,7 @@ from .campaign import (
     CampaignError,
     CampaignExecutionError,
     CampaignResourceLimits,
+    ResourceSnapshot,
     campaign_plan,
     capture_resource_snapshot,
     execute_campaign,
@@ -122,6 +124,15 @@ def main() -> None:
         type=float,
         default=10,
         help="Stop before a model call when free disk falls below this GiB floor (default: 10).",
+    )
+    generate_campaign.add_argument(
+        "--resource-recovery-wait-seconds",
+        type=int,
+        default=30,
+        help=(
+            "Wait up to this many seconds for resources to recover between attempts before recording a block "
+            "(default: 30)."
+        ),
     )
     generate_campaign.add_argument(
         "--allow-unknown-quota",
@@ -237,6 +248,12 @@ def main() -> None:
         "--minimum-free-disk-gib",
         type=float,
         help="Stop before each missing attempt when free result-volume space is below this GiB floor.",
+    )
+    run_release.add_argument(
+        "--resource-recovery-wait-seconds",
+        type=int,
+        default=0,
+        help="Bounded recovery wait before a per-attempt resource breach is recorded (default: 0).",
     )
     run_release.add_argument("--fail-fast", action="store_true")
     run_release.add_argument(
@@ -372,6 +389,7 @@ def main() -> None:
                 minimum_available_memory_fraction=args.minimum_available_memory_fraction,
                 minimum_available_memory_gib=args.minimum_available_memory_gib,
                 minimum_free_disk_gib=args.minimum_free_disk_gib,
+                resource_recovery_wait_seconds=args.resource_recovery_wait_seconds,
             )
             created = write_campaign_manifest(args.output, payload)
         except (RouteQualificationError, ValueError) as error:
@@ -442,6 +460,8 @@ def main() -> None:
         release = load_release(args.release_file)
         tasks = release.load_tasks()
         attempt_resource_limits = _run_release_resource_limits(args)
+        if not 0 <= args.resource_recovery_wait_seconds <= 120:
+            raise SystemExit("--resource-recovery-wait-seconds must be between 0 and 120.")
         attempts = args.attempts if args.attempts is not None else release.expected_attempts_per_task
         if attempts < 1:
             raise SystemExit("--attempts must be at least 1.")
@@ -542,8 +562,13 @@ def main() -> None:
                         )
                         continue
                     if attempt_resource_limits is not None:
-                        resource_snapshot = capture_resource_snapshot(args.results_dir)
-                        resource_failures = resource_limit_failures(resource_snapshot, attempt_resource_limits)
+                        resource_snapshot, resource_failures, resource_waited_seconds = (
+                            _wait_for_resource_capacity(
+                                args.results_dir,
+                                attempt_resource_limits,
+                                wait_seconds=args.resource_recovery_wait_seconds,
+                            )
+                        )
                         if resource_failures:
                             resource_block_id = str(uuid4())
                             resource_block_path = (
@@ -572,6 +597,8 @@ def main() -> None:
                                 "resource_limits": asdict(attempt_resource_limits),
                                 "resource_snapshot": resource_snapshot.to_dict(),
                                 "failures": resource_failures,
+                                "resource_recovery_wait_seconds": args.resource_recovery_wait_seconds,
+                                "resource_waited_seconds": resource_waited_seconds,
                                 "seed": None if args.omit_seed else attempt_seed,
                                 "temperature": None if args.omit_temperature else args.temperature,
                                 "max_tokens": args.max_tokens,
@@ -991,6 +1018,22 @@ def _run_release_resource_limits(args: argparse.Namespace) -> CampaignResourceLi
         minimum_available_memory_gib=memory_gib,
         minimum_free_disk_gib=disk_gib,
     )
+
+
+def _wait_for_resource_capacity(
+    results_dir: Path,
+    limits: CampaignResourceLimits,
+    *,
+    wait_seconds: int,
+) -> tuple[ResourceSnapshot, list[str], int]:
+    """Wait only while blocked, then return the final measured resource state."""
+    for waited_seconds in range(wait_seconds + 1):
+        snapshot = capture_resource_snapshot(results_dir)
+        failures = resource_limit_failures(snapshot, limits)
+        if not failures or waited_seconds == wait_seconds:
+            return snapshot, failures, waited_seconds
+        time.sleep(1)
+    raise AssertionError("resource wait loop must return")
 
 
 def _write_json(path: Path, payload: dict[str, object]) -> None:

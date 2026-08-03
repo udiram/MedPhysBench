@@ -19,6 +19,9 @@
 - Corrected independent Ollama completion verification to mirror the child CLI's textual
   `keep_alive` serialization, preventing valid immutable attempts from being rejected as a
   numeric-versus-string contract mismatch.
+- Added a frozen, bounded between-attempt resource-recovery wait so asynchronous local-model
+  unloading can clear the same memory floor before the next request; the wait never weakens a
+  threshold and still fails closed with non-scoring evidence when recovery times out.
 - Corrected the Qwen3-VL candidate lineage: the default `qwen3-vl:8b` artifact exposes Ollama's
   thinking renderer and failed the strict final-content canary, so its non-scoring failure receipt
   is preserved. A distinct v2 route now pins `qwen3-vl:8b-instruct`, its non-thinking renderer, and
