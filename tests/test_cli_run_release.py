@@ -182,8 +182,19 @@ def test_run_release_scores_unsupported_required_modality_as_completed_zero(
     summary = summarize_release(load_release("releases/public_imaging_pilot_v0_4.yaml"), tmp_path)
     assert summary["integrity"]["ranked_model_count"] == 0
     assert summary["models"] == []
-    assert summary["unranked_models"][0]["safe_success_rate"] == 0.0
-    assert "unranked_singleton_comparison_group" in summary["unranked_models"][0]["integrity"][
+    row = summary["unranked_models"][0]
+    assert row["safe_success_rate"] == 0.0
+    assert row["capability_unavailable_count"] == row["attempt_count"] == 5
+    assert row["safety_evaluable_attempt_count"] == 0
+    assert row["safety_gate_rate"] == 0.0
+    assert row["critical_unsafe_action_rate"] == 0.0
+    assert row["appropriate_escalation_rate"] is None
+    assert all(task["outcome_category"] == "unavailable" for task in row["tasks"])
+    assert row["duration_telemetry"]["capability_unavailable_attempts"] == 5
+    assert row["duration_telemetry"]["expected_attempts"] == 0
+    assert row["token_usage"]["capability_unavailable_attempts"] == 5
+    assert row["token_usage"]["expected_attempts"] == 0
+    assert "unranked_singleton_comparison_group" in row["integrity"][
         "integrity_errors"
     ]
 

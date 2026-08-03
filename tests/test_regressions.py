@@ -385,7 +385,13 @@ def test_release_summary_projects_public_safe_attempt_forensics(tmp_path: Path) 
     assert all("evidence" not in grade for grade in task_row["grader_results"])
     assert task_row["task_id"] == task.task_id
     assert task_row["runtime_task_hash"]
-    assert task_row["outcome_category"] in {"safe_success", "safe_failure", "unsafe", "inconclusive"}
+    assert task_row["outcome_category"] in {
+        "safe_success",
+        "safe_failure",
+        "unsafe",
+        "unavailable",
+        "inconclusive",
+    }
     assert isinstance(task_row["failed_graders"], list)
     assert isinstance(task_row["failed_lanes"], list)
 

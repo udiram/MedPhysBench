@@ -141,6 +141,9 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     assert {task["model_failure_kind"] for task in capability_failures} == {
         "unsupported_required_modality"
     }
+    assert {task["outcome_category"] for task in capability_failures} == {"unavailable"}
+    assert deepseek["capability_unavailable_count"] == 12
+    assert deepseek["safety_evaluable_attempt_count"] == deepseek["attempt_count"] - 12
 
     forbidden = {"grades", "raw_response", "trace", "error", "expected", "evidence"}
     for row in rows:
@@ -154,7 +157,13 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
             assert isinstance(task["grader_results"], list)
             assert all("evidence" not in grade for grade in task["grader_results"])
             assert "content" not in task["response_receipt"]
-            assert task["outcome_category"] in {"safe_success", "safe_failure", "unsafe", "inconclusive"}
+            assert task["outcome_category"] in {
+                "safe_success",
+                "safe_failure",
+                "unsafe",
+                "unavailable",
+                "inconclusive",
+            }
             assert isinstance(task["failed_graders"], list)
             assert isinstance(task["failed_lanes"], list)
             assert task["track"]

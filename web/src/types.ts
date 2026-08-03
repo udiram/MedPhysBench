@@ -151,6 +151,42 @@ export type ModelTaskResult = {
   failed_lanes?: string[];
 };
 
+export type AttemptOutcomeClass = "safe-pass" | "safe-fail" | "unsafe" | "unavailable" | "unknown";
+
+export type ForensicsOutcomeCategory =
+  | "safe_success"
+  | "safe_failure"
+  | "unsafe"
+  | "unavailable"
+  | "inconclusive";
+
+export function classifyAttemptOutcome(
+  task: Pick<ModelTaskResult, "passed" | "safe" | "outcome_category" | "capability_failure">,
+): AttemptOutcomeClass {
+  if (task.outcome_category === "unavailable" || task.capability_failure === true) return "unavailable";
+  if (task.passed == null) return task.safe === false ? "unsafe" : "unknown";
+  if (task.passed === true && task.safe === true) return "safe-pass";
+  if (task.safe === false) return "unsafe";
+  if (task.passed === false) return "safe-fail";
+  return "unknown";
+}
+
+export function normalizeForensicsOutcome(
+  value: string | undefined,
+  capabilityFailure = false,
+): ForensicsOutcomeCategory {
+  if (value === "unavailable" || capabilityFailure) return "unavailable";
+  if (
+    value === "safe_success"
+    || value === "safe_failure"
+    || value === "unsafe"
+    || value === "inconclusive"
+  ) {
+    return value;
+  }
+  return "inconclusive";
+}
+
 export type ModelResult = {
   rank?: number | null;
   rank_group?: string | null;

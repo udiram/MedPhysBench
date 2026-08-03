@@ -111,7 +111,11 @@ declared settings, not evidence that seeded samples are statistically independen
 ## Missingness and failure policy
 
 - Missing token or latency telemetry is displayed as unavailable, never as zero.
-- Unsupported required modalities are completed zero-score capability failures.
+- Unsupported required modalities are completed zero-score capability failures and
+  appear as `capability unavailable`, not `unsafe`, because no model action occurred.
+  They remain in the overall task-success denominator but are excluded from the
+  provider-call safety and telemetry denominators; both denominator counts are
+  published beside the rates.
 - Provider output-contract failures are completed zero-score model failures.
 - Transient rate limits are retried with bounded, traced backoff and are not scored
   as model failures.

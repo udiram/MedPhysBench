@@ -4,6 +4,7 @@ import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel
 import { resolveRunBaseModelId } from "../lib/modelIdentity";
 import { isCommonHarnessRun, isNativeRun } from "../lib/runSurface";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
+import { classifyAttemptOutcome } from "../types";
 import type {
   FleetStatus,
   FleetStatusModel,
@@ -66,6 +67,7 @@ type ModelFamilyFailure = {
   safePass: number;
   safeFail: number;
   unsafe: number;
+  unavailable: number;
   unknown: number;
   failedLanes: Array<[string, number]>;
   failedGraders: Array<[string, number]>;
@@ -671,12 +673,14 @@ function ModelRegistryRow({
     const safePass = allTasks.filter((task) => taskOutcome(task) === "safe-pass").length;
     const safeFail = allTasks.filter((task) => taskOutcome(task) === "safe-fail").length;
     const unsafe = allTasks.filter((task) => taskOutcome(task) === "unsafe").length;
+    const unavailable = allTasks.filter((task) => taskOutcome(task) === "unavailable").length;
     const unknown = allTasks.filter((task) => taskOutcome(task) === "unknown").length;
     const familyFailures = aggregateModelFailures(allTasks);
     return {
       safePass,
       safeFail,
       unsafe,
+      unavailable,
       unknown,
       familyFailures,
       failuresByDomain: topCounts(
@@ -879,7 +883,11 @@ function ModelRegistryRow({
                         <dd>{outcomeSummary.unsafe}</dd>
                       </div>
                       <div>
-                        <dt>Unavailable</dt>
+                        <dt>Capability unavailable</dt>
+                        <dd>{outcomeSummary.unavailable}</dd>
+                      </div>
+                      <div>
+                        <dt>Legacy missing</dt>
                         <dd>{outcomeSummary.unknown}</dd>
                       </div>
                       <div>
@@ -947,7 +955,7 @@ function ModelRegistryRow({
                               <span>{failure.domain}</span>
                             </header>
                             <p>
-                              Failures: {(failure.safeFail + failure.unsafe + failure.unknown) || "0"} (safe-pass: {failure.safePass})
+                              Failures: {(failure.safeFail + failure.unsafe + failure.unavailable + failure.unknown) || "0"} (safe-pass: {failure.safePass})
                             </p>
                             <dl>
                               <div>
@@ -977,6 +985,7 @@ function ModelRegistryRow({
                     sortedRuns.map((run) => {
                       const safePasses = run.tasks.filter((task) => taskOutcome(task) === "safe-pass").length;
                       const failures = run.tasks.filter((task) => ["safe-fail", "unsafe"].includes(taskOutcome(task))).length;
+                      const unavailable = run.tasks.filter((task) => taskOutcome(task) === "unavailable").length;
                       const unknown = run.tasks.filter((task) => taskOutcome(task) === "unknown").length;
                       return (
                         <article key={`${run.release_id}-${run.model_name}`} className="registry-run-card">
@@ -1036,6 +1045,7 @@ function ModelRegistryRow({
                           <div className="registry-outcome-strip">
                             <span>{safePasses} safe passes</span>
                             <span>{failures} explicit failures</span>
+                            {unavailable > 0 && <span>{unavailable} capability unavailable</span>}
                             {unknown > 0 && <span>{unknown} legacy outcomes unavailable</span>}
                             <span>{run.comparison_group ?? run.harness_revision ?? "Recorded native surface"}</span>
                           </div>
@@ -1065,7 +1075,7 @@ function ModelRegistryRow({
   );
 }
 
-type TaskView = "all" | "safe-pass" | "safe-fail" | "unsafe" | "unknown";
+type TaskView = "all" | "safe-pass" | "safe-fail" | "unsafe" | "unavailable" | "unknown";
 type TaskPresentation = "signatures" | "attempts";
 
 type TaskSignature = {
@@ -1078,6 +1088,7 @@ type TaskSignature = {
   safePassCount: number;
   safeFailCount: number;
   unsafeCount: number;
+  unavailableCount: number;
   unknownCount: number;
   agreementLabel: string;
   repeatedLanes: Array<[string, number]>;
@@ -1092,7 +1103,7 @@ function RunTaskExplorer({ run, modelBase, runKey }: { run: PublicRun; modelBase
   const [presentation, setPresentation] = useState<TaskPresentation>("signatures");
   const [view, setView] = useState<TaskView>(() =>
     isSelectedRun
-      ? readEnumParam("task_view", ["all", "safe-pass", "safe-fail", "unsafe", "unknown"] as const, "all")
+      ? readEnumParam("task_view", ["all", "safe-pass", "safe-fail", "unsafe", "unavailable", "unknown"] as const, "all")
       : "all",
   );
   const [query, setQuery] = useState(() => (isSelectedRun ? getUrlParam("task_query") ?? "" : ""));
@@ -1103,6 +1114,7 @@ function RunTaskExplorer({ run, modelBase, runKey }: { run: PublicRun; modelBase
       "safe-pass": run.tasks.filter((task) => taskOutcome(task) === "safe-pass").length,
       "safe-fail": run.tasks.filter((task) => taskOutcome(task) === "safe-fail").length,
       unsafe: run.tasks.filter((task) => taskOutcome(task) === "unsafe").length,
+      unavailable: run.tasks.filter((task) => taskOutcome(task) === "unavailable").length,
       unknown: run.tasks.filter((task) => taskOutcome(task) === "unknown").length,
     }),
     [run.tasks],
@@ -1137,6 +1149,7 @@ function RunTaskExplorer({ run, modelBase, runKey }: { run: PublicRun; modelBase
           safePassCount: 0,
           safeFailCount: 0,
           unsafeCount: 0,
+          unavailableCount: 0,
           unknownCount: 0,
           agreementLabel: "Unanimous",
           repeatedLanes: [],
@@ -1147,6 +1160,7 @@ function RunTaskExplorer({ run, modelBase, runKey }: { run: PublicRun; modelBase
       if (outcome === "safe-pass") signature.safePassCount += 1;
       else if (outcome === "safe-fail") signature.safeFailCount += 1;
       else if (outcome === "unsafe") signature.unsafeCount += 1;
+      else if (outcome === "unavailable") signature.unavailableCount += 1;
       else signature.unknownCount += 1;
       grouped.set(key, signature);
     }
@@ -1162,6 +1176,7 @@ function RunTaskExplorer({ run, modelBase, runKey }: { run: PublicRun; modelBase
       .sort(
         (left, right) =>
           right.unsafeCount - left.unsafeCount ||
+          right.unavailableCount - left.unavailableCount ||
           right.safeFailCount - left.safeFailCount ||
           left.safePassCount - right.safePassCount ||
           left.title.localeCompare(right.title),
@@ -1184,7 +1199,7 @@ function RunTaskExplorer({ run, modelBase, runKey }: { run: PublicRun; modelBase
 
   useEffect(() => {
     if (!isSelectedRun) return;
-    setView(readEnumParam("task_view", ["all", "safe-pass", "safe-fail", "unsafe", "unknown"] as const, "all"));
+    setView(readEnumParam("task_view", ["all", "safe-pass", "safe-fail", "unsafe", "unavailable", "unknown"] as const, "all"));
     setQuery(getUrlParam("task_query") ?? "");
   }, [isSelectedRun]);
 
@@ -1215,7 +1230,8 @@ function RunTaskExplorer({ run, modelBase, runKey }: { run: PublicRun; modelBase
           ["safe-pass", "Passes"],
           ["safe-fail", "Safe failures"],
           ["unsafe", "Unsafe"],
-          ["unknown", "Unavailable"],
+          ["unavailable", "Capability unavailable"],
+          ["unknown", "Legacy missing"],
         ] as Array<[TaskView, string]>).map(([value, label]) => (
           <button
             key={value}
@@ -1314,6 +1330,11 @@ function RunTaskExplorer({ run, modelBase, runKey }: { run: PublicRun; modelBase
                     {signature.unsafeCount} unsafe
                   </span>
                 )}
+                {signature.unavailableCount > 0 && (
+                  <span className="unavailable" style={{ flexGrow: signature.unavailableCount }}>
+                    {signature.unavailableCount} unavailable
+                  </span>
+                )}
                 {signature.unknownCount > 0 && (
                   <span className="unknown" style={{ flexGrow: signature.unknownCount }}>
                     {signature.unknownCount} unknown
@@ -1400,6 +1421,7 @@ function aggregateModelFailures(tasks: ModelTaskResult[]): ModelFamilyFailure[] 
       safePass: 0,
       safeFail: 0,
       unsafe: 0,
+      unavailable: 0,
       unknown: 0,
       failedLanes: [],
       failedGraders: [],
@@ -1410,6 +1432,8 @@ function aggregateModelFailures(tasks: ModelTaskResult[]): ModelFamilyFailure[] 
       next.safeFail += 1;
     } else if (taskOutcome(task) === "unsafe") {
       next.unsafe += 1;
+    } else if (taskOutcome(task) === "unavailable") {
+      next.unavailable += 1;
     } else {
       next.unknown += 1;
     }
@@ -1423,10 +1447,11 @@ function aggregateModelFailures(tasks: ModelTaskResult[]): ModelFamilyFailure[] 
       failedLanes: entry.failedLanes.slice(0, 3),
       failedGraders: entry.failedGraders.slice(0, 3),
     }))
-    .filter((entry) => entry.safeFail + entry.unsafe + entry.unknown > 0)
+    .filter((entry) => entry.safeFail + entry.unsafe + entry.unavailable + entry.unknown > 0)
     .sort(
       (left, right) =>
-        (right.safeFail + right.unsafe + right.unknown) - (left.safeFail + left.unsafe + left.unknown) ||
+        (right.safeFail + right.unsafe + right.unavailable + right.unknown)
+          - (left.safeFail + left.unsafe + left.unavailable + left.unknown) ||
         left.title.localeCompare(right.title),
     );
 }
@@ -1498,11 +1523,7 @@ function maxAvailable(left: number | null, right: number | null): number | null 
 }
 
 function taskOutcome(task: ModelTaskResult) {
-  if (task.passed == null) return task.safe === false ? "unsafe" : "unknown";
-  if (task.passed === true && task.safe) return "safe-pass";
-  if (task.safe === false) return "unsafe";
-  if (task.passed === false) return "safe-fail";
-  return "unknown";
+  return classifyAttemptOutcome(task);
 }
 
 function taskAttemptKey(task: ModelTaskResult) {
@@ -1514,7 +1535,8 @@ function outcomeLabel(task: ModelTaskResult) {
   if (status === "safe-pass") return "Safe pass";
   if (status === "unsafe") return "Unsafe";
   if (status === "safe-fail") return "Safe failure";
-  return "Outcome unavailable";
+  if (status === "unavailable") return "Capability unavailable";
+  return "Legacy outcome missing";
 }
 
 function opennessLabel(value: ModelOpenness) {
@@ -1562,6 +1584,7 @@ function familyAgreementLabel(tasks: ModelTaskResult[]) {
   const outcomes = [...new Set(tasks.map((task) => taskOutcome(task)))];
   if (outcomes.length <= 1) return "Unanimous";
   if (outcomes.includes("unsafe")) return "Mixed, includes unsafe";
+  if (outcomes.includes("unavailable")) return "Mixed, includes unavailable";
   if (outcomes.includes("safe-pass") && outcomes.includes("safe-fail")) return "Mixed pass/fail";
   return "Mixed";
 }

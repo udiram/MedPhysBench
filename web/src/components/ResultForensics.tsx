@@ -3,10 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
-import type { Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, ReleaseView } from "../types";
+import { normalizeForensicsOutcome } from "../types";
+import type { ForensicsOutcomeCategory, Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, ReleaseView } from "../types";
 
 type SourceFilter = "all" | "open" | "closed" | "unknown";
-type OutcomeFilter = "all" | "safe_success" | "safe_failure" | "unsafe" | "inconclusive" | "capability_failure";
+type OutcomeFilter = "all" | "safe_success" | "safe_failure" | "unsafe" | "unavailable" | "inconclusive" | "capability_failure";
 
 type Props = {
   data: Leaderboard | null;
@@ -14,7 +15,7 @@ type Props = {
   releaseView: ReleaseView;
 };
 
-type OutcomeKey = "safe_success" | "safe_failure" | "unsafe" | "inconclusive";
+type OutcomeKey = ForensicsOutcomeCategory;
 
 type VisibleRow = {
   key: string;
@@ -28,19 +29,20 @@ type DomainSummaryRow = {
   safeSuccess: number;
   safeFailure: number;
   unsafe: number;
+  unavailable: number;
   inconclusive: number;
   topLane: string | null;
   topGrader: string | null;
 };
 
-const OUTCOME_ORDER: OutcomeKey[] = ["safe_success", "safe_failure", "unsafe", "inconclusive"];
+const OUTCOME_ORDER: OutcomeKey[] = ["safe_success", "safe_failure", "unsafe", "unavailable", "inconclusive"];
 
 export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>(() => readEnumParam("fx_source", ["all", "open", "closed", "unknown"] as const, "all"));
   const [providerFilter, setProviderFilter] = useState(() => getUrlParam("fx_provider") ?? "all");
   const [modelKey, setModelKey] = useState<string>(() => getUrlParam("fx_model") ?? "");
   const [domainFilter, setDomainFilter] = useState(() => getUrlParam("fx_domain") ?? "all");
-  const [outcomeFilter, setOutcomeFilter] = useState<OutcomeFilter>(() => readEnumParam("fx_outcome", ["all", "safe_success", "safe_failure", "unsafe", "inconclusive", "capability_failure"] as const, "all"));
+  const [outcomeFilter, setOutcomeFilter] = useState<OutcomeFilter>(() => readEnumParam("fx_outcome", ["all", "safe_success", "safe_failure", "unsafe", "unavailable", "inconclusive", "capability_failure"] as const, "all"));
   const [selectedTaskKey, setSelectedTaskKey] = useState<string>(() => getUrlParam("fx_task") ?? "");
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
       setProviderFilter(getUrlParam("fx_provider") ?? "all");
       setModelKey(getUrlParam("fx_model") ?? "");
       setDomainFilter(getUrlParam("fx_domain") ?? "all");
-      setOutcomeFilter(readEnumParam("fx_outcome", ["all", "safe_success", "safe_failure", "unsafe", "inconclusive", "capability_failure"] as const, "all"));
+      setOutcomeFilter(readEnumParam("fx_outcome", ["all", "safe_success", "safe_failure", "unsafe", "unavailable", "inconclusive", "capability_failure"] as const, "all"));
       setSelectedTaskKey(getUrlParam("fx_task") ?? "");
     };
     window.addEventListener("popstate", handlePopState);
@@ -69,7 +71,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
     if (!data) return [];
     const combined = [...data.models, ...(data.unranked_models ?? [])];
     return combined
-      .filter((row) => row.tasks.some((task) => task.outcome_category))
+      .filter((row) => row.tasks.some((task) => task.outcome_category || task.capability_failure))
       .map((row) => {
         const source = catalogIndex[`${row.provider}::${row.model_name}`]?.openness ?? "unknown";
         return { key: `${row.provider}::${row.model_name}`, row, source };
@@ -116,10 +118,11 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
     if (!selectedRow) return [];
     return selectedRow.tasks.filter((task) => {
       const matchesDomain = domainFilter === "all" || task.domain === domainFilter;
+      const normalizedOutcome = normalizeForensicsOutcome(task.outcome_category, task.capability_failure === true);
       const matchesOutcome = outcomeFilter === "all"
         || (outcomeFilter === "capability_failure"
           ? task.capability_failure === true
-          : task.outcome_category === outcomeFilter);
+          : normalizedOutcome === outcomeFilter);
       return matchesDomain && matchesOutcome;
     });
   }, [domainFilter, outcomeFilter, selectedRow]);
@@ -163,6 +166,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
         safeSuccess: counts.safe_success,
         safeFailure: counts.safe_failure,
         unsafe: counts.unsafe,
+        unavailable: counts.unavailable,
         inconclusive: counts.inconclusive,
         topLane: lanes[0]?.[0] ?? null,
         topGrader: graders[0]?.[0] ?? null,
@@ -170,6 +174,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
     }).sort(
       (left, right) =>
         right.unsafe - left.unsafe ||
+        right.unavailable - left.unavailable ||
         right.safeFailure - left.safeFailure ||
         right.attempts - left.attempts ||
         left.domain.localeCompare(right.domain),
@@ -310,6 +315,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                   <option value="safe_success">Safe success</option>
                   <option value="safe_failure">Safe failure</option>
                   <option value="unsafe">Unsafe</option>
+                  <option value="unavailable">Capability unavailable</option>
                   <option value="inconclusive">Inconclusive</option>
                   <option value="capability_failure">Capability failure</option>
                 </select>
@@ -378,7 +384,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                               <button
                                 key={currentKey}
                                 type="button"
-                                className={`forensics-task-card ${outcomeClassName(task.outcome_category)}${selectedTask && currentKey === taskKey(selectedTask, filteredTasks.indexOf(selectedTask)) ? " selected" : ""}`}
+                                className={`forensics-task-card ${outcomeClassName(task.outcome_category, task.capability_failure === true)}${selectedTask && currentKey === taskKey(selectedTask, filteredTasks.indexOf(selectedTask)) ? " selected" : ""}`}
                                 onClick={() => {
                                   setSelectedTaskKey(currentKey);
                                   setUrlParams({ fx_task: currentKey }, { history: "push" });
@@ -391,7 +397,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                                   {task.seed != null ? ` · seed ${task.seed}` : ""}
                                 </small>
                                 {task.model_failure_kind ? <small>{failureKindLabel(task.model_failure_kind)}</small> : null}
-                                <em>{outcomeLabel(task.outcome_category)}</em>
+                                <em>{outcomeLabel(task.outcome_category, task.capability_failure === true)}</em>
                               </button>
                               );
                             })}
@@ -483,6 +489,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                             <dl>
                               <div><dt>Safe fail</dt><dd>{domainRow.safeFailure}</dd></div>
                               <div><dt>Unsafe</dt><dd>{domainRow.unsafe}</dd></div>
+                              <div><dt>Unavailable</dt><dd>{domainRow.unavailable}</dd></div>
                               <div><dt>Inconclusive</dt><dd>{domainRow.inconclusive}</dd></div>
                               <div><dt>Top lane</dt><dd>{domainRow.topLane ?? "None"}</dd></div>
                               <div><dt>Top grader</dt><dd>{domainRow.topGrader ?? "None"}</dd></div>
@@ -498,9 +505,9 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                   {selectedTask ? (
                     <section className="forensics-panel">
                       <h3>Selected task evidence</h3>
-                      <div className={`forensics-task-detail ${outcomeClassName(selectedTask.outcome_category)}`}>
+                      <div className={`forensics-task-detail ${outcomeClassName(selectedTask.outcome_category, selectedTask.capability_failure === true)}`}>
                         <strong>{selectedTask.title}</strong>
-                        <p>{domainLabel(selectedTask.domain)} · {outcomeLabel(selectedTask.outcome_category)}</p>
+                        <p>{domainLabel(selectedTask.domain)} · {outcomeLabel(selectedTask.outcome_category, selectedTask.capability_failure === true)}</p>
                         <dl className="forensics-meta compact">
                           <div><dt>Task</dt><dd>{selectedTask.task_id}</dd></div>
                           <div><dt>Run</dt><dd>{shortHash(selectedTask.run_id)}</dd></div>
@@ -630,32 +637,31 @@ function tallyOutcomes(tasks: readonly ModelTaskResult[]) {
     safe_success: 0,
     safe_failure: 0,
     unsafe: 0,
+    unavailable: 0,
     inconclusive: 0,
   };
   for (const task of tasks) {
-    const key = normalizeOutcome(task.outcome_category);
+    const key = normalizeOutcome(task.outcome_category, task.capability_failure === true);
     counts[key] += 1;
   }
   return counts;
 }
 
-function normalizeOutcome(value: string | undefined): OutcomeKey {
-  if (value === "safe_success" || value === "safe_failure" || value === "unsafe" || value === "inconclusive") {
-    return value;
-  }
-  return "inconclusive";
+function normalizeOutcome(value: string | undefined, capabilityFailure = false): OutcomeKey {
+  return normalizeForensicsOutcome(value, capabilityFailure);
 }
 
-function outcomeLabel(value: string | undefined) {
-  const outcome = normalizeOutcome(value);
+function outcomeLabel(value: string | undefined, capabilityFailure = false) {
+  const outcome = normalizeOutcome(value, capabilityFailure);
   if (outcome === "safe_success") return "Safe success";
   if (outcome === "safe_failure") return "Safe failure";
   if (outcome === "unsafe") return "Unsafe";
+  if (outcome === "unavailable") return "Capability unavailable";
   return "Inconclusive";
 }
 
-function outcomeClassName(value: string | undefined) {
-  return `outcome-${normalizeOutcome(value)}`;
+function outcomeClassName(value: string | undefined, capabilityFailure = false) {
+  return `outcome-${normalizeOutcome(value, capabilityFailure)}`;
 }
 
 function groupTasksByDomain(tasks: readonly ModelTaskResult[]) {

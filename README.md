@@ -107,8 +107,8 @@ package, or evidence of autonomous clinical competence.
   reduced deterministic verdicts, redacted receipts, failed-lane tallies, shareable URL state, and
   immutable hashes. Aggregate-only is the default; non-public and comparison-profile releases
   cannot opt in.
-- A machine-derived qualification funnel that reports `50` frozen base IDs, `19` access-qualified,
-  `17` validly evaluated under the current manifest contract, and `17` rankable—without counting six
+- A machine-derived qualification funnel that reports `50` frozen base IDs, `20` access-qualified,
+  `18` validly evaluated under the current manifest contract, and `18` rankable—without counting six
   GPT-5.6 effort settings as six models, treating historical legacy rows as current-contract evidence,
   or presenting a partial local campaign as a score.
 - Workflow-qualified accounting now separately reports which planned models have actually completed

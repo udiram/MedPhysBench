@@ -209,29 +209,34 @@ primary and display both interval definitions for every row.
 
 | Groq rank | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens* | Median wall time* |
 | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| 1 | `llama-3.3-70b-versatile` | 60.0% | 42.32–75.41% | 60.0% | 60.0% | 991.5 | 1.770 s |
-| 2 | `openai/gpt-oss-20b` | 60.0% | 42.32–75.41% | 60.0% | 60.0% | 1,338 | 9.283 s |
-| 3 | `openai/gpt-oss-120b` | 50.0% | 33.15–66.85% | 60.0% | 60.0% | 1,371.5 | 10.268 s |
-| 4 | `llama-3.1-8b-instant` | 0.0% | 0.00–11.35% | 16.67% | 60.0% | 1,002 | 8.343 s |
+| 1 | `llama-3.3-70b-versatile` | 60.0% | 42.32–75.41% | 100.0% | 60.0% | 991.5 | 1.770 s |
+| 2 | `openai/gpt-oss-20b` | 60.0% | 42.32–75.41% | 100.0% | 60.0% | 1,338 | 9.283 s |
+| 3 | `openai/gpt-oss-120b` | 50.0% | 33.15–66.85% | 100.0% | 60.0% | 1,371.5 | 10.268 s |
+| 4 | `llama-3.1-8b-instant` | 0.0% | 0.00–11.35% | 27.78% | 60.0% | 1,002 | 8.343 s |
 | — | `qwen/qwen3.6-27b` | 0.0% | 0.00–11.35% | 0.0% | 0.0% | unavailable | unavailable |
 
 | Ollama v2 rank | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens* | Median wall time* |
 | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 1 | `gemma3:12b-it-q4_K_M` | 40.0% | 24.59–57.68% | 100.0% | 100.0% | 1,242.5 | 38.745 s |
 | 2 | `qwen2.5vl:7b-q4_K_M` | 40.0% | 24.59–57.68% | 100.0% | 100.0% | 1,376.5 | 24.215 s |
-| 3 | `qwen3:14b` | 40.0% | 24.59–57.68% | 60.0% | 60.0% | 1,025 | 30.736 s |
-| 4 | `qwen3:8b` | 40.0% | 24.59–57.68% | 60.0% | 60.0% | 1,025 | 17.580 s |
-| 5 | `qwen2.5:7b-instruct` | 30.0% | 16.66–47.88% | 60.0% | 60.0% | 1,019 | 15.604 s |
-| 6 | `phi4-mini:3.8b-q4_K_M` | 10.0% | 3.46–25.62% | 60.0% | 60.0% | 938.5 | 9.632 s |
-| 7 | `mistral-nemo:12b-instruct-2407-q4_K_M` | 10.0% | 3.46–25.62% | 40.0% | 60.0% | 1,053.5 | 26.964 s |
-| 8 | `qwen3:1.7b` | 0.0% | 0.00–11.35% | 60.0% | 60.0% | 1,029 | 6.420 s |
-| 9 | `deepseek-r1:1.5b` | 0.0% | 0.00–11.35% | 30.0% | 60.0% | 1,616 | 14.805 s |
-| 10 | `llama3.2:3b` | 0.0% | 0.00–11.35% | 20.0% | 60.0% | 950.5 | 7.708 s |
+| 3 | `qwen3:14b` | 40.0% | 24.59–57.68% | 100.0% | 60.0% | 1,025 | 30.736 s |
+| 4 | `qwen3:8b` | 40.0% | 24.59–57.68% | 100.0% | 60.0% | 1,025 | 17.580 s |
+| 5 | `qwen2.5:7b-instruct` | 30.0% | 16.66–47.88% | 100.0% | 60.0% | 1,019 | 15.604 s |
+| 6 | `phi4-mini:3.8b-q4_K_M` | 10.0% | 3.46–25.62% | 100.0% | 60.0% | 938.5 | 9.632 s |
+| 7 | `mistral-nemo:12b-instruct-2407-q4_K_M` | 10.0% | 3.46–25.62% | 66.67% | 60.0% | 1,053.5 | 26.964 s |
+| 8 | `qwen3:1.7b` | 0.0% | 0.00–11.35% | 100.0% | 60.0% | 1,029 | 6.420 s |
+| 9 | `deepseek-r1:1.5b` | 0.0% | 0.00–11.35% | 50.0% | 60.0% | 1,616 | 14.805 s |
+| 10 | `llama3.2:3b` | 0.0% | 0.00–11.35% | 33.33% | 60.0% | 950.5 | 7.708 s |
 
 All ten v2 rows completed the same 30-attempt matrix with exact local artifact
 digests. Gemma 3 12B and Qwen2.5-VL 7B each made 30 real calls, including all 12
 required-image attempts; the eight text-only rows retain those 12 tasks as explicit unsupported-modality
 outcomes, not omissions, so their token/time medians cover 18 actual text calls.
+Safety percentages for those text-only rows also use the 18 actual provider calls;
+the 12 no-call outcomes remain zero-score capability failures but are reported as
+capability unavailable rather than unsafe. The prior derived projection mixed those
+denominators; public defect `MPB-2026-002` records the correction without changing
+any primary safe-success score.
 Eight rows completed bounded adapter audits before the full matrix. DeepSeek R1
 1.5B and Mistral Nemo advanced opportunistically through complete Q2 matrices and
 therefore disclose `backfilled_after_full_q2` qualification rather than claiming

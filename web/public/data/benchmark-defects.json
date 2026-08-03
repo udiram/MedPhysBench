@@ -34,8 +34,38 @@
       "severity": "medium",
       "status": "confirmed",
       "summary": "The required limitations field is validated for presence but not semantic adequacy in v0.6."
+    },
+    {
+      "affected_release_ids": [
+        "public-real-workflows-pilot-v0.6"
+      ],
+      "affected_task_ids": [
+        "public.rt.openkb-pt242-high-dose-segmentation-001",
+        "public.rt.openkb-pt242-parotid-segmentation-001",
+        "public.rt.openkb-pt289-high-dose-segmentation-001",
+        "public.rt.openkb-pt289-parotid-segmentation-001"
+      ],
+      "category": "runtime",
+      "defect_id": "MPB-2026-002",
+      "evidence": [
+        "src/medphys_agentbench/reporting.py",
+        "tests/test_cli_run_release.py",
+        "tests/test_reporting_telemetry.py",
+        "docs/PUBLIC_REPORTING_STANDARD.md"
+      ],
+      "impact": "Completed unsupported-modality attempts were correctly retained as zero-score capability failures, but the public derived projection mislabeled them as unsafe outcomes and included no-call attempts in safety and provider-call telemetry denominators. Primary safe-task-success scores and immutable per-attempt grades were unaffected; derived safety rates, unsafe counts, telemetry coverage labels, and secondary tie-breaking presentation could be affected.",
+      "reported_at": "2026-08-03T00:29:43Z",
+      "resolution": {
+        "replacement_artifact": "web/public/data/public-real-workflows-pilot-v0.6.json",
+        "status": "complete",
+        "target_release_id": "public-real-workflows-pilot-v0.6"
+      },
+      "score_treatment": "The immutable task outcomes remain zero-score failures in the primary denominator. The derived projection is reissued with a mutually exclusive capability-unavailable category; safety and token/time coverage use only actual provider calls and expose their evaluable and unavailable counts. No primary safe-success score is rewritten.",
+      "severity": "high",
+      "status": "regraded",
+      "summary": "No-call capability failures were mislabeled as unsafe model actions in derived public reporting."
     }
   ],
   "schema_version": "medphysbench.defect-ledger.v1",
-  "updated_at": "2026-08-02T21:20:11Z"
+  "updated_at": "2026-08-03T00:29:43Z"
 }

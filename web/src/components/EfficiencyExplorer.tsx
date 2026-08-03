@@ -13,6 +13,7 @@ import {
   secondaryScoreInterval,
 } from "../lib/format";
 import { isCommonHarnessRun, isNativeRun, surfaceKind } from "../lib/runSurface";
+import { classifyAttemptOutcome } from "../types";
 import type {
   Leaderboard,
   ModelCatalogEntry,
@@ -717,10 +718,11 @@ function RunDiagnosticsPanel({
   surface: SurfaceFilter;
 }) {
   const tasks = model.tasks ?? [];
-  const safePasses = tasks.filter((task) => task.passed === true && task.safe === true).length;
-  const safeFails = tasks.filter((task) => task.passed === false && task.safe === true).length;
-  const unsafe = tasks.filter((task) => task.safe === false).length;
-  const unknown = tasks.filter((task) => task.passed == null).length;
+  const safePasses = tasks.filter((task) => taskClassForOutcome(task) === "safe-pass").length;
+  const safeFails = tasks.filter((task) => taskClassForOutcome(task) === "safe-fail").length;
+  const unavailable = tasks.filter((task) => taskClassForOutcome(task) === "unavailable").length;
+  const unsafe = tasks.filter((task) => taskClassForOutcome(task) === "unsafe").length;
+  const unknown = tasks.filter((task) => taskClassForOutcome(task) === "unknown").length;
   const failedTasks = tasks.filter(
     (task) => (task.failed_lanes?.length ?? 0) > 0 || (task.failed_graders?.length ?? 0) > 0,
   );
@@ -759,6 +761,7 @@ function RunDiagnosticsPanel({
             <div><dt>Safe passes</dt><dd>{safePasses}</dd></div>
             <div><dt>Safe fails</dt><dd>{safeFails}</dd></div>
             <div><dt>Unsafe outcomes</dt><dd>{unsafe}</dd></div>
+            <div><dt>Capability unavailable</dt><dd>{unavailable}</dd></div>
             <div><dt>Outcome missing</dt><dd>{unknown}</dd></div>
             <div><dt>Attempts</dt><dd>{model.attempt_count}</dd></div>
             <div><dt>Expected attempts</dt><dd>{model.expected_attempt_count ?? model.attempt_count}</dd></div>
@@ -767,7 +770,7 @@ function RunDiagnosticsPanel({
         <section className="detail-span">
           <h4>Failure lenses</h4>
           <dl className="metric-list">
-            <div><dt>Right/wrong</dt><dd>{safePasses} passed · {safeFails + unsafe} failed</dd></div>
+            <div><dt>Right/wrong</dt><dd>{safePasses} passed · {safeFails + unsafe} failed · {unavailable} unavailable</dd></div>
             <div><dt>Common failure lanes</dt><dd>{lanes.length > 0 ? lanes.map(([lane, count]) => `${lane}: ${count}`).join(", ") : "No lane failures"}</dd></div>
             <div>
               <dt>Contract errors</dt>
@@ -925,10 +928,7 @@ function taskFailureLanes(tasks: ModelTaskResult[]) {
 }
 
 function taskClassForOutcome(task: ModelTaskResult) {
-  if (task.passed === true) return "safe-pass";
-  if (task.safe === false) return "unsafe";
-  if (task.passed === false) return "safe-fail";
-  return "unknown";
+  return classifyAttemptOutcome(task);
 }
 
 function sourceLabel(value: ModelOpenness) {

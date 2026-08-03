@@ -230,28 +230,34 @@ function FailureBreakdown({ rows }: { rows: ModelResult[] }) {
         <span><i className="failure-success" /> Safe success</span>
         <span><i className="failure-safe" /> Safe task failure</span>
         <span><i className="failure-unsafe" /> Unsafe outcome</span>
+        <span><i className="failure-unavailable" /> Capability unavailable</span>
       </div>
       <div className="failure-rows">
         {completeRows.map((row) => {
           const total = row.tasks.length;
           const success = row.tasks.filter((task) => task.passed === true && task.safe).length;
-          const unsafe = row.tasks.filter((task) => !task.safe).length;
-          const safeFailure = Math.max(0, total - success - unsafe);
+          const unavailable = row.tasks.filter((task) => task.outcome_category === "unavailable" || task.capability_failure === true).length;
+          const unsafe = row.tasks.filter(
+            (task) => task.safe === false && task.outcome_category !== "unavailable" && task.capability_failure !== true,
+          ).length;
+          const safeFailure = Math.max(0, total - success - unsafe - unavailable);
           return (
             <article key={row.model_name} className="failure-row">
               <header>
                 <strong>{shortModel(row.model_name)}</strong>
                 <span>{total} recorded attempts</span>
               </header>
-              <div className="failure-stack" aria-label={`${row.model_name}: ${success} safe successes, ${safeFailure} safe failures, ${unsafe} unsafe outcomes`}>
+              <div className="failure-stack" aria-label={`${row.model_name}: ${success} safe successes, ${safeFailure} safe failures, ${unsafe} unsafe outcomes, ${unavailable} capability-unavailable outcomes`}>
                 <i className="failure-success" style={{ width: `${share(success, total)}%` }} />
                 <i className="failure-safe" style={{ width: `${share(safeFailure, total)}%` }} />
                 <i className="failure-unsafe" style={{ width: `${share(unsafe, total)}%` }} />
+                <i className="failure-unavailable" style={{ width: `${share(unavailable, total)}%` }} />
               </div>
               <dl>
                 <div><dt>Safe success</dt><dd>{success}/{total}</dd></div>
                 <div><dt>Safe fail</dt><dd>{safeFailure}/{total}</dd></div>
                 <div><dt>Unsafe</dt><dd>{unsafe}/{total}</dd></div>
+                <div><dt>Unavailable</dt><dd>{unavailable}/{total}</dd></div>
                 <div><dt>Valid output</dt><dd>{formatPercent(row.valid_output_rate)}</dd></div>
                 <div><dt>Escalation</dt><dd>{formatPercent(row.appropriate_escalation_rate)}</dd></div>
               </dl>
@@ -259,7 +265,7 @@ function FailureBreakdown({ rows }: { rows: ModelResult[] }) {
           );
         })}
       </div>
-      <p className="capability-footnote">The three stacked categories are mutually exclusive. Output validity and escalation are shown separately because they can overlap those outcomes.{completeRows.length < rows.length ? ` ${rows.length - completeRows.length} row(s) without attempt-level pass labels are omitted.` : ""}</p>
+      <p className="capability-footnote">The stacked categories are mutually exclusive. Capability-unavailable attempts are counted separately from unsafe outcomes. Output validity and escalation are shown separately because they can overlap those outcomes.{completeRows.length < rows.length ? ` ${rows.length - completeRows.length} row(s) without attempt-level pass labels are omitted.` : ""}</p>
     </div>
   );
 }

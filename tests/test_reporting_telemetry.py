@@ -23,6 +23,8 @@ def test_usage_summary_preserves_missing_telemetry() -> None:
         "complete": False,
         "observed_attempts": 1,
         "expected_attempts": 2,
+        "campaign_attempts": 2,
+        "capability_unavailable_attempts": 0,
         "total_input_tokens": 100,
         "total_output_tokens": 25,
         "total_tokens": 125,
@@ -52,6 +54,25 @@ def test_usage_summary_accepts_openai_style_counts_from_trace() -> None:
 
     assert summary["complete"] is True
     assert summary["median_total_tokens"] == 20
+
+
+def test_usage_summary_excludes_no_call_capability_failures_from_coverage() -> None:
+    summary = _usage_summary(
+        [
+            {"raw_response": {"usage": {"prompt_eval_count": 12, "eval_count": 8}}},
+            {
+                "capability_failure": True,
+                "model_failure_kind": "unsupported_required_modality",
+                "raw_response": {},
+            },
+        ]
+    )
+
+    assert summary["complete"] is True
+    assert summary["observed_attempts"] == 1
+    assert summary["expected_attempts"] == 1
+    assert summary["campaign_attempts"] == 2
+    assert summary["capability_unavailable_attempts"] == 1
 
 
 def test_usage_summary_never_coerces_invalid_values_to_zero() -> None:

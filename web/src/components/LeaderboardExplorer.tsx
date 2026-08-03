@@ -1,5 +1,6 @@
 import { ArrowDownToLine, ChevronDown, Search } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
+import { classifyAttemptOutcome } from "../types";
 import type { AccessStatus, Leaderboard, ModelCatalogEntry, ModelResult, ReleaseView, Tg263Audit } from "../types";
 import {
   domainLabel,
@@ -611,9 +612,10 @@ function ModelDetailRow({
 }) {
   const tasks = domainFilter === "all" ? model.tasks : model.tasks.filter((task) => task.domain === domainFilter);
   const failedTasks = tasks.filter((task) => (task.failed_graders?.length ?? 0) > 0);
-  const safePasses = tasks.filter((task) => task.passed === true && task.safe).length;
-  const safeFails = tasks.filter((task) => task.passed === false && task.safe).length;
-  const unsafeOutcomes = tasks.filter((task) => task.safe === false).length;
+  const safePasses = tasks.filter((task) => classifyAttemptOutcome(task) === "safe-pass").length;
+  const safeFails = tasks.filter((task) => classifyAttemptOutcome(task) === "safe-fail").length;
+  const unsafeOutcomes = tasks.filter((task) => classifyAttemptOutcome(task) === "unsafe").length;
+  const unavailableOutcomes = tasks.filter((task) => classifyAttemptOutcome(task) === "unavailable").length;
 
   return (
     <>
@@ -667,7 +669,7 @@ function ModelDetailRow({
                     <article key={`${task.task_id}-${task.attempt_index ?? 0}`}>
                       <header>
                         <span>{task.title}</span>
-                        <strong>{task.passed === true ? "Passed" : task.passed === false ? "Failed" : "Outcome unavailable"} · {task.safe ? "Safe" : "Unsafe"}</strong>
+                        <strong>{taskDetailOutcomeLabel(task)}</strong>
                       </header>
                       <p>{domainLabel(task.domain)}</p>
                       <dl>
@@ -695,7 +697,7 @@ function ModelDetailRow({
               <section>
                 <h4>Failure diagnostics</h4>
                 <dl className="metric-list">
-                  <div><dt>Right/wrong</dt><dd>{safePasses} correct · {safeFails + unsafeOutcomes} incorrect</dd></div>
+                  <div><dt>Right/wrong</dt><dd>{safePasses} correct · {safeFails + unsafeOutcomes} incorrect · {unavailableOutcomes} unavailable</dd></div>
                   <div><dt>Failed checks</dt><dd>{failedTasks.length} task attempt(s)</dd></div>
                   <div><dt>Common failure lanes</dt><dd>{failureLanes(tasks)}</dd></div>
                 </dl>
@@ -733,6 +735,15 @@ function ModelDetailRow({
       )}
     </>
   );
+}
+
+function taskDetailOutcomeLabel(task: ModelResult["tasks"][number]) {
+  const outcome = classifyAttemptOutcome(task);
+  if (outcome === "safe-pass") return "Passed · Safe";
+  if (outcome === "safe-fail") return "Failed · Safe";
+  if (outcome === "unsafe") return "Failed · Unsafe";
+  if (outcome === "unavailable") return "Capability unavailable";
+  return "Outcome unavailable";
 }
 
 function releaseTitle(view: ReleaseView) {
