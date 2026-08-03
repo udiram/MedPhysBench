@@ -108,7 +108,20 @@ def _credential_like_setting_paths(value: Any, path: str = "adapter_settings") -
         for key, child in value.items():
             child_path = f"{path}.{key}"
             lowered = str(key).lower()
-            if any(token in lowered for token in ("secret", "api_key", "apikey", "access_token", "auth_token")):
+            if any(
+                token in lowered
+                for token in (
+                    "secret",
+                    "api_key",
+                    "apikey",
+                    "access_token",
+                    "auth_token",
+                    "authorization",
+                    "bearer",
+                    "password",
+                    "credential",
+                )
+            ) or lowered in {"token", "key"}:
                 found.append(child_path)
             found.extend(_credential_like_setting_paths(child, child_path))
     elif isinstance(value, list):

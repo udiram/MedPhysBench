@@ -12,6 +12,7 @@
 
 ## Unreleased
 
+- Added a schema-driven serial campaign control plane that binds release and fleet hashes, rejects credential-bearing manifests and result-directory collisions, enforces memory/disk guards, runs one isolated child process per model, verifies complete canonical matrices, and writes immutable hash-chained resume receipts. The committed five-model Groq plan is dry-run verifiable without a credential and does not claim five new scores.
 - Added a strict `recorded-batch.v2` capture contract and three independently captured, fresh-context GPT-5.6 Terra high-effort attempts over the exact sealed OpenKBP batch. All 30 outputs are deterministically regraded and trace-bound to their public captures; the resulting 63.33% safe-success row appears beside every other model while remaining outside common-harness rank groups.
 - Added a task-first, cross-model forensics table with direct run-set switching, persistent provider discovery across zero-result releases, an explicit 20/50 common-harness denominator in plot controls, mobile-first selected-task evidence, and contrast-safe outcome tints.
 - Preserved redacted HTTP receipts, request IDs when supplied, body digests, and measured wall time when a provider rejects generated structured output; the failed attempt remains a scored zero and stays unranked when token usage is unavailable instead of gaining invented telemetry.

@@ -230,6 +230,13 @@ uses memory mapping, and enforces an RSS ceiling. New work stops below 30% free
 system memory. The full-resolution cohort and Monte Carlo profiles are disabled
 on a 24–32 GB laptop and routed to the lab profile.
 
+Managed benchmark sweeps express these limits in a versioned campaign manifest.
+`run-campaign` fails closed when available memory cannot be measured, blocks new
+model work below both the fractional and absolute memory floors, checks free disk,
+and starts each model in a fresh serial child process. The committed Groq campaign
+uses a 30% and 4 GiB memory floor plus a 10 GiB disk floor; local Ollama campaigns
+must additionally declare `keep_alive=0` and a bounded context window.
+
 ### SLOs and monitoring
 
 Track at least:

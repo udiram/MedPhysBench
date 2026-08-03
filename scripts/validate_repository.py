@@ -13,6 +13,7 @@ import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
 from medphys_agentbench.artifacts import resolve_asset_reference
+from medphys_agentbench.campaign import load_campaign
 from medphys_agentbench.json_utils import decode_strict_json_object, stable_hash
 from medphys_agentbench.recorded_capture import validate_recorded_batch
 from medphys_agentbench.release_loader import load_release
@@ -160,6 +161,7 @@ def validate_repository() -> dict[str, int]:
         "common_harness_submission": _validator("common-harness-submission.v1.schema.json"),
         "recorded_batch_v2": _validator("recorded-batch.v2.schema.json"),
         "defect_ledger": _validator("defect-ledger.v1.schema.json"),
+        "campaign": _validator("campaign.v1.schema.json"),
     }
 
     fleet_path = ROOT / "fleet" / "public_fleet_v1.yaml"
@@ -194,6 +196,16 @@ def validate_repository() -> dict[str, int]:
         if release_id in releases_by_id:
             raise ValueError(f"Duplicate release_id {release_id!r} in {path}.")
         releases_by_id[release_id] = load_release(path)
+
+    campaign_paths = sorted((ROOT / "campaigns").glob("*.yaml"))
+    campaign_ids: set[str] = set()
+    for path in campaign_paths:
+        payload = _load_yaml(path)
+        _validate(validators["campaign"], payload, path)
+        campaign = load_campaign(path)
+        if campaign.campaign_id in campaign_ids:
+            raise ValueError(f"Duplicate campaign_id {campaign.campaign_id!r} in {path}.")
+        campaign_ids.add(campaign.campaign_id)
 
     defect_ledger_path = ROOT / "governance" / "benchmark-defects.json"
     defect_ledger = _load_json(defect_ledger_path)
@@ -347,6 +359,7 @@ def validate_repository() -> dict[str, int]:
         "result_count": len(result_paths),
         "submission_count": len(submission_paths),
         "recorded_capture_count": len(capture_paths),
+        "campaign_count": len(campaign_paths),
         "grader_mutation_count": grader_mutation_count,
         "fleet_model_count": len(fleet_ids),
     }

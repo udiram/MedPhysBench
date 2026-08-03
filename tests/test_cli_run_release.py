@@ -514,3 +514,15 @@ def test_adapter_settings_reject_nested_credential_keys() -> None:
     }
     with pytest.raises(ValueError, match="provider_options.access_token"):
         adapter_runtime_settings(adapter)
+
+
+@pytest.mark.parametrize("credential_key", ["token", "authorization", "bearer", "password", "credential"])
+def test_adapter_settings_reject_broader_credential_key_variants(credential_key: str) -> None:
+    adapter = _FakeAdapter("credential-variant-model", 1)
+    adapter.runtime_settings = lambda: {  # type: ignore[method-assign]
+        "schema_version": "medphysbench.adapter-settings.v1",
+        "endpoint_kind": "fake_test",
+        "provider_options": {credential_key: "do-not-persist"},
+    }
+    with pytest.raises(ValueError, match=credential_key):
+        adapter_runtime_settings(adapter)

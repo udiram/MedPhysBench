@@ -102,6 +102,15 @@ infrastructure retries. Campaigns run serially on memory-constrained hosts with
 declared context window, and `keep_alive=0`. GPU/lab campaigns may parallelize
 only across isolated workers with fixed per-worker resource ceilings.
 
+`medeval.campaign.v1` now enforces that policy for managed laptop runs. The
+controller requires `max_parallel_models=1`, process isolation, immutable resume,
+an exact release-contract hash, explicit base-model IDs from the frozen fleet,
+and memory/disk floors. It launches one typed, shell-free child command per
+configuration, rechecks pressure before every model, and verifies the complete
+canonical attempt matrix before recording completion. Alternate revisions or
+reasoning settings with the same provider model handle use separate campaigns so
+they cannot collide in one result directory or inflate the 50-base-model count.
+
 Hosted free-tier campaigns must snapshot live quotas before dispatch. HTTP 429,
 retired handles, and weekly limits are access failures, not model failures. The
 runner must resume missing immutable attempt keys without overwriting completed

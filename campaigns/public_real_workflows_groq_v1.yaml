@@ -1,0 +1,85 @@
+schema_version: medeval.campaign.v1
+campaign_id: public-real-workflows-groq-v1
+release_file: releases/public_real_workflows_pilot_v0_6.yaml
+release_id: public-real-workflows-pilot-v0.6
+release_contract_hash_v2: c8bb7a810e9598eb37132884301449c1256447c90426f769fd028d3f7237909e
+fleet_file: fleet/public_fleet_v1.yaml
+fleet_id: public-fleet-v1
+results_dir: runs/public-real-workflows-groq-v1
+attempts: 3
+execution:
+  max_parallel_models: 1
+  process_isolation: true
+  resume: true
+  fail_fast_attempts: true
+  continue_on_model_failure: true
+resource_limits:
+  minimum_available_memory_fraction: 0.30
+  minimum_available_memory_gib: 4
+  minimum_free_disk_gib: 10
+models:
+  - configuration_id: groq-llama-3.1-8b-instant
+    base_model_id: meta-llama/Llama-3.1-8B-Instruct
+    adapter: groq
+    provider: groq
+    model: llama-3.1-8b-instant
+    model_revision: llama-3.1-8b-instant
+    api_key_env: GROQ_API_KEY
+    response_format: json_object
+    strict_schema: false
+    timeout_seconds: 300
+    seed: 20260731
+    temperature: 0.0
+    max_tokens: 1024
+  - configuration_id: groq-llama-3.3-70b-versatile
+    base_model_id: meta-llama/Llama-3.3-70B-Instruct
+    adapter: groq
+    provider: groq
+    model: llama-3.3-70b-versatile
+    model_revision: llama-3.3-70b-versatile
+    api_key_env: GROQ_API_KEY
+    response_format: json_object
+    strict_schema: false
+    timeout_seconds: 300
+    seed: 20260731
+    temperature: 0.0
+    max_tokens: 1024
+  - configuration_id: groq-gpt-oss-20b
+    base_model_id: openai/gpt-oss-20b
+    adapter: groq
+    provider: groq
+    model: openai/gpt-oss-20b
+    model_revision: openai/gpt-oss-20b
+    api_key_env: GROQ_API_KEY
+    response_format: json_object
+    strict_schema: false
+    timeout_seconds: 300
+    seed: 20260731
+    temperature: 0.0
+    max_tokens: 1024
+  - configuration_id: groq-gpt-oss-120b
+    base_model_id: openai/gpt-oss-120b
+    adapter: groq
+    provider: groq
+    model: openai/gpt-oss-120b
+    model_revision: openai/gpt-oss-120b
+    api_key_env: GROQ_API_KEY
+    response_format: json_object
+    strict_schema: false
+    timeout_seconds: 300
+    seed: 20260731
+    temperature: 0.0
+    max_tokens: 1024
+  - configuration_id: groq-qwen-3.6-27b
+    base_model_id: Qwen/Qwen3.6-27B
+    adapter: groq
+    provider: groq
+    model: qwen/qwen3.6-27b
+    model_revision: qwen/qwen3.6-27b
+    api_key_env: GROQ_API_KEY
+    response_format: json_object
+    strict_schema: false
+    timeout_seconds: 300
+    seed: 20260731
+    temperature: 0.0
+    max_tokens: 1024

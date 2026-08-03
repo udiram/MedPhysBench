@@ -17,6 +17,42 @@ uv run medphys-bench validate-release releases/public_core_v0_4.yaml
 uv run medphys-bench validate-release releases/public_imaging_pilot_v0_4.yaml
 ```
 
+## Run a frozen multi-model campaign
+
+The v1 campaign controller makes the documented laptop safety policy executable. A
+manifest binds the exact release-contract hash, frozen fleet, base-model identity,
+provider route, model revision, structured-output mode, sampling settings, result
+directory, and resource floors. It accepts environment-variable names but has no
+field capable of storing a credential value.
+
+```bash
+uv run medphys-bench validate-campaign \
+  campaigns/public_real_workflows_groq_v1.yaml
+
+uv run medphys-bench run-campaign \
+  campaigns/public_real_workflows_groq_v1.yaml \
+  --dry-run
+
+# Requires GROQ_API_KEY in the process environment. The value is never printed
+# or written to campaign state.
+uv run medphys-bench run-campaign \
+  campaigns/public_real_workflows_groq_v1.yaml
+```
+
+Execution is always one model at a time and one child process per model. The
+controller checks memory and disk before the campaign and before every model,
+then delegates each configuration to the same immutable `run-release --resume`
+path used for direct runs. A zero child exit is insufficient: all canonical
+task/attempt files must exist and match the declared model name, revision, task,
+and attempt index. Missing matrices, transport errors, resource pressure, and
+nonzero exits are recorded without being converted into scores.
+
+The immutable `campaign.json` binds resume to the manifest and release hashes.
+`events.jsonl` is append-only and hash-chained. These files are operational
+receipts; scored result artifacts remain the source of truth. Changing the
+manifest, release contract, route, revision, sampling settings, or output root
+requires a new campaign ID/results directory.
+
 ## Run a model
 
 ```bash

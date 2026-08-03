@@ -64,7 +64,7 @@ package, or evidence of autonomous clinical competence.
 | Understand the harder RT roadmap | [Benchmark hardening](docs/BENCHMARK_HARDENING.md) · [RT competency map](docs/RT_COMPETENCY_MAP.md) · [AAPM coverage](docs/AAPM_TASK_GROUP_COVERAGE.md) · [planning sandbox](docs/PLANNING_SANDBOX.md) · [TG-263 lane](docs/TG263_BENCHMARK.md) |
 | Audit the human-grounding claim | [Human baseline protocol](docs/HUMAN_BASELINE_PROTOCOL.md) · [review ledger](reviews/public-real-workflows-pilot-v0.6.json) |
 | Run models at no software cost | [Free-model evaluation](docs/FREE_MODEL_EVALUATION.md) |
-| Audit the 50-model expansion target | [Model fleet protocol](docs/MODEL_FLEET_PROTOCOL.md) |
+| Audit or run the 50-model expansion target | [Model fleet protocol](docs/MODEL_FLEET_PROTOCOL.md) · [campaign control plane](docs/CAMPAIGN_CONTROL_PLANE.md) |
 
 ## What is already real
 
@@ -81,6 +81,8 @@ package, or evidence of autonomous clinical competence.
 - Strict provider-output parsing with no Markdown repair, substring extraction, duplicate JSON keys,
   non-finite numbers, or non-object roots.
 - A runnable Ollama adapter and release runner that persist benchmark artifacts under [`runs/`](runs/).
+- A schema-driven, serial campaign controller with memory/disk preflight, one child process per
+  model, exact release/fleet binding, canonical-matrix verification, and hash-chained resume receipts.
 - Strict structured-output parsing: one exact JSON object, with no repair from Markdown wrappers,
   duplicate keys, trailing prose, or non-finite numbers.
 - A 97-task public catalog spanning core physics, RT physics, brachytherapy,
@@ -96,7 +98,7 @@ package, or evidence of autonomous clinical competence.
 - Harness-group release ranks plus a clearly labeled descriptive cross-surface outcome order;
   incomplete or manifest-inconsistent runs remain published but receive neither.
 - Architecture, governance, evaluation, onboarding, and deployment documentation in [`docs/`](docs/).
-- Repository-wide validation of all twelve JSON Schemas, every authored/runtime task projection,
+- Repository-wide validation of all thirteen JSON Schemas, every authored/runtime task projection,
   every artifact digest, constructed reference feasibility, and every published result artifact.
 - A unified browser model index that exposes open/closed and provider filters, release-specific
   scores, task-level outcome facets, failed grader contracts, exact configuration hashes, and
@@ -128,6 +130,8 @@ uv sync --extra dev --extra imaging
 uv run pytest
 uv run python scripts/validate_repository.py
 uv run medphys-bench validate-release releases/public_core_v0_4.yaml
+uv run medphys-bench validate-campaign campaigns/public_real_workflows_groq_v1.yaml
+uv run medphys-bench run-campaign campaigns/public_real_workflows_groq_v1.yaml --dry-run
 uv run medphys-bench run-release \
   releases/public_core_v0_4.yaml \
   --adapter ollama \
@@ -145,6 +149,7 @@ uv run medphys-bench summarize \
 
 ```text
 docs/                    Architecture, governance, protocol, and release docs
+campaigns/               Frozen, secret-free, serial multi-model execution manifests
 fleet/                   Frozen base-model selection manifests
 releases/                Immutable benchmark release manifests
 results/releases/        Published release artifacts and leaderboard inputs

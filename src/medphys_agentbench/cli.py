@@ -18,6 +18,7 @@ from .adapters.openai_compatible import (
 )
 from .adapters.recorded import RecordedOutputAdapter
 from .adapters.reference import DevelopmentReferenceAgent
+from .campaign import CampaignError, CampaignExecutionError, campaign_plan, execute_campaign, load_campaign
 from .contracts import ModelDescriptor, TaskSpec
 from .json_utils import stable_hash
 from .recorded_capture import sealed_batch_payload, validate_recorded_batch
@@ -49,6 +50,23 @@ def main() -> None:
 
     validate_release = subparsers.add_parser("validate-release", help="Validate a benchmark release manifest.")
     validate_release.add_argument("release_file", type=Path)
+
+    validate_campaign = subparsers.add_parser(
+        "validate-campaign",
+        help="Validate a serial campaign manifest and print its resource/credential plan.",
+    )
+    validate_campaign.add_argument("campaign_file", type=Path)
+
+    run_campaign = subparsers.add_parser(
+        "run-campaign",
+        help="Run a frozen multi-model campaign serially with process isolation and immutable resume state.",
+    )
+    run_campaign.add_argument("campaign_file", type=Path)
+    run_campaign.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validate and print the exact redacted execution plan without writing state or contacting providers.",
+    )
 
     run = subparsers.add_parser("run", help="Run a single task against an adapter/model pair.")
     run.add_argument("task_file", type=Path)
@@ -206,6 +224,23 @@ def main() -> None:
                 sort_keys=True,
             )
         )
+        return
+
+    if args.command == "validate-campaign":
+        try:
+            campaign = load_campaign(args.campaign_file)
+            print(json.dumps(campaign_plan(campaign), indent=2, sort_keys=True))
+        except CampaignError as error:
+            raise SystemExit(str(error)) from error
+        return
+
+    if args.command == "run-campaign":
+        try:
+            campaign = load_campaign(args.campaign_file)
+            report = execute_campaign(campaign, dry_run=args.dry_run)
+            print(json.dumps(report, indent=2, sort_keys=True))
+        except (CampaignError, CampaignExecutionError) as error:
+            raise SystemExit(str(error)) from error
         return
 
     if args.command == "run":
