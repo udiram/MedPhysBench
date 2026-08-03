@@ -15,7 +15,7 @@ jobs:
     # Sealed, restricted, provider-backed, and shadow suites run in a separate
     # controlled environment and must never be added to public CI.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - uses: astral-sh/setup-uv@v5
@@ -55,12 +55,13 @@ jobs:
   build-public-site:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: web/package-lock.json
+          package-manager-cache: false
       - name: Install locked frontend dependencies
         working-directory: web
         run: npm ci
