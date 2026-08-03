@@ -4,6 +4,7 @@ import {
   filterFleetModels,
   fleetNextGateLabel,
   fleetRouteLabel,
+  hasAttestedQualification,
   type FleetRouteFilter,
   type FleetSourceFilter,
   type FleetStageFilter,
@@ -17,7 +18,7 @@ type Props = {
 
 const FUNNEL_STAGES = [
   ["planned_base_models", "Frozen panel", "Predeclared unique base IDs"],
-  ["access_qualified_base_models", "Access qualified", "Live Q0 or later evidence"],
+  ["access_qualified_base_models", "Published evidence", "Any route-backed or native public evidence; not a common-harness gate"],
   ["evaluated_base_models", "Common-harness evaluated", "Complete current-contract matrix on a common adapter"],
   ["ranked_base_models", "Rankable", "Complete common-harness evidence"],
   ["workflow_view_evaluated_base_models", "OpenKBP workflow-view", "Complete one-response OpenKBP view matrix; not stateful"],
@@ -57,12 +58,12 @@ export function FleetCoverage({ data }: Props) {
       <div className="section-heading fleet-heading">
         <div>
           <p className="eyebrow">Fleet integrity</p>
-          <h2>{target} planned. {data.summary.access_qualified_base_models} access-qualified. {data.summary.evaluated_base_models} common-harness evaluated.</h2>
+          <h2>{target} planned. {data.summary.access_qualified_base_models} with published evidence. {data.summary.evaluated_base_models} attested common-harness evaluated.</h2>
         </div>
         <p>
-          The panel counts unique base model IDs—not effort settings, providers, aliases, or partial attempts. A model advances only
-          when common-harness evidence for that stage exists. Native and recorded evaluations remain fully visible in the model index,
-          but cannot inflate the comparable fleet funnel.
+          The panel counts unique base model IDs—not effort settings, providers, aliases, or partial attempts. Published evidence is
+          intentionally broader than qualification: only complete, attested common-harness matrices advance to evaluated or ranked.
+          Native and recorded evaluations remain fully visible in the model index without inflating the comparable gate.
         </p>
       </div>
 
@@ -104,7 +105,7 @@ export function FleetCoverage({ data }: Props) {
         <span><strong>Evaluated slice</strong></span>
         <span><strong>{data.summary.evaluated_open_base_models}</strong> open-weight</span>
         <span><strong>{data.summary.evaluated_closed_base_models}</strong> closed</span>
-        <span><strong>{data.summary.evaluated_vision_base_models}</strong> vision-capable</span>
+        <span><strong>{data.summary.evaluated_image_route_base_models}</strong> image-capable routes evaluated</span>
         <span><strong>{data.summary.evaluated_steward_count}</strong> stewards</span>
         <span><strong>{data.summary.evaluated_size_tiers.join(" · ") || "none"}</strong> size tiers represented</span>
       </div>
@@ -145,7 +146,7 @@ export function FleetCoverage({ data }: Props) {
                   <option value="workflow_view">OpenKBP workflow-view evaluated</option>
                   <option value="ranked">Rankable</option>
                   <option value="evaluated">Published evaluation</option>
-                  <option value="access">Access qualified</option>
+                  <option value="access">Published access/evidence</option>
                   <option value="needs_evidence">Needs OpenKBP view evidence</option>
                   <option value="planned">No access evidence</option>
                 </select>
@@ -183,6 +184,7 @@ export function FleetCoverage({ data }: Props) {
 }
 
 function FleetModelCard({ model }: { model: FleetStatusModel }) {
+  const attested = hasAttestedQualification(model);
   const status = model.workflow_view_ranked
     ? "OpenKBP view ranked"
     : model.ranked
@@ -190,7 +192,9 @@ function FleetModelCard({ model }: { model: FleetStatusModel }) {
       : model.evaluated
         ? "Published"
         : model.access_qualified
-          ? model.qualification_stage?.toUpperCase() ?? "Access"
+          ? attested
+            ? model.qualification_stage?.toUpperCase() ?? "Attested"
+            : "Published evidence"
           : "Planned";
   const statusClass = model.workflow_view_ranked || model.ranked
     ? "ranked"
@@ -236,7 +240,11 @@ function FleetModelCard({ model }: { model: FleetStatusModel }) {
                 <li key={`${evidence.provider ?? "unknown"}:${evidence.model}:${evidence.date}`}>
                   <div>
                     <strong>{evidence.provider ?? "Undeclared provider"} · {evidence.model}</strong>
-                    <span>{evidence.qualification_stage?.toUpperCase() ?? evidence.status} · {evidence.date}</span>
+                    <span>
+                      {evidence.qualification_evidence
+                        ? `${evidence.qualification_stage?.toUpperCase() ?? "Attested"} attested`
+                        : "Published evidence"} · {evidence.date}
+                    </span>
                   </div>
                   <p>{evidence.note}</p>
                   {evidence.qualification_evidence ? (

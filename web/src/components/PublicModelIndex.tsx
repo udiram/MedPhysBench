@@ -5,12 +5,13 @@ import { groupIntegrityIssues, integrityIssueHeadline } from "../lib/integrity";
 import { resolveRunBaseModelId } from "../lib/modelIdentity";
 import { compareModelRuns, modelRunKey, modelRunUrlSelection, releasedModelRunKey } from "../lib/modelRunKey";
 import { buildModelWorkbench, compactWorkbenchIdentity } from "../lib/modelWorkbench";
-import { providerIdsForSlice } from "../lib/modelSlice";
+import { providerIdsForSlice, resolveProviderSelection } from "../lib/modelSlice";
 import { navigateToRunForensics, navigateToTaskForensics, taskAttemptKey } from "../lib/forensicsNavigation";
 import { isCommonHarnessRun, isNativeRun } from "../lib/runSurface";
 import { scoreEvidenceAvailable } from "../lib/resultEvidence";
 import { matchesSearchText, normalizeSearchText } from "../lib/searchNormalization";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
+import { hasAttestedQualification } from "../lib/fleetReadiness";
 import { classifyAttemptOutcome } from "../types";
 import type {
   FleetStatus,
@@ -357,11 +358,22 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease
   const overallEvaluatedCount = new Set(allRuns.map((run) => run.model_base_id)).size;
   const openCount = groups.filter((group) => group.openness === "open").length;
   const closedCount = groups.filter((group) => group.openness === "closed").length;
-  const providerCount = new Set(groups.flatMap((group) => group.providers)).size;
+  const providerCount = new Set(
+    groups.flatMap((group) =>
+      providerIdsForSlice(
+        group.catalogEntries.map((entry) => entry.provider),
+        group.runs.map((run) => run.provider),
+        provider,
+      ),
+    ),
+  ).size;
 
   useEffect(() => {
     if (!allDatasetsReady || providerOptions.length === 0) return;
-    if (provider !== "all" && !providerOptions.includes(provider)) {
+    const canonicalProvider = resolveProviderSelection(provider, providerOptions, providerLabel);
+    if (canonicalProvider !== provider && providerOptions.includes(canonicalProvider)) {
+      setProvider(canonicalProvider);
+    } else if (provider !== "all" && !providerOptions.includes(provider)) {
       setProvider("all");
     }
   }, [allDatasetsReady, provider, providerOptions]);
@@ -387,7 +399,7 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease
     const handlePopState = () => {
       setQuery(getUrlParam("model_query") ?? "");
       setOpenness(readEnumParam("openness", ["all", "open", "closed", "unknown"] as const, "all"));
-      setProvider(getUrlParam("provider") ?? "all");
+      setProvider(resolveProviderSelection(getUrlParam("provider"), providerOptions, providerLabel));
       setRelease(readEnumParam("model_release", ["all", "core", "imaging", "tg263", "real"] as const, activeRelease));
       setSurface(readEnumParam("surface", ["all", "common", "native"] as const, "all"));
       const modelBase = getUrlParam("model_base");
@@ -399,7 +411,7 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease
     handlePopState();
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [activeRelease, catalogByProviderModel]);
+  }, [activeRelease, catalogByProviderModel, providerOptions]);
 
   useEffect(() => {
     if (getUrlParam("model_release") == null) {
@@ -1680,10 +1692,15 @@ function modelEvidenceStatus(runs: PublicRun[], bestScore: number | null) {
       label: `Native descriptive evidence${bestScore == null ? "" : ` · ${formatPercent(bestScore)}`}`,
     };
   }
+  if (runs.some((run) => scoreEvidenceAvailable(run))) {
+    return {
+      kind: "unranked",
+      label: `Historical descriptive evidence${bestScore == null ? "" : ` · ${formatPercent(bestScore)}`}`,
+    };
+  }
   if (runs.some((run) => !scoreEvidenceAvailable(run))) {
     return { kind: "incomplete", label: "Unranked · execution evidence incomplete" };
   }
-  if (runs.length > 0) return { kind: "unranked", label: "Unranked · no eligible comparison group" };
   return { kind: "planned", label: "No published run in this release" };
 }
 
@@ -1764,7 +1781,11 @@ function fleetStatusLabel(entry: FleetStatusModel | null, hasReferenceData: bool
   if (entry.workflow_view_ranked) return "OpenKBP view ranked";
   if (entry.ranked) return "Rankable";
   if (entry.evaluated) return "Published";
-  if (entry.access_qualified) return qualificationStageLabel(entry.qualification_stage);
+  if (entry.access_qualified) {
+    return hasAttestedQualification(entry)
+      ? qualificationStageLabel(entry.qualification_stage)
+      : "Published evidence";
+  }
   return "Planned";
 }
 

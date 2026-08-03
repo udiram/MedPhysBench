@@ -1,11 +1,13 @@
 import pytest
 
 from medphys_agentbench.reporting import (
+    _common_harness_receipt_errors,
     _family_cluster_bootstrap_interval,
     _nonnegative_int,
     _pass_at_k,
     _pass_power_k,
     _reliability_summary,
+    _task_usage,
     _usage_summary,
 )
 
@@ -80,6 +82,22 @@ def test_usage_summary_accepts_total_only_telemetry_for_total_token_frontier() -
     assert summary["median_total_tokens"] == 150
     assert summary["median_input_tokens"] is None
     assert summary["median_output_tokens"] is None
+
+
+def test_total_only_telemetry_satisfies_receipt_without_inventing_splits() -> None:
+    item = {
+        "trace": [{"event": "model_response"}],
+        "raw_response": {"usage": {"total_tokens": 123}},
+        "duration_seconds": 1.25,
+    }
+
+    assert _common_harness_receipt_errors(item=item) == []
+    assert _task_usage(item) == {
+        "available": True,
+        "input_tokens": None,
+        "output_tokens": None,
+        "total_tokens": 123,
+    }
 
 
 def test_usage_summary_excludes_no_call_capability_failures_from_coverage() -> None:

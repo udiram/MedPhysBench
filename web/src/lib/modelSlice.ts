@@ -9,3 +9,17 @@ export function providerIdsForSlice(
   if (selectedProvider === "all") return available;
   return available.includes(selectedProvider) ? [selectedProvider] : [];
 }
+
+export function resolveProviderSelection(
+  requestedProvider: string | null,
+  availableProviders: readonly string[],
+  labelForProvider: (provider: string) => string,
+) {
+  if (!requestedProvider || requestedProvider.toLowerCase() === "all") return "all";
+  const normalized = requestedProvider.trim().toLowerCase();
+  return availableProviders.find(
+    (provider) =>
+      provider.toLowerCase() === normalized ||
+      labelForProvider(provider).toLowerCase() === normalized,
+  ) ?? requestedProvider;
+}

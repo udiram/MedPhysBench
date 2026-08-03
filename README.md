@@ -27,13 +27,13 @@ package, or evidence of autonomous clinical competence.
 - TG-263 audit: `public-tg263-pilot-v0.5-audit` (separates primary naming decisions from exact benchmark reason-code labels)
 - Real-image pilot: `public-imaging-pilot-v0.4` (`5` real MRI, CT, and PET tasks)
 - OpenKBP real-data workflow-view pilot: `public-real-workflows-pilot-v0.6` (`10` one-response tasks from
-  `2` patient families; `16` submission-attested Ollama v2 configurations with official ranks,
+  `2` patient families; `18` submission-attested Ollama v2 configurations with official ranks,
   `8` complete legacy Ollama/Groq configurations retained descriptively, `1` quarantined Groq
-  configuration, and `4` GPT-5.6 native audits; `29` total rows—`16` ranked and `13` unranked—and
-  `870` total attempt artifacts)
+  configuration, and `4` GPT-5.6 native audits; `31` total rows—`18` ranked and `13` unranked—and
+  `930` total attempt artifacts)
 - Scored configurations through Monday, August 3, 2026: five common-harness local core models,
   six explicitly unranked GPT-5.6 core-effort pilots, two harder TG-263 native pilots,
-  three local models on the original image pilot, twenty-five published API/local configurations on the
+  three local models on the original image pilot, twenty-seven published API/local configurations on the
   OpenKBP pilot, and four GPT-5.6 OpenKBP audits with descriptive outcome ranks
 - Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
 - Frozen 50-base-model panel: [`fleet/public_fleet_v1.yaml`](fleet/public_fleet_v1.yaml)
@@ -94,7 +94,7 @@ package, or evidence of autonomous clinical competence.
 - A schema-driven, serial campaign controller with memory/disk preflight, one child process per
   model, exact release/fleet binding, canonical-matrix verification, and hash-chained resume receipts;
   new v2 manifests bind every configuration to a frozen route and unexpired access receipt.
-- A reviewed local-Ollama qualification lane with 17 attested current-contract configurations.
+- A reviewed local-Ollama qualification lane with 18 attested current-contract configurations.
   Qwen3-VL 8B preserves the default Thinking artifact's non-scoring failed canary separately from a
   digest-pinned Instruct artifact that passed strict JSON/image preflight and the full 30-attempt matrix;
   route declarations and failed/partial campaigns still never create or count scores.
@@ -135,14 +135,16 @@ package, or evidence of autonomous clinical competence.
 - Versioned recorded-capture v2 contracts that bind a fresh-context native run to the exact release,
   sealed-batch hash, model revision, effort, attempt index, output-map digest, timestamps, declared
   transport tools, and all corresponding public result traces without storing hidden reasoning.
-- A machine-derived qualification funnel that reports `50` frozen base IDs, `23` access-qualified,
-  `17` validly evaluated under the current manifest contract, and `17` rankable—without counting six
+- A machine-derived evidence funnel that reports `50` frozen base IDs, `24` with some published
+  access or native evidence, `18` validly evaluated under the attested current common-harness contract,
+  and `18` rankable—without counting six
   GPT-5.6 effort settings as six models, treating historical legacy rows as current-contract evidence,
   or presenting a partial local campaign as a score.
-- Seventeen digest-pinned `reference-json-v2` OpenKBP rows now carry attested common-harness
+- Eighteen digest-pinned `reference-json-v2` OpenKBP rows now carry attested common-harness
   submission sidecars. Three reruns migrate Qwen3.5 4B, Gemma 3 4B, and Qwen2.5-VL 3B onto the
   current contract without increasing unique-base-model breadth; the distinct Qwen3-VL 8B Instruct
-  artifact adds one newly completed multimodal base model.
+  artifact and text-only community Phi-4 Multimodal configuration each add one newly completed base
+  model. The latter has no vision projector, so its 12 image-required tasks remain explicit unavailable outcomes.
 - Workflow-qualified accounting now separately reports which planned models have actually completed
   a repeated-trial workflow release instead of letting smaller pilot surfaces overstate benchmark
   breadth.

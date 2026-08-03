@@ -101,7 +101,7 @@ def test_public_attempt_pointers_bind_every_projected_row_to_committed_evidence(
         assert task_row["attempt_id"] not in attempt_ids
         attempt_ids.add(task_row["attempt_id"])
 
-    assert len(task_rows) == 900
+    assert len(task_rows) == 930
 
 
 def test_pilot_profile_rejects_single_attempt_release(tmp_path: Path) -> None:

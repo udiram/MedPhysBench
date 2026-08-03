@@ -147,7 +147,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(payload, dict)
     rows = [*payload["models"], *payload.get("unranked_models", [])]
-    assert len(rows) == 30
+    assert len(rows) == 31
     v2_rows = [
         row
         for row in rows
@@ -171,9 +171,10 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
         "qwen3:14b",
         "qwen3-vl:8b-instruct",
         "qwen3.5:4b",
+        "hf.co/ShayanCyan/phi4-multimodal-quantisized-gguf:Q4_K_M",
     }
     assert all(row["ranking_eligible"] is True for row in v2_rows)
-    assert sorted(row["rank"] for row in v2_rows) == [1, 2, 2, 2, 2, 6, 6, 8, 9, 9, 11, 12, 13, 14, 15, 16, 16]
+    assert sorted(row["rank"] for row in v2_rows) == [1, 2, 2, 2, 2, 6, 6, 8, 9, 9, 9, 12, 13, 14, 15, 16, 17, 17]
 
     for model_name in ("qwen3.5:4b", "gemma3:4b", "qwen2.5vl:3b"):
         immutable_rows = [row for row in rows if row["provider"] == "ollama" and row["model_name"] == model_name]
@@ -266,7 +267,7 @@ def test_v2_ollama_group_freezes_the_published_sampling_and_adapter_contract() -
         if isinstance(model, dict) and model.get("harness_revision") == "reference-json-v2":
             manifests.append(manifest)
 
-    assert len(manifests) == 17 * 30
+    assert len(manifests) == 18 * 30
     assert {manifest["max_tokens"] for manifest in manifests} == {2048}
     assert {manifest["temperature"] for manifest in manifests} == {0.0}
     assert {manifest["seed"] for manifest in manifests} == {20260731, 20260732, 20260733}
@@ -306,6 +307,7 @@ def test_receipt_free_groq_batch_remains_visible_but_unranked() -> None:
 
     assert row["attempt_count"] == row["expected_attempt_count"] == 30
     assert row["ranking_eligible"] is False
+    assert row["outcome_order_eligible"] is False
     assert row.get("outcome_rank") is None
     assert set(row["integrity"]["integrity_errors"]) == {
         "missing_adapter_settings_hash",
@@ -313,4 +315,23 @@ def test_receipt_free_groq_batch_remains_visible_but_unranked() -> None:
         "missing_model_response_trace",
         "missing_provider_receipt",
         "missing_usage_telemetry",
+    }
+
+
+def test_admitted_legacy_groq_scores_are_descriptive_but_never_official() -> None:
+    payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
+    rows = [*payload["models"], *payload.get("unranked_models", [])]
+    admitted = [
+        row
+        for row in rows
+        if row["provider"] == "groq" and row["model_name"] != "qwen/qwen3.6-27b"
+    ]
+
+    assert len(admitted) == 4
+    assert all(row["ranking_eligible"] is False for row in admitted)
+    assert all(row.get("rank") is None for row in admitted)
+    assert all(row["outcome_order_eligible"] is True for row in admitted)
+    assert all(isinstance(row["outcome_rank"], int) for row in admitted)
+    assert {tuple(row["integrity"]["integrity_errors"]) for row in admitted} == {
+        ("missing_adapter_settings_hash",)
     }

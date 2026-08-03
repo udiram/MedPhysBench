@@ -39,6 +39,7 @@
         "evaluated_open_base_models",
         "evaluated_closed_base_models",
         "evaluated_vision_base_models",
+        "evaluated_image_route_base_models",
         "evaluated_steward_count",
         "evaluated_size_tiers",
         "route_set_count",
@@ -60,6 +61,7 @@
         "evaluated_open_base_models": { "type": "integer", "minimum": 0 },
         "evaluated_closed_base_models": { "type": "integer", "minimum": 0 },
         "evaluated_vision_base_models": { "type": "integer", "minimum": 0 },
+        "evaluated_image_route_base_models": { "type": "integer", "minimum": 0 },
         "evaluated_steward_count": { "type": "integer", "minimum": 0 },
         "evaluated_size_tiers": {
           "type": "array",
@@ -110,6 +112,7 @@
         "family",
         "openness",
         "modalities",
+        "evaluated_modalities",
         "size_tier",
         "planned_routes",
         "access_qualified",
@@ -135,6 +138,11 @@
         "modalities": {
           "type": "array",
           "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["text", "image"] }
+        },
+        "evaluated_modalities": {
+          "type": "array",
           "uniqueItems": true,
           "items": { "enum": ["text", "image"] }
         },

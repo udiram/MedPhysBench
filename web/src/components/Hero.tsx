@@ -14,16 +14,17 @@ type HeroProps = {
   onReleaseViewChange: (value: ReleaseView) => void;
   releaseView: ReleaseView;
   releaseEvidence: ReleaseEvidence | null;
+  releaseEvidenceLoaded: boolean;
   repoUrl: string;
 };
 
-export function Hero({ data, onReleaseViewChange, releaseView, releaseEvidence, repoUrl }: HeroProps) {
+export function Hero({ data, onReleaseViewChange, releaseView, releaseEvidence, releaseEvidenceLoaded, repoUrl }: HeroProps) {
   const rankedCount = data ? data.integrity?.ranked_model_count ?? data.models.length : null;
   const reviewCount = data ? data.integrity?.unranked_model_count ?? data.unranked_models?.length ?? 0 : null;
   const taskCount = data?.tasks.length ?? null;
   const familyCount = data?.release.family_count ?? null;
   const attempts = data?.release.expected_attempts_per_task ?? null;
-  const boundary = releaseBoundary(releaseEvidence);
+  const boundary = releaseBoundary(releaseEvidence, releaseEvidenceLoaded);
 
   return (
     <section className="hero" id="benchmark">
@@ -106,11 +107,11 @@ export function Hero({ data, onReleaseViewChange, releaseView, releaseEvidence, 
           </div>
           <div>
             <dt>Human baseline</dt>
-            <dd>{humanBaselineLabel(releaseEvidence)}</dd>
+            <dd>{humanBaselineLabel(releaseEvidence, releaseEvidenceLoaded)}</dd>
           </div>
           <div>
             <dt>Interaction depth</dt>
-            <dd>{releaseEvidence ? interactionDepthLabel(releaseEvidence.interaction.depth) : "Evidence unavailable"}</dd>
+            <dd>{releaseEvidence ? interactionDepthLabel(releaseEvidence.interaction.depth) : releaseEvidenceLoaded ? "Evidence unavailable" : "Loading evidence…"}</dd>
           </div>
         </dl>
       </div>
@@ -124,8 +125,8 @@ export function Hero({ data, onReleaseViewChange, releaseView, releaseEvidence, 
   );
 }
 
-function humanBaselineLabel(releaseEvidence: ReleaseEvidence | null) {
-  if (!releaseEvidence) return "Evidence unavailable";
+function humanBaselineLabel(releaseEvidence: ReleaseEvidence | null, releaseEvidenceLoaded: boolean) {
+  if (!releaseEvidence) return releaseEvidenceLoaded ? "Evidence unavailable" : "Loading evidence…";
   return countStateLabel(releaseEvidence.evidence.human_baseline);
 }
 
@@ -133,7 +134,13 @@ function fallbackReleaseId(releaseView: ReleaseView) {
   return releaseIdForView(releaseView);
 }
 
-function releaseBoundary(releaseEvidence: ReleaseEvidence | null) {
+function releaseBoundary(releaseEvidence: ReleaseEvidence | null, releaseEvidenceLoaded: boolean) {
+  if (!releaseEvidenceLoaded) return {
+    status: "loading-evidence",
+    tone: "loading",
+    allowed: "Loading the canonical release-evidence record before presenting maturity and validation claims.",
+    prohibited: "Claims remain pending until the release-evidence record has loaded.",
+  };
   if (!releaseEvidence) return {
     status: "evidence-unavailable",
     tone: "bad",

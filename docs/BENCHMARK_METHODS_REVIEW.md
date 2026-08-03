@@ -34,8 +34,8 @@ the planned review unit is two independent qualified physicists plus an adjudica
 disagreement; a severe feasibility, rights, leakage, or grader-validity flag blocks promotion.
 
 The immediate public result should consequently be read as engineering evidence: 50 frozen model
-targets, 23 with access-qualified evidence, 17 with current-contract common-harness completion,
-30 published system configurations, and a provisional two-family pilot. None is
+targets, 24 with some published access or native evidence, 18 with attested current-contract
+common-harness completion, 31 published system configurations, and a provisional two-family pilot. None is
 stateful-workflow-qualified. Interface
 polish, provider coverage, and additional attempts cannot by
 themselves advance that release to domain-reviewed, human-baselined, protected, or externally

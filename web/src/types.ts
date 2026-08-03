@@ -450,6 +450,7 @@ export type FleetStatusSummary = {
   evaluated_open_base_models: number;
   evaluated_closed_base_models: number;
   evaluated_vision_base_models: number;
+  evaluated_image_route_base_models: number;
   evaluated_steward_count: number;
   evaluated_size_tiers: Array<"small" | "medium" | "large" | "frontier" | "undisclosed">;
   route_set_count: number;
@@ -463,6 +464,7 @@ export type FleetStatusModel = {
   family: string;
   openness: "open" | "closed";
   modalities: Array<"text" | "image">;
+  evaluated_modalities: Array<"text" | "image">;
   size_tier: "small" | "medium" | "large" | "frontier" | "undisclosed";
   planned_routes: Array<"anthropic" | "aws_bedrock" | "codex_native" | "cohere" | "google" | "groq" | "ollama" | "openai" | "self_hosted" | "xai">;
   access_qualified: boolean;

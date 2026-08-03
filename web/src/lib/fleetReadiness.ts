@@ -54,6 +54,14 @@ export function filterFleetModels(models: FleetStatusModel[], filters: FleetFilt
   });
 }
 
+export function hasAttestedQualification(model: FleetStatusModel) {
+  return model.access_evidence.some(
+    (evidence) =>
+      evidence.promotion_basis === "attested_complete_q2" &&
+      evidence.qualification_evidence?.kind === "common_harness_submission",
+  );
+}
+
 export function fleetNextGateLabel(value: FleetStatusModel["next_gate"]) {
   if (value === "q0_access") return "Q0 · verify exact access";
   if (value === "q2_common_harness") return "Q2 · common-harness matrix";

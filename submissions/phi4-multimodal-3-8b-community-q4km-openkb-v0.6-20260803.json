@@ -1,0 +1,246 @@
+{
+  "adapter_source_commit": "7e63a88c202cc00ae56c1a18e0a3b18f1a065d0f",
+  "artifact_tree_sha256": "ffc91ad3e878e1b4130e5b78ba2416c3ab773b72de97334d98627517b795f698",
+  "artifacts": [
+    {
+      "bytes": 4633,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_high_dose_segmentation_001--attempt-1.json",
+      "sha256": "5fcf60285d34bd9061e9fa07417681bf7fe9225e2e7aab5b5a5ef32964ed977e"
+    },
+    {
+      "bytes": 4633,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_high_dose_segmentation_001--attempt-2.json",
+      "sha256": "cebda5d368f9c82a83d23c1b1e6141945b7861e6d7a8af9191d54f75621cf232"
+    },
+    {
+      "bytes": 4633,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_high_dose_segmentation_001--attempt-3.json",
+      "sha256": "ea9fb95c6d2680c05ae6fa251b0e29233ffd13bb4aa9e477752b5792beabce26"
+    },
+    {
+      "bytes": 4227,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_parotid_segmentation_001--attempt-1.json",
+      "sha256": "3ed66bfc63cb57f5720b828bb8185593a98971c2a2fea82e4803aba0cdc2b17a"
+    },
+    {
+      "bytes": 4227,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_parotid_segmentation_001--attempt-2.json",
+      "sha256": "5fe699fd23e8b744d33afb5b0d917a60c8bb3c5aa4d751db6c9167a79bb5fb4e"
+    },
+    {
+      "bytes": 4227,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_parotid_segmentation_001--attempt-3.json",
+      "sha256": "6be8405a6ce63c569d24a1fd2cedfb6d06c36bda20d8b142eeadedd82feabeaf"
+    },
+    {
+      "bytes": 6393,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_plan_criteria_audit_001--attempt-1.json",
+      "sha256": "1ebf2fb65f8068fefb3b1c4fecd1e05bc5a12113116e9cbb7117a7ff6f734ac8"
+    },
+    {
+      "bytes": 6393,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_plan_criteria_audit_001--attempt-2.json",
+      "sha256": "4165f5c3b52ce27850038d3a0c20a494f0f39650b50b5274065bc132f3c9d277"
+    },
+    {
+      "bytes": 6393,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_plan_criteria_audit_001--attempt-3.json",
+      "sha256": "31ef2dfdc67a5315a083988d2058e5e7b1f12892dae01852224bf0eb646e7669"
+    },
+    {
+      "bytes": 5731,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_structure_inventory_001--attempt-1.json",
+      "sha256": "2440cbd24244661041533dc9a133cac6b18ed6c9513606e922bb56a0a0bab44e"
+    },
+    {
+      "bytes": 5729,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_structure_inventory_001--attempt-2.json",
+      "sha256": "49d8f83be1a96f9c6ae0ad7fdcc32bc377689747efcfaca6b2d7830b9d02093b"
+    },
+    {
+      "bytes": 5729,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_structure_inventory_001--attempt-3.json",
+      "sha256": "1bf46715ffb4a9df54594cb44cb8e9de1d94d3828f226203acfcd7730e30a3e7"
+    },
+    {
+      "bytes": 5115,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_tg263_naming_audit_001--attempt-1.json",
+      "sha256": "3ed9978bf5efca1aa2443bb4c381f04f2806c5be327d7ac9f077424bcc5cdf61"
+    },
+    {
+      "bytes": 5113,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_tg263_naming_audit_001--attempt-2.json",
+      "sha256": "f4b342938850774f48f17e6cdf7b8090bc965e10115a70b66a7d4c84b4cb7bdc"
+    },
+    {
+      "bytes": 5112,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_tg263_naming_audit_001--attempt-3.json",
+      "sha256": "1c7ece2cde2801972cba3109bf7d9043bee66bb17f172bd89a17850865204d38"
+    },
+    {
+      "bytes": 4633,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_high_dose_segmentation_001--attempt-1.json",
+      "sha256": "4141191579d0673b601896d4d8006fc77da281e98e0922a34a93d2825821de7a"
+    },
+    {
+      "bytes": 4633,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_high_dose_segmentation_001--attempt-2.json",
+      "sha256": "55482140a7d1e836b7166bb9413db2b27ff025d411e934a658e87d760cf43d1c"
+    },
+    {
+      "bytes": 4633,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_high_dose_segmentation_001--attempt-3.json",
+      "sha256": "a9efa3098c6b889b996572e9beeeca4b4691d114219acba59dd6e22f163f53e7"
+    },
+    {
+      "bytes": 4227,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_parotid_segmentation_001--attempt-1.json",
+      "sha256": "e9c72d4a7cd83de525bc15bc0b3a1227009fa5c8024c33927fda83286f75a30c"
+    },
+    {
+      "bytes": 4227,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_parotid_segmentation_001--attempt-2.json",
+      "sha256": "4d14f0e575a5d6b9633bde226f06a26a7e305c1365a2bee1ca86acd6390a14d6"
+    },
+    {
+      "bytes": 4227,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_parotid_segmentation_001--attempt-3.json",
+      "sha256": "7ae19a82a9480a126c21cc6e83f5ffa7a13a50156e54689aed639473fbe632cf"
+    },
+    {
+      "bytes": 6198,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_plan_criteria_audit_001--attempt-1.json",
+      "sha256": "a9cbd9a7ba3f82ba677e05e65cfe708465fa8afb41ded017d9d97096621df7e5"
+    },
+    {
+      "bytes": 6198,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_plan_criteria_audit_001--attempt-2.json",
+      "sha256": "b6285ca8fcda8f949224ced4c7e0830e7ce92c179c633b0f3317453f7921c90d"
+    },
+    {
+      "bytes": 6198,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_plan_criteria_audit_001--attempt-3.json",
+      "sha256": "63f40348ae37ebc1344f4d83bce720e04b5f3db652b222fc492df5f70685d647"
+    },
+    {
+      "bytes": 5831,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_structure_inventory_001--attempt-1.json",
+      "sha256": "1ecc6a8a14622e3e5244a38e96decbbcfc456770aa5f6c5ca88e48fcdfd3c541"
+    },
+    {
+      "bytes": 5828,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_structure_inventory_001--attempt-2.json",
+      "sha256": "c947d140fca533869153acd36fd969b858cd5153b642f5d0c76cb93d8cc94c3a"
+    },
+    {
+      "bytes": 5831,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_structure_inventory_001--attempt-3.json",
+      "sha256": "c09063ab99a4d256414372707a3f3033cfa83e554554f220499fb9f23becd521"
+    },
+    {
+      "bytes": 5114,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_tg263_naming_audit_001--attempt-1.json",
+      "sha256": "bb02b591d489eb29d7d4c03f8c3a849181fc39555996e01bd71eaa65db6728d0"
+    },
+    {
+      "bytes": 5115,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_tg263_naming_audit_001--attempt-2.json",
+      "sha256": "2ebcf82b34e0af33f04b7d27db745fae2d7169014c792c8349b26089a6535419"
+    },
+    {
+      "bytes": 5113,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_tg263_naming_audit_001--attempt-3.json",
+      "sha256": "74a118611f090b8475c618b5d7373e402679c101ec646da4d18d4bc4ee66ca83"
+    }
+  ],
+  "attestations": {
+    "common_harness_unmodified": true,
+    "complete_unfiltered_artifact_set": true,
+    "no_credentials_or_phi": true,
+    "no_manual_output_edits": true,
+    "no_runtime_gold_or_grader_access": true,
+    "redistribution_permitted": true
+  },
+  "budget": {
+    "estimated_cost_usd": 0.0,
+    "funding": "local_compute"
+  },
+  "environment": {
+    "accelerator": "Apple M4 Pro integrated GPU / unified memory",
+    "architecture": "arm64",
+    "hardware_summary": "Apple M4 Pro (12 CPU cores), 24 GB unified memory; serial single-model execution; 4,096-token context; keep_alive=0; 35% and 6 GiB memory floors with 30-second bounded recovery",
+    "os": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "runtime_versions": {
+      "ollama": "0.32.5",
+      "python": "3.14.0"
+    }
+  },
+  "execution_finished_at": "2026-08-03T18:11:55.902015+00:00",
+  "execution_started_at": "2026-08-03T18:08:57.130847+00:00",
+  "harness_source_commit": "7e63a88c202cc00ae56c1a18e0a3b18f1a065d0f",
+  "model": {
+    "artifact_provenance": {
+      "artifacts": [
+        {
+          "bytes": 2491874752,
+          "role": "model_weights",
+          "sha256": "fb8897a6038bb0bf04194d111a07a79f58e54f7e5d781b712140b73a5ff056cc"
+        }
+      ],
+      "kind": "community_quantization",
+      "label": "Community Q4_K_M GGUF without a vision projector",
+      "quantization": "Q4_K_M",
+      "source_revision": "cbcd2c4e48d79cad6de1ae8e05757c02f9f6400f",
+      "source_url": "https://huggingface.co/ShayanCyan/phi4-multimodal-quantisized-gguf/tree/cbcd2c4e48d79cad6de1ae8e05757c02f9f6400f"
+    },
+    "base_model_id": "microsoft/Phi-4-multimodal-instruct",
+    "harness_name": "medphysbench-ollama",
+    "harness_revision": "reference-json-v2",
+    "model_name": "hf.co/ShayanCyan/phi4-multimodal-quantisized-gguf:Q4_K_M",
+    "model_revision": "sha256:3c73f00ac73b1f77b914aec830fbf2e2570aac6f538dd474e2d19dcb6cc9d62f",
+    "provider": "ollama"
+  },
+  "release_contract_hash_v2": "c8bb7a810e9598eb37132884301449c1256447c90426f769fd028d3f7237909e",
+  "release_file": "releases/public_real_workflows_pilot_v0_6.yaml",
+  "release_id": "public-real-workflows-pilot-v0.6",
+  "repo_commit": "7e63a88c202cc00ae56c1a18e0a3b18f1a065d0f",
+  "results_directory": "results/releases/public-real-workflows-pilot-v0.6/hf_co_shayancyan_phi4_multimodal_quantisized_gguf_q4_k_m_v2",
+  "schema_version": "medphysbench.common-harness-submission.v1",
+  "submission_id": "phi4-multimodal-3-8b-community-q4km-openkb-v0.6-20260803",
+  "submission_kind": "managed_local",
+  "submitted_at": "2026-08-03T18:16:52.651409+00:00",
+  "submitter": {
+    "affiliation": "MedPhysBench",
+    "name": "MedPhysBench benchmark operator"
+  }
+}

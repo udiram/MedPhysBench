@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useEffect, useState } from "react";
+import { startTransition, useCallback, useEffect, useState } from "react";
 import { REPO_URL } from "./content";
 import { CapabilityExplorer } from "./components/CapabilityExplorer";
 import { EvidenceSections } from "./components/EvidenceSections";
@@ -39,6 +39,7 @@ function App() {
   const [modelCatalog, setModelCatalog] = useState<ModelCatalogEntry[]>([]);
   const [fleetStatus, setFleetStatus] = useState<FleetStatus | null>(null);
   const [releaseEvidenceIndex, setReleaseEvidenceIndex] = useState<ReleaseEvidenceIndex | null>(null);
+  const [releaseEvidenceLoaded, setReleaseEvidenceLoaded] = useState(false);
   const [defectLedger, setDefectLedger] = useState<DefectLedger | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [releaseView, setReleaseView] = useState<ReleaseView>("real");
@@ -81,7 +82,12 @@ function App() {
     fetch(RELEASE_EVIDENCE_URL, { signal: controller.signal })
       .then((response) => (response.ok ? (response.json() as Promise<ReleaseEvidenceIndex>) : null))
       .then((payload) => startTransition(() => setReleaseEvidenceIndex(payload)))
-      .catch(() => setReleaseEvidenceIndex(null));
+      .catch(() => {
+        if (!controller.signal.aborted) setReleaseEvidenceIndex(null);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setReleaseEvidenceLoaded(true);
+      });
     return () => controller.abort();
   }, []);
 
@@ -119,6 +125,9 @@ function App() {
     setUrlParams(updates, { history: "push" });
   };
 
+  const closeMobileNavigation = useCallback(() => setMobileOpen(false), []);
+  const toggleMobileNavigation = useCallback(() => setMobileOpen((value) => !value), []);
+
   useEffect(() => {
     const controller = new AbortController();
     fetch(ACCESS_STATUS_URL, { signal: controller.signal })
@@ -148,8 +157,8 @@ function App() {
       </a>
       <Header
         mobileOpen={mobileOpen}
-        onToggle={() => setMobileOpen((value) => !value)}
-        onClose={() => setMobileOpen(false)}
+        onToggle={toggleMobileNavigation}
+        onClose={closeMobileNavigation}
         repoUrl={REPO_URL}
       />
       <main>
@@ -158,6 +167,7 @@ function App() {
           onReleaseViewChange={handleReleaseViewChange}
           releaseView={releaseView}
           releaseEvidence={selectedEvidence}
+          releaseEvidenceLoaded={releaseEvidenceLoaded}
           repoUrl={REPO_URL}
         />
         <PublicModelIndex

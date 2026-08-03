@@ -20,7 +20,9 @@ redacted receipt: provider/model identity, status and error code, response-body 
 wall time, and a provider request ID when supplied. Never retain the rejected generation in public
 artifacts and never invent token usage that the provider did not return. A complete matrix with
 missing usage telemetry remains inspectable but cannot pass the current common-harness publication
-gate.
+gate. A trustworthy provider-reported total token count satisfies that gate; prompt and completion
+splits remain unavailable unless the provider reports them, and the benchmark never estimates either
+split from a total.
 
 Recorded native surfaces must use `recorded-batch.v2` for new public evidence. The capture binds the
 exact sealed batch, model revision, effort, attempt, output digest, fresh-context timestamps, and

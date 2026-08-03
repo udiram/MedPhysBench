@@ -25,6 +25,11 @@ from .runner import (
 )
 from .scoring import grades_pass, grades_safe, score_attempt, weighted_grade_score
 
+OUTCOME_ORDER_NONBLOCKING_ERRORS = {
+    "missing_adapter_settings_hash",
+    "unranked_noncommon_surface",
+}
+
 
 def summarize_release(
     release: BenchmarkRelease,
@@ -599,7 +604,10 @@ def _task_usage(item: dict[str, Any]) -> dict[str, Any]:
     if total_tokens is None and input_tokens is not None and output_tokens is not None:
         total_tokens = input_tokens + output_tokens
     return {
-        "available": input_tokens is not None and output_tokens is not None,
+        # ``available`` follows the benchmark's efficiency axis: a trustworthy
+        # provider-reported total is sufficient even when the provider does not
+        # expose a prompt/completion split. Missing splits remain null.
+        "available": total_tokens is not None,
         "input_tokens": input_tokens,
         "output_tokens": output_tokens,
         "total_tokens": total_tokens,
@@ -914,7 +922,9 @@ def _audit_model_results(
         "is_recorded_import": is_recorded_import,
         "is_common_harness": not is_recorded_import,
         "ranking_eligible": not errors,
-        "outcome_order_eligible": not [error for error in errors if error != "unranked_noncommon_surface"],
+        "outcome_order_eligible": not [
+            error for error in errors if error not in OUTCOME_ORDER_NONBLOCKING_ERRORS
+        ],
         "errors": sorted(set(errors)),
         "observed_attempt_count": len(observed_attempt_keys),
         "missing_attempt_count": len(missing_attempt_keys),
@@ -951,7 +961,10 @@ def _common_harness_receipt_errors(*, item: dict[str, Any]) -> list[str]:
     usage = _provider_usage(item)
     prompt = _nonnegative_int(usage.get("prompt_eval_count", usage.get("prompt_tokens")))
     completion = _nonnegative_int(usage.get("eval_count", usage.get("completion_tokens")))
-    if prompt is None or completion is None:
+    total = _nonnegative_int(usage.get("total_tokens"))
+    if total is None and prompt is not None and completion is not None:
+        total = prompt + completion
+    if total is None:
         errors.append("missing_usage_telemetry")
     duration = item.get("duration_seconds")
     if isinstance(duration, bool) or not isinstance(duration, (int, float)) or duration <= 0:

@@ -369,6 +369,23 @@
     "note": "Apache-2.0 Pixtral 12B evaluated through community Q4_K_M GGUF plus F32 vision projector at immutable Hugging Face revision f4b659266080c08cbceb36f8a1a387ced7a989a7. Local blobs match repository LFS SHA-256 values 80f05f4f031bd9cdcd073051e23d2e55d9b71136cc2832eaa0da4a4ea44ed67b and 25622e8033dd8d80aa00f1542dbd16898e65a2b99a3449b8070ad8d6eed75c5d. The exact Ollama manifest digest is sha256:bf98f2143bd35a699805b018855a12db0d5ddda0ce694772d4dd3c6b843a3286. This is a community quantization, not an official Mistral GGUF. All 12 required-image attempts were real model calls."
   },
   {
+    "model": "hf.co/ShayanCyan/phi4-multimodal-quantisized-gguf:Q4_K_M",
+    "provider": "ollama",
+    "base_model_id": "microsoft/Phi-4-multimodal-instruct",
+    "qualification_stage": "q2",
+    "status": "available",
+    "surface": "local_ollama_text_only_community_quantization",
+    "date": "2026-08-03",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "phi4-multimodal-3-8b-community-q4km-openkb-v0.6-20260803",
+      "manifest_path": "submissions/phi4-multimodal-3-8b-community-q4km-openkb-v0.6-20260803.json"
+    },
+    "note": "Digest-pinned community Phi-4 Multimodal Q4_K_M artifact passed the strict JSON Schema access canary before completing all 30 OpenKBP Q2 attempts. Ollama exposed text only because the artifact contains no vision projector; all 12 required-image attempts remain explicit capability-unavailable outcomes. The 18 provider calls retain complete token and duration telemetry."
+  },
+  {
     "model": "qwen3.5:397b-cloud",
     "status": "blocked",
     "surface": "ollama_cloud",

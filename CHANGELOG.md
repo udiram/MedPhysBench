@@ -12,6 +12,23 @@
 
 ## Unreleased
 
+- Added an attested Phi-4 Multimodal Instruct community Q4_K_M configuration: 30/30
+  canonical attempts, 10.0% safe success, 100% safety over 18 evaluable text calls, 60.0%
+  valid output, complete token/time telemetry, and 12 explicit image-capability-unavailable
+  outcomes because the imported GGUF has no vision projector. Current-contract breadth is now
+  18/50 unique base models, 31 public configurations, and 49 release rows.
+- Corrected the fleet funnel presentation so its broad 24-model middle stage is labeled
+  published access/evidence, while only the 18 sidecar-attested common-harness matrices receive
+  evaluated/ranked language. Legacy Groq and GPT-5.6 evidence can no longer appear as naked Q2 badges.
+- Split planned/base-identity vision capability from capability exercised by the evaluated route:
+  seven evaluated base identities originate from vision-capable models, but only six evaluated
+  routes carried images; the text-only Phi-4 community quant no longer inflates exercised coverage.
+- Fixed provider deep links to accept display labels case-insensitively, stopped passive
+  forensics defaults from polluting clean URLs, added mobile navigation scroll/focus handling,
+  and replaced the hero's false initial evidence-error flash with a neutral loading state.
+- Restored complete, reviewed legacy Groq and Ollama scores to descriptive discovery, plots,
+  and outcome order while keeping `missing_adapter_settings_hash` as an absolute official-rank
+  blocker. The receipt- and telemetry-free Groq Qwen batch remains quarantined and score-unavailable.
 - Published a complete, digest-pinned Qwen3-VL 8B Instruct current-contract matrix: 30/30
   attempts, 30.0% safe success, 100% safety/schema validity, median 1,308.5 tokens, and median
   17.279-second wall time. The attested sidecar raises current-contract evaluated/ranked breadth
@@ -35,7 +52,8 @@
   the shared forensics view.
 - Fixed total-token-only provider telemetry so complete total-token evidence is eligible for the
   total-token frontier without falsely claiming prompt/completion splits; added independent split
-  and total coverage fields plus a regression test.
+  and total coverage fields plus regressions. A trustworthy provider-reported total now also
+  satisfies the common-harness usage receipt gate without inventing either split.
 - Renamed the hero's mixed unranked count from `Native outcome rows` to the accurate
   `Descriptive-only rows`; native and common-harness exclusions remain distinguishable below.
 - Exposed campaign memory-fraction, memory-GiB, and free-disk floors in the generator CLI so

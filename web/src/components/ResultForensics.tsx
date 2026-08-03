@@ -120,13 +120,13 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
     if (!data) return;
     if (!visibleRows.length) {
       setModelKey("");
-      setUrlParams({ fx_model: null });
+      if (getUrlParam("fx_model") !== null) setUrlParams({ fx_model: null });
       return;
     }
     if (!visibleRows.some((entry) => entry.key === modelKey)) {
       const next = visibleRows[0].key;
       setModelKey(next);
-      setUrlParams({ fx_model: next });
+      if (getUrlParam("fx_model") !== null) setUrlParams({ fx_model: next });
     }
   }, [data, modelKey, visibleRows]);
 
@@ -191,13 +191,13 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
     if (!selectedRow) return;
     if (!selectedTask) {
       setSelectedTaskKey("");
-      setUrlParams({ fx_task: null });
+      if (getUrlParam("fx_task") !== null) setUrlParams({ fx_task: null });
       return;
     }
     const key = taskAttemptKey(selectedTask);
     if (key !== selectedTaskKey) {
       setSelectedTaskKey(key);
-      setUrlParams({ fx_task: key });
+      if (getUrlParam("fx_task") !== null) setUrlParams({ fx_task: key });
     }
   }, [filteredTasks, selectedRow, selectedTask, selectedTaskKey]);
 

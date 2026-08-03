@@ -785,7 +785,7 @@ def test_repository_contracts_and_public_artifacts_validate() -> None:
 
     assert counts["schema_count"] == 23
     assert counts["descriptive_admission_count"] == 2
-    assert counts["campaign_count"] == 3
+    assert counts["campaign_count"] == 4
     assert counts["submission_count"] >= 1
     assert counts["fleet_model_count"] == 50
     assert counts["route_count"] == 32

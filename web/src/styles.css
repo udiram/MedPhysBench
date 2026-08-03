@@ -135,6 +135,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .nav-links a svg:last-child { width: 16px; }
 .menu-button { display: none; }
 .menu-button svg { width: 19px; }
+.nav-backdrop { display: none; }
 
 main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max)) / 2)); }
 
@@ -1589,6 +1590,8 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   gap: 32px;
   padding-block: 18px 16px;
 }
+.release-decision > *,
+.release-title-row > * { min-width: 0; }
 .release-title-row {
   display: flex;
   align-items: flex-start;
@@ -1614,6 +1617,7 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 }
 .release-maturity.warn { color: var(--accent); background: var(--accent-soft); }
 .release-maturity.neutral { color: var(--native); border-color: rgba(112, 184, 196, 0.3); }
+.release-maturity.loading { color: var(--muted-strong); border-color: var(--line-strong); }
 .release-maturity.bad { color: var(--danger); border-color: rgba(239, 154, 125, 0.32); }
 .claim-prohibited {
   max-width: 74ch;
@@ -3395,11 +3399,30 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   .results-scope-switch { width: 100%; }
   .results-scope-switch button { min-width: 0; flex: 1 1 50%; }
   .menu-button { display: inline-flex; }
+  .hero-release-switch {
+    width: 100%;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .hero-release-switch button { flex: 0 0 auto; }
+  .nav-backdrop {
+    position: fixed;
+    z-index: 90;
+    inset: 74px 0 0;
+    display: block;
+    width: 100%;
+    border: 0;
+    background: rgba(0, 0, 0, 0.62);
+    backdrop-filter: blur(2px);
+  }
   .nav-links {
-    position: absolute;
+    position: fixed;
+    z-index: 100;
     top: 74px;
     left: 0;
     right: 0;
+    max-height: calc(100dvh - 74px);
+    overflow-y: auto;
     display: none;
     flex-direction: column;
     gap: 0;
@@ -3534,6 +3557,11 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
     flex-direction: column;
   }
   .hero-stats { grid-template-columns: 1fr; }
+  .brand { font-size: 20px; }
+  .hero-release-title,
+  .hero-copy h1,
+  .hero-body,
+  .claim-prohibited { overflow-wrap: anywhere; }
   .release-title-row { gap: 14px; }
   .release-title-row h1 { font-size: 30px; }
   .release-maturity { align-self: flex-start; }

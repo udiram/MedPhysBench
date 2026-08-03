@@ -4,20 +4,21 @@
   "fleet_id": "public-fleet-v1",
   "summary": {
     "planned_base_models": 50,
-    "access_qualified_base_models": 23,
-    "evaluated_base_models": 17,
-    "ranked_base_models": 17,
-    "workflow_view_evaluated_base_models": 17,
-    "workflow_view_ranked_base_models": 17,
-    "published_system_configurations": 30,
-    "published_release_rows": 48,
+    "access_qualified_base_models": 24,
+    "evaluated_base_models": 18,
+    "ranked_base_models": 18,
+    "workflow_view_evaluated_base_models": 18,
+    "workflow_view_ranked_base_models": 18,
+    "published_system_configurations": 31,
+    "published_release_rows": 49,
     "open_planned_models": 31,
     "closed_planned_models": 19,
     "vision_planned_models": 31,
     "steward_count": 11,
-    "evaluated_open_base_models": 17,
+    "evaluated_open_base_models": 18,
     "evaluated_closed_base_models": 0,
-    "evaluated_vision_base_models": 6,
+    "evaluated_vision_base_models": 7,
+    "evaluated_image_route_base_models": 6,
     "evaluated_steward_count": 6,
     "evaluated_size_tiers": [
       "medium",
@@ -36,6 +37,7 @@
       "modalities": [
         "text"
       ],
+      "evaluated_modalities": [],
       "size_tier": "large",
       "planned_routes": [
         "groq",
@@ -76,6 +78,7 @@
       "modalities": [
         "text"
       ],
+      "evaluated_modalities": [],
       "size_tier": "medium",
       "planned_routes": [
         "groq",
@@ -114,6 +117,9 @@
       "family": "Llama 3.1",
       "openness": "open",
       "modalities": [
+        "text"
+      ],
+      "evaluated_modalities": [
         "text"
       ],
       "size_tier": "small",
@@ -172,6 +178,9 @@
       "modalities": [
         "text"
       ],
+      "evaluated_modalities": [
+        "text"
+      ],
       "size_tier": "small",
       "planned_routes": [
         "ollama",
@@ -216,6 +225,7 @@
       "modalities": [
         "text"
       ],
+      "evaluated_modalities": [],
       "size_tier": "large",
       "planned_routes": [
         "groq",
@@ -257,6 +267,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "large",
       "planned_routes": [
         "self_hosted"
@@ -285,6 +296,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "large",
       "planned_routes": [
         "self_hosted"
@@ -310,6 +322,9 @@
       "family": "Qwen 2.5",
       "openness": "open",
       "modalities": [
+        "text"
+      ],
+      "evaluated_modalities": [
         "text"
       ],
       "size_tier": "small",
@@ -356,6 +371,7 @@
       "modalities": [
         "text"
       ],
+      "evaluated_modalities": [],
       "size_tier": "large",
       "planned_routes": [
         "self_hosted"
@@ -381,6 +397,9 @@
       "family": "Qwen 3",
       "openness": "open",
       "modalities": [
+        "text"
+      ],
+      "evaluated_modalities": [
         "text"
       ],
       "size_tier": "small",
@@ -427,6 +446,9 @@
       "modalities": [
         "text"
       ],
+      "evaluated_modalities": [
+        "text"
+      ],
       "size_tier": "small",
       "planned_routes": [
         "ollama",
@@ -469,6 +491,9 @@
       "family": "Qwen 3",
       "openness": "open",
       "modalities": [
+        "text"
+      ],
+      "evaluated_modalities": [
         "text"
       ],
       "size_tier": "medium",
@@ -515,6 +540,7 @@
       "modalities": [
         "text"
       ],
+      "evaluated_modalities": [],
       "size_tier": "medium",
       "planned_routes": [
         "self_hosted"
@@ -540,6 +566,9 @@
       "family": "Qwen 3.5",
       "openness": "open",
       "modalities": [
+        "text"
+      ],
+      "evaluated_modalities": [
         "text"
       ],
       "size_tier": "small",
@@ -586,6 +615,7 @@
       "modalities": [
         "text"
       ],
+      "evaluated_modalities": [],
       "size_tier": "medium",
       "planned_routes": [
         "groq",
@@ -626,6 +656,10 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "evaluated_modalities": [
+        "image",
+        "text"
       ],
       "size_tier": "small",
       "planned_routes": [
@@ -672,6 +706,10 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [
+        "image",
+        "text"
+      ],
       "size_tier": "small",
       "planned_routes": [
         "self_hosted"
@@ -716,6 +754,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "large",
       "planned_routes": [
         "self_hosted"
@@ -743,6 +782,10 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "evaluated_modalities": [
+        "image",
+        "text"
       ],
       "size_tier": "small",
       "planned_routes": [
@@ -800,6 +843,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "medium",
       "planned_routes": [
         "self_hosted"
@@ -827,6 +871,10 @@
       "modalities": [
         "text",
         "image"
+      ],
+      "evaluated_modalities": [
+        "image",
+        "text"
       ],
       "size_tier": "small",
       "planned_routes": [
@@ -873,6 +921,10 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [
+        "image",
+        "text"
+      ],
       "size_tier": "medium",
       "planned_routes": [
         "self_hosted"
@@ -914,6 +966,9 @@
       "family": "DeepSeek R1 Distill",
       "openness": "open",
       "modalities": [
+        "text"
+      ],
+      "evaluated_modalities": [
         "text"
       ],
       "size_tier": "small",
@@ -960,6 +1015,7 @@
       "modalities": [
         "text"
       ],
+      "evaluated_modalities": [],
       "size_tier": "frontier",
       "planned_routes": [
         "self_hosted"
@@ -987,6 +1043,7 @@
       "modalities": [
         "text"
       ],
+      "evaluated_modalities": [],
       "size_tier": "frontier",
       "planned_routes": [
         "self_hosted"
@@ -1012,6 +1069,9 @@
       "family": "Mistral Nemo",
       "openness": "open",
       "modalities": [
+        "text"
+      ],
+      "evaluated_modalities": [
         "text"
       ],
       "size_tier": "medium",
@@ -1058,6 +1118,10 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [
+        "image",
+        "text"
+      ],
       "size_tier": "medium",
       "planned_routes": [
         "self_hosted"
@@ -1099,6 +1163,9 @@
       "family": "Phi-4",
       "openness": "open",
       "modalities": [
+        "text"
+      ],
+      "evaluated_modalities": [
         "text"
       ],
       "size_tier": "small",
@@ -1145,23 +1212,42 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [
+        "text"
+      ],
       "size_tier": "small",
       "planned_routes": [
         "self_hosted"
       ],
-      "access_qualified": false,
-      "qualification_stage": null,
-      "evaluated": false,
-      "ranked": false,
-      "workflow_view_evaluated": false,
-      "workflow_view_ranked": false,
-      "system_configuration_count": 0,
-      "published_release_count": 0,
-      "published_row_count": 0,
-      "readiness_state": "route_planned",
-      "next_gate": "q0_access",
-      "readiness_note": "No base-model-bound Q0 access evidence is committed. Planned routes are hypotheses until an exact provider handle or local artifact revision passes the access probe.",
-      "access_evidence": []
+      "access_qualified": true,
+      "qualification_stage": "q2",
+      "evaluated": true,
+      "ranked": true,
+      "workflow_view_evaluated": true,
+      "workflow_view_ranked": true,
+      "system_configuration_count": 1,
+      "published_release_count": 1,
+      "published_row_count": 1,
+      "readiness_state": "workflow_view_evaluated",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP one-response workflow-view matrix is published. This is not a stateful workflow claim; the next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
+      "access_evidence": [
+        {
+          "provider": "ollama",
+          "model": "hf.co/ShayanCyan/phi4-multimodal-quantisized-gguf:Q4_K_M",
+          "status": "available",
+          "qualification_stage": "q2",
+          "surface": "local_ollama_text_only_community_quantization",
+          "date": "2026-08-03",
+          "promotion_basis": "attested_complete_q2",
+          "qualification_evidence": {
+            "kind": "common_harness_submission",
+            "submission_id": "phi4-multimodal-3-8b-community-q4km-openkb-v0.6-20260803",
+            "manifest_path": "submissions/phi4-multimodal-3-8b-community-q4km-openkb-v0.6-20260803.json"
+          },
+          "note": "Digest-pinned community Phi-4 Multimodal Q4_K_M artifact passed the strict JSON Schema access canary before completing all 30 OpenKBP Q2 attempts. Ollama exposed text only because the artifact contains no vision projector; all 12 required-image attempts remain explicit capability-unavailable outcomes. The 18 provider calls retain complete token and duration telemetry."
+        }
+      ]
     },
     {
       "base_model_id": "microsoft/phi-4",
@@ -1170,6 +1256,9 @@
       "family": "Phi-4",
       "openness": "open",
       "modalities": [
+        "text"
+      ],
+      "evaluated_modalities": [
         "text"
       ],
       "size_tier": "medium",
@@ -1216,6 +1305,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "large",
       "planned_routes": [
         "cohere",
@@ -1245,6 +1335,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "frontier",
       "planned_routes": [
         "openai",
@@ -1286,6 +1377,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "frontier",
       "planned_routes": [
         "openai",
@@ -1327,6 +1419,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "frontier",
       "planned_routes": [
         "openai",
@@ -1356,6 +1449,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "undisclosed",
       "planned_routes": [
         "openai"
@@ -1384,6 +1478,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "undisclosed",
       "planned_routes": [
         "openai"
@@ -1412,6 +1507,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "undisclosed",
       "planned_routes": [
         "openai"
@@ -1440,6 +1536,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "undisclosed",
       "planned_routes": [
         "anthropic"
@@ -1468,6 +1565,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "frontier",
       "planned_routes": [
         "anthropic"
@@ -1496,6 +1594,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "frontier",
       "planned_routes": [
         "anthropic"
@@ -1524,6 +1623,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "undisclosed",
       "planned_routes": [
         "anthropic"
@@ -1552,6 +1652,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "undisclosed",
       "planned_routes": [
         "google"
@@ -1580,6 +1681,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "undisclosed",
       "planned_routes": [
         "google"
@@ -1608,6 +1710,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "undisclosed",
       "planned_routes": [
         "google"
@@ -1636,6 +1739,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "undisclosed",
       "planned_routes": [
         "google"
@@ -1664,6 +1768,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "frontier",
       "planned_routes": [
         "google"
@@ -1692,6 +1797,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "undisclosed",
       "planned_routes": [
         "google"
@@ -1720,6 +1826,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "frontier",
       "planned_routes": [
         "xai"
@@ -1748,6 +1855,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "undisclosed",
       "planned_routes": [
         "aws_bedrock"
@@ -1776,6 +1884,7 @@
         "text",
         "image"
       ],
+      "evaluated_modalities": [],
       "size_tier": "undisclosed",
       "planned_routes": [
         "aws_bedrock"

@@ -151,18 +151,18 @@ scored outcomes and remain canonical attempts; they are not transport retries.
 
 ## Current state
 
-The public website currently exposes 30 model configurations representing 23
-unique base model identifiers across 48 release rows and four release surfaces, including five
+The public website currently exposes 31 model configurations representing 24
+unique base model identifiers across 49 release rows and four release surfaces, including five
 completed Groq configurations, six GPT-5.6 Sol effort configurations, and one
-GPT-5.6 Terra configuration. These are not 30 unique base models. An Ollama Cloud access probe
+GPT-5.6 Terra configuration. These are not 31 unique base models. An Ollama Cloud access probe
 for `qwen3.5:397b-cloud` on 2026-08-02 returned HTTP 429 before a scored artifact
 was created. The lab-node hostname was not resolvable from the current Mac
 network context. Neither event supports a model score.
 
 The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
 19 closed-weight, 31 declared vision-capable, and 11 stewards. After enforcing
-the current grader/scoring manifest contract, the derived funnel
-reports 23 access-qualified, 17 common-harness evaluated, and 17 officially
+the current grader/scoring manifest contract, the derived funnel reports 24 base models with
+some published access or native evidence, 18 attested common-harness evaluated, and 18 officially
 rankable base models. Eight complete legacy Ollama/Groq configurations remain visible but are excluded
 from current-contract rank because their attempt manifests lack adapter-settings hashes; four of the
 affected base IDs have no separate v2 row and therefore leave the evaluated/ranked fleet funnel. One
@@ -175,18 +175,18 @@ The public `fleet-status.v3` projection now gives every frozen base ID a
 machine-derived readiness state, next gate, explanatory note, and any exact
 base-model-bound access evidence, including a direct attested-submission link when
 one exists. It also separates the planned-panel composition from the actually
-evaluated slice: the current common-harness slice contains 17 open-weight and zero
-closed-weight base models, six vision-capable base models, six stewards, and two
+evaluated slice: the current common-harness slice contains 18 open-weight and zero
+closed-weight base models, seven base identities whose source model is vision-capable, six
+image-capable evaluated routes, six stewards, and two
 size tiers. The OpenKBP field is explicitly a one-response workflow-view gate, not
 stateful workflow qualification. “Planned route” means no Q0 evidence is
 committed; it is not a claim that an API handle, free quota, local artifact, or
 compatible hardware is currently available. The website can therefore filter the
-remaining 33 models by openness, route, and missing gate without inventing access
+remaining 32 models by openness, route, and missing gate without inventing access
 reasons or confusing native GPT-5.6 evidence with common-harness qualification.
-Seven frozen route sets now declare 32 executable configurations. Seventeen are digest-pinned Ollama
-routes corresponding exactly to current-contract submission sidecars; one additional digest-pinned
-Phi-4 Multimodal candidate records the text-only capability actually exposed by its community GGUF
-under Ollama, and the remaining routes cover
+Seven frozen route sets now declare 32 executable configurations. Eighteen are digest-pinned Ollama
+routes corresponding exactly to current-contract submission sidecars, including the Phi-4 Multimodal
+route that records the text-only capability actually exposed by its community GGUF under Ollama. The remaining routes cover
 Groq and hosted-provider expansion candidates. Route presence is operational readiness metadata,
 not a score, an access claim, or a unique-base-model completion.
 `deepseek-r1:1.5b` completed a fresh 30-attempt Q2 matrix with artifact digest
@@ -253,7 +253,14 @@ including all 12 image-grid attempts, achieved 10.0% safe success, 60.0% safety,
 100% schema validity, and passed a zero-change deterministic regrade. The attested public
 artifact tree is
 `sha256:6959930732876ef1b1bdf9e1a8da009be1cd79a0c31d38860e1e8fa42f0f4437`.
-All seventeen current v2 rows
+Phi-4 Multimodal Instruct then completed the same 30-attempt matrix through community Ollama
+artifact `sha256:3c73f00ac73b1f77b914aec830fbf2e2570aac6f538dd474e2d19dcb6cc9d62f`.
+The catalog pins the community repository revision and model-weight SHA-256. The imported GGUF has
+no vision projector, so it made 18 text calls and retained 12 image-required tasks as explicit
+capability-unavailable outcomes. It achieved 10.0% safe success, 100% safety over evaluable calls,
+60% valid output, median 937.5 total tokens, and median 8.436-second wall time. Its attested public
+artifact tree is `sha256:ffc91ad3e878e1b4130e5b78ba2416c3ab773b72de97334d98627517b795f698`.
+All eighteen current v2 rows
 now have their own sidecar with exact source commits, execution window, model
 identity, environment, and a SHA-256 inventory of every result artifact. The
 access ledger records whether qualification preceded the matrix or was backfilled
@@ -269,7 +276,7 @@ unranked raw evidence. The distinct digest-pinned `qwen3-vl:8b-instruct` artifac
 later completed a clean 30-attempt matrix with 30.0% safe success, 100% safety,
 and 100% schema validity under a frozen bounded unload-recovery policy.
 
-The resulting current v2 group contains seventeen exact model configurations. A complete
+The resulting current v2 group contains eighteen exact model configurations. A complete
 campaign with any other token cap, adapter-settings hash, harness revision, or seed
 policy remains visible evidence but cannot enter that ranking group.
 

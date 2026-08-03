@@ -110,6 +110,9 @@ def build_fleet_status(
     route_ids = [route.route_id for route in routes]
     if len(route_ids) != len(set(route_ids)):
         raise ValueError("Executable route IDs must be unique across frozen route sets.")
+    route_modalities_by_configuration: dict[tuple[str, str], set[str]] = defaultdict(set)
+    for route in routes:
+        route_modalities_by_configuration[(route.provider, route.model)].update(route.modalities)
 
     catalog = _load_json(catalog_path)
     if not isinstance(catalog, list):
@@ -164,6 +167,7 @@ def build_fleet_status(
     releases_by_base: dict[str, set[str]] = defaultdict(set)
     row_count_by_base: dict[str, int] = defaultdict(int)
     visible_configurations: set[tuple[str, str]] = set()
+    evaluated_modalities_by_base: dict[str, set[str]] = defaultdict(set)
 
     for path in leaderboard_paths:
         payload = _load_json(path)
@@ -200,6 +204,9 @@ def build_fleet_status(
             releases_by_base[base_model_id].add(release_id)
             if _complete_row(row):
                 evaluated_by_base[base_model_id] = True
+                evaluated_modalities_by_base[base_model_id].update(
+                    route_modalities_by_configuration.get(key, set())
+                )
                 if row.get("ranking_eligible") is True:
                     ranked_by_base[base_model_id] = True
                 if release_id in WORKFLOW_VIEW_RELEASE_IDS:
@@ -225,6 +232,7 @@ def build_fleet_status(
                 "family": str(planned["family"]),
                 "openness": str(planned["openness"]),
                 "modalities": list(planned["modalities"]),
+                "evaluated_modalities": sorted(evaluated_modalities_by_base[base_model_id]),
                 "size_tier": str(planned["size_tier"]),
                 "planned_routes": list(planned["planned_routes"]),
                 "access_qualified": bool(stages),
@@ -268,6 +276,9 @@ def build_fleet_status(
             "evaluated_closed_base_models": sum(row["evaluated"] and row["openness"] == "closed" for row in model_rows),
             "evaluated_vision_base_models": sum(
                 row["evaluated"] and "image" in row["modalities"] for row in model_rows
+            ),
+            "evaluated_image_route_base_models": sum(
+                "image" in row["evaluated_modalities"] for row in model_rows
             ),
             "evaluated_steward_count": len({row["steward"] for row in model_rows if row["evaluated"]}),
             "evaluated_size_tiers": sorted({row["size_tier"] for row in model_rows if row["evaluated"]}),

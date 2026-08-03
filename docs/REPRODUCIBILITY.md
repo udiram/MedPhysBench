@@ -279,7 +279,7 @@ promotion basis is `attested_complete_q2`, whose chronology says whether preflig
 full matrix, and whose evidence points to that exact sidecar. The fleet projection, submission
 validator, and repository-wide validator all enforce this binding.
 
-The current public inventory contains seventeen such attested v2 sidecars. Sidecar count
+The current public inventory contains eighteen such attested v2 sidecars. Sidecar count
 is configuration evidence, not unique-model breadth: three are current-contract reruns
 of base models already counted by the fleet funnel.
 

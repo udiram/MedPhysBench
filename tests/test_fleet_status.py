@@ -60,20 +60,21 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert status == rebuilt
     assert rebuilt["summary"] == {
         "planned_base_models": 50,
-        "access_qualified_base_models": 23,
-        "evaluated_base_models": 17,
-        "ranked_base_models": 17,
-        "workflow_view_evaluated_base_models": 17,
-        "workflow_view_ranked_base_models": 17,
-        "published_system_configurations": 30,
-        "published_release_rows": 48,
+        "access_qualified_base_models": 24,
+        "evaluated_base_models": 18,
+        "ranked_base_models": 18,
+        "workflow_view_evaluated_base_models": 18,
+        "workflow_view_ranked_base_models": 18,
+        "published_system_configurations": 31,
+        "published_release_rows": 49,
         "open_planned_models": 31,
         "closed_planned_models": 19,
         "vision_planned_models": 31,
         "steward_count": 11,
-        "evaluated_open_base_models": 17,
+        "evaluated_open_base_models": 18,
         "evaluated_closed_base_models": 0,
-        "evaluated_vision_base_models": 6,
+        "evaluated_vision_base_models": 7,
+        "evaluated_image_route_base_models": 6,
         "evaluated_steward_count": 6,
         "evaluated_size_tiers": ["medium", "small"],
         "route_set_count": 7,
@@ -81,16 +82,25 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     }
     assert all("size_tier" in entry for entry in rebuilt["models"])
     assert all("planned_routes" in entry for entry in rebuilt["models"])
+    assert all("evaluated_modalities" in entry for entry in rebuilt["models"])
     assert any("groq" in entry["planned_routes"] for entry in rebuilt["models"])
     assert any("ollama" in entry["planned_routes"] for entry in rebuilt["models"])
     assert all(entry["readiness_note"] for entry in rebuilt["models"])
-    assert sum(entry["readiness_state"] == "workflow_view_evaluated" for entry in rebuilt["models"]) == 17
-    assert sum(entry["readiness_state"] == "route_planned" for entry in rebuilt["models"]) == 27
+    assert sum(entry["readiness_state"] == "workflow_view_evaluated" for entry in rebuilt["models"]) == 18
+    assert sum(entry["readiness_state"] == "route_planned" for entry in rebuilt["models"]) == 26
     terra = next(entry for entry in rebuilt["models"] if entry["base_model_id"] == "gpt-5.6-terra")
     assert terra["readiness_state"] == "access_qualified"
     assert terra["next_gate"] == "q2_common_harness"
     assert terra["access_evidence"][0]["provider"] == "codex-native"
     assert "fresh-context" in terra["access_evidence"][0]["note"]
+    assert terra["access_evidence"][0]["qualification_evidence"] is None
+    phi = next(
+        entry
+        for entry in rebuilt["models"]
+        if entry["base_model_id"] == "microsoft/Phi-4-multimodal-instruct"
+    )
+    assert phi["modalities"] == ["text", "image"]
+    assert phi["evaluated_modalities"] == ["text"]
 
 
 def test_access_ledger_is_schema_valid_and_attested_promotions_resolve() -> None:
@@ -102,7 +112,7 @@ def test_access_ledger_is_schema_valid_and_attested_promotions_resolve() -> None
     validator.validate(access)
 
     promoted = [entry for entry in access if entry.get("promotion_basis")]
-    assert len(promoted) == 17
+    assert len(promoted) == 18
     for entry in promoted:
         validate_attested_q2_qualification(
             entry,
@@ -143,7 +153,7 @@ def test_catalog_maps_system_configurations_to_unique_frozen_base_models() -> No
 
     assert len(keys) == len(set(keys))
     assert all(entry["base_model_id"] in frozen_ids for entry in catalog)
-    assert len({entry["base_model_id"] for entry in catalog}) == 23
+    assert len({entry["base_model_id"] for entry in catalog}) == 24
     assert sum(entry["base_model_id"] == "gpt-5.6-sol" for entry in catalog) == 6
     assert sum(entry["base_model_id"] == "gpt-5.6-terra" for entry in catalog) == 1
 
@@ -252,10 +262,36 @@ def test_pixtral_community_quantization_is_attested_and_ranked() -> None:
     }
 
 
+def test_phi4_multimodal_community_quantization_is_attested_but_text_only() -> None:
+    status = build_fleet_status()
+    base_model_id = "microsoft/Phi-4-multimodal-instruct"
+    phi = next(row for row in status["models"] if row["base_model_id"] == base_model_id)
+    catalog = _load_json(CATALOG_PATH)
+    assert isinstance(catalog, list)
+    catalog_row = next(row for row in catalog if row["base_model_id"] == base_model_id)
+    provenance = catalog_row["artifact_provenance"]
+
+    assert phi["workflow_view_ranked"] is True
+    assert phi["access_evidence"][0]["surface"] == "local_ollama_text_only_community_quantization"
+    assert phi["access_evidence"][0]["qualification_evidence"]["submission_id"] == (
+        "phi4-multimodal-3-8b-community-q4km-openkb-v0.6-20260803"
+    )
+    assert provenance["kind"] == "community_quantization"
+    assert provenance["source_revision"] == "cbcd2c4e48d79cad6de1ae8e05757c02f9f6400f"
+    assert provenance["artifacts"] == [
+        {
+            "role": "model_weights",
+            "sha256": "fb8897a6038bb0bf04194d111a07a79f58e54f7e5d781b712140b73a5ff056cc",
+            "bytes": 2491874752,
+        }
+    ]
+    assert "no vision projector" in catalog_row["notes"]
+
+
 def test_workflow_view_counts_only_common_harness_openkbp_release() -> None:
     status = build_fleet_status()
-    assert status["summary"]["workflow_view_evaluated_base_models"] == 17
-    assert status["summary"]["workflow_view_ranked_base_models"] == 17
+    assert status["summary"]["workflow_view_evaluated_base_models"] == 18
+    assert status["summary"]["workflow_view_ranked_base_models"] == 18
 
     gpt = next(row for row in status["models"] if row["base_model_id"] == "gpt-5.6-sol")
     assert gpt["evaluated"] is False

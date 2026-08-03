@@ -43,7 +43,7 @@ export function EvidenceSections({ accessStatus, data, defectLedger, releaseView
             <ul className="board-list">
               <li><strong>{data?.tasks.length ?? "—"}</strong> public tasks in the selected release</li>
               <li><strong>{rankedCount ?? "—"}</strong> official harness-group row{rankedCount === 1 ? "" : "s"}</li>
-              <li><strong>{reviewCount ?? "—"}</strong> native outcome row{reviewCount === 1 ? "" : "s"}</li>
+              <li><strong>{reviewCount ?? "—"}</strong> descriptive-only row{reviewCount === 1 ? "" : "s"}</li>
               {data?.release.family_count != null && <li><strong>{data.release.family_count}</strong> independent patient/task families</li>}
               <li><strong>Human baseline</strong> {humanBaselineSummary(releaseEvidence)}</li>
               <li><strong>Evidence maturity</strong> {releaseEvidence ? maturityLabel(releaseEvidence.maturity) : "unavailable"}</li>
@@ -169,8 +169,8 @@ export function EvidenceSections({ accessStatus, data, defectLedger, releaseView
             <p>{data?.release.expected_attempts_per_task ?? integrity?.expected_attempts_per_task ?? "—"} per task in the current public release.</p>
           </article>
           <article>
-            <h3>Official / native</h3>
-            <p>{rankedCount} official harness-group rows and {reviewCount} native outcome rows currently visible.</p>
+            <h3>Official / descriptive</h3>
+            <p>{rankedCount} official harness-group rows and {reviewCount} descriptive-only rows currently visible.</p>
           </article>
           {data?.release.family_count != null && (
             <article>

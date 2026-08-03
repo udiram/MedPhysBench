@@ -5,6 +5,7 @@ import {
   filterFleetModels,
   fleetNextGateLabel,
   fleetRouteLabel,
+  hasAttestedQualification,
 } from "../src/lib/fleetReadiness.ts";
 
 const rows = [
@@ -119,6 +120,12 @@ test("fleet readiness filters preserve honest base-model stages", () => {
       .map((row) => row.base_model_id),
     ["closed/model-c"],
   );
+});
+
+test("only common-harness sidecars count as attested qualification", () => {
+  assert.equal(hasAttestedQualification(rows[0]), true);
+  assert.equal(hasAttestedQualification(rows[1]), false);
+  assert.equal(hasAttestedQualification(rows[2]), false);
 });
 
 test("fleet search reaches route evidence and readiness notes", () => {
