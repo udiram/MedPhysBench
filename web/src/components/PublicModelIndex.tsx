@@ -4,6 +4,7 @@ import { domainLabel, formatBytes, formatDuration, formatPercent, formatTokens, 
 import { groupIntegrityIssues, integrityIssueHeadline } from "../lib/integrity";
 import { resolveRunBaseModelId } from "../lib/modelIdentity";
 import { compareModelRuns, modelRunKey, modelRunUrlSelection, releasedModelRunKey } from "../lib/modelRunKey";
+import { buildModelWorkbench, compactWorkbenchIdentity } from "../lib/modelWorkbench";
 import { providerIdsForSlice } from "../lib/modelSlice";
 import { navigateToRunForensics } from "../lib/forensicsNavigation";
 import { isCommonHarnessRun, isNativeRun } from "../lib/runSurface";
@@ -670,6 +671,7 @@ function ModelRegistryRow({
   const sortedRuns = [...group.runs].sort(
     compareModelRuns,
   );
+  const workbench = useMemo(() => buildModelWorkbench(sortedRuns), [sortedRuns]);
   const variantSummaries = useMemo(() => summarizeVariants(sortedRuns), [sortedRuns]);
   const sliceProviders = providerIdsForSlice(
     group.providers,
@@ -677,40 +679,6 @@ function ModelRegistryRow({
     selectedProvider,
   );
   const sliceProviderLabel = sliceProviders.map((item) => providerLabel(item)).join(", ");
-  const allTasks = useMemo(
-    () => sortedRuns.flatMap((run) => run.tasks),
-    [sortedRuns],
-  );
-  const outcomeSummary = useMemo(() => {
-    const safePass = allTasks.filter((task) => taskOutcome(task) === "safe-pass").length;
-    const safeFail = allTasks.filter((task) => taskOutcome(task) === "safe-fail").length;
-    const unsafe = allTasks.filter((task) => taskOutcome(task) === "unsafe").length;
-    const unavailable = allTasks.filter((task) => taskOutcome(task) === "unavailable").length;
-    const unknown = allTasks.filter((task) => taskOutcome(task) === "unknown").length;
-    const familyFailures = aggregateModelFailures(allTasks);
-    return {
-      safePass,
-      safeFail,
-      unsafe,
-      unavailable,
-      unknown,
-      familyFailures,
-      failuresByDomain: topCounts(
-        allTasks
-          .filter((task) => taskOutcome(task) !== "safe-pass")
-          .map((task) => domainLabel(task.domain)),
-        4,
-      ),
-      failuresByLanes: topCounts(
-        allTasks.filter((task) => taskOutcome(task) !== "safe-pass").flatMap((task) => task.failed_lanes ?? []),
-        4,
-      ),
-      failuresByGraders: topCounts(
-        allTasks.filter((task) => taskOutcome(task) !== "safe-pass").flatMap((task) => task.failed_graders ?? []),
-        4,
-      ),
-    };
-  }, [allTasks]);
   const evidenceStatus = modelEvidenceStatus(sortedRuns, group.best_safe_success_rate);
 
   return (
@@ -892,58 +860,70 @@ function ModelRegistryRow({
                 )}
               </section>
               <section className="detail-span">
-                <h4>Right / wrong breakdown (current slice)</h4>
+                <h4>Run comparison workbench</h4>
                 <div className="registry-run-grid">
                   <article className="registry-run-card">
                     <header>
                       <div>
-                        <strong>Failure diagnostics</strong>
-                        <p>Failures are grouped across all matched rows for this system.</p>
+                        <strong>Cross-run outcome summary</strong>
+                        <p>Every visible harness/config row stays separate and comparable on the same base-model surface.</p>
                       </div>
                       <div className="registry-run-badges">
                         <span className="result-chip native">{group.has_reference_data ? "Has evidence" : "No public evidence"}</span>
-                        <span className="result-chip score">{formatPercent(allTasks.length === 0 ? null : (outcomeSummary.safePass / allTasks.length))}</span>
+                        <span className="result-chip score">
+                          {formatPercent(
+                            workbench.overview.total === 0 ? null : workbench.overview.safePass / workbench.overview.total,
+                          )}
+                        </span>
                       </div>
                     </header>
                     <dl className="metric-list registry-metrics">
                       <div>
-                        <dt>Safe-pass</dt>
-                        <dd>{outcomeSummary.safePass}</dd>
+                        <dt>Visible runs</dt>
+                        <dd>{workbench.overview.runCount}</dd>
+                      </div>
+                      <div>
+                        <dt>Safe pass</dt>
+                        <dd>{workbench.overview.safePass}</dd>
                       </div>
                       <div>
                         <dt>Safe failure</dt>
-                        <dd>{outcomeSummary.safeFail}</dd>
+                        <dd>{workbench.overview.safeFail}</dd>
                       </div>
                       <div>
                         <dt>Unsafe</dt>
-                        <dd>{outcomeSummary.unsafe}</dd>
+                        <dd>{workbench.overview.unsafe}</dd>
                       </div>
                       <div>
                         <dt>Capability unavailable</dt>
-                        <dd>{outcomeSummary.unavailable}</dd>
+                        <dd>{workbench.overview.unavailable}</dd>
                       </div>
                       <div>
                         <dt>Legacy missing</dt>
-                        <dd>{outcomeSummary.unknown}</dd>
+                        <dd>{workbench.overview.unknown}</dd>
                       </div>
                       <div>
-                        <dt>Attempts</dt>
-                        <dd>{allTasks.length}</dd>
+                        <dt>Attempt records</dt>
+                        <dd>{workbench.overview.total}</dd>
                       </div>
                       <div>
-                        <dt>Runs</dt>
-                        <dd>{group.runs.length}</dd>
+                        <dt>Family snapshots</dt>
+                        <dd>{workbench.overview.familyCount}</dd>
+                      </div>
+                      <div>
+                        <dt>Mixed families</dt>
+                        <dd>{workbench.overview.mixedFamilies}</dd>
                       </div>
                     </dl>
                     <div className="registry-failure-list">
                       <article>
                         <header>
                           <strong>Top failure domain</strong>
-                          <span>{outcomeSummary.failuresByDomain[0]?.[1] ?? 0} attempt(s)</span>
+                          <span>{workbench.failureDomains[0]?.[1] ?? 0} attempt(s)</span>
                         </header>
-                        <p>{outcomeSummary.failuresByDomain[0]?.[0] ?? "No failures in scope"}</p>
+                        <p>{workbench.failureDomains[0]?.[0] ?? "No failures in scope"}</p>
                         <dl>
-                          {outcomeSummary.failuresByDomain.slice(1).map(([name, count]) => (
+                          {workbench.failureDomains.slice(1).map(([name, count]) => (
                             <div key={name}>
                               <dt>{name}</dt>
                               <dd>{count}</dd>
@@ -954,11 +934,11 @@ function ModelRegistryRow({
                       <article>
                         <header>
                           <strong>Top failed lanes</strong>
-                          <span>{outcomeSummary.failuresByLanes[0]?.[1] ?? 0} attempt(s)</span>
+                          <span>{workbench.failureLanes[0]?.[1] ?? 0} attempt(s)</span>
                         </header>
-                        <p>{outcomeSummary.failuresByLanes[0]?.[0] ?? "No lane failures in scope"}</p>
+                        <p>{workbench.failureLanes[0]?.[0] ?? "No lane failures in scope"}</p>
                         <dl>
-                          {outcomeSummary.failuresByLanes.slice(1).map(([name, count]) => (
+                          {workbench.failureLanes.slice(1).map(([name, count]) => (
                             <div key={name}>
                               <dt>{name}</dt>
                               <dd>{count}</dd>
@@ -969,11 +949,11 @@ function ModelRegistryRow({
                       <article>
                         <header>
                           <strong>Top failed graders</strong>
-                          <span>{outcomeSummary.failuresByGraders[0]?.[1] ?? 0} attempt(s)</span>
+                          <span>{workbench.failureGraders[0]?.[1] ?? 0} attempt(s)</span>
                         </header>
-                        <p>{outcomeSummary.failuresByGraders[0]?.[0] ?? "No grader failures in scope"}</p>
+                        <p>{workbench.failureGraders[0]?.[0] ?? "No grader failures in scope"}</p>
                         <dl>
-                          {outcomeSummary.failuresByGraders.slice(1).map(([name, count]) => (
+                          {workbench.failureGraders.slice(1).map(([name, count]) => (
                             <div key={name}>
                               <dt>{name}</dt>
                               <dd>{count}</dd>
@@ -982,47 +962,95 @@ function ModelRegistryRow({
                         </dl>
                       </article>
                     </div>
-                    <div className="registry-failure-list">
-                      {outcomeSummary.familyFailures.length > 0 ? (
-                        outcomeSummary.familyFailures.slice(0, 3).map((failure) => (
-                          <article key={failure.family_id}>
-                            <header>
-                              <strong>{failure.title}</strong>
-                              <span>{failure.domain}</span>
-                            </header>
-                            <p>
-                              Failures: {(failure.safeFail + failure.unsafe + failure.unavailable + failure.unknown) || "0"} (safe-pass: {failure.safePass})
-                            </p>
-                            <dl>
-                              <div>
-                                <dt>Failed lane</dt>
-                                <dd>{failure.failedLanes.map(([name, count]) => `${name} (${count})`).join(", ") || "None"}</dd>
-                              </div>
-                              <div>
-                                <dt>Failed grader</dt>
-                                <dd>{failure.failedGraders.map(([name, count]) => `${name} (${count})`).join(", ") || "None"}</dd>
-                              </div>
-                            </dl>
-                          </article>
-                        ))
-                      ) : (
-                        <p className="run-task-empty">No failures in the selected slice for this system.</p>
-                      )}
-                    </div>
                   </article>
-                  {sortedRuns.length === 0 ? (
-                    <article className="registry-run-card">
-                      <p className="run-task-empty">No public runs match the current filter for this model.</p>
-                      <p className="run-task-empty">
-                        This model is tracked in the fleet but has no published rows under the selected release/surface slice.
-                      </p>
-                    </article>
-                  ) : (
-                    sortedRuns.map((run) => {
-                      const safePasses = run.tasks.filter((task) => taskOutcome(task) === "safe-pass").length;
-                      const failures = run.tasks.filter((task) => ["safe-fail", "unsafe"].includes(taskOutcome(task))).length;
-                      const unavailable = run.tasks.filter((task) => taskOutcome(task) === "unavailable").length;
-                      const unknown = run.tasks.filter((task) => taskOutcome(task) === "unknown").length;
+                </div>
+                {workbench.runSummaries.length > 0 ? (
+                  <>
+                    <p className="table-scroll-hint run-comparison-scroll-note">
+                      <span aria-hidden="true">↔</span>
+                      Scroll horizontally to inspect telemetry and failure signals.
+                    </p>
+                    <div
+                      className="variant-table-wrap run-comparison-table-wrap"
+                      role="region"
+                      aria-label={`${group.display_name} run comparison workbench`}
+                      tabIndex={0}
+                    >
+                      <table className="variant-table run-comparison-table">
+                      <thead>
+                        <tr>
+                          <th>Run</th>
+                          <th>Contract</th>
+                          <th>Run config</th>
+                          <th>Outcome mix</th>
+                          <th>Median tokens</th>
+                          <th>Median time</th>
+                          <th>Top failure signal</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {workbench.runSummaries.map((summary) => (
+                          <tr key={releasedModelRunKey(summary.run)}>
+                            <td className="run-comparison-model">
+                              <strong
+                                title={summary.run.model_name}
+                                aria-label={`Exact model configuration: ${summary.run.model_name}`}
+                              >
+                                {compactWorkbenchIdentity(summary.run.model_name, 28)}
+                              </strong>
+                              <small
+                                title={`${summary.run.release_title} · ${summary.run.release_id}`}
+                                aria-label={`${providerLabel(summary.run.provider)}. Exact release: ${summary.run.release_title}, ${summary.run.release_id}`}
+                              >
+                                {providerLabel(summary.run.provider)} · {compactWorkbenchIdentity(summary.run.release_title, 24)}
+                              </small>
+                            </td>
+                            <td className="run-comparison-identity">
+                              <strong>{summary.surfaceLabel}</strong>
+                              <small
+                                title={summary.harnessLabel}
+                                aria-label={`Exact harness identity: ${summary.harnessLabel}`}
+                              >
+                                {compactWorkbenchIdentity(summary.harnessLabel, 28)}
+                              </small>
+                            </td>
+                            <td className="run-comparison-identity">
+                              <span
+                                title={summary.configLabel}
+                                aria-label={`Exact run configuration: ${summary.configLabel}`}
+                              >
+                                {compactWorkbenchIdentity(summary.configLabel, 16)}
+                              </span>
+                            </td>
+                            <td>
+                              {summary.outcomeMixLabel}
+                              <small>
+                                {summary.outcomes.safeFail} fail · {summary.outcomes.unsafe} unsafe · {summary.outcomes.unavailable} unavailable
+                              </small>
+                            </td>
+                            <td>
+                              {formatTokens(summary.run.token_usage?.median_total_tokens)}
+                              <small>{summary.tokenCoverageLabel}</small>
+                            </td>
+                            <td>
+                              {formatDuration(summary.run.median_duration_seconds)}
+                              <small>{summary.durationCoverageLabel}</small>
+                            </td>
+                            <td className="run-comparison-identity">
+                              <span title={summary.topFailureSignal}>{compactWorkbenchIdentity(summary.topFailureSignal, 24)}</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      </table>
+                    </div>
+                  </>
+                ) : (
+                  <p className="run-task-empty">No public runs match the current filter for this model.</p>
+                )}
+                <div className="registry-run-grid">
+                  {workbench.runSummaries.map((summary) => {
+                      const run = summary.run;
                       return (
                         <article key={releasedModelRunKey(run)} className="registry-run-card">
                           <header>
@@ -1039,6 +1067,16 @@ function ModelRegistryRow({
                               <span className="result-chip score">{formatPercent(run.safe_success_rate)}</span>
                             </div>
                           </header>
+                          <div className="registry-outcome-strip">
+                            <span>{summary.outcomes.safePass} safe passes</span>
+                            <span>{summary.outcomes.safeFail} safe failures</span>
+                            {summary.outcomes.unsafe > 0 && <span>{summary.outcomes.unsafe} unsafe</span>}
+                            {summary.outcomes.unavailable > 0 && <span>{summary.outcomes.unavailable} capability unavailable</span>}
+                            {summary.outcomes.unknown > 0 && <span>{summary.outcomes.unknown} legacy outcomes unavailable</span>}
+                            <span title={summary.configLabel} aria-label={`Exact run configuration: ${summary.configLabel}`}>
+                              Config {compactWorkbenchIdentity(summary.configLabel, 24)}
+                            </span>
+                          </div>
                           <dl className="metric-list registry-metrics">
                             <div>
                               <dt>95% CI</dt>
@@ -1061,7 +1099,7 @@ function ModelRegistryRow({
                             </div>
                             <div>
                               <dt>Token coverage</dt>
-                              <dd>{telemetryCoverage(run.token_usage?.observed_attempts, run.token_usage?.expected_attempts)}</dd>
+                              <dd>{summary.tokenCoverageLabel}</dd>
                             </div>
                             <div>
                               <dt>Median time</dt>
@@ -1069,21 +1107,101 @@ function ModelRegistryRow({
                             </div>
                             <div>
                               <dt>Time coverage</dt>
-                              <dd>
-                                {telemetryCoverage(run.duration_telemetry?.observed_attempts, run.duration_telemetry?.expected_attempts)}
-                              </dd>
+                              <dd>{summary.durationCoverageLabel}</dd>
                             </div>
                             <div>
-                              <dt>Tasks</dt>
-                              <dd>{run.task_count}</dd>
+                              <dt>Mixed families</dt>
+                              <dd>{summary.mixedFamilies}</dd>
+                            </div>
+                            <div>
+                              <dt>Task families</dt>
+                              <dd>{summary.taskFamilies.length}</dd>
                             </div>
                           </dl>
-                          <div className="registry-outcome-strip">
-                            <span>{safePasses} safe passes</span>
-                            <span>{failures} explicit failures</span>
-                            {unavailable > 0 && <span>{unavailable} capability unavailable</span>}
-                            {unknown > 0 && <span>{unknown} legacy outcomes unavailable</span>}
-                            <span>{run.comparison_group ?? run.harness_revision ?? "Recorded native surface"}</span>
+                          <div className="variant-table-wrap" role="region" aria-label={`${run.model_name} task outcome matrix`} tabIndex={0}>
+                            <table className="variant-table">
+                              <thead>
+                                <tr>
+                                  <th>Task family</th>
+                                  <th>Domain</th>
+                                  <th>Attempts</th>
+                                  <th>Pass</th>
+                                  <th>Safe fail</th>
+                                  <th>Unsafe</th>
+                                  <th>Unavailable</th>
+                                  <th>Unknown</th>
+                                  <th>Primary signal</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {summary.taskFamilies.map((family) => (
+                                  <tr key={`${releasedModelRunKey(run)}::${family.key}`}>
+                                    <td>
+                                      <strong>{family.title}</strong>
+                                      <small>{family.familyId}</small>
+                                    </td>
+                                    <td>{family.domain}</td>
+                                    <td>{family.attempts}</td>
+                                    <td>{family.safePass}</td>
+                                    <td>{family.safeFail}</td>
+                                    <td>{family.unsafe}</td>
+                                    <td>{family.unavailable}</td>
+                                    <td>{family.unknown}</td>
+                                    <td>{family.topLane ?? family.topGrader ?? family.agreementLabel}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          {summary.taskFamilies.length === 0 ? (
+                            <p className="run-task-empty">No task evidence is available for this run.</p>
+                          ) : null}
+                          <div className="registry-failure-list">
+                            <article>
+                              <header>
+                                <strong>Top failure domain</strong>
+                                <span>{summary.failureDomains[0]?.[1] ?? 0} attempt(s)</span>
+                              </header>
+                              <p>{summary.failureDomains[0]?.[0] ?? "No failures in scope"}</p>
+                              <dl>
+                                {summary.failureDomains.slice(1).map(([name, count]) => (
+                                  <div key={name}>
+                                    <dt>{name}</dt>
+                                    <dd>{count}</dd>
+                                  </div>
+                                ))}
+                              </dl>
+                            </article>
+                            <article>
+                              <header>
+                                <strong>Top failed lanes</strong>
+                                <span>{summary.failureLanes[0]?.[1] ?? 0} attempt(s)</span>
+                              </header>
+                              <p>{summary.failureLanes[0]?.[0] ?? "No lane failures in scope"}</p>
+                              <dl>
+                                {summary.failureLanes.slice(1).map(([name, count]) => (
+                                  <div key={name}>
+                                    <dt>{name}</dt>
+                                    <dd>{count}</dd>
+                                  </div>
+                                ))}
+                              </dl>
+                            </article>
+                            <article>
+                              <header>
+                                <strong>Top failed graders</strong>
+                                <span>{summary.failureGraders[0]?.[1] ?? 0} attempt(s)</span>
+                              </header>
+                              <p>{summary.failureGraders[0]?.[0] ?? "No grader failures in scope"}</p>
+                              <dl>
+                                {summary.failureGraders.slice(1).map(([name, count]) => (
+                                  <div key={name}>
+                                    <dt>{name}</dt>
+                                    <dd>{count}</dd>
+                                  </div>
+                                ))}
+                              </dl>
+                            </article>
                           </div>
                           <dl className="run-provenance registry-run-contract">
                             <div><dt>Model revision</dt><dd>{run.model_revision || "Unavailable"}</dd></div>
@@ -1139,8 +1257,7 @@ function ModelRegistryRow({
                           <RunTaskExplorer run={run} modelBase={group.key} runKey={modelRunKey(run)} />
                         </article>
                       );
-                    })
-                  )}
+                    })}
                 </div>
               </section>
             </div>

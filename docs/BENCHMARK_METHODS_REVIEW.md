@@ -12,6 +12,33 @@ larger, independently reviewed family set.
 
 This review compares the current system with contemporary benchmark practice and records what MedPhysBench will adopt next. It does not convert a public development release into clinical or human-comparison evidence.
 
+## Quantified evidence gap
+
+The current OpenKBP pilot contains ten task views from only two independent case families. That is
+useful for exercising the end-to-end release and forensic contracts, but it is far below a mature
+medical-agent task surface. For scale—not as a direct apples-to-apples target—
+[MedAgentBench](https://arxiv.org/abs/2501.14654) reports
+300 physician-written tasks across ten categories, 100 patient profiles, and more than 700,000 FHIR
+elements. MedPhysBench should grow by adding independently reviewed families and stateful work
+products, not by cloning prompts around the same two cases or counting model aliases as breadth.
+
+Automated feasibility is also insufficient evidence of item quality.
+[SWE-bench Verified](https://openai.com/index/introducing-swe-bench-verified/) used 93
+professional developers, three independent annotations per item, and filtered 68.3% of the 1,699
+reviewed samples for underspecification, unfair tests, or other issues. A later frontier-focused
+[audit](https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/) still found material
+issues in 59.4% of 138 inconsistently solved Verified problems. The
+medical-physics promotion contract must therefore measure both false rejection of alternate-valid
+work and false acceptance of unsafe or shortcut solutions. For D3/D4 and real-workflow families,
+the planned review unit is two independent qualified physicists plus an adjudicator for any
+disagreement; a severe feasibility, rights, leakage, or grader-validity flag blocks promotion.
+
+The immediate public result should consequently be read as engineering evidence: 50 frozen model
+targets, 20 workflow-qualified base models, 29 published system configurations, and a provisional
+two-family workflow pilot. Interface polish, provider coverage, and additional attempts cannot by
+themselves advance that release to domain-reviewed, human-baselined, protected, or externally
+replicated status.
+
 ## Lessons from leading benchmarks
 
 | Benchmark practice | Why it matters | MedPhysBench action |

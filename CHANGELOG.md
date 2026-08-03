@@ -12,6 +12,16 @@
 
 ## Unreleased
 
+- Added a provider-neutral per-model comparison workbench for GPT-5.6, Groq, Ollama, and every
+  other cataloged route, with exact run-contract identities, cross-run outcome summaries,
+  family-level pass/failure matrices, failure-domain/lane/grader distributions, and direct links
+  into task forensics. Dense immutable IDs use compact visible forms while retaining the exact
+  source values for audit.
+- Added a URL-backed comparison-contract scope to the efficiency explorer and bounded the default
+  direct-labeled chart and evidence table to 14 and 16 rows respectively, with explicit show-all
+  actions that preserve the full filtered dataset. Updated the methods write-up to distinguish
+  presentation limits from benchmark missingness and to quantify the remaining review/family gap.
+
 - Made immutable same-model v1/v2 rows independently addressable throughout the model index,
   leaderboard, capability matrix, efficiency plots, downloads, and task drilldowns. The current
   ranking contract is the default selection, while legacy rows remain visible with explicit

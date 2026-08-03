@@ -89,6 +89,14 @@ This follows HELM's prompt-level
 transparency principle while preserving the sealed-task boundary required by
 MedPhysBench.
 
+Expanding a base model opens a cross-run workbench on the same presentation surface for every
+provider and model family. It keeps each exact release, harness, revision, configuration hash, and
+execution surface separate; summarizes safe passes, safe failures, unsafe outcomes, capability
+unavailability, and missing legacy labels; then projects failures by domain, scoring lane,
+deterministic grader, and task family. Compact visible identifiers retain their exact values as
+accessible metadata. This lets a reader move from a headline score to the repeated family-level
+failure pattern without treating two different harness contracts as interchangeable.
+
 Explorer state is URL-backed. The selected release, source/provider filters,
 execution surface, expanded model row, selected release card, forensic run set,
 domain, outcome, and selected task survive refresh and can be shared as a direct
@@ -105,8 +113,14 @@ so visible configuration counts cannot be mistaken for unique evaluated base-mod
 
 ### Unified outcome interval plot
 
-The default plot is a horizontal dot-and-whisker view that includes every row surviving the
-same release/source/provider/surface filters. The point is safe task success and the whisker is
+The default plot is a horizontal dot-and-whisker view showing a bounded, high-signal slice of the
+rows surviving the same release/source/provider/surface filters. An explicit show-all control
+restores every surviving row, and the adjacent evidence table retains the complete filtered data
+behind its own progressive-disclosure control. This reduces label collision without changing the
+release JSON, deleting low-scoring rows, or silently sampling the evidence. A URL-backed comparison-
+contract filter can restrict the view to an identical provider, harness revision, adapter-settings
+hash, sampling contract, and seed policy; cross-contract views remain descriptive. The point is
+safe task success and the whisker is
 the release's primary 95% interval: family-cluster where declared, otherwise Wilson. Models are
 direct-labeled. Filled circles denote officially ranked common-harness rows, hollow circles denote
 visible but unranked common-harness rows, and diamonds denote complete native-surface rows. GPT-5.6,
@@ -130,6 +144,11 @@ on the horizontal axis. Higher and farther left is better. A frontier is drawn o
 within each official harness group because native imports do not expose comparable
 usage or inference-time telemetry. Provider token counts remain tokenizer-specific,
 and no line connects Groq-hosted measurements to local Ollama measurements.
+
+The default score chart shows at most 14 directly labeled rows and the dense evidence table shows
+at most 16. Both state the number displayed and provide an explicit show-all action. These are
+presentation limits only: filtered rows remain addressable, downloadable, and available through the
+public JSON contract.
 
 MedPhysBench does not publish a single composite capability/efficiency index. A weighted index would
 hide value judgments about medical-physics domain importance, safety, latency, cost, and missing

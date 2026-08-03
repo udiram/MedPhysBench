@@ -1295,6 +1295,21 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   overflow: visible;
 }
 .score-interval-mobile-list { display: none; }
+.evidence-overflow-control {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 10px;
+  border-block: 1px solid var(--line);
+  color: var(--muted-strong);
+  font-size: 12px;
+  font-weight: 500;
+}
+.evidence-overflow-control:hover,
+.evidence-overflow-control:focus-visible {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.efficiency-table-block { margin-top: 20px; }
 .score-interval-row {
   cursor: pointer;
   outline: none;
@@ -2678,6 +2693,55 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 .variant-table {
   width: 100%;
   min-width: 720px;
+}
+.run-comparison-table-wrap {
+  border: 1px solid var(--line);
+}
+.run-comparison-scroll-note {
+  display: flex;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+}
+.run-comparison-table {
+  min-width: 1240px;
+  table-layout: fixed;
+}
+.run-comparison-table th,
+.run-comparison-table td {
+  vertical-align: top;
+  white-space: normal;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.run-comparison-table th:nth-child(1) { width: 230px; }
+.run-comparison-table th:nth-child(2) { width: 220px; }
+.run-comparison-table th:nth-child(3) { width: 150px; }
+.run-comparison-table th:nth-child(4) { width: 170px; }
+.run-comparison-table th:nth-child(5),
+.run-comparison-table th:nth-child(6) { width: 115px; }
+.run-comparison-table th:nth-child(7) { width: 210px; }
+.run-comparison-table td strong,
+.run-comparison-table td small {
+  display: block;
+}
+.run-comparison-table td small {
+  margin-top: 5px;
+  color: var(--muted);
+  font: 500 10px/1.4 "IBM Plex Mono", monospace;
+}
+.run-comparison-identity span,
+.run-comparison-identity small {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--muted-strong);
+  font: 500 10px/1.5 "IBM Plex Mono", monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.run-comparison-model strong {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .variant-rank-cell {
   min-width: 210px;

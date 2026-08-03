@@ -15,6 +15,13 @@ import {
 } from "../lib/format";
 import { isCommonHarnessRun, isNativeRun, surfaceKind } from "../lib/runSurface";
 import { navigateToRunForensics } from "../lib/forensicsNavigation";
+import {
+  buildComparisonScopes,
+  DEFAULT_CHART_ROW_LIMIT,
+  DEFAULT_TABLE_ROW_LIMIT,
+  limitEvidenceRows,
+  runComparisonScopeKey,
+} from "../lib/efficiencyScope";
 import { modelRunKey } from "../lib/modelRunKey";
 import { scoreEvidenceAvailable, scoreEvidenceKind } from "../lib/resultEvidence";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
@@ -62,6 +69,7 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
   const [providerFilter, setProviderFilter] = useState("all");
   const [surfaceFilter, setSurfaceFilter] = useState<SurfaceFilter>("all");
+  const [comparisonFilter, setComparisonFilter] = useState("all");
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const [focused, setFocused] = useState<string | null>(null);
@@ -82,7 +90,7 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
     [allRows, modelCatalog],
   );
 
-  const rows = useMemo(() => {
+  const scopedRows = useMemo(() => {
     if (!data) return [];
     const queryValue = deferredQuery.trim().toLowerCase();
 
@@ -118,6 +126,19 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
       );
   }, [allRows, catalogIndex, deferredQuery, rankedOnly, sourceFilter, surfaceFilter, providerFilter]);
 
+  const comparisonScopes = useMemo(
+    () => buildComparisonScopes(scopedRows.map((entry) => entry.row)),
+    [scopedRows],
+  );
+
+  const rows = useMemo(
+    () =>
+      comparisonFilter === "all"
+        ? scopedRows
+        : scopedRows.filter((entry) => runComparisonScopeKey(entry.row) === comparisonFilter),
+    [comparisonFilter, scopedRows],
+  );
+
   useEffect(() => {
     if (!data) return;
     if (providerFilter === "all") return;
@@ -126,6 +147,14 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
       setUrlParams({ eff_provider: null });
     }
   }, [availableProviders, data, providerFilter]);
+
+  useEffect(() => {
+    if (comparisonFilter === "all") return;
+    if (!comparisonScopes.some((scope) => scope.key === comparisonFilter)) {
+      setComparisonFilter("all");
+      setUrlParams({ eff_group: null });
+    }
+  }, [comparisonFilter, comparisonScopes]);
 
   const focusedModel = useMemo(
     () => rows.find((entry) => entry.key === focused)?.row ?? null,
@@ -166,6 +195,7 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
       setSourceFilter(readEnumParam("eff_source", ["all", "open", "closed", "unknown"] as const, "all"));
       setProviderFilter(getUrlParam("eff_provider") ?? "all");
       setSurfaceFilter(readEnumParam("eff_surface", ["all", "common", "native"] as const, "all"));
+      setComparisonFilter(getUrlParam("eff_group") ?? "all");
       setRankedOnly(getUrlParam("eff_ranked") === "1");
       setQuery(getUrlParam("eff_query") ?? "");
       setFocused(getUrlParam("eff_focus"));
@@ -284,6 +314,24 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
               <option value="all">All surfaces</option>
               <option value="common">Common harness</option>
               <option value="native">Native/imported</option>
+            </select>
+            <ChevronDown aria-hidden="true" />
+          </span>
+        </label>
+        <label className="field">
+          <span>Comparison contract</span>
+          <span className="select-wrap">
+            <select value={comparisonFilter} onChange={(event) => {
+              const value = event.target.value;
+              setComparisonFilter(value);
+              setUrlParams({ eff_group: value === "all" ? null : value }, { history: "push" });
+            }}>
+              <option value="all">All contracts · descriptive view</option>
+              {comparisonScopes.map((scope) => (
+                <option key={scope.key} value={scope.key}>
+                  {comparisonScopeLabel(scope.rows[0])} · {scope.rows.length} row{scope.rows.length === 1 ? "" : "s"}
+                </option>
+              ))}
             </select>
             <ChevronDown aria-hidden="true" />
           </span>
@@ -448,12 +496,14 @@ function ScoreIntervalPlot({
   onSelect: (value: string) => void;
   focused: string | null;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const ordered = [...rows].sort(
     (left, right) =>
       Number(scoreEvidenceAvailable(right.row)) - Number(scoreEvidenceAvailable(left.row)) ||
       right.row.safe_success_rate - left.row.safe_success_rate ||
       left.row.model_name.localeCompare(right.row.model_name),
   );
+  const visibleRows = limitEvidenceRows(ordered, expanded, DEFAULT_CHART_ROW_LIMIT);
 
   if (ordered.length === 0) {
     return (
@@ -467,7 +517,7 @@ function ScoreIntervalPlot({
   const width = 920;
   const margin = { top: 42, right: 105, bottom: 48, left: 260 };
   const rowHeight = 34;
-  const height = margin.top + margin.bottom + ordered.length * rowHeight;
+  const height = margin.top + margin.bottom + visibleRows.length * rowHeight;
   const x = (value: number) => margin.left + value * (width - margin.left - margin.right);
   const officialGroups = new Set(
     ordered
@@ -478,10 +528,10 @@ function ScoreIntervalPlot({
   return (
     <>
       <div className="chart-insight-head">
-        <h3>Every visible system on one evidence scale</h3>
+        <h3>Score intervals expose uncertainty before rank</h3>
         <p>
-          Point estimates and primary 95% intervals share one scale. Ordering across frozen comparison groups is
-          descriptive; official ranks remain group-specific.
+          Rows share a zero-to-one outcome scale, but official comparisons remain confined to identical frozen
+          contracts. Use the comparison-contract filter for a valid head-to-head view.
         </p>
       </div>
       <div className="chart-keyline">
@@ -508,7 +558,7 @@ function ScoreIntervalPlot({
             </text>
           </g>
         ))}
-        {ordered.map((entry, index) => {
+        {visibleRows.map((entry, index) => {
           const row = entry.row;
           const centerY = margin.top + index * rowHeight + rowHeight / 2;
           const scoreAvailable = scoreEvidenceAvailable(row);
@@ -565,7 +615,7 @@ function ScoreIntervalPlot({
         })}
       </svg>
       <ol className="score-interval-mobile-list" aria-label="Safe task success interval rows">
-        {ordered.map((entry) => {
+        {visibleRows.map((entry) => {
           const row = entry.row;
           const scoreAvailable = scoreEvidenceAvailable(row);
           const interval = scoreAvailable ? safeSuccessInterval(row) : null;
@@ -601,6 +651,11 @@ function ScoreIntervalPlot({
           );
         })}
       </ol>
+      {ordered.length > DEFAULT_CHART_ROW_LIMIT ? (
+        <button className="evidence-overflow-control" type="button" onClick={() => setExpanded((value) => !value)}>
+          {expanded ? "Show the most relevant rows" : `Show all ${ordered.length} rows in the chart`}
+        </button>
+      ) : null}
     </>
   );
 }
@@ -912,10 +967,13 @@ function EfficiencyTable({
   onSelect: (value: string) => void;
   modelSourceMap: Record<string, ModelOpenness>;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const visibleRows = limitEvidenceRows(rows, expanded, DEFAULT_TABLE_ROW_LIMIT);
   return (
-    <div className="efficiency-table-wrap" role="region" aria-label="Efficiency evidence table" tabIndex={0}>
-      <table className="efficiency-table">
-        <caption>Efficiency evidence by execution surface</caption>
+    <div className="efficiency-table-block">
+      <div className="efficiency-table-wrap" role="region" aria-label="Efficiency evidence table" tabIndex={0}>
+        <table className="efficiency-table">
+          <caption>Efficiency evidence by execution surface</caption>
         <thead>
           <tr>
             <th>Model</th>
@@ -933,7 +991,7 @@ function EfficiencyTable({
           </tr>
         </thead>
         <tbody>
-          {rows.map((entry) => {
+          {visibleRows.map((entry) => {
             const row = entry.row;
             const source = modelSourceMap[entry.key] ?? entry.source;
             const scoreAvailable = scoreEvidenceAvailable(row);
@@ -981,7 +1039,13 @@ function EfficiencyTable({
             );
           })}
         </tbody>
-      </table>
+        </table>
+      </div>
+      {rows.length > DEFAULT_TABLE_ROW_LIMIT ? (
+        <button className="evidence-overflow-control" type="button" onClick={() => setExpanded((value) => !value)}>
+          {expanded ? "Collapse evidence table" : `Show all ${rows.length} evidence rows`}
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -1252,6 +1316,10 @@ function comparisonGroupLabel(row: ModelResult) {
   if (row.harness_revision === "reference-json-v2") return "local JSON v2";
   if (row.harness_revision?.includes("openai-chat-json-v1")) return "hosted JSON v1";
   return row.comparison_group ? "frozen comparison group" : "no comparison group";
+}
+
+function comparisonScopeLabel(row: ModelResult) {
+  return `${comparisonGroupLabel(row)} · ${providerLabel(row.provider)}`;
 }
 
 function rowEvidenceStatus(row: ModelResult) {
