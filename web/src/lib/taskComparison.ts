@@ -16,13 +16,25 @@ export type TaskComparisonResult<T extends TaskComparisonEntry> = {
   topFailedGrader: string | null;
 };
 
+export type TaskComparisonScope = "identical_harness" | "all_visible";
+
+export type TaskComparisonOptions<T extends TaskComparisonEntry> = {
+  scope?: TaskComparisonScope;
+  reference?: T | null;
+};
+
 export function buildTaskComparison<T extends TaskComparisonEntry>(
   entries: readonly T[],
   taskId: string | null,
+  options: TaskComparisonOptions<T> = {},
 ): TaskComparisonResult<T>[] {
   if (!taskId) return [];
 
-  return entries
+  const scopedEntries = options.scope === "identical_harness" && options.reference
+    ? entries.filter((entry) => isIdenticalHarnessPeer(options.reference as T, entry))
+    : entries;
+
+  return scopedEntries
     .flatMap((entry) => {
       const attempts = entry.row.tasks.filter((task) => task.task_id === taskId);
       if (!attempts.length) return [];
@@ -40,6 +52,22 @@ export function buildTaskComparison<T extends TaskComparisonEntry>(
       right.safeSuccessRate - left.safeSuccessRate
       || left.entry.row.model_name.localeCompare(right.entry.row.model_name),
     );
+}
+
+export function isIdenticalHarnessPeer<T extends TaskComparisonEntry>(reference: T, candidate: T) {
+  if (candidate.key === reference.key) return true;
+
+  const referenceGroup = reference.row.comparison_group;
+  const candidateGroup = candidate.row.comparison_group;
+  if (!referenceGroup || !candidateGroup || referenceGroup !== candidateGroup) return false;
+
+  const referenceRevision = harnessRevision(reference.row);
+  const candidateRevision = harnessRevision(candidate.row);
+  return Boolean(referenceRevision && candidateRevision && referenceRevision === candidateRevision);
+}
+
+function harnessRevision(row: ModelResult) {
+  return row.run_profile?.harness_revision ?? row.harness_revision ?? null;
 }
 
 export function tallyTaskOutcomes(tasks: readonly ModelTaskResult[]): TaskOutcomeCounts {

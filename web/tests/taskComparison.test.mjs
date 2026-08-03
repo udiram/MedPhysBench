@@ -14,7 +14,7 @@ function attempt(outcome, failedGraders = [], capabilityFailure = false) {
   };
 }
 
-function entry(key, modelName, tasks) {
+function entry(key, modelName, tasks, overrides = {}) {
   return {
     key,
     source: "open",
@@ -22,6 +22,7 @@ function entry(key, modelName, tasks) {
       model_name: modelName,
       provider: "test",
       tasks,
+      ...overrides,
     },
   };
 }
@@ -60,4 +61,60 @@ test("capability failures remain unavailable rather than unsafe in task comparis
 
 test("task comparison returns no rows when no task is selected", () => {
   assert.deepEqual(buildTaskComparison([], null), []);
+});
+
+test("identical-harness comparison excludes mixed groups and native rows by default", () => {
+  const reference = entry("reference", "Model A", [attempt("safe_success")], {
+    comparison_group: "group-a",
+    run_profile: { harness_revision: "harness-v2" },
+  });
+  const peer = entry("peer", "Model B", [attempt("safe_failure")], {
+    comparison_group: "group-a",
+    run_profile: { harness_revision: "harness-v2" },
+  });
+  const oldHarness = entry("old", "Model C", [attempt("safe_success")], {
+    comparison_group: "group-a",
+    run_profile: { harness_revision: "harness-v1" },
+  });
+  const otherGroup = entry("other", "Model D", [attempt("safe_success")], {
+    comparison_group: "group-b",
+    run_profile: { harness_revision: "harness-v2" },
+  });
+  const native = entry("native", "Model E", [attempt("safe_success")], {
+    comparison_group: null,
+    run_profile: { harness_revision: "native-import" },
+  });
+
+  const controlled = buildTaskComparison(
+    [reference, peer, oldHarness, otherGroup, native],
+    "task-a",
+    { scope: "identical_harness", reference },
+  );
+  const broader = buildTaskComparison(
+    [reference, peer, oldHarness, otherGroup, native],
+    "task-a",
+    { scope: "all_visible", reference },
+  );
+
+  assert.deepEqual(controlled.map((row) => row.entry.key), ["reference", "peer"]);
+  assert.equal(broader.length, 5);
+});
+
+test("native reference has no implied controlled peers", () => {
+  const reference = entry("native-a", "Native A", [attempt("safe_success")], {
+    comparison_group: null,
+    run_profile: { harness_revision: "native-import" },
+  });
+  const anotherNative = entry("native-b", "Native B", [attempt("safe_success")], {
+    comparison_group: null,
+    run_profile: { harness_revision: "native-import" },
+  });
+
+  const controlled = buildTaskComparison(
+    [reference, anotherNative],
+    "task-a",
+    { scope: "identical_harness", reference },
+  );
+
+  assert.deepEqual(controlled.map((row) => row.entry.key), ["native-a"]);
 });

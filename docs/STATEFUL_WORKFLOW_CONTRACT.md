@@ -64,15 +64,24 @@ result artifact. At minimum it records:
 ```json
 {
   "schema_version": "medphysbench.workflow-receipt.v1",
-  "run_id": "...",
-  "task_id": "...",
+  "run_id": "run_20260803_0001",
+  "task_id": "tg263-rename-case-01",
   "attempt_index": 0,
   "initial_state_hash": "1111111111111111111111111111111111111111111111111111111111111111",
   "workflow_contract_hash": "2222222222222222222222222222222222222222222222222222222222222222",
-  "tools_observed": ["planner.inspect", "planner.write_objectives"],
+  "tools_observed": [
+    {"tool_name": "planner.inspect", "tool_kind": "structured_io", "call_count": 2},
+    {"tool_name": "planner.write_objectives", "tool_kind": "transform", "call_count": 1}
+  ],
+  "trajectory_summary": {
+    "step_count": 7,
+    "assistant_turns": 3,
+    "tool_call_count": 4,
+    "terminal_state": "completed"
+  },
   "trajectory_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
   "final_state_tree_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
-  "required_output_artifacts": [
+  "output_artifacts": [
     {"path": "metrics.json", "sha256": "5555555555555555555555555555555555555555555555555555555555555555", "bytes": 1024}
   ],
   "grader_inputs_complete": true

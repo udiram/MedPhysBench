@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
+from jsonschema import Draft202012Validator
 
 from medphys_agentbench.workflow_receipt import WorkflowReceiptError, load_workflow_receipt
 
@@ -215,3 +217,18 @@ def test_workflow_receipt_rejects_trajectory_summary_drift_and_incomplete_grader
     incomplete = _write_receipt(tmp_path / "grader", grader_inputs_complete=False)
     with pytest.raises(WorkflowReceiptError, match="grader_inputs_complete must be true"):
         _load(incomplete)
+
+
+def test_stateful_workflow_contract_doc_example_matches_workflow_receipt_schema() -> None:
+    doc = Path("docs/STATEFUL_WORKFLOW_CONTRACT.md").read_text(encoding="utf-8")
+    match = re.search(
+        r"## Per-attempt workflow receipt.*?```json\n(.*?)\n```",
+        doc,
+        re.DOTALL,
+    )
+    assert match, "Expected JSON example under the per-attempt workflow receipt section."
+
+    payload = json.loads(match.group(1))
+    schema = json.loads(Path("schemas/workflow-receipt.v1.schema.json").read_text(encoding="utf-8"))
+
+    Draft202012Validator(schema).validate(payload)

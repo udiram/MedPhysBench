@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import random
@@ -253,8 +254,17 @@ def write_summary(summary: dict[str, Any], output_file: str | Path) -> None:
 def _load_model_results(model_dir: Path) -> list[dict[str, Any]]:
     results: list[dict[str, Any]] = []
     for result_file in sorted(model_dir.glob("*.json")):
-        with result_file.open("r", encoding="utf-8") as handle:
-            results.append(json.load(handle))
+        raw = result_file.read_bytes()
+        payload = json.loads(raw)
+        payload["_artifact_path"] = (
+            Path("results")
+            / "releases"
+            / model_dir.parent.name
+            / model_dir.name
+            / result_file.name
+        ).as_posix()
+        payload["_artifact_sha256"] = hashlib.sha256(raw).hexdigest()
+        results.append(payload)
     return results
 
 
@@ -518,7 +528,21 @@ def _task_result_row(
     task_id = item["manifest"]["task_id"]
     task = task_catalog[task_id]
     duration = item.get("duration_seconds")
+    artifact_path = str(item.get("_artifact_path", ""))
+    artifact_sha256 = str(item.get("_artifact_sha256", ""))
+    attempt_id = stable_hash(
+        {
+            "artifact_path": artifact_path,
+            "artifact_sha256": artifact_sha256,
+            "run_id": item["manifest"].get("run_id"),
+            "task_id": task_id,
+            "attempt_index": item.get("attempt_index"),
+        }
+    )
     return {
+        "attempt_id": attempt_id,
+        "artifact_path": artifact_path if include_public_output else None,
+        "artifact_sha256": artifact_sha256,
         "task_id": task_id,
         "family_id": task.family_id,
         "title": task.title,

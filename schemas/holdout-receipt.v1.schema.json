@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphysbench.org/schemas/holdout-receipt.v1.schema.json",
+  "title": "MedPhysBench protected holdout receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "release_id",
+    "sealed_at",
+    "holdout_status",
+    "access_classes",
+    "task_count",
+    "family_count",
+    "source_dependency_count",
+    "task_bundle_sha256",
+    "family_registry_sha256",
+    "environment_bundle_file",
+    "environment_bundle_sha256",
+    "access_log_file",
+    "access_log_sha256",
+    "custodian_attestations",
+    "public_task_text_included"
+  ],
+  "properties": {
+    "schema_version": { "const": "medphysbench.holdout-receipt.v1" },
+    "receipt_id": { "type": "string", "minLength": 1 },
+    "release_id": { "type": "string", "minLength": 1 },
+    "sealed_at": { "type": "string", "format": "date-time" },
+    "holdout_status": { "const": "operating" },
+    "access_classes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "enum": ["gated", "restricted", "private"] }
+    },
+    "task_count": { "type": "integer", "minimum": 1 },
+    "family_count": { "type": "integer", "minimum": 4 },
+    "source_dependency_count": { "type": "integer", "minimum": 3 },
+    "task_bundle_sha256": { "$ref": "#/$defs/sha256" },
+    "family_registry_sha256": { "$ref": "#/$defs/sha256" },
+    "environment_bundle_file": { "$ref": "#/$defs/relativePath" },
+    "environment_bundle_sha256": { "$ref": "#/$defs/sha256" },
+    "access_log_file": { "$ref": "#/$defs/relativePath" },
+    "access_log_sha256": { "$ref": "#/$defs/sha256" },
+    "custodian_attestations": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["custodian_id", "attestation_file", "attestation_sha256"],
+        "properties": {
+          "custodian_id": { "$ref": "#/$defs/opaqueId" },
+          "attestation_file": { "$ref": "#/$defs/relativePath" },
+          "attestation_sha256": { "$ref": "#/$defs/sha256" }
+        }
+      }
+    },
+    "public_task_text_included": { "const": false }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "relativePath": { "type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$" },
+    "opaqueId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$" }
+  }
+}

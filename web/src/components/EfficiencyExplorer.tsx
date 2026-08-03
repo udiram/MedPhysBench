@@ -24,6 +24,7 @@ import {
 } from "../lib/efficiencyScope";
 import { modelRunKey } from "../lib/modelRunKey";
 import { scoreEvidenceAvailable, scoreEvidenceKind } from "../lib/resultEvidence";
+import { ScoreCertaintyFrontier } from "./ScoreCertaintyFrontier";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { classifyAttemptOutcome } from "../types";
 import type {
@@ -36,7 +37,7 @@ import type {
   ReleaseView,
 } from "../types";
 
-type ViewMode = "score" | "tokens" | "time" | "reliability";
+type ViewMode = "score" | "tokens" | "time" | "reliability" | "certainty";
 type SourceFilter = "all" | "open" | "closed" | "unknown";
 type SurfaceFilter = "all" | "common" | "native";
 
@@ -102,7 +103,7 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
         return { key, row, source, surface };
       })
       .filter((entry) => {
-        const matchesRanked = !rankedOnly || entry.row.ranking_eligible;
+        const matchesRanked = mode === "certainty" || !rankedOnly || entry.row.ranking_eligible;
         const matchesSource = sourceFilter === "all" || entry.source === sourceFilter;
         const matchesProvider = providerFilter === "all" || entry.row.provider === providerFilter;
         const matchesSurface =
@@ -124,7 +125,7 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
         right.row.safe_success_rate - left.row.safe_success_rate ||
         left.row.model_name.localeCompare(right.row.model_name),
       );
-  }, [allRows, catalogIndex, deferredQuery, rankedOnly, sourceFilter, surfaceFilter, providerFilter]);
+  }, [allRows, catalogIndex, deferredQuery, mode, rankedOnly, sourceFilter, surfaceFilter, providerFilter]);
 
   const comparisonScopes = useMemo(
     () => buildComparisonScopes(scopedRows.map((entry) => entry.row)),
@@ -191,12 +192,13 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
   useEffect(() => {
     if (typeof window === "undefined") return;
     const syncFromUrl = () => {
-      setMode(readEnumParam("eff_mode", ["score", "tokens", "time", "reliability"] as const, "score"));
+      const nextMode = readEnumParam("eff_mode", ["score", "tokens", "time", "reliability", "certainty"] as const, "score");
+      setMode(nextMode);
       setSourceFilter(readEnumParam("eff_source", ["all", "open", "closed", "unknown"] as const, "all"));
       setProviderFilter(getUrlParam("eff_provider") ?? "all");
       setSurfaceFilter(readEnumParam("eff_surface", ["all", "common", "native"] as const, "all"));
       setComparisonFilter(getUrlParam("eff_group") ?? "all");
-      setRankedOnly(getUrlParam("eff_ranked") === "1");
+      setRankedOnly(nextMode === "certainty" ? false : getUrlParam("eff_ranked") === "1");
       setQuery(getUrlParam("eff_query") ?? "");
       setFocused(getUrlParam("eff_focus"));
     };
@@ -231,6 +233,7 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
         <div className="view-switch" role="group" aria-label="Efficiency chart view">
           {[
             ["score", "Score intervals"],
+            ["certainty", "Score-certainty frontier"],
             ["tokens", "Tokens frontier"],
             ["time", "Time frontier"],
             ["reliability", "Reliability"],
@@ -242,7 +245,14 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
               onClick={() => {
                 const nextMode = value as ViewMode;
                 setMode(nextMode);
-                setUrlParams({ eff_mode: nextMode === "score" ? null : nextMode }, { history: "push" });
+                if (nextMode === "certainty") setRankedOnly(false);
+                setUrlParams(
+                  {
+                    eff_mode: nextMode === "score" ? null : nextMode,
+                    eff_ranked: nextMode === "certainty" ? null : rankedOnly ? "1" : null,
+                  },
+                  { history: "push" },
+                );
               }}
             >
               {label}
@@ -253,19 +263,26 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
           <span>Release</span>
           <strong>{data?.release.release_id ?? fallbackRelease(releaseView)}</strong>
         </div>
-        <label className="rank-toggle">
-          <input
-            type="checkbox"
-            checked={rankedOnly}
-            onChange={(event) => {
-              const checked = event.target.checked;
-              setRankedOnly(checked);
-              setUrlParams({ eff_ranked: checked ? "1" : null }, { history: "push" });
-            }}
-          />
-          <span aria-hidden="true" />
-          Official group-ranked rows only
-        </label>
+        {mode === "certainty" ? (
+          <div className="model-count-mini">
+            <strong>Official rows by default</strong>
+            <small>Broader evidence requires the chart-level descriptive opt-in</small>
+          </div>
+        ) : (
+          <label className="rank-toggle">
+            <input
+              type="checkbox"
+              checked={rankedOnly}
+              onChange={(event) => {
+                const checked = event.target.checked;
+                setRankedOnly(checked);
+                setUrlParams({ eff_ranked: checked ? "1" : null }, { history: "push" });
+              }}
+            />
+            <span aria-hidden="true" />
+            Official group-ranked rows only
+          </label>
+        )}
       </div>
 
       <div className="explorer-controls efficiency-controls">
@@ -373,6 +390,8 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
           aria-label={
             mode === "score"
               ? "Score interval chart"
+              : mode === "certainty"
+                ? "Score-certainty frontier chart"
               : mode === "reliability"
                 ? "Reliability profile chart"
                 : `Efficiency ${mode} chart`
@@ -380,6 +399,8 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
         >
           {mode === "score" ? (
             <ScoreIntervalPlot rows={rows} onFocus={setFocused} onSelect={selectRow} focused={focused} />
+          ) : mode === "certainty" ? (
+            <ScoreCertaintyFrontier rows={rows} onFocus={setFocused} onSelect={selectRow} focused={focused} />
           ) : mode === "reliability" ? (
             <ReliabilityProfile rows={rows} onFocus={setFocused} />
           ) : (
@@ -406,6 +427,11 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
                 <>
                   <dt><span className="guide-line interval" /> 95% interval</dt>
                   <dd>The release-declared primary interval; family-cluster intervals are used when available.</dd>
+                </>
+              ) : mode === "certainty" ? (
+                <>
+                  <dt><span className="guide-line" /> Frontier path by median tokens or time</dt>
+                  <dd>Default slice is official comparison-eligible common-harness rows; other rows are opt-in.</dd>
                 </>
               ) : mode === "reliability" ? (
                 <>

@@ -104,7 +104,7 @@ package, or evidence of autonomous clinical competence.
 - Harness-group release ranks plus a clearly labeled descriptive cross-surface outcome order;
   incomplete or manifest-inconsistent runs remain published but receive neither.
 - Architecture, governance, evaluation, onboarding, and deployment documentation in [`docs/`](docs/).
-- Repository-wide validation of all twenty JSON Schemas, every authored/runtime task projection,
+- Repository-wide validation of all 22 JSON Schemas, every authored/runtime task projection,
   every artifact digest, constructed reference feasibility, and every published result artifact.
 - A unified browser model index that exposes open/closed and provider filters, release-specific
   scores, task-level outcome facets, failed grader contracts, exact configuration hashes, and
@@ -113,8 +113,12 @@ package, or evidence of autonomous clinical competence.
 - A release-aware forensic surface built from deterministic regrading. Explicitly opted-in
   public-development releases expose only schema-filtered answers, per-attempt score/time/tokens,
   reduced deterministic verdicts, redacted receipts, failed-lane tallies, shareable URL state, and
-  immutable hashes. Aggregate-only is the default; non-public and comparison-profile releases
-  cannot opt in.
+  immutable hashes. Each current public-development attempt also carries a content-bound stable ID
+  and exact source-artifact SHA-256 for audit navigation. Aggregate-only is the default; non-public
+  and comparison-profile releases cannot opt in.
+- A same-release score-certainty frontier joins the primary safe-success interval to median token or
+  wall-time evidence, while keeping broader native/outcome-only rows opt-in and excluding incomplete
+  telemetry from Pareto extraction.
 - Versioned recorded-capture v2 contracts that bind a fresh-context native run to the exact release,
   sealed-batch hash, model revision, effort, attempt index, output-map digest, timestamps, declared
   transport tools, and all corresponding public result traces without storing hidden reasoning.
@@ -198,7 +202,7 @@ errors remain in the evidence package and invalidate the official campaign rank.
 
 ## Status note
 
-Version 0.5 is a **public hardening candidate** layered on the frozen v0.4 score snapshot. It is
+Version 0.6 is a **public workflow pilot and hardening candidate** layered on the frozen v0.4 score snapshot. It is
 runnable and auditable, but it is not yet a sealed multi-institution benchmark or clinical
 validation study. Native GPT-5.6 rows now receive a visible descriptive outcome order but no
 official harness-group rank until reproduced through a qualified common adapter; perfect scores on

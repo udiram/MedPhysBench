@@ -39,11 +39,48 @@
       "exclusiveMinimum": 0,
       "maximum": 1
     },
+    "comparison_requirements": {
+      "description": "Mandatory protected-holdout gates for comparison-profile releases. The receipt binds public metadata to a separately controlled task bundle without publishing task text or gold labels.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum_family_count",
+        "minimum_source_dependency_count",
+        "holdout_receipt_file",
+        "holdout_receipt_sha256"
+      ],
+      "properties": {
+        "minimum_family_count": { "type": "integer", "minimum": 4 },
+        "minimum_source_dependency_count": { "type": "integer", "minimum": 3 },
+        "holdout_receipt_file": { "type": "string", "minLength": 1 },
+        "holdout_receipt_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
     "task_files": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
       "items": { "type": "string", "minLength": 1 }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": ["integrity_profile"],
+        "properties": { "integrity_profile": { "const": "comparison" } }
+      },
+      "then": {
+        "required": ["allow_access_classes", "comparison_requirements"],
+        "properties": {
+          "allow_access_classes": {
+            "not": { "contains": { "const": "public" } }
+          },
+          "public_attempt_detail": { "const": "aggregate_only" }
+        }
+      },
+      "else": {
+        "not": { "required": ["comparison_requirements"] }
+      }
+    }
+  ]
 }

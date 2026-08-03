@@ -56,7 +56,7 @@ replicated status.
 | Scenario and metric transparency in [HELM](https://crfm.stanford.edu/helm/index.html) | A single aggregate hides capability and risk variation. | Publish task-family, domain, safety, reliability, integrity, and efficiency slices beside the primary metric. |
 | Closed/open divisions and audited system descriptions in [MLPerf](https://docs.mlcommons.org/inference/submission/) | Performance is only comparable under declared system and rule constraints. | Treat common-harness and native-system results as separate divisions; preserve exact model, provider, adapter, effort, hardware, and pricing snapshots. |
 | Confidence intervals in [Chatbot Arena](https://www.lmsys.org/blog/2023-12-07-leaderboard/) | Point-estimate ranks imply distinctions that sampling evidence may not support. | Display intervals beside every score and avoid ordinal claims when intervals and family-adjusted evidence do not distinguish rows. |
-| Repeated evaluation and uncertainty in [Artificial Analysis](https://artificialanalysis.ai/methodology/intelligence-benchmarking) | A polished aggregate is not trustworthy if trial count, confidence interval, or benchmark-version change is hidden. | Publish repeat count and score intervals; version any grader, weighting, or task-set change; keep score, time, tokens, and eventual cost as separate evidence views. |
+| Repeated evaluation and uncertainty in [Artificial Analysis](https://artificialanalysis.ai/methodology/intelligence-benchmarking) | A polished aggregate is not trustworthy if trial count, confidence interval, or benchmark-version change is hidden. | Publish repeat count and score intervals; version any grader, weighting, or task-set change; preserve raw score/time/token evidence and join them only in a same-release score-certainty frontier whose Pareto set excludes incomplete telemetry. |
 | Anti-saturation targeting in [LiveBench](https://livebench.ai/livebench.pdf) | A suite that lets frontier models cluster near 100% stops distinguishing systems and invites test-specific optimization. | Review task families when the strongest validated systems leave the intended difficulty band; add fresh families and retire saturated public-development items rather than silently moving thresholds. |
 | Calibration reporting and private holdout in [Humanity's Last Exam](https://lastexam.ai/) | Accuracy alone omits whether a model knows when it is likely wrong, while a fully public static set invites overfitting. | Add confidence/Brier-style reporting only after confidence collection is standardized, and operate a physically separate family-level shadow holdout before any frontier claim. |
 | Leakage and test-poisoning reports in [SWE-bench](https://github.com/SWE-bench/SWE-bench/issues/465) and [its poisoned-test discussion](https://github.com/SWE-bench/SWE-bench/issues/538) | A system can appear to pass through future-state leakage or by weakening the evaluator rather than completing the intended task. | Add leak/poison canaries, make grader/test assets read-only, hash the sandbox state before and after execution, and require trajectory review for protected passes. |
@@ -127,6 +127,18 @@ No level authorizes patient-specific use, clinical release, or autonomous treatm
 8. A defect ledger, invalidation policy, and immutable regrade process are live before publication.
 9. Human results are published only after the preregistered protocol and adjudication gates complete.
 10. Claim language is checked against the evidence-maturity level and the research-only boundary.
+
+The release loader now enforces the first structural subset of these gates for every
+`comparison` profile: task access must be non-public, the manifest must declare at least four
+independent families and three source dependencies, and a two-custodian operating holdout receipt
+must be hash-bound to the release. The loader recomputes the protected task-bundle digest from the
+exact authored task bytes and canonical task/family/source/access identities, recomputes family
+membership, and verifies the referenced environment, access-log, and two distinct custodian
+attestation artifacts. Cosmetic identifier variants and future-dated receipts fail closed.
+Custodian artifact binding is not cryptographic identity verification; a production protected lane
+must add trusted signing keys or an external transparency service before any claim of independently
+authenticated custody. These machine checks do not substitute for actually operating the protected
+service or completing expert review; no current public release uses the comparison profile.
 
 ## What should happen next
 

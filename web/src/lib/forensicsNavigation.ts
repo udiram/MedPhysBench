@@ -1,6 +1,24 @@
-import { modelRunKey } from "./modelRunKey";
-import { setUrlParams } from "./urlState";
-import type { ModelResult } from "../types";
+import { modelRunKey } from "./modelRunKey.ts";
+import { setUrlParams } from "./urlState.ts";
+import type { ModelResult, ModelTaskResult } from "../types";
+
+export function taskAttemptKey(task: ModelTaskResult) {
+  if (task.attempt_id) return task.attempt_id;
+  return [
+    task.task_id,
+    task.attempt_index ?? "noattempt",
+    task.seed ?? "noseed",
+    task.run_id ?? "norun",
+    task.runtime_task_hash ?? task.prompt_hash ?? "nohash",
+  ].join("::");
+}
+
+export function publicArtifactHref(path: string | null | undefined) {
+  if (!path || !/^results\/releases\/[A-Za-z0-9._/-]+\.json$/.test(path)) return null;
+  if (path.split("/").includes("..")) return null;
+  const encodedPath = path.split("/").map(encodeURIComponent).join("/");
+  return `https://github.com/udiram/MedPhysBench/blob/main/${encodedPath}`;
+}
 
 export function navigateToRunForensics(row: ModelResult) {
   setUrlParams(

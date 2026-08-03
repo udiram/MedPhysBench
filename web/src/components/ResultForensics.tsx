@@ -4,7 +4,9 @@ import { domainLabel, formatDuration, formatPercent, formatTokens, normalizeMode
 import { defectsForTask } from "../lib/defects";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import { modelRunKey } from "../lib/modelRunKey";
+import { publicArtifactHref, taskAttemptKey } from "../lib/forensicsNavigation";
 import { buildTaskComparison } from "../lib/taskComparison";
+import type { TaskComparisonScope } from "../lib/taskComparison";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { normalizeForensicsOutcome } from "../types";
 import type { DefectLedger, ForensicsOutcomeCategory, Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, ReleaseView } from "../types";
@@ -48,6 +50,9 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
   const [domainFilter, setDomainFilter] = useState(() => getUrlParam("fx_domain") ?? "all");
   const [outcomeFilter, setOutcomeFilter] = useState<OutcomeFilter>(() => readEnumParam("fx_outcome", ["all", "safe_success", "safe_failure", "unsafe", "unavailable", "inconclusive", "capability_failure"] as const, "all"));
   const [selectedTaskKey, setSelectedTaskKey] = useState<string>(() => getUrlParam("fx_task") ?? "");
+  const [comparisonScope, setComparisonScope] = useState<TaskComparisonScope>(() =>
+    readEnumParam("fx_compare", ["identical_harness", "all_visible"] as const, "identical_harness")
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -58,6 +63,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
       setDomainFilter(getUrlParam("fx_domain") ?? "all");
       setOutcomeFilter(readEnumParam("fx_outcome", ["all", "safe_success", "safe_failure", "unsafe", "unavailable", "inconclusive", "capability_failure"] as const, "all"));
       setSelectedTaskKey(getUrlParam("fx_task") ?? "");
+      setComparisonScope(readEnumParam("fx_compare", ["identical_harness", "all_visible"] as const, "identical_harness"));
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
@@ -137,7 +143,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
   const selectedTask = useMemo(() => {
     if (!filteredTasks.length) return null;
     if (selectedTaskKey) {
-      const match = filteredTasks.find((task, index) => taskKey(task, index) === selectedTaskKey);
+      const match = filteredTasks.find((task) => taskAttemptKey(task) === selectedTaskKey);
       if (match) return match;
     }
     return filteredTasks[0];
@@ -150,8 +156,11 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
     [defectLedger, selectedTask?.task_id],
   );
   const taskComparison = useMemo(() => {
-    return buildTaskComparison(visibleRows, selectedTask?.task_id ?? null);
-  }, [selectedTask, visibleRows]);
+    return buildTaskComparison(visibleRows, selectedTask?.task_id ?? null, {
+      scope: comparisonScope,
+      reference: selected,
+    });
+  }, [comparisonScope, selected, selectedTask, visibleRows]);
 
   useEffect(() => {
     if (!selectedRow) return;
@@ -160,7 +169,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
       setUrlParams({ fx_task: null });
       return;
     }
-    const key = taskKey(selectedTask, filteredTasks.indexOf(selectedTask));
+    const key = taskAttemptKey(selectedTask);
     if (key !== selectedTaskKey) {
       setSelectedTaskKey(key);
       setUrlParams({ fx_task: key });
@@ -395,14 +404,14 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                             </div>
                           </header>
                           <div className="forensics-task-grid">
-                            {tasks.map((task, index) => {
-                              const currentKey = taskKey(task, index);
+                            {tasks.map((task) => {
+                              const currentKey = taskAttemptKey(task);
                               const taskDefectCount = defectsForTask(defectLedger, task.task_id).length;
                               return (
                               <button
                                 key={currentKey}
                                 type="button"
-                                className={`forensics-task-card ${outcomeClassName(task.outcome_category, task.capability_failure === true)}${selectedTask && currentKey === taskKey(selectedTask, filteredTasks.indexOf(selectedTask)) ? " selected" : ""}`}
+                                className={`forensics-task-card ${outcomeClassName(task.outcome_category, task.capability_failure === true)}${selectedTask && currentKey === taskAttemptKey(selectedTask) ? " selected" : ""}`}
                                 onClick={() => {
                                   setSelectedTaskKey(currentKey);
                                   setUrlParams({ fx_task: currentKey }, { history: "push" });
@@ -556,6 +565,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                           </div>
                         ) : null}
                         <dl className="forensics-meta compact">
+                          <div><dt>Attempt ID</dt><dd>{shortHash(selectedTask.attempt_id ?? taskAttemptKey(selectedTask))}</dd></div>
                           <div><dt>Task</dt><dd>{selectedTask.task_id}</dd></div>
                           <div><dt>Run</dt><dd>{shortHash(selectedTask.run_id)}</dd></div>
                           <div><dt>Prompt</dt><dd>{shortHash(selectedTask.prompt_hash)}</dd></div>
@@ -572,6 +582,29 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                           <div><dt>Failure kind</dt><dd>{selectedTask.model_failure_kind ? failureKindLabel(selectedTask.model_failure_kind) : "Model output graded"}</dd></div>
                           <div><dt>Capability failure</dt><dd>{selectedTask.capability_failure ? "Yes" : "No"}</dd></div>
                         </dl>
+                        <div className="forensics-artifact-reference" role="note">
+                          <div>
+                            <strong>Frozen attempt artifact</strong>
+                            <p>
+                              {publicArtifactHref(selectedTask.artifact_path)
+                                ? "Repository path and SHA-256 identify the exact scored JSON behind this public projection."
+                                : "This historical projection has no public repository pointer. Its stable attempt identity and digest remain visible when available."}
+                            </p>
+                          </div>
+                          <dl>
+                            <div><dt>Path</dt><dd>{selectedTask.artifact_path ?? "Not published"}</dd></div>
+                            <div><dt>SHA-256</dt><dd>{selectedTask.artifact_sha256 ?? "Unavailable"}</dd></div>
+                          </dl>
+                          {publicArtifactHref(selectedTask.artifact_path) ? (
+                            <a
+                              href={publicArtifactHref(selectedTask.artifact_path) ?? undefined}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Open exact result JSON
+                            </a>
+                          ) : null}
+                        </div>
                         <div className="forensics-tag-groups">
                           <div>
                             <span>{selectedTaskUnavailable ? "Zero-score contract lanes" : "Failed lanes"}</span>
@@ -609,7 +642,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                                 <small>
                                   {selectedTaskUnavailable
                                     ? "Contract checks for the absent submission · not model actions"
-                                    : "Gold-bearing grader evidence withheld"}
+                                    : "Gold-bearing values omitted here; public-development source artifact linked above"}
                                 </small>
                               </div>
                               <ul className="forensics-grader-list">
@@ -677,10 +710,28 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                     <div>
                       <h3>Same task across run sets</h3>
                       <p>
-                        Task-matched comparison inside the current openness and provider filters. Execution surfaces stay
-                        labeled; this table does not create a cross-surface official rank.
+                        {comparisonScope === "identical_harness"
+                          ? "Controlled peers only: the same frozen comparison group and harness revision. Native or unmatched rows remain outside this view."
+                          : "Broader descriptive view inside the current openness and provider filters. Execution surfaces stay labeled; this does not create an official rank."}
                       </p>
                     </div>
+                    <label className="field forensic-comparison-scope">
+                      <span>Comparison scope</span>
+                      <span className="select-wrap">
+                        <select
+                          value={comparisonScope}
+                          onChange={(event) => {
+                            const value = event.target.value as TaskComparisonScope;
+                            setComparisonScope(value);
+                            setUrlParams({ fx_compare: value === "identical_harness" ? null : value }, { history: "push" });
+                          }}
+                        >
+                          <option value="identical_harness">Identical harness</option>
+                          <option value="all_visible">All visible run sets</option>
+                        </select>
+                        <ChevronDown aria-hidden="true" />
+                      </span>
+                    </label>
                     <strong>{taskComparison.length} run sets</strong>
                   </div>
                   <div
@@ -694,6 +745,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                         <tr>
                           <th>Run set</th>
                           <th>Surface</th>
+                          <th>Harness</th>
                           <th>Safe success</th>
                           <th>Outcome mix</th>
                           <th>Top failed grader</th>
@@ -708,6 +760,14 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                               <small>{providerLabel(comparison.entry.row.provider)} · {sourceLabel(comparison.entry.source)}</small>
                             </th>
                             <td>{surfaceLabel(inferExecutionSurface(comparison.entry.row))}</td>
+                            <td>
+                              <strong>{comparison.entry.row.run_profile?.harness_revision ?? comparison.entry.row.harness_revision ?? "Unavailable"}</strong>
+                              <small>
+                                {comparison.entry.row.comparison_group
+                                  ? `Group ${shortHash(comparison.entry.row.comparison_group)}`
+                                  : "No official group"}
+                              </small>
+                            </td>
                             <td>
                               <strong>{formatPercent(comparison.safeSuccessRate)}</strong>
                               <small>{comparison.outcomes.safe_success}/{comparison.attempts.length} attempts</small>
@@ -725,7 +785,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                                   );
                                   const nextTask = comparison.entry.row.tasks[nextIndex];
                                   if (!nextTask) return;
-                                  const nextTaskKey = taskKey(nextTask, nextIndex);
+                                  const nextTaskKey = taskAttemptKey(nextTask);
                                   setModelKey(comparison.entry.key);
                                   setDomainFilter("all");
                                   setOutcomeFilter("all");
@@ -830,15 +890,6 @@ function sourceLabel(value: SourceFilter) {
   if (value === "open") return "Open weights";
   if (value === "closed") return "Closed";
   return "Unclassified";
-}
-
-function taskKey(task: ModelTaskResult, index: number) {
-  return [
-    task.task_id,
-    task.attempt_index ?? index,
-    task.seed ?? "noseed",
-    task.run_id ?? "norun",
-  ].join("::");
 }
 
 function failureKindLabel(value: string) {

@@ -191,6 +191,9 @@ export type Tg263Audit = {
 };
 
 export type ModelTaskResult = {
+  attempt_id?: string;
+  artifact_path?: string | null;
+  artifact_sha256?: string;
   task_id: string;
   family_id?: string | null;
   title: string;

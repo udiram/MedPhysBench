@@ -527,6 +527,7 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   fill: none;
   stroke: rgba(255, 255, 255, 0.13);
   stroke-width: 1;
+  stroke-dasharray: 2 3;
 }
 .label-connector.native { stroke: rgba(112, 184, 196, 0.24); stroke-dasharray: 3 3; }
 
@@ -1826,6 +1827,10 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   font-size: 12px;
   line-height: 1.55;
 }
+.forensic-comparison-scope {
+  flex: 0 0 210px;
+  min-width: 190px;
+}
 .forensics-comparison-heading > strong {
   flex: 0 0 auto;
   color: var(--accent);
@@ -2047,6 +2052,50 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   font: 500 12px/1.45 "IBM Plex Sans", sans-serif;
   overflow-wrap: anywhere;
 }
+.forensics-artifact-reference {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 13px 14px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-alt);
+}
+.forensics-artifact-reference > div > strong {
+  color: var(--text);
+  font: 600 10px/1.4 "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.forensics-artifact-reference p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+.forensics-artifact-reference dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+.forensics-artifact-reference dt {
+  color: var(--muted);
+  font: 500 9px/1.35 "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+}
+.forensics-artifact-reference dd {
+  margin: 3px 0 0;
+  color: var(--muted-strong);
+  font: 500 10px/1.5 "IBM Plex Mono", monospace;
+  overflow-wrap: anywhere;
+}
+.forensics-artifact-reference a {
+  width: fit-content;
+  color: var(--accent);
+  font: 600 10px/1.4 "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.forensics-artifact-reference a:hover { color: var(--text); }
 .forensics-note {
   margin: 12px 0 0;
   color: var(--muted);
@@ -3033,6 +3082,7 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
     align-items: flex-start;
     flex-direction: column;
   }
+  .forensic-comparison-scope { width: 100%; min-width: 0; }
   .forensics-domain-summary-row dl { grid-template-columns: 1fr; }
   .forensics-controls .model-field { grid-column: auto; }
   .forensics-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }

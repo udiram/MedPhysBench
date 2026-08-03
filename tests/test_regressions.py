@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -389,6 +390,13 @@ def test_release_summary_projects_public_safe_attempt_forensics(tmp_path: Path) 
     assert task_row["grader_results"]
     assert all("evidence" not in grade for grade in task_row["grader_results"])
     assert task_row["task_id"] == task.task_id
+    assert len(task_row["attempt_id"]) == 64
+    assert task_row["artifact_path"] == (
+        f"results/releases/{release.release_id}/projection-test/attempt.json"
+    )
+    assert task_row["artifact_sha256"] == hashlib.sha256(
+        (model_dir / "attempt.json").read_bytes()
+    ).hexdigest()
     assert task_row["runtime_task_hash"]
     assert task_row["outcome_category"] in {
         "safe_success",
@@ -415,6 +423,8 @@ def test_release_summary_defaults_to_no_public_answers(tmp_path: Path) -> None:
 
     assert task_row["output"] == {}
     assert task_row["grader_results"] == []
+    assert task_row["artifact_path"] is None
+    assert len(task_row["artifact_sha256"]) == 64
     assert task_row["passed"] is True
     assert task_row["safe"] is True
 
@@ -752,7 +762,7 @@ def test_repository_contracts_and_public_artifacts_validate() -> None:
     )
     counts = json.loads(completed.stdout)
 
-    assert counts["schema_count"] == 21
+    assert counts["schema_count"] == 22
     assert counts["campaign_count"] == 1
     assert counts["submission_count"] >= 1
     assert counts["fleet_model_count"] == 50

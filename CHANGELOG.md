@@ -12,6 +12,17 @@
 
 ## Unreleased
 
+- Added fail-closed comparison-release gates: non-public task access, canonical family/source
+  diversity, exact task-byte and family-registry binding, verified environment/access-log artifacts,
+  and two distinct content-bound custodian attestations. No current public release is promoted by
+  this forward-looking contract.
+- Changed task-level peer comparison to default to the same frozen comparison group and harness
+  revision, with an explicit opt-in broader descriptive mode and visible harness/group identity.
+- Gave every projected attempt a content-bound identity plus an exact public result-artifact path
+  and SHA-256 when its release permits sanitized attempt detail.
+- Added a same-release score-certainty frontier joining safe-success intervals with median token or
+  wall-time cost, while excluding incomplete telemetry from Pareto extraction and labeling broader
+  outcome-only/native inclusion as descriptive.
 - Normalized model-registry search across punctuation and spacing so queries such as `gpt 5.6`,
   `GPT-5.6`, and `gpt5.6` resolve the same systems. Provider text search now follows published
   provider evidence instead of speculative planned routes.

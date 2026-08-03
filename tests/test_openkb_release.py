@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -7,6 +8,7 @@ import pytest
 
 from medphys_agentbench.adapters.reference import DevelopmentReferenceAgent
 from medphys_agentbench.contracts import ContractError
+from medphys_agentbench.json_utils import stable_hash
 from medphys_agentbench.release_loader import load_release
 from medphys_agentbench.runner import run_trial
 
@@ -60,6 +62,46 @@ def test_runtime_projection_excludes_family_and_reference_labels() -> None:
     assert "grading" not in runtime
     assert "provenance" not in runtime
     assert "development_reference_output" not in json.dumps(runtime)
+
+
+def test_public_attempt_pointers_bind_every_projected_row_to_committed_evidence() -> None:
+    leaderboard = json.loads(
+        (ROOT / "web/public/data/public-real-workflows-pilot-v0.6.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    task_rows = [
+        task
+        for model in [*leaderboard["models"], *leaderboard["unranked_models"]]
+        for task in model["tasks"]
+    ]
+    attempt_ids: set[str] = set()
+
+    for task_row in task_rows:
+        artifact_path = task_row["artifact_path"]
+        assert artifact_path.startswith(
+            "results/releases/public-real-workflows-pilot-v0.6/"
+        )
+        artifact = (ROOT / artifact_path).resolve()
+        artifact.relative_to((ROOT / "results/releases").resolve())
+        raw = artifact.read_bytes()
+        payload = json.loads(raw)
+        artifact_sha256 = hashlib.sha256(raw).hexdigest()
+
+        assert task_row["artifact_sha256"] == artifact_sha256
+        assert task_row["attempt_id"] == stable_hash(
+            {
+                "artifact_path": artifact_path,
+                "artifact_sha256": artifact_sha256,
+                "run_id": payload["manifest"].get("run_id"),
+                "task_id": payload["manifest"]["task_id"],
+                "attempt_index": payload.get("attempt_index"),
+            }
+        )
+        assert task_row["attempt_id"] not in attempt_ids
+        attempt_ids.add(task_row["attempt_id"])
+
+    assert len(task_rows) == 870
 
 
 def test_pilot_profile_rejects_single_attempt_release(tmp_path: Path) -> None:

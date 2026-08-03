@@ -155,6 +155,7 @@ def validate_repository() -> dict[str, int]:
         "run_v2": _validator("run.v2.schema.json"),
         "result": _validator("result.v1.schema.json"),
         "release": _validator("release.v1.schema.json"),
+        "holdout_receipt": _validator("holdout-receipt.v1.schema.json"),
         "review_evidence": _validator("review-evidence.v1.schema.json"),
         "workflow_receipt": _validator("workflow-receipt.v1.schema.json"),
         "model_fleet": _validator("model-fleet.v1.schema.json"),
@@ -273,6 +274,10 @@ def validate_repository() -> dict[str, int]:
         if release_id in releases_by_id:
             raise ValueError(f"Duplicate release_id {release_id!r} in {path}.")
         releases_by_id[release_id] = load_release(path)
+
+    holdout_receipt_paths = sorted((ROOT / "governance" / "holdout-receipts").glob("*.json"))
+    for path in holdout_receipt_paths:
+        _validate(validators["holdout_receipt"], _load_json(path), path)
 
     campaign_paths = sorted((ROOT / "campaigns").glob("*.yaml"))
     campaign_ids: set[str] = set()
@@ -397,7 +402,14 @@ def validate_repository() -> dict[str, int]:
         )
         if result_key in result_index:
             raise ValueError(f"{path}: duplicate public result identity {result_key!r}.")
-        result_index[result_key] = payload
+        # Capture validation needs only these bounded public fields. Retaining every
+        # full result (including grader arrays and manifests) scales repository
+        # validation memory with the entire benchmark corpus.
+        result_index[result_key] = {
+            "output": payload.get("output"),
+            "trace": payload.get("trace"),
+            "raw_response": payload.get("raw_response"),
+        }
 
     capture_paths = sorted((ROOT / "captures" / "recorded").rglob("*.json"))
     capture_ids: set[str] = set()
