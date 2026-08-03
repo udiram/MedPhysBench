@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import platform
 import subprocess
@@ -15,6 +14,7 @@ from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
 
+from medphys_agentbench.artifact_tree import artifact_tree_sha256, json_artifact_inventory
 from medphys_agentbench.qualification import (
     find_access_entry,
     load_access_entries,
@@ -33,44 +33,12 @@ def _load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for block in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
-
-
 def _artifact_inventory(results_directory: Path) -> list[dict[str, Any]]:
-    if not results_directory.is_dir():
-        raise ValueError(f"Results directory does not exist: {results_directory}")
-    if results_directory.is_symlink():
-        raise ValueError("Results directory must not be a symbolic link.")
-    files = sorted(path for path in results_directory.rglob("*") if path.is_file())
-    if not files:
-        raise ValueError("Results directory is empty.")
-    inventory: list[dict[str, Any]] = []
-    for path in files:
-        if path.is_symlink():
-            raise ValueError(f"Submission artifacts must not be symbolic links: {path}")
-        if path.suffix != ".json":
-            raise ValueError(f"Only JSON result and transport-ledger artifacts are allowed: {path}")
-        relative = path.relative_to(results_directory).as_posix()
-        kind = "transport_error" if "_transport_errors" in path.parts else "result"
-        inventory.append(
-            {
-                "path": relative,
-                "kind": kind,
-                "sha256": _sha256(path),
-                "bytes": path.stat().st_size,
-            }
-        )
-    return inventory
+    return json_artifact_inventory(results_directory)
 
 
 def _artifact_tree_hash(artifacts: list[dict[str, Any]]) -> str:
-    canonical = json.dumps(artifacts, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
-    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    return artifact_tree_sha256(artifacts)
 
 
 def _safe_repo_path(relative: str) -> Path:

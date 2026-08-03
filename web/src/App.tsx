@@ -144,7 +144,6 @@ function App() {
           reviewEvidence={releaseView === "real" ? realWorkflowsReview : null}
           repoUrl={REPO_URL}
         />
-        <FleetCoverage data={fleetStatus} />
         <PublicModelIndex
           activeRelease={releaseView}
           catalog={modelCatalog}
@@ -189,6 +188,7 @@ function App() {
           modelCatalog={modelCatalog}
           releaseView={releaseView}
         />
+        <FleetCoverage data={fleetStatus} />
         <EvidenceSections
           accessStatus={accessStatus}
           data={selected.data}

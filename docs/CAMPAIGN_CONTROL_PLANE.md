@@ -124,7 +124,10 @@ The canonical result tree remains authoritative. After every zero-exit child, th
 controller rejects missing or unexpected canonical files and rechecks status,
 attempt index, provider/model/harness identity, declared revision, adapter settings
 and hash, sampling settings, every task-contract hash, scoring revision, run ID,
-and deterministic grades, pass/safety flags, and score. `run-release --resume`
+and deterministic grades, pass/safety flags, and score. The completion record also
+includes the same canonical artifact inventory count and tree hash used by the public
+submission contract, so the hash-chained `model_completed` event binds the exact files
+that passed verification. `run-release --resume`
 performs the same class of validation before skipping any immutable attempt.
 
 ## Honest limits

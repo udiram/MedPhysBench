@@ -12,6 +12,12 @@
 
 ## Unreleased
 
+- Moved the frozen-fleet methodology below the primary result and forensic surfaces,
+  added a non-zero loading skeleton for the cross-release model registry, and promoted
+  source, provider, and execution-surface badges into collapsed model rows.
+- Centralized canonical JSON artifact inventory hashing and added the artifact count
+  and tree hash to campaign completion evidence, binding the verified model result tree
+  into the append-only campaign event chain.
 - Added a frozen executable-route contract, content-addressed access-probe receipts,
   a reviewed OpenAI-compatible JSON-canary probe, and evidence-bound `campaign.v2`
   generation. New campaigns fail closed on stale,

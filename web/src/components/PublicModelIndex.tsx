@@ -462,6 +462,23 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease
     );
   };
 
+  if (!allDatasetsReady || catalog.length === 0 || fleetStatus === null) {
+    return (
+      <section className="model-index-section model-index-loading" id="model-index" aria-busy="true">
+        <div className="section-heading">
+          <h2>Explore every model</h2>
+          <p>Loading the frozen model registry and public result contracts.</p>
+        </div>
+        <div className="model-index-skeleton" role="status" aria-label="Model registry loading">
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="model-index-section" id="model-index">
       <div className="section-heading">
@@ -713,10 +730,15 @@ function ModelRegistryRow({
             <span>{group.display_name || group.model_name}</span>
             <small>
               {group.fleetEntry?.steward ?? group.catalog?.steward ?? "Catalog pending"}
-              {sliceProviders.length > 0 ? ` · ${sliceProviders.map((item) => providerLabel(item)).join(" + ")}` : ""}
               {variantSummaries.length > 0 ? ` · ${variantSummaries.length} variant${variantSummaries.length === 1 ? "" : "s"}` : ""}
               {familyPeers.length > 1 ? ` · ${familyPeers.length} systems in ${group.family_name}` : ""}
             </small>
+            <span className="registry-row-badges" aria-label="Model system classification">
+              <i>{opennessLabel(group.openness)}</i>
+              {sliceProviders.map((item) => <i key={item}>{providerLabel(item)}</i>)}
+              {group.common_count > 0 ? <i>{group.common_count} common</i> : null}
+              {group.specialized_count > 0 ? <i>{group.specialized_count} native</i> : null}
+            </span>
             <small className={`registry-row-status ${evidenceStatus.kind}`}>
               {evidenceStatus.label}
             </small>

@@ -22,6 +22,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 from .adapters.ollama import OllamaAdapter
 from .adapters.openai_compatible import OpenAICompatibleAdapter
+from .artifact_tree import artifact_tree_sha256, json_artifact_inventory
 from .json_utils import stable_hash
 from .release_loader import BenchmarkRelease, load_release
 from .reporting import _release_contract_hash
@@ -642,6 +643,11 @@ def verify_model_completion(spec: CampaignSpec, model: CampaignModel) -> dict[st
             continue
         completed += 1
     transport_errors = len(list((model_dir / "_transport_errors").glob("*.json")))
+    artifact_inventory = (
+        json_artifact_inventory(model_dir)
+        if model_dir.is_dir() and any(path.is_file() for path in model_dir.rglob("*"))
+        else []
+    )
     return {
         "complete": completed == len(expected) and not invalid and not unexpected,
         "expected_attempts": len(expected),
@@ -650,6 +656,8 @@ def verify_model_completion(spec: CampaignSpec, model: CampaignModel) -> dict[st
         "invalid_attempt_count": len(invalid),
         "unexpected_attempt_count": len(unexpected),
         "transport_error_count": transport_errors,
+        "artifact_count": len(artifact_inventory),
+        "artifact_tree_sha256": artifact_tree_sha256(artifact_inventory) if artifact_inventory else None,
     }
 
 

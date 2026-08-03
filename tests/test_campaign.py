@@ -464,6 +464,9 @@ def test_completion_verifier_rejects_contract_grade_and_tree_tampering(tmp_path:
     assert baseline["completed_attempts"] == 30
     assert baseline["invalid_attempt_count"] == 0
     assert baseline["unexpected_attempt_count"] == 0
+    assert baseline["artifact_count"] == 30
+    assert len(str(baseline["artifact_tree_sha256"])) == 64
+    baseline_tree_hash = baseline["artifact_tree_sha256"]
 
     first_path = paths[0]
     pristine = json.loads(first_path.read_text(encoding="utf-8"))
@@ -471,7 +474,9 @@ def test_completion_verifier_rejects_contract_grade_and_tree_tampering(tmp_path:
     wrong_provider = json.loads(json.dumps(pristine))
     wrong_provider["manifest"]["model"]["provider"] = "not-groq"
     first_path.write_text(json.dumps(wrong_provider), encoding="utf-8")
-    assert verify_model_completion(campaign, model)["complete"] is False
+    wrong_provider_completion = verify_model_completion(campaign, model)
+    assert wrong_provider_completion["complete"] is False
+    assert wrong_provider_completion["artifact_tree_sha256"] != baseline_tree_hash
 
     wrong_settings = json.loads(json.dumps(pristine))
     wrong_settings["manifest"]["adapter_settings"]["timeout_seconds"] = 1

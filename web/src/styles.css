@@ -2585,6 +2585,25 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   margin: 20px 0;
   background: var(--line);
 }
+.model-index-skeleton {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 20px;
+  background: var(--line);
+}
+.model-index-skeleton span {
+  min-height: 112px;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.045), transparent),
+    var(--surface);
+  background-size: 220% 100%;
+  animation: model-index-loading 1.6s ease-in-out infinite;
+}
+@keyframes model-index-loading {
+  0% { background-position: 120% 0; }
+  100% { background-position: -120% 0; }
+}
 .model-index-kpis article,
 .registry-run-card,
 .registry-failure-list article,
@@ -2628,6 +2647,22 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 .model-index-table td:nth-child(7),
 .model-index-table td:nth-child(8) {
   white-space: nowrap;
+}
+.registry-row-badges {
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+.registry-row-badges i {
+  padding: 2px 6px;
+  border: 1px solid var(--line);
+  color: var(--muted-strong);
+  font: 500 9px/1.35 "IBM Plex Mono", monospace;
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }
 .model-registry-detail {
   display: grid;
@@ -3406,6 +3441,7 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 }
 
 @media (max-width: 700px) {
+  .model-index-skeleton { grid-template-columns: 1fr; }
   .model-index-section .table-scroll { overflow-x: visible; }
   .model-index-table,
   .model-index-table tbody,
@@ -3492,6 +3528,7 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .model-index-skeleton span { animation: none; }
 }
 
 /* Unified cross-release model evidence explorer */

@@ -66,8 +66,8 @@ export function Hero({ data, onReleaseViewChange, releaseView, reviewEvidence, r
           <p className="hero-body">{boundary.allowed}</p>
           <p className="claim-prohibited"><strong>Cannot support:</strong> {boundary.prohibited}</p>
           <div className="hero-links" aria-label="Primary benchmark links">
-            <a href="#model-index">All models</a>
-            <a href="#leaderboard">Release results</a>
+            <a href="#model-index">Compare models</a>
+            <a href="#forensics">Inspect failures</a>
             <a href="#methodology">Methods</a>
             <a href={`${repoUrl}/tree/main/docs`} target="_blank" rel="noreferrer">
               Docs <ExternalLink aria-hidden="true" />
