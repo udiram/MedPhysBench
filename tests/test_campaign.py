@@ -190,6 +190,9 @@ def test_command_is_shell_free_resumable_and_never_contains_secret_value() -> No
     assert command.index("--seed") < command.index("--max-tokens")
     assert command.index("--temperature") < command.index("--max-tokens")
     assert command[command.index("--max-rate-limit-retries") + 1] == "8"
+    assert command[command.index("--minimum-available-memory-fraction") + 1] == "0.3"
+    assert command[command.index("--minimum-available-memory-gib") + 1] == "4"
+    assert command[command.index("--minimum-free-disk-gib") + 1] == "10"
     assert "GROQ_API_KEY" in command
     assert "literal-secret" not in " ".join(command)
 
@@ -466,6 +469,60 @@ def test_provider_quota_failure_skips_sibling_routes_without_retries(tmp_path: P
     ]
     assert events[2]["details"]["failure_kind"] == "provider_quota_blocked"
     assert events[3]["details"]["provider_block"]["reason_code"] == ("provider_quota_or_rate_limit_exhausted")
+
+
+def test_between_attempt_resource_block_stops_campaign_and_preserves_partial_completion(tmp_path: Path) -> None:
+    original = load_campaign(CAMPAIGN_PATH)
+    campaign = replace(
+        original,
+        results_dir=tmp_path / "runs",
+        models=(original.models[0],),
+        execution=replace(original.execution, continue_on_model_failure=True),
+    )
+    expected_completion = {
+        "complete": False,
+        "completed_attempts": 2,
+        "missing_attempts": 28,
+        "transport_error_count": 0,
+    }
+
+    def runner(command: list[str], _cwd: Path, _environment: object) -> int:
+        model_name = command[command.index("--model") + 1]
+        model_slug = "".join(character if character.isalnum() else "_" for character in model_name).strip("_").lower()
+        block_dir = campaign.results_dir / campaign.release_id / model_slug / "_resource_blocks"
+        block_dir.mkdir(parents=True, exist_ok=True)
+        (block_dir / "memory.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": "medphysbench.resource-block.v1",
+                    "task_id": "task-3",
+                    "attempt_number": 3,
+                    "failures": ["available memory fraction 0.290 is below 0.300"],
+                    "resource_snapshot": {"available_memory_fraction": 0.29},
+                    "result_committed": False,
+                }
+            ),
+            encoding="utf-8",
+        )
+        return 1
+
+    with pytest.raises(CampaignExecutionError, match="Per-attempt resource guard stopped"):
+        execute_campaign(
+            campaign,
+            environ={"GROQ_API_KEY": "test-only"},
+            snapshot_provider=lambda _path: _safe_snapshot(),
+            command_runner=runner,
+            completion_verifier=lambda _spec, _model: expected_completion,
+        )
+
+    events = validate_event_ledger(
+        campaign.results_dir / "_campaigns" / campaign.campaign_id / "events.jsonl",
+        expected_campaign_hash=campaign.manifest_hash,
+    )
+    block = next(event for event in events if event["event_type"] == "resource_blocked")
+    assert block["details"]["source"] == "child_attempt_guard"
+    assert block["details"]["completion"] == expected_completion
+    assert block["details"]["resource_block"]["reason_code"] == "per_attempt_resource_floor_breached"
 
 
 def test_zero_exit_without_canonical_matrix_is_not_marked_complete(tmp_path: Path) -> None:

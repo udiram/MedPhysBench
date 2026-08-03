@@ -47,6 +47,12 @@ must use `keep_alive=0`, declare a context window, and may not declare an API ke
 Provider model handles must map to unique result directories inside a campaign;
 alternate revisions and effort settings get a different campaign/results root.
 
+The same frozen floors are forwarded into the child `run-release` process and
+rechecked immediately before every missing attempt. Existing immutable attempts
+are validated and skipped before the check, so a blocked campaign remains safely
+resumable. A breach writes a structured `medphysbench.resource-block.v1` receipt
+under `_resource_blocks/`; it never creates or substitutes a scored result.
+
 `medeval.campaign.v2` adds a qualification boundary before execution. Every model
 entry binds an exact `model-route.v1` route and one immutable
 `access-probe-receipt.v1` by path and SHA-256. The receipt binds the route hash,

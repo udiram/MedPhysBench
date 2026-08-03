@@ -26,10 +26,15 @@ def json_artifact_inventory(directory: Path) -> list[dict[str, Any]]:
         if path.suffix != ".json":
             raise ValueError(f"Only JSON artifacts are allowed: {path}")
         relative = path.relative_to(directory).as_posix()
+        kind = "result"
+        if "_transport_errors" in path.parts:
+            kind = "transport_error"
+        elif "_resource_blocks" in path.parts:
+            kind = "resource_block"
         inventory.append(
             {
                 "path": relative,
-                "kind": "transport_error" if "_transport_errors" in path.parts else "result",
+                "kind": kind,
                 "sha256": file_sha256(path),
                 "bytes": path.stat().st_size,
             }

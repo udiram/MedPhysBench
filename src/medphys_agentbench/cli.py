@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
@@ -19,7 +20,16 @@ from .adapters.openai_compatible import (
 )
 from .adapters.recorded import RecordedOutputAdapter
 from .adapters.reference import DevelopmentReferenceAgent
-from .campaign import CampaignError, CampaignExecutionError, campaign_plan, execute_campaign, load_campaign
+from .campaign import (
+    CampaignError,
+    CampaignExecutionError,
+    CampaignResourceLimits,
+    campaign_plan,
+    capture_resource_snapshot,
+    execute_campaign,
+    load_campaign,
+    resource_limit_failures,
+)
 from .campaign_generation import generate_campaign_payload, write_campaign_manifest
 from .contracts import ModelDescriptor, TaskSpec
 from .json_utils import stable_hash
@@ -213,6 +223,21 @@ def main() -> None:
         help="Ollama model residency after a request; 0 unloads immediately (default: 0).",
     )
     run_release.add_argument("--ollama-num-ctx", type=int, default=4096)
+    run_release.add_argument(
+        "--minimum-available-memory-fraction",
+        type=float,
+        help="Stop before each missing attempt when the measured free-memory fraction is below this floor.",
+    )
+    run_release.add_argument(
+        "--minimum-available-memory-gib",
+        type=float,
+        help="Stop before each missing attempt when measured available memory is below this GiB floor.",
+    )
+    run_release.add_argument(
+        "--minimum-free-disk-gib",
+        type=float,
+        help="Stop before each missing attempt when free result-volume space is below this GiB floor.",
+    )
     run_release.add_argument("--fail-fast", action="store_true")
     run_release.add_argument(
         "--resume",
@@ -416,6 +441,7 @@ def main() -> None:
     if args.command == "run-release":
         release = load_release(args.release_file)
         tasks = release.load_tasks()
+        attempt_resource_limits = _run_release_resource_limits(args)
         attempts = args.attempts if args.attempts is not None else release.expected_attempts_per_task
         if attempts < 1:
             raise SystemExit("--attempts must be at least 1.")
@@ -515,6 +541,57 @@ def main() -> None:
                             )
                         )
                         continue
+                    if attempt_resource_limits is not None:
+                        resource_snapshot = capture_resource_snapshot(args.results_dir)
+                        resource_failures = resource_limit_failures(resource_snapshot, attempt_resource_limits)
+                        if resource_failures:
+                            resource_block_id = str(uuid4())
+                            resource_block_path = (
+                                model_dir
+                                / "_resource_blocks"
+                                / (
+                                    f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}"
+                                    f"--{resource_block_id}.json"
+                                )
+                            )
+                            resource_block = {
+                                "schema_version": "medphysbench.resource-block.v1",
+                                "status": "resource_blocked_uncommitted",
+                                "resource_block_id": resource_block_id,
+                                "recorded_at": datetime.now().astimezone().isoformat(),
+                                "release_id": release.release_id,
+                                "task_id": task.task_id,
+                                "attempt_index": attempt_index,
+                                "attempt_number": attempt_index + 1,
+                                "model": {
+                                    "adapter": args.adapter,
+                                    "provider": args.provider or args.adapter,
+                                    "model_name": model_name,
+                                    "model_revision": model_revisions[model_name],
+                                },
+                                "resource_limits": asdict(attempt_resource_limits),
+                                "resource_snapshot": resource_snapshot.to_dict(),
+                                "failures": resource_failures,
+                                "seed": None if args.omit_seed else attempt_seed,
+                                "temperature": None if args.omit_temperature else args.temperature,
+                                "max_tokens": args.max_tokens,
+                                "result_committed": False,
+                            }
+                            _write_json_exclusive(resource_block_path, resource_block)
+                            diagnostic = {
+                                "model": model_name,
+                                "task_id": task.task_id,
+                                "attempt": attempt_index + 1,
+                                "status": "resource_guard_blocked_uncommitted",
+                                "failures": resource_failures,
+                                "resource_block_file": str(resource_block_path),
+                            }
+                            print(json.dumps(diagnostic, sort_keys=True), file=sys.stderr)
+                            raise SystemExit(
+                                "Resource guard stopped before "
+                                f"{model_name}/{task.task_id}/attempt-{attempt_index + 1}: "
+                                + "; ".join(resource_failures)
+                            )
                     adapter = _build_adapter(
                         args.adapter,
                         model_name,
@@ -886,6 +963,34 @@ def _resolve_model_revision(
 
 def _slugify(value: str) -> str:
     return "".join(ch if ch.isalnum() else "_" for ch in value).strip("_").lower()
+
+
+def _run_release_resource_limits(args: argparse.Namespace) -> CampaignResourceLimits | None:
+    """Parse an all-or-none per-attempt resource contract for direct release runs."""
+    values = (
+        args.minimum_available_memory_fraction,
+        args.minimum_available_memory_gib,
+        args.minimum_free_disk_gib,
+    )
+    if all(value is None for value in values):
+        return None
+    if any(value is None for value in values):
+        raise SystemExit(
+            "Per-attempt resource enforcement requires all three of "
+            "--minimum-available-memory-fraction, --minimum-available-memory-gib, "
+            "and --minimum-free-disk-gib."
+        )
+    fraction, memory_gib, disk_gib = values
+    assert fraction is not None and memory_gib is not None and disk_gib is not None
+    if not 0.0 <= fraction <= 1.0:
+        raise SystemExit("--minimum-available-memory-fraction must be between 0 and 1.")
+    if memory_gib < 0.0 or disk_gib < 0.0:
+        raise SystemExit("Memory and disk resource floors must be non-negative.")
+    return CampaignResourceLimits(
+        minimum_available_memory_fraction=fraction,
+        minimum_available_memory_gib=memory_gib,
+        minimum_free_disk_gib=disk_gib,
+    )
 
 
 def _write_json(path: Path, payload: dict[str, object]) -> None:

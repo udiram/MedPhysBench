@@ -7,21 +7,25 @@ import pytest
 from medphys_agentbench.artifact_tree import artifact_tree_sha256, json_artifact_inventory
 
 
-def test_json_artifact_inventory_is_stable_and_classifies_transport_errors(tmp_path: Path) -> None:
+def test_json_artifact_inventory_is_stable_and_classifies_non_scoring_evidence(tmp_path: Path) -> None:
     (tmp_path / "b.json").write_text('{"value":2}\n', encoding="utf-8")
     (tmp_path / "a.json").write_text('{"value":1}\n', encoding="utf-8")
     transport = tmp_path / "_transport_errors"
     transport.mkdir()
     (transport / "failure.json").write_text('{"kind":"quota"}\n', encoding="utf-8")
+    resource_blocks = tmp_path / "_resource_blocks"
+    resource_blocks.mkdir()
+    (resource_blocks / "memory.json").write_text('{"kind":"memory"}\n', encoding="utf-8")
 
     inventory = json_artifact_inventory(tmp_path)
 
     assert [item["path"] for item in inventory] == [
+        "_resource_blocks/memory.json",
         "_transport_errors/failure.json",
         "a.json",
         "b.json",
     ]
-    assert [item["kind"] for item in inventory] == ["transport_error", "result", "result"]
+    assert [item["kind"] for item in inventory] == ["resource_block", "transport_error", "result", "result"]
     assert all(len(item["sha256"]) == 64 and item["bytes"] > 1 for item in inventory)
     assert artifact_tree_sha256(inventory) == artifact_tree_sha256(json_artifact_inventory(tmp_path))
 

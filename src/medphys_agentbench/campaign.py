@@ -314,6 +314,16 @@ def build_model_command(spec: CampaignSpec, model: CampaignModel) -> list[str]:
     if model.temperature is not None:
         command.extend(["--temperature", str(model.temperature)])
     command.extend(["--max-tokens", str(model.max_tokens), "--resume"])
+    command.extend(
+        [
+            "--minimum-available-memory-fraction",
+            str(spec.resource_limits.minimum_available_memory_fraction),
+            "--minimum-available-memory-gib",
+            str(spec.resource_limits.minimum_available_memory_gib),
+            "--minimum-free-disk-gib",
+            str(spec.resource_limits.minimum_free_disk_gib),
+        ]
+    )
     if model.base_url:
         command.extend(["--base-url", model.base_url])
     if model.api_key_env:
@@ -513,6 +523,7 @@ def execute_campaign(
             )
             model_dir = spec.results_dir / spec.release_id / _slugify(model.model)
             transport_errors_before = set((model_dir / "_transport_errors").glob("*.json"))
+            resource_blocks_before = set((model_dir / "_resource_blocks").glob("*.json"))
             return_code = runner(
                 build_model_command(spec, model),
                 REPOSITORY_ROOT,
@@ -522,9 +533,13 @@ def execute_campaign(
                 set((model_dir / "_transport_errors").glob("*.json")) - transport_errors_before
             )
             quota_block = _provider_quota_block(new_transport_errors)
+            new_resource_blocks = sorted(
+                set((model_dir / "_resource_blocks").glob("*.json")) - resource_blocks_before
+            )
+            resource_block = _resource_guard_block(new_resource_blocks)
             completion = (
                 verifier(spec, model)
-                if return_code == 0
+                if return_code == 0 or resource_block is not None
                 else {
                     "complete": False,
                     "completed_attempts": 0,
@@ -532,6 +547,23 @@ def execute_campaign(
                     "transport_error_count": 0,
                 }
             )
+            if resource_block is not None:
+                _append_event(
+                    spec,
+                    state_dir,
+                    "resource_blocked",
+                    {
+                        "configuration_id": model.configuration_id,
+                        "source": "child_attempt_guard",
+                        "return_code": return_code,
+                        "completion": completion,
+                        "resource_block": resource_block,
+                    },
+                )
+                raise CampaignExecutionError(
+                    f"Per-attempt resource guard stopped {model.configuration_id} before the canonical matrix "
+                    "completed; the missing attempt remains resumable."
+                )
             if return_code == 0 and completion["complete"] is True:
                 completed += 1
                 _append_event(
@@ -674,6 +706,7 @@ def verify_model_completion(spec: CampaignSpec, model: CampaignModel) -> dict[st
             continue
         completed += 1
     transport_errors = len(list((model_dir / "_transport_errors").glob("*.json")))
+    resource_blocks = len(list((model_dir / "_resource_blocks").glob("*.json")))
     artifact_inventory = (
         json_artifact_inventory(model_dir)
         if model_dir.is_dir() and any(path.is_file() for path in model_dir.rglob("*"))
@@ -687,6 +720,7 @@ def verify_model_completion(spec: CampaignSpec, model: CampaignModel) -> dict[st
         "invalid_attempt_count": len(invalid),
         "unexpected_attempt_count": len(unexpected),
         "transport_error_count": transport_errors,
+        "resource_block_count": resource_blocks,
         "artifact_count": len(artifact_inventory),
         "artifact_tree_sha256": artifact_tree_sha256(artifact_inventory) if artifact_inventory else None,
     }
@@ -1057,6 +1091,39 @@ def _provider_quota_block(paths: list[Path]) -> dict[str, object] | None:
         "reason_code": "provider_quota_or_rate_limit_exhausted",
         "new_transport_error_count": len(evidence_files),
         "evidence_files": sorted(evidence_files),
+    }
+
+
+def _resource_guard_block(paths: list[Path]) -> dict[str, object] | None:
+    """Classify only new, structured, non-scoring resource guard receipts."""
+    evidence: list[dict[str, object]] = []
+    for path in paths:
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if (
+            not isinstance(payload, dict)
+            or payload.get("schema_version") != "medphysbench.resource-block.v1"
+            or payload.get("result_committed") is not False
+            or not isinstance(payload.get("failures"), list)
+        ):
+            continue
+        evidence.append(
+            {
+                "file": path.name,
+                "task_id": payload.get("task_id"),
+                "attempt_number": payload.get("attempt_number"),
+                "failures": payload["failures"],
+                "resource_snapshot": payload.get("resource_snapshot"),
+            }
+        )
+    if not evidence:
+        return None
+    return {
+        "reason_code": "per_attempt_resource_floor_breached",
+        "new_resource_block_count": len(evidence),
+        "evidence": evidence,
     }
 
 

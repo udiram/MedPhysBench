@@ -14,6 +14,7 @@ from medphys_agentbench.adapters.openai_compatible import (
     ProviderOutputContractError,
     UnsupportedCapabilityError,
 )
+from medphys_agentbench.campaign import ResourceSnapshot
 from medphys_agentbench.contracts import ModelDescriptor
 from medphys_agentbench.release_loader import load_release
 from medphys_agentbench.reporting import summarize_release
@@ -351,6 +352,165 @@ def test_run_release_resume_validates_and_fills_only_missing_attempts(
     assert len(list(tmp_path.rglob("*.json"))) == 5
     assert preserved_path.read_bytes() == preserved_bytes
     assert missing_path.exists()
+
+
+def test_run_release_resource_guard_blocks_before_adapter_or_result_commit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    gib = 1024**3
+    monkeypatch.setattr(
+        cli,
+        "capture_resource_snapshot",
+        lambda _path: ResourceSnapshot(32 * gib, 8 * gib, 100 * gib, "test", str(tmp_path)),
+    )
+    monkeypatch.setattr(
+        cli,
+        "_build_adapter",
+        lambda *_args, **_kwargs: pytest.fail("resource guard must run before adapter construction"),
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "medphys-bench",
+            "run-release",
+            "releases/public_imaging_pilot_v0_4.yaml",
+            "--adapter",
+            "groq",
+            "--model",
+            "guarded-model",
+            "--results-dir",
+            str(tmp_path),
+            "--minimum-available-memory-fraction",
+            "0.35",
+            "--minimum-available-memory-gib",
+            "6",
+            "--minimum-free-disk-gib",
+            "10",
+        ],
+    )
+
+    with pytest.raises(SystemExit, match="Resource guard stopped before guarded-model"):
+        cli.main()
+
+    model_dir = tmp_path / "public-imaging-pilot-v0.4" / "guarded_model"
+    assert list(model_dir.glob("*.json")) == []
+    blocks = list((model_dir / "_resource_blocks").glob("*.json"))
+    assert len(blocks) == 1
+    receipt = json.loads(blocks[0].read_text(encoding="utf-8"))
+    assert receipt["schema_version"] == "medphysbench.resource-block.v1"
+    assert receipt["attempt_index"] == 0
+    assert receipt["result_committed"] is False
+    assert receipt["resource_limits"]["minimum_available_memory_fraction"] == 0.35
+    assert "memory fraction" in receipt["failures"][0]
+
+
+def test_run_release_resource_guard_preserves_existing_then_recovers_missing_attempts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    release = load_release("releases/public_imaging_pilot_v0_4.yaml")
+    tasks = release.load_tasks()
+    outputs = {task.task_id: _reference_output(task) for task in tasks}
+    original_run_trial = cli.run_trial
+    monkeypatch.setattr(
+        cli,
+        "_build_adapter",
+        lambda *args, seed, **_kwargs: _ReferenceFakeAdapter(str(args[1]), seed, outputs),
+    )
+    command = [
+        "medphys-bench",
+        "run-release",
+        "releases/public_imaging_pilot_v0_4.yaml",
+        "--adapter",
+        "groq",
+        "--model",
+        "guard-resume-model",
+        "--seed",
+        "81",
+        "--results-dir",
+        str(tmp_path),
+    ]
+    monkeypatch.setattr(sys, "argv", command)
+    cli.main()
+
+    model_dir = tmp_path / release.release_id / "guard_resume_model"
+    preserved_path = model_dir / f"{tasks[0].task_id.replace('.', '_').replace('-', '_')}--attempt-1.json"
+    preserved_bytes = preserved_path.read_bytes()
+    for path in model_dir.glob("*.json"):
+        if path != preserved_path:
+            path.unlink()
+
+    gib = 1024**3
+    snapshots = 0
+
+    def low_snapshot(_path: Path) -> ResourceSnapshot:
+        nonlocal snapshots
+        snapshots += 1
+        return ResourceSnapshot(32 * gib, 8 * gib, 100 * gib, "test", str(tmp_path))
+
+    monkeypatch.setattr(cli, "capture_resource_snapshot", low_snapshot)
+    monkeypatch.setattr(cli, "run_trial", lambda *_args, **_kwargs: pytest.fail("missing attempt must be blocked"))
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            *command,
+            "--resume",
+            "--minimum-available-memory-fraction",
+            "0.35",
+            "--minimum-available-memory-gib",
+            "6",
+            "--minimum-free-disk-gib",
+            "10",
+        ],
+    )
+
+    with pytest.raises(SystemExit, match="Resource guard stopped before guard-resume-model"):
+        cli.main()
+
+    assert snapshots == 1
+    assert preserved_path.read_bytes() == preserved_bytes
+    assert len(list(model_dir.glob("*.json"))) == 1
+    blocks = list((model_dir / "_resource_blocks").glob("*.json"))
+    assert len(blocks) == 1
+    block_bytes = blocks[0].read_bytes()
+
+    monkeypatch.setattr(
+        cli,
+        "capture_resource_snapshot",
+        lambda _path: ResourceSnapshot(32 * gib, 24 * gib, 100 * gib, "test", str(tmp_path)),
+    )
+    monkeypatch.setattr(cli, "run_trial", original_run_trial)
+    cli.main()
+
+    assert len(list(model_dir.glob("*.json"))) == len(tasks)
+    assert preserved_path.read_bytes() == preserved_bytes
+    assert blocks[0].read_bytes() == block_bytes
+
+
+def test_run_release_resource_guard_requires_complete_threshold_contract(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "medphys-bench",
+            "run-release",
+            "releases/public_imaging_pilot_v0_4.yaml",
+            "--adapter",
+            "groq",
+            "--model",
+            "partial-guard-model",
+            "--results-dir",
+            str(tmp_path),
+            "--minimum-available-memory-fraction",
+            "0.35",
+        ],
+    )
+
+    with pytest.raises(SystemExit, match="requires all three"):
+        cli.main()
 
 
 def test_run_release_resume_tolerates_validated_write_race(

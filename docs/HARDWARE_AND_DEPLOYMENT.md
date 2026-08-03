@@ -233,7 +233,9 @@ on a 24–32 GB laptop and routed to the lab profile.
 Managed benchmark sweeps express these limits in a versioned campaign manifest.
 `run-campaign` fails closed when available memory cannot be measured, blocks new
 model work below both the fractional and absolute memory floors, checks free disk,
-and starts each model in a fresh serial child process. The committed Groq campaign
+starts each model in a fresh serial child process, and rechecks the same frozen
+floors before every missing attempt. A between-attempt breach is recorded as
+non-scoring resource-block evidence and leaves the attempt key resumable. The committed Groq campaign
 uses a 30% and 4 GiB memory floor plus a 10 GiB disk floor; local Ollama campaigns
 must additionally declare `keep_alive=0` and a bounded context window.
 
