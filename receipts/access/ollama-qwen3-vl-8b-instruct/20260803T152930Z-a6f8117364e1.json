@@ -1,0 +1,60 @@
+{
+  "adapter": "ollama",
+  "base_model_id": "Qwen/Qwen3-VL-8B-Instruct",
+  "capabilities": {
+    "inferred": [
+      "image",
+      "text"
+    ],
+    "observed": [
+      "image",
+      "json_schema",
+      "strict_schema",
+      "text"
+    ]
+  },
+  "completed_at": "2026-08-03T15:29:30Z",
+  "content_sha256": "a6f8117364e173d37b3c0e3637a6ff075da009b7e3e9cbdacfa799028c2d4762",
+  "expires_at": "2026-08-03T21:29:30Z",
+  "fleet_id": "public-fleet-v1",
+  "model": "qwen3-vl:8b-instruct",
+  "model_revision": "sha256:0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319",
+  "outcome": "available",
+  "probe_dependencies": [
+    {
+      "content_sha256": "5ddd56a52e1e8db9fa16eef85da749a7decd585a43fd2a56b51978c2af185ef6",
+      "path": "src/medphys_agentbench/adapters/ollama.py"
+    },
+    {
+      "content_sha256": "9074b67a24aa0bff1fae01685885a85c717b0e82e4e3b2b5744f8d0091100605",
+      "path": "src/medphys_agentbench/json_utils.py"
+    },
+    {
+      "content_sha256": "c13c16ba41399727772270992dec9bb44f7d620bc1e3a22ebc182834749ea5f2",
+      "path": "src/medphys_agentbench/route_qualification.py"
+    }
+  ],
+  "probe_implementation_path": "scripts/probes/ollama_access_probe.py",
+  "probe_implementation_sha256": "fdaa7e7e6023dc6972fade7fbe0ecb2ab605af01e6622b55a55a991d7753c924",
+  "probe_version": "ollama-access-probe-v1",
+  "provider": "ollama",
+  "quota": {
+    "source": "local_runtime",
+    "status": "sufficient"
+  },
+  "receipt_id": "ollama-qwen3-vl-8b-instruct-20260803t152930z",
+  "route_id": "ollama-qwen3-vl-8b-instruct",
+  "route_set_id": "local-ollama-candidate-routes-v2",
+  "route_spec_sha256": "5d71d2780c6ef7a6246d337826c3f0818ab4ce4680f8ec586720f82dcd05d3fd",
+  "sanitized_metadata": {
+    "endpoint_host": "127.0.0.1",
+    "http_status": 200,
+    "latency_ms": 5078.03,
+    "response_contract": "json_schema",
+    "served_model": "qwen3-vl:8b-instruct",
+    "served_revision": "sha256:0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319"
+  },
+  "schema_version": "medphysbench.access-probe-receipt.v1",
+  "source_commit": "33d7d3c73805997aaa3a2be3d357993ea3f76349",
+  "started_at": "2026-08-03T15:29:25Z"
+}
