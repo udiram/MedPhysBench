@@ -9,6 +9,7 @@ import {
   formatTokens,
   primaryScoreInterval,
   primaryScoreIntervalLabel,
+  normalizeModelDisplayName,
   providerLabel,
   secondaryScoreInterval,
   shortHash,
@@ -825,8 +826,7 @@ function safeSuccessInterval(model: ModelResult): [number, number] {
 }
 
 function shortModelLabel(value: string) {
-  return value
-    .replace("gpt-5.6-sol", "GPT-5.6")
+  return normalizeModelDisplayName(value)
     .replace("openai/", "")
     .replace("llama-", "Llama ")
     .replace("qwen/qwen", "Qwen ")

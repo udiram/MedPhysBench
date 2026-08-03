@@ -1,6 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
+import { domainLabel, formatDuration, formatPercent, formatTokens, normalizeModelDisplayName, providerLabel, shortHash } from "../lib/format";
 import { defectsForTask } from "../lib/defects";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import { modelRunKey } from "../lib/modelRunKey";
@@ -295,7 +295,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                 }}>
                   {visibleRows.map((entry) => (
                     <option key={entry.key} value={entry.key}>
-                      {entry.row.model_name} · {entry.row.harness_revision ?? inferExecutionSurface(entry.row)}
+                      {normalizeModelDisplayName(entry.row.model_name)} · {entry.row.harness_revision ?? inferExecutionSurface(entry.row)}
                     </option>
                   ))}
                 </select>
@@ -433,7 +433,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                   <section className="forensics-panel">
                     <h3>Selected run set</h3>
                     <dl className="forensics-meta">
-                      <div><dt>Model</dt><dd>{selectedRow.model_name}</dd></div>
+                      <div><dt>Model</dt><dd>{normalizeModelDisplayName(selectedRow.model_name)}</dd></div>
                       <div><dt>Provider</dt><dd>{providerLabel(selectedRow.provider)}</dd></div>
                       <div><dt>Source</dt><dd>{sourceLabel(selected?.source ?? "unknown")}</dd></div>
                       <div><dt>Surface</dt><dd>{surfaceLabel(inferExecutionSurface(selectedRow))}</dd></div>
@@ -704,7 +704,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                         {taskComparison.map((comparison) => (
                           <tr key={comparison.entry.key}>
                             <th scope="row">
-                              <strong>{comparison.entry.row.model_name}</strong>
+                              <strong>{normalizeModelDisplayName(comparison.entry.row.model_name)}</strong>
                               <small>{providerLabel(comparison.entry.row.provider)} · {sourceLabel(comparison.entry.source)}</small>
                             </th>
                             <td>{surfaceLabel(inferExecutionSurface(comparison.entry.row))}</td>

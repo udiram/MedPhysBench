@@ -7,6 +7,7 @@ import {
   formatPercent,
   formatTokens,
   hasComparableTelemetry,
+  normalizeModelDisplayName,
   primaryScoreInterval,
   primaryScoreIntervalLabel,
   providerLabel,
@@ -1293,9 +1294,8 @@ function providerColor(provider: string) {
 }
 
 function shortModelName(value: string) {
-  return value
+  return normalizeModelDisplayName(value)
     .replace(/^hf\.co\/EnlistedGhost\/Pixtral-12B-2409-GGUF:Q4_K_M$/i, "Pixtral 12B Q4_K_M")
-    .replace("gpt-5.6-sol", "GPT-5.6")
     .replace(/^openai\//i, "")
     .replace(/^llama-/i, "Llama ")
     .replace(/^llama(?=\d)/i, "Llama ")

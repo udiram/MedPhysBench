@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { domainLabel, formatPercent, providerLabel } from "../lib/format";
+import { domainLabel, formatPercent, normalizeModelDisplayName, providerLabel } from "../lib/format";
 import { isCommonHarnessRun } from "../lib/runSurface";
 import type { Leaderboard, ModelCatalogEntry, ModelResult, ReleaseView, ReviewEvidence } from "../types";
 
@@ -438,8 +438,7 @@ function rankGroupLabel(row: ModelResult) {
 }
 
 function shortModel(value: string) {
-  return value
-    .replace("gpt-5.6-sol", "GPT-5.6")
+  return normalizeModelDisplayName(value)
     .replace("[effort=", " · ")
     .replace("]", "")
     .replace("llama-", "Llama ")

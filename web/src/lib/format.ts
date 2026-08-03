@@ -51,6 +51,12 @@ export function providerLabel(provider: string): string {
   return provider;
 }
 
+export function normalizeModelDisplayName(value: string): string {
+  return value
+    .replace("gpt-5.6-terra", "GPT-5.6 Terra")
+    .replace("gpt-5.6-sol", "GPT-5.6");
+}
+
 export function formatCoverage(observed: number | null | undefined, expected: number | null | undefined) {
   if (observed == null || expected == null || expected <= 0) return "Coverage unavailable";
   return `${observed}/${expected} calls (${((observed / expected) * 100).toFixed(0)}%)`;
