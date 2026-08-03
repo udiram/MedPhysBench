@@ -15,7 +15,12 @@ from medphys_agentbench.adapters.ollama import _parse_json_object
 from medphys_agentbench.cli import _build_adapter
 from medphys_agentbench.json_utils import decode_strict_json_object
 from medphys_agentbench.release_loader import load_release
-from medphys_agentbench.reporting import _assign_outcome_ranks, _release_contract_hash, summarize_release
+from medphys_agentbench.reporting import (
+    _assign_outcome_ranks,
+    _rank_models,
+    _release_contract_hash,
+    summarize_release,
+)
 from medphys_agentbench.runner import (
     SCORING_REVISION,
     grader_hash_for_task,
@@ -676,6 +681,45 @@ def test_descriptive_outcome_rank_includes_complete_native_rows_without_promotin
     assert rows[0]["outcome_rank"] == 2
     assert rows[2]["outcome_rank"] is None
     assert rows[1]["ranking_eligible"] is False
+
+
+def test_exact_point_estimate_ties_share_competition_rank_and_skip_the_next_position() -> None:
+    rows = [
+        {
+            "model_name": "zeta",
+            "comparison_group": "frozen-group",
+            "safe_success_rate": 0.8,
+            "task_success_rate": 0.8,
+            "safety_gate_rate": 1.0,
+            "ranking_eligible": True,
+            "outcome_order_eligible": True,
+        },
+        {
+            "model_name": "alpha",
+            "comparison_group": "frozen-group",
+            "safe_success_rate": 0.8,
+            "task_success_rate": 0.8,
+            "safety_gate_rate": 1.0,
+            "ranking_eligible": True,
+            "outcome_order_eligible": True,
+        },
+        {
+            "model_name": "next",
+            "comparison_group": "frozen-group",
+            "safe_success_rate": 0.7,
+            "task_success_rate": 0.7,
+            "safety_gate_rate": 1.0,
+            "ranking_eligible": True,
+            "outcome_order_eligible": True,
+        },
+    ]
+
+    ranked = _rank_models(rows)
+    _assign_outcome_ranks(ranked)
+
+    assert [row["model_name"] for row in ranked] == ["alpha", "zeta", "next"]
+    assert [row["rank"] for row in ranked] == [1, 1, 3]
+    assert [row["outcome_rank"] for row in ranked] == [1, 1, 3]
 
 
 def test_validate_release_command_reports_expected_attempt_count() -> None:

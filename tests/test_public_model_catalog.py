@@ -168,7 +168,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
         "qwen3:14b",
     }
     assert all(row["ranking_eligible"] is True for row in v2_rows)
-    assert {row["rank"] for row in v2_rows} == set(range(1, 13))
+    assert sorted(row["rank"] for row in v2_rows) == [1, 1, 1, 1, 5, 6, 6, 8, 9, 10, 11, 11]
     deepseek = next(row for row in rows if row["model_name"] == "deepseek-r1:1.5b")
     capability_failures = [task for task in deepseek["tasks"] if task.get("capability_failure")]
     assert len(capability_failures) == 12

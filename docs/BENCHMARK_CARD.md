@@ -36,6 +36,8 @@ The public leaderboard ranks only model runs that are both:
 3. internally consistent across model, harness, run configuration, task versions, and hashes.
 
 Eligible runs are ranked only within an identical provider, harness, and harness-revision group.
+Exact ties on the declared safe-success, task-success, and safety-gate point estimates share
+a competition rank (`1, 1, 3`); names are a display-order key, not a performance tie-breaker.
 Incomplete or inconsistent runs remain publishable artifacts but are omitted from ranking.
 Stored pass/safety labels are not trusted: the release summarizer reconstructs grades from each
 recorded output and rejects any disagreement.

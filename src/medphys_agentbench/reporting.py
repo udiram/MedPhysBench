@@ -157,12 +157,14 @@ def summarize_release(
                 "per-call usage and duration telemetry receive an official rank. Ranks are computed only when at "
                 "least two systems share an identical provider, harness, harness revision, adapter-settings hash, "
                 "sampling contract, and seed policy. Explicit unsupported-modality preflight outcomes are exempt "
-                "from provider-call telemetry requirements."
+                "from provider-call telemetry requirements. Exact ties on safe success, task success, and "
+                "safety-gate rate share a competition rank; names affect display order only."
             ),
             "outcome_order_rule": (
                 "Complete, internally consistent rows with valid execution evidence also receive a descriptive "
                 "cross-surface outcome order. "
-                "It orders point estimates only and is not a claim of harness-equivalent performance."
+                "It uses the same shared-rank point-estimate rule and is not a claim of harness-equivalent "
+                "performance or statistical separation."
             ),
             "capability_unavailable_rule": (
                 "A required-capability failure remains a completed zero-score attempt in the primary metric, "
@@ -1130,8 +1132,14 @@ def _rank_models(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 str(item["model_name"]),
             ),
         )
-        for index, row in enumerate(ordered, start=1):
-            row["rank"] = index
+        previous_key: tuple[float, float, float] | None = None
+        competition_rank = 0
+        for position, row in enumerate(ordered, start=1):
+            ranking_key = _point_estimate_ranking_key(row)
+            if ranking_key != previous_key:
+                competition_rank = position
+                previous_key = ranking_key
+            row["rank"] = competition_rank
             row["rank_group"] = group_name
         eligible.extend(ordered)
     ineligible = sorted(
@@ -1155,10 +1163,26 @@ def _assign_outcome_ranks(rows: list[dict[str, Any]]) -> None:
             str(item["model_name"]),
         ),
     )
-    for index, row in enumerate(eligible, start=1):
-        row["outcome_rank"] = index
+    previous_key: tuple[float, float, float] | None = None
+    competition_rank = 0
+    for position, row in enumerate(eligible, start=1):
+        ranking_key = _point_estimate_ranking_key(row)
+        if ranking_key != previous_key:
+            competition_rank = position
+            previous_key = ranking_key
+        row["outcome_rank"] = competition_rank
         row["outcome_rank_status"] = "descriptive_cross_surface"
     for row in rows:
         if row not in eligible:
             row["outcome_rank"] = None
             row["outcome_rank_status"] = "ineligible_incomplete_or_invalid"
+
+
+def _point_estimate_ranking_key(row: dict[str, Any]) -> tuple[float, float, float]:
+    """Return the declared rank metrics; display labels must never break a score tie."""
+
+    return (
+        float(row["safe_success_rate"]),
+        float(row["task_success_rate"]),
+        float(row["safety_gate_rate"]),
+    )

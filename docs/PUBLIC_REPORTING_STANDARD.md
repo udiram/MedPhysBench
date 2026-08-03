@@ -32,6 +32,10 @@ Missing evidence is shown as `not declared`, `not collected`, or `pending`; neve
 ## Ranking and comparison
 
 - Official ranks exist only inside identical frozen comparison groups containing at least two systems.
+- Exact ties on the declared point-estimate ranking tuple (safe success, task success, then
+  safety-gate rate) receive shared competition ranks (`1, 1, 3`). Model names are used only
+  to keep tied rows in a deterministic display order. Interval overlap is not converted into
+  a tie, and rank remains descriptive rather than a claim of statistical separation.
 - A comparison group freezes provider, adapter, harness revision, exact model revision, adapter-settings
   hash, sampling/token contract, and attempt-index seed policy. A singleton remains visible in descriptive
   outcome order but cannot manufacture a rank of one.

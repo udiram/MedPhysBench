@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-02 — Tie-aware public ranking
+
+- changed official and descriptive point-estimate orders to shared competition ranks for
+  exact metric ties, preventing model-name display order from becoming a performance claim;
+- added Python and frontend regression coverage for tie handling and secondary-metric ordering;
+- documented that shared exact ranks do not imply significance and interval overlap alone is
+  not treated as a tie.
+
 ## Unreleased
 
 - Enforced a default 50% task-family concentration ceiling at release load time, exposed the reviewed threshold in public reporting, and added strict-boundary and deterministic-error regressions so one correlated case family cannot quietly dominate a score.

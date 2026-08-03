@@ -24,7 +24,7 @@ def test_public_reporting_payload_is_internally_consistent(payload_path: Path) -
     assert task_ids
     assert rows
 
-    official_ranks: dict[str, list[int]] = defaultdict(list)
+    official_rows: dict[str, list[dict[str, object]]] = defaultdict(list)
     for row in rows:
         attempts = row["tasks"]
         assert row["completed_count"] == len(attempts)
@@ -58,7 +58,7 @@ def test_public_reporting_payload_is_internally_consistent(payload_path: Path) -
                 )
             )
             assert group
-            official_ranks[group].append(row["rank"])
+            official_rows[group].append(row)
         else:
             assert row.get("rank") is None
 
@@ -67,8 +67,50 @@ def test_public_reporting_payload_is_internally_consistent(payload_path: Path) -
             assert usage["median_total_tokens"] is None
             assert usage["total_tokens"] is None
 
-    for ranks in official_ranks.values():
-        assert sorted(ranks) == list(range(1, len(ranks) + 1))
+    for group_rows in official_rows.values():
+        ordered = sorted(
+            group_rows,
+            key=lambda item: (
+                -float(item["safe_success_rate"]),
+                -float(item["task_success_rate"]),
+                -float(item["safety_gate_rate"]),
+                str(item["model_name"]),
+            ),
+        )
+        previous_key = None
+        expected_rank = 0
+        for position, row in enumerate(ordered, start=1):
+            ranking_key = (
+                row["safe_success_rate"],
+                row["task_success_rate"],
+                row["safety_gate_rate"],
+            )
+            if ranking_key != previous_key:
+                expected_rank = position
+                previous_key = ranking_key
+            assert row["rank"] == expected_rank
+
+    ordered_outcomes = sorted(
+        [row for row in rows if row.get("outcome_order_eligible")],
+        key=lambda item: (
+            -float(item["safe_success_rate"]),
+            -float(item["task_success_rate"]),
+            -float(item["safety_gate_rate"]),
+            str(item["model_name"]),
+        ),
+    )
+    previous_key = None
+    expected_rank = 0
+    for position, row in enumerate(ordered_outcomes, start=1):
+        ranking_key = (
+            row["safe_success_rate"],
+            row["task_success_rate"],
+            row["safety_gate_rate"],
+        )
+        if ranking_key != previous_key:
+            expected_rank = position
+            previous_key = ranking_key
+        assert row["outcome_rank"] == expected_rank
 
 
 def test_real_workflow_reporting_preserves_family_and_repeat_contract() -> None:
@@ -80,6 +122,8 @@ def test_real_workflow_reporting_preserves_family_and_repeat_contract() -> None:
     assert payload["release"]["expected_attempts_per_task"] == 3
     assert payload["methodology"]["status"].startswith("public research pilot")
     assert "correlated" in payload["methodology"]["family_dependence"].lower()
+    assert "competition rank" in payload["methodology"]["ranking_rule"]
+    assert "names affect display order only" in payload["methodology"]["ranking_rule"]
     rows = [*payload["models"], *payload.get("unranked_models", [])]
     assert rows
     for row in rows:

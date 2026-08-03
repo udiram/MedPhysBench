@@ -14,6 +14,7 @@ import {
   shortHash,
 } from "../lib/format";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
+import { competitionRankMap } from "../lib/ranking";
 
 type SortKey =
   | "model_name"
@@ -254,7 +255,7 @@ export function LeaderboardExplorer({
           )}
 
           <p className="summary-footnote">
-            Outcome order is descriptive across complete rows. Family-cluster intervals are primary when patient-family IDs are available; Wilson attempt-level intervals remain visible as a secondary sensitivity analysis. Official rank is shown only within identical frozen harness groups.
+            Outcome order is descriptive across complete rows. Exact point-estimate ties share a rank; names only order tied rows. Family-cluster intervals are primary when patient-family IDs are available; Wilson attempt-level intervals remain visible as a secondary sensitivity analysis. Official rank is shown only within identical frozen harness groups.
           </p>
         </aside>
       </div>
@@ -850,13 +851,7 @@ function withDerivedOutcomeRanks(rows: ModelResult[]) {
         || finding === "unranked_native_pilot_surface"
         || finding === "unranked_singleton_comparison_group",
       );
-    })
-    .sort((left, right) =>
-      right.safe_success_rate - left.safe_success_rate
-      || right.task_success_rate - left.task_success_rate
-      || right.safety_gate_rate - left.safety_gate_rate
-      || left.model_name.localeCompare(right.model_name),
-    );
-  const fallbackRanks = new Map(eligible.map((row, index) => [row.model_name, index + 1]));
-  return rows.map((row) => ({ ...row, outcome_rank: row.outcome_rank ?? fallbackRanks.get(row.model_name) ?? null }));
+    });
+  const fallbackRanks = competitionRankMap(eligible);
+  return rows.map((row) => ({ ...row, outcome_rank: row.outcome_rank ?? fallbackRanks.get(row) ?? null }));
 }

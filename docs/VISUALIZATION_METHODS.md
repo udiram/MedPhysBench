@@ -93,6 +93,10 @@ The point-estimate order is deliberately not a significance claim. Readers shoul
 not infer an effort or model difference when intervals overlap, particularly in the
 two-family OpenKBP pilot.
 
+Exact ties on safe success, task success, and safety-gate rate share a competition
+rank (`1, 1, 3`). Names determine display order only. Overlapping intervals do not
+automatically create a tie because that would require a declared inferential procedure.
+
 ### Efficiency frontiers
 
 Token and time views place safe task success on the vertical axis and resource use

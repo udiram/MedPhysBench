@@ -56,7 +56,7 @@
       "task_count": 1
     }
   ],
-  "generated_at": "2026-08-02T21:06:28.057084+00:00",
+  "generated_at": "2026-07-31T21:27:21.898947+00:00",
   "integrity": {
     "expected_attempt_count": 64,
     "expected_attempts_per_task": 1,
@@ -66,13 +66,14 @@
     "unranked_model_count": 11
   },
   "methodology": {
+    "capability_unavailable_rule": "A required-capability failure remains a completed zero-score attempt in the primary metric, but is reported as capability unavailable rather than unsafe because no provider call occurred. Safety and provider-call telemetry rates use only evaluable calls and disclose both denominators.",
     "confidence_interval": "Deterministic family-cluster bootstrap is primary when family IDs are available; the attempt-level Wilson 95% interval is retained as a secondary sensitivity analysis",
     "family_dependence": "Tasks sharing family_id are correlated. The reported family-cluster interval resamples whole families; task-level Wilson intervals remain descriptive.",
-    "outcome_order_rule": "Complete, internally consistent rows with valid execution evidence also receive a descriptive cross-surface outcome order. It orders point estimates only and is not a claim of harness-equivalent performance.",
+    "outcome_order_rule": "Complete, internally consistent rows with valid execution evidence also receive a descriptive cross-surface outcome order. It uses the same shared-rank point-estimate rule and is not a claim of harness-equivalent performance or statistical separation.",
     "pass_at_k": "unbiased probability that at least one of k sampled attempts safely passes",
     "pass_power_k": "unbiased probability that all k sampled attempts safely pass",
     "primary_metric": "safe task success rate",
-    "ranking_rule": "Only complete, deterministically regraded runs with execution traces, provider/runtime receipts, per-call usage and duration telemetry receive an official rank. Ranks are computed only when at least two systems share an identical provider, harness, harness revision, adapter-settings hash, sampling contract, and seed policy. Explicit unsupported-modality preflight outcomes are exempt from provider-call telemetry requirements.",
+    "ranking_rule": "Only complete, deterministically regraded runs with execution traces, provider/runtime receipts, per-call usage and duration telemetry receive an official rank. Ranks are computed only when at least two systems share an identical provider, harness, harness revision, adapter-settings hash, sampling contract, and seed policy. Explicit unsupported-modality preflight outcomes are exempt from provider-call telemetry requirements. Exact ties on safe success, task success, and safety-gate rate share a competition rank; names affect display order only.",
     "status": "public research pilot; provisional and not clinical validation"
   },
   "models": [],
@@ -84,6 +85,7 @@
     "expected_attempts_per_task": 1,
     "family_count": 64,
     "integrity_profile": "development",
+    "max_family_share": 0.5,
     "public_attempt_detail": "sanitized_output",
     "release_id": "public-core-v0.4",
     "schema_version": "medeval.release.v1",
@@ -932,6 +934,7 @@
       "appropriate_escalation_rate": 1.0,
       "attempt_count": 64,
       "average_duration_seconds": null,
+      "capability_unavailable_count": 0,
       "comparison_group": null,
       "completed_count": 64,
       "critical_unsafe_action_rate": 0.0,
@@ -950,6 +953,8 @@
       },
       "duration_telemetry": {
         "available": false,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": false,
         "expected_attempts": 64,
         "kind": "unavailable_recorded_surface",
@@ -1138,6 +1143,7 @@
         1.0
       ],
       "safe_success_rate": 1.0,
+      "safety_evaluable_attempt_count": 64,
       "safety_gate_rate": 1.0,
       "task_success_ci95": [
         0.9434,
@@ -6554,6 +6560,8 @@
       ],
       "token_usage": {
         "available": false,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": false,
         "expected_attempts": 64,
         "median_input_tokens": null,
@@ -6572,6 +6580,7 @@
       "appropriate_escalation_rate": 1.0,
       "attempt_count": 64,
       "average_duration_seconds": null,
+      "capability_unavailable_count": 0,
       "comparison_group": null,
       "completed_count": 64,
       "critical_unsafe_action_rate": 0.0,
@@ -6590,6 +6599,8 @@
       },
       "duration_telemetry": {
         "available": false,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": false,
         "expected_attempts": 64,
         "kind": "unavailable_recorded_surface",
@@ -6778,6 +6789,7 @@
         0.9972
       ],
       "safe_success_rate": 0.9844,
+      "safety_evaluable_attempt_count": 64,
       "safety_gate_rate": 1.0,
       "task_success_ci95": [
         0.9167,
@@ -12198,6 +12210,8 @@
       ],
       "token_usage": {
         "available": false,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": false,
         "expected_attempts": 64,
         "median_input_tokens": null,
@@ -12216,6 +12230,7 @@
       "appropriate_escalation_rate": 1.0,
       "attempt_count": 64,
       "average_duration_seconds": null,
+      "capability_unavailable_count": 0,
       "comparison_group": null,
       "completed_count": 64,
       "critical_unsafe_action_rate": 0.0,
@@ -12234,6 +12249,8 @@
       },
       "duration_telemetry": {
         "available": false,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": false,
         "expected_attempts": 64,
         "kind": "unavailable_recorded_surface",
@@ -12422,6 +12439,7 @@
         1.0
       ],
       "safe_success_rate": 1.0,
+      "safety_evaluable_attempt_count": 64,
       "safety_gate_rate": 1.0,
       "task_success_ci95": [
         0.9434,
@@ -17836,6 +17854,8 @@
       ],
       "token_usage": {
         "available": false,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": false,
         "expected_attempts": 64,
         "median_input_tokens": null,
@@ -17854,6 +17874,7 @@
       "appropriate_escalation_rate": 1.0,
       "attempt_count": 64,
       "average_duration_seconds": null,
+      "capability_unavailable_count": 0,
       "comparison_group": null,
       "completed_count": 64,
       "critical_unsafe_action_rate": 0.0,
@@ -17872,6 +17893,8 @@
       },
       "duration_telemetry": {
         "available": false,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": false,
         "expected_attempts": 64,
         "kind": "unavailable_recorded_surface",
@@ -18060,6 +18083,7 @@
         0.9972
       ],
       "safe_success_rate": 0.9844,
+      "safety_evaluable_attempt_count": 64,
       "safety_gate_rate": 1.0,
       "task_success_ci95": [
         0.9167,
@@ -23480,6 +23504,8 @@
       ],
       "token_usage": {
         "available": false,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": false,
         "expected_attempts": 64,
         "median_input_tokens": null,
@@ -23498,6 +23524,7 @@
       "appropriate_escalation_rate": 1.0,
       "attempt_count": 64,
       "average_duration_seconds": null,
+      "capability_unavailable_count": 0,
       "comparison_group": null,
       "completed_count": 64,
       "critical_unsafe_action_rate": 0.0,
@@ -23516,6 +23543,8 @@
       },
       "duration_telemetry": {
         "available": false,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": false,
         "expected_attempts": 64,
         "kind": "unavailable_recorded_surface",
@@ -23704,6 +23733,7 @@
         1.0
       ],
       "safe_success_rate": 1.0,
+      "safety_evaluable_attempt_count": 64,
       "safety_gate_rate": 1.0,
       "task_success_ci95": [
         0.9434,
@@ -29120,6 +29150,8 @@
       ],
       "token_usage": {
         "available": false,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": false,
         "expected_attempts": 64,
         "median_input_tokens": null,
@@ -29138,6 +29170,7 @@
       "appropriate_escalation_rate": 1.0,
       "attempt_count": 64,
       "average_duration_seconds": null,
+      "capability_unavailable_count": 0,
       "comparison_group": null,
       "completed_count": 64,
       "critical_unsafe_action_rate": 0.0,
@@ -29156,6 +29189,8 @@
       },
       "duration_telemetry": {
         "available": false,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": false,
         "expected_attempts": 64,
         "kind": "unavailable_recorded_surface",
@@ -29344,6 +29379,7 @@
         0.9972
       ],
       "safe_success_rate": 0.9844,
+      "safety_evaluable_attempt_count": 64,
       "safety_gate_rate": 1.0,
       "task_success_ci95": [
         0.9167,
@@ -34747,6 +34783,8 @@
       ],
       "token_usage": {
         "available": false,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": false,
         "expected_attempts": 64,
         "median_input_tokens": null,
@@ -34765,6 +34803,7 @@
       "appropriate_escalation_rate": 0.9474,
       "attempt_count": 64,
       "average_duration_seconds": 2.5827,
+      "capability_unavailable_count": 0,
       "comparison_group": "ollama::medphysbench-ollama::reference-json-v1::config=70054c12d73ccd35",
       "completed_count": 64,
       "critical_unsafe_action_rate": 0.0156,
@@ -34783,6 +34822,8 @@
       },
       "duration_telemetry": {
         "available": true,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": true,
         "expected_attempts": 64,
         "kind": "common_harness_wall_clock",
@@ -34971,6 +35012,7 @@
         0.3848
       ],
       "safe_success_rate": 0.2656,
+      "safety_evaluable_attempt_count": 64,
       "safety_gate_rate": 0.9844,
       "task_success_ci95": [
         0.173,
@@ -41021,6 +41063,8 @@
       ],
       "token_usage": {
         "available": true,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": true,
         "expected_attempts": 64,
         "median_input_tokens": 471.0,
@@ -41039,6 +41083,7 @@
       "appropriate_escalation_rate": 1.0,
       "attempt_count": 64,
       "average_duration_seconds": 4.5728,
+      "capability_unavailable_count": 0,
       "comparison_group": "ollama::medphysbench-ollama::reference-json-v1::config=70054c12d73ccd35",
       "completed_count": 64,
       "critical_unsafe_action_rate": 0.0156,
@@ -41057,6 +41102,8 @@
       },
       "duration_telemetry": {
         "available": true,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": true,
         "expected_attempts": 64,
         "kind": "common_harness_wall_clock",
@@ -41245,6 +41292,7 @@
         0.619
       ],
       "safe_success_rate": 0.5,
+      "safety_evaluable_attempt_count": 64,
       "safety_gate_rate": 0.9844,
       "task_success_ci95": [
         0.381,
@@ -47249,6 +47297,8 @@
       ],
       "token_usage": {
         "available": true,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": true,
         "expected_attempts": 64,
         "median_input_tokens": 464.5,
@@ -47267,6 +47317,7 @@
       "appropriate_escalation_rate": 0.8421,
       "attempt_count": 64,
       "average_duration_seconds": 1.9855,
+      "capability_unavailable_count": 0,
       "comparison_group": "ollama::medphysbench-ollama::reference-json-v1::config=70054c12d73ccd35",
       "completed_count": 64,
       "critical_unsafe_action_rate": 0.0469,
@@ -47285,6 +47336,8 @@
       },
       "duration_telemetry": {
         "available": true,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": true,
         "expected_attempts": 64,
         "kind": "common_harness_wall_clock",
@@ -47474,6 +47527,7 @@
         0.3682
       ],
       "safe_success_rate": 0.25,
+      "safety_evaluable_attempt_count": 64,
       "safety_gate_rate": 0.9531,
       "task_success_ci95": [
         0.1601,
@@ -53548,6 +53602,8 @@
       ],
       "token_usage": {
         "available": true,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": true,
         "expected_attempts": 64,
         "median_input_tokens": 472.5,
@@ -53566,6 +53622,7 @@
       "appropriate_escalation_rate": 1.0,
       "attempt_count": 64,
       "average_duration_seconds": 10.3658,
+      "capability_unavailable_count": 0,
       "comparison_group": "ollama::medphysbench-ollama::reference-json-v1::config=70054c12d73ccd35",
       "completed_count": 64,
       "critical_unsafe_action_rate": 0.0,
@@ -53584,6 +53641,8 @@
       },
       "duration_telemetry": {
         "available": true,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": true,
         "expected_attempts": 64,
         "kind": "common_harness_wall_clock",
@@ -53772,6 +53831,7 @@
         0.827
       ],
       "safe_success_rate": 0.7344,
+      "safety_evaluable_attempt_count": 64,
       "safety_gate_rate": 1.0,
       "task_success_ci95": [
         0.6152,
@@ -59712,6 +59772,8 @@
       ],
       "token_usage": {
         "available": true,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": true,
         "expected_attempts": 64,
         "median_input_tokens": 472.5,
@@ -59730,6 +59792,7 @@
       "appropriate_escalation_rate": 1.0,
       "attempt_count": 64,
       "average_duration_seconds": 5.0312,
+      "capability_unavailable_count": 0,
       "comparison_group": "ollama::medphysbench-ollama::reference-json-v1::config=70054c12d73ccd35",
       "completed_count": 64,
       "critical_unsafe_action_rate": 0.0,
@@ -59748,6 +59811,8 @@
       },
       "duration_telemetry": {
         "available": true,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": true,
         "expected_attempts": 64,
         "kind": "common_harness_wall_clock",
@@ -59936,6 +60001,7 @@
         0.6913
       ],
       "safe_success_rate": 0.5781,
+      "safety_evaluable_attempt_count": 64,
       "safety_gate_rate": 1.0,
       "task_success_ci95": [
         0.4561,
@@ -65922,6 +65988,8 @@
       ],
       "token_usage": {
         "available": true,
+        "campaign_attempts": 64,
+        "capability_unavailable_attempts": 0,
         "complete": true,
         "expected_attempts": 64,
         "median_input_tokens": 472.5,
