@@ -7,6 +7,8 @@
 - added Python and frontend regression coverage for tie handling and secondary-metric ordering;
 - documented that shared exact ranks do not imply significance and interval overlap alone is
   not treated as a tie.
+- fixed provider-filtered model summaries so a Groq-only slice cannot retain an Ollama route
+  label (or vice versa) after the underlying variants have been filtered.
 
 ## Unreleased
 

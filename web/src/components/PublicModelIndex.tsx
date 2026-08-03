@@ -3,6 +3,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
 import { groupIntegrityIssues, integrityIssueHeadline } from "../lib/integrity";
 import { resolveRunBaseModelId } from "../lib/modelIdentity";
+import { providerIdsForSlice } from "../lib/modelSlice";
 import { isCommonHarnessRun, isNativeRun } from "../lib/runSurface";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { classifyAttemptOutcome } from "../types";
@@ -46,7 +47,6 @@ type ModelGroup = {
   family_name: string;
   steward_name: string;
   providers: string[];
-  provider_label: string;
   catalog: ModelCatalogEntry | null;
   catalogEntries: ModelCatalogEntry[];
   fleetEntry: FleetStatusModel | null;
@@ -226,10 +226,6 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
         primary?.family ??
         primary?.model_name ??
         inferDisplayFromBase(baseModelId);
-      const fallbackProviders = providers.length > 0
-        ? providers
-        : (fleetEntry?.planned_routes ?? []).filter((value) => value !== "self_hosted");
-
       return {
         key: baseModelId,
         base_model_id: baseModelId,
@@ -238,10 +234,6 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
         family_name: primary?.family ?? fleetEntry?.family ?? "Unknown",
         steward_name: primary?.steward ?? fleetEntry?.steward ?? "Unknown",
         providers,
-        provider_label:
-          providers.length > 0
-            ? providers.map((value) => providerLabel(value)).join(", ")
-            : fallbackProviders.map((value) => plannedRouteLabel(value as FleetStatusModel["planned_routes"][number])).join(", "),
         catalog: primary ?? null,
         catalogEntries,
         fleetEntry,
@@ -279,7 +271,6 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
       if (!group.providers.includes(runProvider)) {
         group.providers.push(runProvider);
         group.providers = uniqueValues(group.providers);
-        group.provider_label = group.providers.map((value) => providerLabel(value)).join(", ");
       }
       if (!group.catalog && run.catalog_entry) {
         group.catalog = run.catalog_entry;
@@ -625,6 +616,7 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
                     expanded={expanded === group.key}
                     familyPeers={familyPeersByBase.get(group.base_model_id) ?? []}
                     group={group}
+                    selectedProvider={provider}
                     runKey={runKey}
                     onToggle={() => {
                       const nextExpanded = expanded === group.key ? null : group.key;
@@ -653,12 +645,14 @@ function ModelRegistryRow({
   familyPeers,
   onToggle,
   runKey,
+  selectedProvider,
 }: {
   group: ModelGroup;
   expanded: boolean;
   familyPeers: ModelGroup[];
   onToggle: () => void;
   runKey?: string | null;
+  selectedProvider: string;
 }) {
   const sortedRuns = [...group.runs].sort(
     (left, right) =>
@@ -666,6 +660,12 @@ function ModelRegistryRow({
       left.release_id.localeCompare(right.release_id),
   );
   const variantSummaries = useMemo(() => summarizeVariants(sortedRuns), [sortedRuns]);
+  const sliceProviders = providerIdsForSlice(
+    group.providers,
+    sortedRuns.map((run) => run.provider),
+    selectedProvider,
+  );
+  const sliceProviderLabel = sliceProviders.map((item) => providerLabel(item)).join(", ");
   const allTasks = useMemo(
     () => sortedRuns.flatMap((run) => run.tasks),
     [sortedRuns],
@@ -715,14 +715,14 @@ function ModelRegistryRow({
             <span>{group.display_name || group.model_name}</span>
             <small>
               {group.fleetEntry?.steward ?? group.catalog?.steward ?? "Catalog pending"}
-              {group.providers.length > 0 ? ` · ${group.providers.map((item) => providerLabel(item)).join(" + ")}` : ""}
+              {sliceProviders.length > 0 ? ` · ${sliceProviders.map((item) => providerLabel(item)).join(" + ")}` : ""}
               {variantSummaries.length > 0 ? ` · ${variantSummaries.length} variant${variantSummaries.length === 1 ? "" : "s"}` : ""}
               {familyPeers.length > 1 ? ` · ${familyPeers.length} systems in ${group.family_name}` : ""}
             </small>
           </button>
         </td>
         <td>{opennessLabel(group.openness)}</td>
-        <td>{group.provider_label || "Not classified"}</td>
+        <td>{sliceProviderLabel || "Not classified"}</td>
         <td>{group.catalog?.family ?? "Unknown"}</td>
         <td>{group.release_count}</td>
         <td>{group.best_safe_success_rate == null ? "Unavailable" : formatPercent(group.best_safe_success_rate)}</td>
@@ -746,7 +746,7 @@ function ModelRegistryRow({
                   </div>
                   <div>
                     <dt>Providers</dt>
-                    <dd>{group.providers.map((item) => providerLabel(item)).join(", ") || "None"}</dd>
+                    <dd>{sliceProviderLabel || "None"}</dd>
                   </div>
                   <div>
                     <dt>Planned routes</dt>
