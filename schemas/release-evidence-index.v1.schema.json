@@ -80,7 +80,15 @@
         "integrity_profile": { "enum": ["development", "pilot", "comparison"] },
         "public_attempt_detail": { "enum": ["aggregate_only", "sanitized_output"] },
         "maturity": {
-          "enum": ["public_development", "public_pilot", "protected_comparison", "retired"]
+          "enum": [
+            "public_development",
+            "public_pilot",
+            "domain_reviewed",
+            "human_baselined",
+            "protected_comparison",
+            "externally_replicated",
+            "retired"
+          ]
         },
         "exposure": {
           "type": "object",
@@ -118,6 +126,8 @@
             "reference_feasibility",
             "independent_domain_review",
             "human_baseline",
+            "paired_counterfactuals",
+            "negative_controls",
             "data_rights_review",
             "artifact_audit",
             "independent_replication"
@@ -134,6 +144,8 @@
             },
             "independent_domain_review": { "$ref": "#/$defs/evidenceCountState" },
             "human_baseline": { "$ref": "#/$defs/evidenceCountState" },
+            "paired_counterfactuals": { "$ref": "#/$defs/evidenceCountState" },
+            "negative_controls": { "$ref": "#/$defs/evidenceCountState" },
             "data_rights_review": {
               "type": "object",
               "additionalProperties": false,

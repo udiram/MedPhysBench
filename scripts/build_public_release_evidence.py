@@ -82,6 +82,15 @@ def _validate_count_state(state: dict[str, Any], *, release_id: str, field: str)
         raise ValueError(f"{release_id}:{field}: not_applicable requires completed=0 and target=null.")
 
 
+def _state_complete(state: dict[str, Any] | None) -> bool:
+    if not state or state.get("status") != "complete":
+        return False
+    target = state.get("target")
+    if target is None:
+        return False
+    return int(state.get("completed", 0)) == int(target)
+
+
 def _claim_text(entry: dict[str, Any], side: str) -> str:
     return " ".join(str(item).lower() for item in entry["claim_boundary"][side])
 
@@ -104,6 +113,31 @@ def _validate_claim_guards(entry: dict[str, Any]) -> None:
         token in prohibited for token in ("stateful", "workflow", "end-to-end")
     ):
         raise ValueError(f"{release_id}: single-response depth must be explicit in prohibited claims.")
+
+
+def _validate_maturity_requirements(entry: dict[str, Any]) -> None:
+    release_id = str(entry["release_id"])
+    maturity = str(entry["maturity"])
+    evidence = entry["evidence"]
+    if maturity in {"domain_reviewed", "human_baselined", "protected_comparison", "externally_replicated"}:
+        if not _state_complete(evidence["independent_domain_review"]):
+            raise ValueError(f"{release_id}: {maturity} requires complete independent domain review.")
+    if maturity in {"human_baselined", "protected_comparison", "externally_replicated"}:
+        if not _state_complete(evidence["human_baseline"]):
+            raise ValueError(f"{release_id}: {maturity} requires a complete human baseline.")
+    if maturity in {"protected_comparison", "externally_replicated"}:
+        if entry["integrity_profile"] != "comparison":
+            raise ValueError(f"{release_id}: {maturity} requires integrity_profile 'comparison'.")
+        if int(entry["expected_attempts_per_task"]) < 5:
+            raise ValueError(f"{release_id}: {maturity} requires at least 5 attempts per task.")
+        if entry["exposure"]["protected_holdout"]["status"] != "operating":
+            raise ValueError(f"{release_id}: {maturity} requires an operating protected holdout.")
+        if not _state_complete(evidence.get("paired_counterfactuals")):
+            raise ValueError(f"{release_id}: {maturity} requires complete paired counterfactual evidence.")
+        if not _state_complete(evidence.get("negative_controls")):
+            raise ValueError(f"{release_id}: {maturity} requires complete negative-control evidence.")
+    if maturity == "externally_replicated" and evidence["independent_replication"]["status"] != "complete":
+        raise ValueError(f"{release_id}: externally_replicated requires complete independent replication.")
 
 
 def _validate_interaction(entry: dict[str, Any]) -> None:
@@ -201,7 +235,20 @@ def validate_release_evidence_index(
             field="independent_domain_review",
         )
         _validate_count_state(evidence["human_baseline"], release_id=release_id, field="human_baseline")
+        if "paired_counterfactuals" in evidence:
+            _validate_count_state(
+                evidence["paired_counterfactuals"],
+                release_id=release_id,
+                field="paired_counterfactuals",
+            )
+        if "negative_controls" in evidence:
+            _validate_count_state(
+                evidence["negative_controls"],
+                release_id=release_id,
+                field="negative_controls",
+            )
         _validate_interaction(entry)
+        _validate_maturity_requirements(entry)
         _validate_claim_guards(entry)
 
         review_binding = entry["review_ledger"]
@@ -229,6 +276,12 @@ def validate_release_evidence_index(
             ("human_baseline", "status", "human_baseline", "status"),
             ("human_baseline", "completed", "human_baseline", "completed"),
             ("human_baseline", "target", "human_baseline", "target"),
+            ("paired_counterfactuals", "status", "paired_counterfactuals", "status"),
+            ("paired_counterfactuals", "completed", "paired_counterfactuals", "completed"),
+            ("paired_counterfactuals", "target", "paired_counterfactuals", "target"),
+            ("negative_controls", "status", "negative_controls", "status"),
+            ("negative_controls", "completed", "negative_controls", "completed"),
+            ("negative_controls", "target", "negative_controls", "target"),
             ("data_rights_review", "status", "data_rights_review", "status"),
         )
         for evidence_group, evidence_field, review_group, review_field in review_pairs:

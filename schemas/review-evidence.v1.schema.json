@@ -11,6 +11,8 @@
     "reference_feasibility",
     "independent_domain_review",
     "human_baseline",
+    "paired_counterfactuals",
+    "negative_controls",
     "data_rights_review",
     "task_reviews",
     "claim_boundary"
@@ -30,6 +32,8 @@
     },
     "independent_domain_review": { "$ref": "#/$defs/reviewState" },
     "human_baseline": { "$ref": "#/$defs/reviewState" },
+    "paired_counterfactuals": { "$ref": "#/$defs/reviewState" },
+    "negative_controls": { "$ref": "#/$defs/reviewState" },
     "data_rights_review": {
       "type": "object",
       "additionalProperties": false,
@@ -69,7 +73,7 @@
       "additionalProperties": false,
       "required": ["status", "completed", "target", "note"],
       "properties": {
-        "status": { "enum": ["complete", "recruiting", "pending", "blocked"] },
+        "status": { "enum": ["complete", "recruiting", "pending", "blocked", "not_started"] },
         "completed": { "type": "integer", "minimum": 0 },
         "target": { "type": "integer", "minimum": 1 },
         "note": { "type": "string", "minLength": 1 },

@@ -149,7 +149,11 @@ function releaseBoundary(releaseEvidence: ReleaseEvidence | null, releaseEvidenc
   };
   return {
     status: maturityLabel(releaseEvidence.maturity),
-    tone: releaseEvidence.maturity === "protected_comparison" ? "neutral" : "warn",
+    tone: releaseEvidence.maturity === "externally_replicated"
+      ? "good"
+      : releaseEvidence.maturity === "protected_comparison" || releaseEvidence.maturity === "human_baselined" || releaseEvidence.maturity === "domain_reviewed"
+        ? "neutral"
+        : "warn",
     allowed: evidenceClaimText(releaseEvidence.claim_boundary.allowed),
     prohibited: evidenceClaimText(releaseEvidence.claim_boundary.prohibited),
   };

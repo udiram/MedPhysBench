@@ -64,7 +64,12 @@ def _validate(validator: Draft202012Validator, payload: Any, path: Path) -> None
 
 def _validate_review_evidence_semantics(payload: dict[str, Any], path: Path) -> None:
     release_id = str(payload["release_id"])
-    for field in ("independent_domain_review", "human_baseline"):
+    for field in (
+        "independent_domain_review",
+        "human_baseline",
+        "paired_counterfactuals",
+        "negative_controls",
+    ):
         state = payload[field]
         completed = int(state["completed"])
         target = int(state["target"])

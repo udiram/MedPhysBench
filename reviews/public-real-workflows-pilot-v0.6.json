@@ -18,6 +18,18 @@
     "target": 30,
     "note": "No human performance score is published. The preregistered collection protocol is in docs/HUMAN_BASELINE_PROTOCOL.md."
   },
+  "paired_counterfactuals": {
+    "status": "pending",
+    "completed": 0,
+    "target": 10,
+    "note": "No release-matched paired counterfactual variants are published for the ten workflow-view tasks."
+  },
+  "negative_controls": {
+    "status": "pending",
+    "completed": 0,
+    "target": 10,
+    "note": "No release-matched negative-control fixtures are published for the ten workflow-view tasks."
+  },
   "data_rights_review": {
     "status": "pending_independent_confirmation",
     "note": "The official OpenKBP code/data repository and pinned dataset mirror declare MIT terms; CT origin and upstream challenge attribution are retained. Independent publication-rights review remains required before promoting the pilot beyond provisional status."

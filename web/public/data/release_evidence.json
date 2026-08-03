@@ -42,6 +42,18 @@
           "note": "No independent organization has published a release-matched reproduction.",
           "status": "not_started"
         },
+        "negative_controls": {
+          "completed": 0,
+          "note": "No release-matched negative-control set is published.",
+          "status": "not_started",
+          "target": null
+        },
+        "paired_counterfactuals": {
+          "completed": 0,
+          "note": "No release-matched paired counterfactual set is published.",
+          "status": "not_started",
+          "target": null
+        },
         "reference_feasibility": {
           "note": "Repository validation constructs and deterministically regrades a schema-valid reference output for every task.",
           "status": "passed"
@@ -115,6 +127,18 @@
         "independent_replication": {
           "note": "No independent organization has published a release-matched reproduction.",
           "status": "not_started"
+        },
+        "negative_controls": {
+          "completed": 0,
+          "note": "No release-matched negative-control set is published.",
+          "status": "not_started",
+          "target": null
+        },
+        "paired_counterfactuals": {
+          "completed": 0,
+          "note": "No release-matched paired counterfactual set is published.",
+          "status": "not_started",
+          "target": null
         },
         "reference_feasibility": {
           "note": "Repository validation constructs and deterministically regrades a schema-valid reference output for every task.",
@@ -190,6 +214,18 @@
           "note": "No independent organization has published a release-matched reproduction.",
           "status": "not_started"
         },
+        "negative_controls": {
+          "completed": 0,
+          "note": "No release-matched negative-control set is published.",
+          "status": "not_started",
+          "target": null
+        },
+        "paired_counterfactuals": {
+          "completed": 0,
+          "note": "No release-matched paired counterfactual set is published.",
+          "status": "not_started",
+          "target": null
+        },
         "reference_feasibility": {
           "note": "Repository validation constructs and deterministically regrades a schema-valid reference output for every task.",
           "status": "passed"
@@ -263,6 +299,18 @@
         "independent_replication": {
           "note": "No independent organization has published a release-matched reproduction.",
           "status": "not_started"
+        },
+        "negative_controls": {
+          "completed": 0,
+          "note": "No release-matched negative-control image set is published.",
+          "status": "not_started",
+          "target": null
+        },
+        "paired_counterfactuals": {
+          "completed": 0,
+          "note": "No release-matched paired counterfactual image set is published.",
+          "status": "not_started",
+          "target": null
         },
         "reference_feasibility": {
           "note": "Repository validation constructs and deterministically regrades a schema-valid reference output for every task.",
@@ -347,6 +395,18 @@
           "note": "No independent organization has published a release-matched reproduction.",
           "status": "not_started"
         },
+        "negative_controls": {
+          "completed": 0,
+          "note": "No release-matched negative-control fixtures are published for the ten workflow-view tasks.",
+          "status": "pending",
+          "target": 10
+        },
+        "paired_counterfactuals": {
+          "completed": 0,
+          "note": "No release-matched paired counterfactual variants are published for the ten workflow-view tasks.",
+          "status": "pending",
+          "target": 10
+        },
         "reference_feasibility": {
           "note": "Repository validation constructs a schema-valid reference output for every task and deterministically regrades it.",
           "status": "passed"
@@ -378,7 +438,7 @@
       "release_id": "public-real-workflows-pilot-v0.6",
       "review_ledger": {
         "path": "reviews/public-real-workflows-pilot-v0.6.json",
-        "sha256": "9c491835856ebeba5409c2bd08b9f129c5dee4699a6d935c9e8458268b11185a"
+        "sha256": "72b1b150c0c4ca1590b9e44c661e95fdf897e7063db64440dd43cb1aa0d3c695"
       },
       "task_count": 10
     },
@@ -423,6 +483,18 @@
         "independent_replication": {
           "note": "No independent organization has published a release-matched reproduction.",
           "status": "not_started"
+        },
+        "negative_controls": {
+          "completed": 0,
+          "note": "No release-matched negative-control naming set is published.",
+          "status": "not_started",
+          "target": null
+        },
+        "paired_counterfactuals": {
+          "completed": 0,
+          "note": "No release-matched paired counterfactual naming set is published.",
+          "status": "not_started",
+          "target": null
         },
         "reference_feasibility": {
           "note": "Repository validation constructs and deterministically regrades a schema-valid reference output for every task.",

@@ -31,6 +31,18 @@
     "status": "pending",
     "target": 2
   },
+  "negative_controls": {
+    "completed": 0,
+    "note": "No release-matched negative-control fixtures are published for the ten workflow-view tasks.",
+    "status": "pending",
+    "target": 10
+  },
+  "paired_counterfactuals": {
+    "completed": 0,
+    "note": "No release-matched paired counterfactual variants are published for the ten workflow-view tasks.",
+    "status": "pending",
+    "target": 10
+  },
   "reference_feasibility": {
     "method": "Repository validation constructs a schema-valid reference output for every task and deterministically regrades it.",
     "status": "passed"

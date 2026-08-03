@@ -46,6 +46,8 @@ export function EvidenceSections({ accessStatus, data, defectLedger, releaseView
               <li><strong>{reviewCount ?? "—"}</strong> descriptive-only row{reviewCount === 1 ? "" : "s"}</li>
               {data?.release.family_count != null && <li><strong>{data.release.family_count}</strong> independent patient/task families</li>}
               <li><strong>Human baseline</strong> {humanBaselineSummary(releaseEvidence)}</li>
+              <li><strong>Counterfactuals</strong> {comparisonStateSummary(releaseEvidence?.evidence.paired_counterfactuals)}</li>
+              <li><strong>Negative controls</strong> {comparisonStateSummary(releaseEvidence?.evidence.negative_controls)}</li>
               <li><strong>Evidence maturity</strong> {releaseEvidence ? maturityLabel(releaseEvidence.maturity) : "unavailable"}</li>
               <li><strong>Interaction depth</strong> {releaseEvidence ? interactionDepthLabel(releaseEvidence.interaction.depth) : "unavailable"}</li>
             </ul>
@@ -198,6 +200,16 @@ export function EvidenceSections({ accessStatus, data, defectLedger, releaseView
               <p>Canonical evidence unavailable; no review or replication claim is inferred.</p>
             )}
           </article>
+          <article>
+            <h3>Comparison gate</h3>
+            {releaseEvidence ? (
+              <p>
+                Holdout {evidenceStatusLabel(releaseEvidence.exposure.protected_holdout.status)} · counterfactuals {countStateLabel(releaseEvidence.evidence.paired_counterfactuals)} · negative controls {countStateLabel(releaseEvidence.evidence.negative_controls)}.
+              </p>
+            ) : (
+              <p>Canonical evidence unavailable; no comparison-readiness claim is inferred.</p>
+            )}
+          </article>
           <article className={affectedDefects.length ? "integrity-defect-card active" : "integrity-defect-card"}>
             <h3>Public defect ledger</h3>
             {!defectLedger ? (
@@ -226,6 +238,11 @@ export function EvidenceSections({ accessStatus, data, defectLedger, releaseView
 function humanBaselineSummary(releaseEvidence: ReleaseEvidence | null) {
   if (!releaseEvidence) return "evidence unavailable";
   return countStateLabel(releaseEvidence.evidence.human_baseline);
+}
+
+function comparisonStateSummary(state: ReleaseEvidence["evidence"]["paired_counterfactuals"] | undefined) {
+  if (!state) return "not declared";
+  return countStateLabel(state);
 }
 
 function buildCoverage(tasks: Leaderboard["tasks"]) {

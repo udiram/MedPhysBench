@@ -204,6 +204,113 @@ def test_release_evidence_fails_closed_on_overclaim_and_stateful_shortcuts() -> 
         validate_release_evidence_index(tampered)
 
 
+def test_release_evidence_maturity_gate_requires_counterfactuals_and_negative_controls() -> None:
+    from scripts.build_public_release_evidence import _validate_maturity_requirements
+
+    entry = {
+        "release_id": "protected-fixture",
+        "maturity": "protected_comparison",
+        "integrity_profile": "comparison",
+        "expected_attempts_per_task": 5,
+        "exposure": {"protected_holdout": {"status": "operating"}},
+        "evidence": {
+            "independent_domain_review": {
+                "status": "complete",
+                "completed": 2,
+                "target": 2,
+                "note": "done",
+            },
+            "human_baseline": {
+                "status": "complete",
+                "completed": 30,
+                "target": 30,
+                "note": "done",
+            },
+            "paired_counterfactuals": {
+                "status": "pending",
+                "completed": 0,
+                "target": 10,
+                "note": "pending",
+            },
+            "negative_controls": {
+                "status": "complete",
+                "completed": 10,
+                "target": 10,
+                "note": "done",
+            },
+            "independent_replication": {"status": "not_started", "note": "pending"},
+        },
+    }
+
+    with pytest.raises(ValueError, match="paired counterfactual"):
+        _validate_maturity_requirements(entry)
+
+    entry["evidence"]["paired_counterfactuals"] = {
+        "status": "complete",
+        "completed": 10,
+        "target": 10,
+        "note": "done",
+    }
+    entry["evidence"]["negative_controls"] = {
+        "status": "pending",
+        "completed": 0,
+        "target": 10,
+        "note": "pending",
+    }
+    with pytest.raises(ValueError, match="negative-control"):
+        _validate_maturity_requirements(entry)
+
+    entry["evidence"]["negative_controls"] = {
+        "status": "complete",
+        "completed": 10,
+        "target": 10,
+        "note": "done",
+    }
+    _validate_maturity_requirements(entry)
+
+
+def test_release_evidence_externally_replicated_requires_replication_completion() -> None:
+    from scripts.build_public_release_evidence import _validate_maturity_requirements
+
+    entry = {
+        "release_id": "replicated-fixture",
+        "maturity": "externally_replicated",
+        "integrity_profile": "comparison",
+        "expected_attempts_per_task": 5,
+        "exposure": {"protected_holdout": {"status": "operating"}},
+        "evidence": {
+            "independent_domain_review": {
+                "status": "complete",
+                "completed": 2,
+                "target": 2,
+                "note": "done",
+            },
+            "human_baseline": {
+                "status": "complete",
+                "completed": 30,
+                "target": 30,
+                "note": "done",
+            },
+            "paired_counterfactuals": {
+                "status": "complete",
+                "completed": 10,
+                "target": 10,
+                "note": "done",
+            },
+            "negative_controls": {
+                "status": "complete",
+                "completed": 10,
+                "target": 10,
+                "note": "done",
+            },
+            "independent_replication": {"status": "not_started", "note": "pending"},
+        },
+    }
+
+    with pytest.raises(ValueError, match="independent replication"):
+        _validate_maturity_requirements(entry)
+
+
 def test_release_evidence_requires_exact_release_coverage() -> None:
     from scripts.build_public_release_evidence import validate_release_evidence_index
 

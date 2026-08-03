@@ -16,6 +16,8 @@ const evidence = {
   interaction: { depth: "single_response" },
   evidence: {
     human_baseline: { status: "not_started", completed: 0, target: null, note: "None." },
+    paired_counterfactuals: { status: "not_started", completed: 0, target: null, note: "None." },
+    negative_controls: { status: "not_started", completed: 0, target: null, note: "None." },
   },
   claim_boundary: { allowed: ["Bounded research comparison", "Regression testing"] },
 };

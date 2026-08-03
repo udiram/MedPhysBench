@@ -46,6 +46,18 @@
           "target": null,
           "note": "No release-matched human baseline is published."
         },
+        "paired_counterfactuals": {
+          "status": "not_started",
+          "completed": 0,
+          "target": null,
+          "note": "No release-matched paired counterfactual set is published."
+        },
+        "negative_controls": {
+          "status": "not_started",
+          "completed": 0,
+          "target": null,
+          "note": "No release-matched negative-control set is published."
+        },
         "data_rights_review": {
           "status": "documented",
           "note": "Repository-authored public tasks are CC0 and source/provenance declarations are retained; this is not an independent scientific review."
@@ -117,6 +129,18 @@
           "completed": 0,
           "target": null,
           "note": "No release-matched human baseline is published."
+        },
+        "paired_counterfactuals": {
+          "status": "not_started",
+          "completed": 0,
+          "target": null,
+          "note": "No release-matched paired counterfactual set is published."
+        },
+        "negative_controls": {
+          "status": "not_started",
+          "completed": 0,
+          "target": null,
+          "note": "No release-matched negative-control set is published."
         },
         "data_rights_review": {
           "status": "documented",
@@ -190,6 +214,18 @@
           "target": null,
           "note": "No release-matched human baseline is published."
         },
+        "paired_counterfactuals": {
+          "status": "not_started",
+          "completed": 0,
+          "target": null,
+          "note": "No release-matched paired counterfactual set is published."
+        },
+        "negative_controls": {
+          "status": "not_started",
+          "completed": 0,
+          "target": null,
+          "note": "No release-matched negative-control set is published."
+        },
         "data_rights_review": {
           "status": "documented",
           "note": "Repository-authored public tasks are CC0 and source/provenance declarations are retained."
@@ -261,6 +297,18 @@
           "completed": 0,
           "target": null,
           "note": "No human-reader or contouring baseline is published."
+        },
+        "paired_counterfactuals": {
+          "status": "not_started",
+          "completed": 0,
+          "target": null,
+          "note": "No release-matched paired counterfactual image set is published."
+        },
+        "negative_controls": {
+          "status": "not_started",
+          "completed": 0,
+          "target": null,
+          "note": "No release-matched negative-control image set is published."
         },
         "data_rights_review": {
           "status": "pending_independent_confirmation",
@@ -334,6 +382,18 @@
           "target": 30,
           "note": "No human performance score is published. The preregistered collection protocol is in docs/HUMAN_BASELINE_PROTOCOL.md."
         },
+        "paired_counterfactuals": {
+          "status": "pending",
+          "completed": 0,
+          "target": 10,
+          "note": "No release-matched paired counterfactual variants are published for the ten workflow-view tasks."
+        },
+        "negative_controls": {
+          "status": "pending",
+          "completed": 0,
+          "target": 10,
+          "note": "No release-matched negative-control fixtures are published for the ten workflow-view tasks."
+        },
         "data_rights_review": {
           "status": "pending_independent_confirmation",
           "note": "The official OpenKBP code/data repository and pinned dataset mirror declare MIT terms; CT origin and upstream challenge attribution are retained. Independent publication-rights review remains required before promoting the pilot beyond provisional status."
@@ -367,7 +427,7 @@
       "defect_ids": ["MPB-2026-001", "MPB-2026-002", "MPB-2026-003"],
       "review_ledger": {
         "path": "reviews/public-real-workflows-pilot-v0.6.json",
-        "sha256": "9c491835856ebeba5409c2bd08b9f129c5dee4699a6d935c9e8458268b11185a"
+        "sha256": "72b1b150c0c4ca1590b9e44c661e95fdf897e7063db64440dd43cb1aa0d3c695"
       }
     },
     {
@@ -413,6 +473,18 @@
           "completed": 0,
           "target": null,
           "note": "No release-matched physicist baseline is published."
+        },
+        "paired_counterfactuals": {
+          "status": "not_started",
+          "completed": 0,
+          "target": null,
+          "note": "No release-matched paired counterfactual naming set is published."
+        },
+        "negative_controls": {
+          "status": "not_started",
+          "completed": 0,
+          "target": null,
+          "note": "No release-matched negative-control naming set is published."
         },
         "data_rights_review": {
           "status": "documented",

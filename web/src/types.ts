@@ -13,7 +13,7 @@ export type LaneScores = {
 export type ReleaseView = "core" | "imaging" | "tg263" | "real";
 
 export type ReviewState = {
-  status: "complete" | "recruiting" | "pending" | "blocked";
+  status: "complete" | "recruiting" | "pending" | "blocked" | "not_started";
   completed: number;
   target: number;
   note: string;
@@ -25,6 +25,8 @@ export type ReviewEvidence = {
   release_status: "provisional" | "reviewed" | "retired";
   independent_domain_review: ReviewState;
   human_baseline: ReviewState;
+  paired_counterfactuals: ReviewState;
+  negative_controls: ReviewState;
   data_rights_review: {
     status: "documented" | "pending_independent_confirmation" | "blocked";
     note: string;
@@ -54,7 +56,14 @@ export type ReleaseEvidence = {
   integrity_profile: "development" | "pilot" | "comparison";
   allow_access_classes: Array<"public" | "gated" | "restricted" | "private">;
   public_attempt_detail: "aggregate_only" | "sanitized_output";
-  maturity: "public_development" | "public_pilot" | "protected_comparison" | "retired";
+  maturity:
+    | "public_development"
+    | "public_pilot"
+    | "domain_reviewed"
+    | "human_baselined"
+    | "protected_comparison"
+    | "externally_replicated"
+    | "retired";
   exposure: {
     task_access: "public" | "restricted" | "private";
     contamination_risk: "high" | "managed" | "low";
@@ -76,6 +85,8 @@ export type ReleaseEvidence = {
     };
     independent_domain_review: EvidenceCountState;
     human_baseline: EvidenceCountState;
+    paired_counterfactuals: EvidenceCountState;
+    negative_controls: EvidenceCountState;
     data_rights_review: {
       status: "documented" | "pending_independent_confirmation" | "blocked" | "not_applicable";
       note: string;
