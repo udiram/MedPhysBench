@@ -1,0 +1,62 @@
+{
+  "adapter": "groq",
+  "base_model_id": "Qwen/Qwen3.6-27B",
+  "capabilities": {
+    "inferred": [
+      "image",
+      "text"
+    ],
+    "observed": [
+      "json_object",
+      "text"
+    ]
+  },
+  "completed_at": "2026-08-03T20:02:36Z",
+  "content_sha256": "b4790c79cb6485c1dfd6757b86845e6fc5da449a1e33187fa495afa0f32388c1",
+  "expires_at": "2026-08-04T02:02:36Z",
+  "fleet_id": "public-fleet-v1",
+  "model": "qwen/qwen3.6-27b",
+  "model_revision": "qwen/qwen3.6-27b",
+  "outcome": "available",
+  "probe_dependencies": [
+    {
+      "content_sha256": "7213f4dc7971bbef238d1a77145ec9c62a6c29392f30df271237547cf4c188df",
+      "path": "scripts/probes/openai_access_probe.py"
+    },
+    {
+      "content_sha256": "0a12ce0181d88561611b8b4ef92e1d70ab32304ffe5d0a68f7b0351aedb7abdc",
+      "path": "src/medphys_agentbench/adapters/openai_compatible.py"
+    },
+    {
+      "content_sha256": "9074b67a24aa0bff1fae01685885a85c717b0e82e4e3b2b5744f8d0091100605",
+      "path": "src/medphys_agentbench/json_utils.py"
+    },
+    {
+      "content_sha256": "c13c16ba41399727772270992dec9bb44f7d620bc1e3a22ebc182834749ea5f2",
+      "path": "src/medphys_agentbench/route_qualification.py"
+    }
+  ],
+  "probe_implementation_path": "scripts/probes/openai_access_probe_v2.py",
+  "probe_implementation_sha256": "d09df9c1e6b12ff6a09fcf6ad89e3db765611d0de810d4e259e49d559a862c3b",
+  "probe_version": "openai-access-probe-v2",
+  "provider": "groq",
+  "quota": {
+    "source": "provider_headers",
+    "status": "sufficient"
+  },
+  "receipt_id": "groq-qwen-3.6-27b-json-v2-20260803t200236z",
+  "route_id": "groq-qwen-3.6-27b-json-v2",
+  "route_set_id": "groq-reasoning-routes-v2",
+  "route_spec_sha256": "553acc6eac5a4abc2a4574a6a02baf6e9b0cf87bb0e141b36c9397cccb88a030",
+  "sanitized_metadata": {
+    "endpoint_host": "api.groq.com",
+    "http_status": 200,
+    "latency_ms": 781.286,
+    "provider_request_id": "req_01kz4kh4vbektb75jmen1z4p8b",
+    "response_contract": "json_object",
+    "served_model": "qwen/qwen3.6-27b"
+  },
+  "schema_version": "medphysbench.access-probe-receipt.v1",
+  "source_commit": "976fd166adf4e267edd48fb0525399368e6440af",
+  "started_at": "2026-08-03T20:02:35Z"
+}
