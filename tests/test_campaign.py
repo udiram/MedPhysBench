@@ -13,6 +13,7 @@ from medphys_agentbench.campaign import (
     CampaignExecutionError,
     CampaignSpec,
     ResourceSnapshot,
+    _adapter_for_model,
     build_model_command,
     campaign_plan,
     execute_campaign,
@@ -21,7 +22,7 @@ from medphys_agentbench.campaign import (
     validate_event_ledger,
     verify_model_completion,
 )
-from medphys_agentbench.runner import create_run_manifest
+from medphys_agentbench.runner import adapter_runtime_settings, create_run_manifest
 from medphys_agentbench.scoring import grades_pass, grades_safe, score_attempt, weighted_grade_score
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -226,6 +227,15 @@ def test_command_is_shell_free_resumable_and_never_contains_secret_value() -> No
     )
     assert all(item["credential_present"] is True for item in plan["models"])  # type: ignore[index]
     assert "literal-secret" not in json.dumps(plan)
+
+
+def test_ollama_completion_verifier_mirrors_child_keep_alive_serialization() -> None:
+    campaign = load_campaign(ROOT / "campaigns" / "qwen3-vl-8b-instruct-openkb-q2-v2.yaml")
+    model = campaign.models[0]
+    command = build_model_command(campaign, model)
+
+    assert command[command.index("--ollama-keep-alive") + 1] == "0"
+    assert adapter_runtime_settings(_adapter_for_model(model))["keep_alive"] == "0"
 
 
 def test_resource_guard_fails_closed_for_unknown_low_memory_and_disk() -> None:

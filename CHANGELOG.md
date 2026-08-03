@@ -16,6 +16,9 @@
   memory/disk floors now reach `run-release`, are checked before every missing attempt, and emit an
   immutable non-scoring resource-block receipt without consuming the resumable attempt key. The
   parent ledger recognizes the stop as environmental evidence instead of a generic model failure.
+- Corrected independent Ollama completion verification to mirror the child CLI's textual
+  `keep_alive` serialization, preventing valid immutable attempts from being rejected as a
+  numeric-versus-string contract mismatch.
 - Corrected the Qwen3-VL candidate lineage: the default `qwen3-vl:8b` artifact exposes Ollama's
   thinking renderer and failed the strict final-content canary, so its non-scoring failure receipt
   is preserved. A distinct v2 route now pins `qwen3-vl:8b-instruct`, its non-thinking renderer, and

@@ -1138,7 +1138,9 @@ def _adapter_for_model(model: CampaignModel) -> OllamaAdapter | OpenAICompatible
             max_tokens=model.max_tokens,
             timeout_seconds=model.timeout_seconds,
             artifact_root=REPOSITORY_ROOT,
-            keep_alive=model.ollama_keep_alive,
+            # argparse receives the shell-free command value as text; mirror the
+            # exact child adapter contract when independently verifying results.
+            keep_alive=str(model.ollama_keep_alive),
             context_window=model.ollama_num_ctx or 4096,
             model_revision_override=model.model_revision,
         )
