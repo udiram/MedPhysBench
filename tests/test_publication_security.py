@@ -159,6 +159,29 @@ def test_release_evidence_projection_matches_canonical_ledger() -> None:
     Draft202012Validator(schema, format_checker=FormatChecker()).validate(payload)
 
 
+def test_v1_evidence_schemas_keep_optional_comparison_fields_backward_compatible() -> None:
+    release_schema = json.loads(
+        Path("schemas/release-evidence-index.v1.schema.json").read_text(encoding="utf-8")
+    )
+    release_payload = json.loads(
+        Path("governance/release-evidence-index.json").read_text(encoding="utf-8")
+    )
+    for entry in release_payload["releases"]:
+        entry["evidence"].pop("paired_counterfactuals")
+        entry["evidence"].pop("negative_controls")
+    Draft202012Validator(release_schema, format_checker=FormatChecker()).validate(release_payload)
+
+    review_schema = json.loads(
+        Path("schemas/review-evidence.v1.schema.json").read_text(encoding="utf-8")
+    )
+    review_payload = json.loads(
+        Path("reviews/public-real-workflows-pilot-v0.6.json").read_text(encoding="utf-8")
+    )
+    review_payload.pop("paired_counterfactuals")
+    review_payload.pop("negative_controls")
+    Draft202012Validator(review_schema, format_checker=FormatChecker()).validate(review_payload)
+
+
 def test_release_evidence_rejects_manifest_count_and_review_hash_drift() -> None:
     from scripts.build_public_release_evidence import validate_release_evidence_index
 

@@ -70,6 +70,8 @@ def _validate_review_evidence_semantics(payload: dict[str, Any], path: Path) -> 
         "paired_counterfactuals",
         "negative_controls",
     ):
+        if field not in payload:
+            continue
         state = payload[field]
         completed = int(state["completed"])
         target = int(state["target"])

@@ -276,12 +276,6 @@ def validate_release_evidence_index(
             ("human_baseline", "status", "human_baseline", "status"),
             ("human_baseline", "completed", "human_baseline", "completed"),
             ("human_baseline", "target", "human_baseline", "target"),
-            ("paired_counterfactuals", "status", "paired_counterfactuals", "status"),
-            ("paired_counterfactuals", "completed", "paired_counterfactuals", "completed"),
-            ("paired_counterfactuals", "target", "paired_counterfactuals", "target"),
-            ("negative_controls", "status", "negative_controls", "status"),
-            ("negative_controls", "completed", "negative_controls", "completed"),
-            ("negative_controls", "target", "negative_controls", "target"),
             ("data_rights_review", "status", "data_rights_review", "status"),
         )
         for evidence_group, evidence_field, review_group, review_field in review_pairs:
@@ -289,6 +283,18 @@ def validate_release_evidence_index(
                 raise ValueError(
                     f"{release_id}: evidence.{evidence_group}.{evidence_field} differs from review ledger."
                 )
+        for optional_group in ("paired_counterfactuals", "negative_controls"):
+            evidence_state = evidence.get(optional_group)
+            review_state = review.get(optional_group)
+            if (evidence_state is None) != (review_state is None):
+                raise ValueError(f"{release_id}: {optional_group} must be declared in both evidence ledgers.")
+            if evidence_state is None:
+                continue
+            for field in ("status", "completed", "target"):
+                if evidence_state[field] != review_state[field]:
+                    raise ValueError(
+                        f"{release_id}: evidence.{optional_group}.{field} differs from review ledger."
+                    )
         if entry["claim_boundary"] != review["claim_boundary"]:
             raise ValueError(f"{release_id}: claim boundary differs from the review ledger.")
 

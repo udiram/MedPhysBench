@@ -11,8 +11,6 @@
     "reference_feasibility",
     "independent_domain_review",
     "human_baseline",
-    "paired_counterfactuals",
-    "negative_controls",
     "data_rights_review",
     "task_reviews",
     "claim_boundary"
