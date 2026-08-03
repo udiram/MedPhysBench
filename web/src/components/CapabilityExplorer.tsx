@@ -134,10 +134,10 @@ export function CapabilityExplorer({ data, loadError = false, releaseView, model
           </span>
         </label>
         <label className="field">
-          <span>Provider</span>
+          <span>Execution provider</span>
           <span className="select-wrap">
             <select value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}>
-              <option value="all">All providers</option>
+              <option value="all">All execution providers</option>
               {[...new Set(
                 [
                   ...(data ? [...data.models, ...(data.unranked_models ?? [])] : []).map((row) => row.provider),
@@ -168,6 +168,10 @@ function CapabilityMatrix({ rows, families, scope }: { rows: ModelResult[]; fami
   }
   return (
     <>
+      <p className="table-scroll-hint capability-scroll-hint">
+        <span aria-hidden="true">↔</span>
+        Swipe to compare capability groups while the model column stays pinned.
+      </p>
       <div className="capability-table-wrap" role="region" aria-label="Safe success by model and capability group" tabIndex={0}>
         <table className="capability-table">
           <caption>Safe success rate by model and descriptive capability group</caption>

@@ -290,12 +290,14 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   border: 1px solid var(--line);
 }
 .release-switch button {
+  flex: 0 0 auto;
   min-height: 42px;
   padding: 0 18px;
   border-right: 1px solid var(--line);
   color: var(--muted);
   font-size: 14px;
   font-weight: 500;
+  white-space: nowrap;
 }
 .release-switch button:last-child { border-right: 0; }
 .release-switch button:hover { background: var(--surface); color: var(--text); }
@@ -1712,6 +1714,18 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   font: 500 10px/1.35 "IBM Plex Mono", monospace;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+.capability-table thead th:first-child,
+.capability-table tbody th {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface-alt);
+  box-shadow: 1px 0 0 var(--line);
+}
+.capability-table thead th:first-child {
+  z-index: 2;
+  background: #101113;
 }
 .capability-table tbody th { min-width: 210px; background: var(--surface-alt); }
 .capability-table tbody th strong,
@@ -3426,7 +3440,10 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   .menu-button { display: inline-flex; }
   .hero-release-switch {
     width: 100%;
+    display: flex;
+    flex-wrap: nowrap;
     overflow-x: auto;
+    overscroll-behavior-x: contain;
     scrollbar-width: thin;
   }
   .hero-release-switch button { flex: 0 0 auto; }
@@ -3542,6 +3559,7 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
     gap: 8px;
   }
   .leaderboard-section .table-scroll-hint { display: flex; }
+  .capability-section .table-scroll-hint { display: flex; }
   .leaderboard-section .leaderboard-table { min-width: 820px; }
   .leaderboard-section .leaderboard-table thead th:nth-child(-n + 2),
   .leaderboard-section .model-row > td:nth-child(-n + 2) { display: none; }
@@ -3561,7 +3579,7 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   .efficiency-chart { min-width: 720px; }
   .chart-panel { overflow-x: auto; }
   .chart-guide dl { grid-template-columns: 1fr; }
-  .view-switch { width: 100%; overflow-x: auto; }
+  .view-switch { width: 100%; flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; }
   .view-switch button { flex: 1 0 auto; }
   .profile-row { grid-template-columns: 120px minmax(180px, 1fr) 60px; }
   .registry-run-card header,
@@ -3572,6 +3590,11 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   .registry-run-badges { justify-content: flex-start; }
   .registry-metrics,
   .registry-failure-list dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .capability-table thead th:first-child,
+  .capability-table tbody th {
+    min-width: 196px;
+    max-width: 196px;
+  }
 }
 
 @media (max-width: 560px) {

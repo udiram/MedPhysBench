@@ -312,14 +312,14 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
               </span>
             </label>
             <label className="field">
-              <span>Provider</span>
+              <span>Execution provider</span>
               <span className="select-wrap">
                 <select value={providerFilter} onChange={(event) => {
                   const next = event.target.value;
                   setProviderFilter(next);
                   setUrlParams({ fx_provider: next === "all" ? null : next }, { history: "push" });
                 }}>
-                  <option value="all">All providers</option>
+                  <option value="all">All execution providers</option>
                   {providers.map((provider) => (
                     <option key={provider} value={provider}>
                       {providerLabel(provider)}
@@ -633,7 +633,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
                     <h3>Selected run set</h3>
                     <dl className="forensics-meta">
                       <div><dt>Model</dt><dd>{normalizeModelDisplayName(selectedRow.model_name)}</dd></div>
-                      <div><dt>Provider</dt><dd>{providerLabel(selectedRow.provider)}</dd></div>
+                      <div><dt>Execution provider</dt><dd>{providerLabel(selectedRow.provider)}</dd></div>
                       <div><dt>Source</dt><dd>{sourceLabel(selected?.source ?? "unknown")}</dd></div>
                       <div><dt>Surface</dt><dd>{surfaceLabel(inferExecutionSurface(selectedRow))}</dd></div>
                       <div><dt>Outcome order</dt><dd>#{selectedRow.outcome_rank ?? "—"}</dd></div>

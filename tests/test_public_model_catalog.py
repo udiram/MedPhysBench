@@ -95,7 +95,9 @@ def test_real_workflow_release_contains_expected_groq_rows() -> None:
     assert groq_models == [
         "llama-3.1-8b-instant",
         "llama-3.3-70b-versatile",
+        "llama-3.3-70b-versatile",
         "openai/gpt-oss-120b",
+        "openai/gpt-oss-20b",
         "openai/gpt-oss-20b",
         "qwen/qwen3.6-27b",
         "qwen/qwen3.6-27b",
@@ -109,6 +111,18 @@ def test_real_workflow_release_contains_expected_groq_rows() -> None:
         "openai-chat-json-v1;format=json_object;mode=best-effort;effort=provider-default",
         "openai-chat-json-v1;format=json_object;mode=best-effort;effort=none;reasoning-format=hidden",
     }
+    matched_json_v2 = [
+        row
+        for row in rows
+        if row["provider"] == "groq"
+        and row["ranking_eligible"] is True
+        and row["model_name"] in {"openai/gpt-oss-20b", "llama-3.3-70b-versatile"}
+    ]
+    assert {(row["model_name"], row["rank"]) for row in matched_json_v2} == {
+        ("openai/gpt-oss-20b", 1),
+        ("llama-3.3-70b-versatile", 2),
+    }
+    assert len({row["comparison_group"] for row in matched_json_v2}) == 1
 
 
 def test_core_release_contains_expected_gpt56_native_rows() -> None:
@@ -157,7 +171,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(payload, dict)
     rows = [*payload["models"], *payload.get("unranked_models", [])]
-    assert len(rows) == 32
+    assert len(rows) == 34
     v2_rows = [
         row
         for row in rows
@@ -334,7 +348,9 @@ def test_admitted_legacy_groq_scores_are_descriptive_but_never_official() -> Non
     admitted = [
         row
         for row in rows
-        if row["provider"] == "groq" and row["model_name"] != "qwen/qwen3.6-27b"
+        if row["provider"] == "groq"
+        and row["model_name"] != "qwen/qwen3.6-27b"
+        and "missing_adapter_settings_hash" in row["integrity"]["integrity_errors"]
     ]
 
     assert len(admitted) == 4

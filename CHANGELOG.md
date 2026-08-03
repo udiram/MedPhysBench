@@ -12,13 +12,22 @@
 
 ## Unreleased
 
+- Added a matched, submission-attested Groq JSON-v2 comparison group: GPT-OSS 20B
+  reached 60.0% safe success and Llama 3.3 70B reached 53.33%, with 100% safety
+  on 18 text calls each and 12 explicit image-capability-unavailable outcomes.
+  The fleet funnel is now 21/50 attested base models and 20 rankable base models.
+- Bound submission validation to the exact immutable results directory so repeated
+  provider/model/harness runs cannot attest a sibling row, and made the public
+  sanitizer work fail closed when called on either a release or model directory.
+- Clarified execution-provider labels, made forensic action names run-specific for
+  assistive technology, and improved mobile release/capability-table navigation.
 - Added an attested Phi-4 Multimodal Instruct community Q4_K_M configuration: 30/30
   canonical attempts, 10.0% safe success, 100% safety over 18 evaluable text calls, 60.0%
   valid output, complete token/time telemetry, and 12 explicit image-capability-unavailable
-  outcomes because the imported GGUF has no vision projector. Current-contract breadth is now
-  18/50 unique base models, 31 public configurations, and 49 release rows.
+  outcomes because the imported GGUF has no vision projector. This was the eighteenth
+  current-contract base model before later Groq qualification campaigns.
 - Corrected the fleet funnel presentation so its broad 24-model middle stage is labeled
-  published access/evidence, while only the 18 sidecar-attested common-harness matrices receive
+  published access/evidence, while only sidecar-attested common-harness matrices receive
   evaluated/ranked language. Legacy Groq and GPT-5.6 evidence can no longer appear as naked Q2 badges.
 - Split planned/base-identity vision capability from capability exercised by the evaluated route:
   seven evaluated base identities originate from vision-capable models, but only six evaluated

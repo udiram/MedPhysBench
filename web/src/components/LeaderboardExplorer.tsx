@@ -349,10 +349,10 @@ export function LeaderboardExplorer({
           </span>
         </label>
         <label className="field">
-          <span>Provider</span>
+          <span>Execution provider</span>
           <span className="select-wrap">
             <select value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}>
-              <option value="all">All providers</option>
+              <option value="all">All execution providers</option>
               {[...new Set(allRows.map((row) => row.provider))]
                 .sort((left, right) => left.localeCompare(right))
                 .map((value) => (
@@ -371,7 +371,7 @@ export function LeaderboardExplorer({
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search model or provider"
+              placeholder="Search model or execution provider"
             />
           </span>
         </label>
@@ -807,7 +807,11 @@ function ModelDetailRow({
                 )}
               </section>
               <section className="detail-span registry-run-actions">
-                <button type="button" onClick={() => navigateToRunForensics(model)}>
+                <button
+                  type="button"
+                  aria-label={`Open full attempt forensics for ${normalizeModelDisplayName(model.model_name)} on ${providerLabel(model.provider)} (${model.harness_revision ?? surfaceLabel(inferExecutionSurface(model))})`}
+                  onClick={() => navigateToRunForensics(model)}
+                >
                   Open full attempt forensics
                 </button>
               </section>

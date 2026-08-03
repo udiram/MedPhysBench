@@ -1,4 +1,4 @@
-export const DATA_ASSET_REVISION = "1425ce4";
+export const DATA_ASSET_REVISION = "2703def";
 
 export function versionedDataUrl(path: string) {
   const separator = path.includes("?") ? "&" : "?";

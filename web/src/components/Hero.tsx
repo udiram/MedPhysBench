@@ -37,6 +37,7 @@ export function Hero({ data, onReleaseViewChange, releaseView, releaseEvidence, 
         <button
           type="button"
           aria-pressed={releaseView === "core"}
+          aria-label="Show the Core v0.4 benchmark release"
           onClick={() => onReleaseViewChange("core")}
         >
           Core v0.4
@@ -44,6 +45,7 @@ export function Hero({ data, onReleaseViewChange, releaseView, releaseEvidence, 
         <button
           type="button"
           aria-pressed={releaseView === "imaging"}
+          aria-label="Show the Imaging benchmark release"
           onClick={() => onReleaseViewChange("imaging")}
         >
           Imaging
@@ -51,6 +53,7 @@ export function Hero({ data, onReleaseViewChange, releaseView, releaseEvidence, 
         <button
           type="button"
           aria-pressed={releaseView === "tg263"}
+          aria-label="Show the TG-263 benchmark release"
           onClick={() => onReleaseViewChange("tg263")}
         >
           TG-263
@@ -58,6 +61,7 @@ export function Hero({ data, onReleaseViewChange, releaseView, releaseEvidence, 
         <button
           type="button"
           aria-pressed={releaseView === "real"}
+          aria-label="Show the Real-data pilot benchmark release"
           onClick={() => onReleaseViewChange("real")}
         >
           Real-data pilot

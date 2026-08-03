@@ -1,6 +1,6 @@
 import { ChevronDown, Search } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { domainLabel, formatBytes, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
+import { domainLabel, formatBytes, formatDuration, formatPercent, formatTokens, normalizeModelDisplayName, providerLabel, shortHash } from "../lib/format";
 import { groupIntegrityIssues, integrityIssueHeadline } from "../lib/integrity";
 import { resolveRunBaseModelId } from "../lib/modelIdentity";
 import { compareModelRuns, modelRunKey, modelRunUrlSelection, releasedModelRunKey } from "../lib/modelRunKey";
@@ -113,6 +113,17 @@ function sizeTierLabel(value: FleetStatusModel["size_tier"] | undefined) {
 
 function focusRunForensics(run: PublicRun) {
   navigateToRunForensics(run);
+}
+
+function executionProviderLabel(value: string) {
+  return providerLabel(value);
+}
+
+function runForensicsLabel(run: Pick<PublicRun, "execution_surface" | "model_name" | "provider" | "release_title">) {
+  const surface = run.execution_surface === "recorded_output_import" || run.provider === "codex-native"
+    ? "native-surface"
+    : "common-harness";
+  return `Open ${surface} attempt forensics for ${normalizeModelDisplayName(run.model_name)} on ${executionProviderLabel(run.provider)} in ${run.release_title}`;
 }
 
 export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease }: PublicModelIndexProps) {
@@ -517,7 +528,7 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease
           <small>Shown under the current filters</small>
         </article>
         <article>
-          <span>Providers</span>
+          <span>Execution hosts</span>
           <strong>{providerCount}</strong>
           <small>Data-derived from the current slice</small>
         </article>
@@ -535,7 +546,7 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease
                 setQuery(value);
                 writeExplorerUrl({ query: value }, "replace");
               }}
-              placeholder="Model, base id, family, provider, or release"
+              placeholder="Model, base id, family, steward, host, or release"
             />
           </span>
         </label>
@@ -556,17 +567,17 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease
           </span>
         </label>
         <label className="field">
-          <span>Provider</span>
+          <span>Execution provider</span>
           <span className="select-wrap">
             <select value={provider} onChange={(event) => {
               const value = event.target.value;
               setProvider(value);
               writeExplorerUrl({ provider: value });
             }}>
-              <option value="all">All providers</option>
+              <option value="all">All execution providers</option>
               {providerOptions.map((value) => (
                 <option key={value} value={value}>
-                  {providerLabel(value)}
+                  {executionProviderLabel(value)}
                 </option>
               ))}
             </select>
@@ -615,7 +626,7 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease
               <tr>
                 <th>Model system</th>
                 <th>Source</th>
-                <th>Providers</th>
+                <th>Execution hosts</th>
                 <th>Family</th>
                 <th>Releases</th>
                 <th>{release === "all" ? "Best across releases" : "Best in release"}</th>
@@ -682,7 +693,7 @@ function ModelRegistryRow({
     sortedRuns.map((run) => run.provider),
     selectedProvider,
   );
-  const sliceProviderLabel = sliceProviders.map((item) => providerLabel(item)).join(", ");
+  const sliceProviderLabel = sliceProviders.map((item) => executionProviderLabel(item)).join(", ");
   const evidenceStatus = modelEvidenceStatus(sortedRuns, group.best_safe_success_rate);
 
   return (
@@ -704,7 +715,7 @@ function ModelRegistryRow({
             </small>
             <span className="registry-row-badges" aria-label="Model system classification">
               <i>{opennessLabel(group.openness)}</i>
-              {sliceProviders.map((item) => <i key={item}>{providerLabel(item)}</i>)}
+              {sliceProviders.map((item) => <i key={item}>{executionProviderLabel(item)}</i>)}
               {group.common_count > 0 ? <i>{group.common_count} common</i> : null}
               {group.specialized_count > 0 ? <i>{group.specialized_count} native</i> : null}
             </span>
@@ -737,7 +748,7 @@ function ModelRegistryRow({
                     <dd>{group.catalog?.family ?? group.family_name}</dd>
                   </div>
                   <div>
-                    <dt>Providers</dt>
+                    <dt>Execution hosts</dt>
                     <dd>{sliceProviderLabel || "None"}</dd>
                   </div>
                   <div>
@@ -806,12 +817,12 @@ function ModelRegistryRow({
               <section className="detail-span">
                 <h4>System variants in current slice</h4>
                 {variantSummaries.length > 0 ? (
-                  <div className="variant-table-wrap" role="region" aria-label={`${group.display_name} provider variants`} tabIndex={0}>
+                  <div className="variant-table-wrap" role="region" aria-label={`${group.display_name} execution-provider variants`} tabIndex={0}>
                     <table className="variant-table">
                       <thead>
                         <tr>
                           <th>System</th>
-                          <th>Provider</th>
+                          <th>Execution provider</th>
                           <th>Rows</th>
                           <th>Releases</th>
                           <th>Best score</th>
@@ -1254,7 +1265,11 @@ function ModelRegistryRow({
                             ) : null}
                           </dl>
                           <div className="registry-run-actions">
-                            <button type="button" onClick={() => focusRunForensics(run)}>
+                            <button
+                              type="button"
+                              aria-label={runForensicsLabel(run)}
+                              onClick={() => focusRunForensics(run)}
+                            >
                               Open attempt forensics
                             </button>
                           </div>
