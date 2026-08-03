@@ -21,8 +21,9 @@
   declared response contract, and hash-bind the probe implementation.
 
 - Updated the public GitHub Actions runtime pins to the Node 24-based
-  `actions/checkout@v5` and `actions/setup-node@v5` releases while preserving
-  the existing explicit npm cache contract.
+  `actions/checkout@v5`, `actions/setup-node@v5`, and SHA-pinned
+  `astral-sh/setup-uv` v8.1.0 releases while preserving the existing explicit
+  package-cache contracts.
 
 - Added a provider-wide quota circuit breaker: newly exhausted 429/quota/usage-limit transport receipts stop sibling routes from repeatedly consuming retries, record sanitized skip evidence, and leave unrelated providers available.
 - Added a standalone `access-status.v1` contract with frozen-fleet, public-catalog, duplicate-route, blocked-stage, and attested-submission validation; readiness cards now link directly to the exact common-harness sidecar when promotion evidence exists.
