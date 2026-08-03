@@ -740,7 +740,8 @@
             "content_sha256": "9df41397712d89fcccde137445c0ecafd11a1293d5107d67dc9913806bbb0f91",
             "latency_ms": 8816.6,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-87694713-2e1e-46d1-989c-6905cb97347f"
           },
           "run_id": "0d566b5b-5761-4715-88cc-5f8aeb645b85",
           "runtime_task_hash": "41fba2498d5124735fbcce49b6f0def4311a2cb48667d015e2eaacaddd8f79fc",
@@ -849,7 +850,8 @@
             "content_sha256": "9df41397712d89fcccde137445c0ecafd11a1293d5107d67dc9913806bbb0f91",
             "latency_ms": 6744.74,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-28e74a7f-064a-46ba-9cf8-7e1feff16024"
           },
           "run_id": "ecb69f7e-c3a5-4cbc-b8d7-540df3490949",
           "runtime_task_hash": "41fba2498d5124735fbcce49b6f0def4311a2cb48667d015e2eaacaddd8f79fc",
@@ -958,7 +960,8 @@
             "content_sha256": "9df41397712d89fcccde137445c0ecafd11a1293d5107d67dc9913806bbb0f91",
             "latency_ms": 2706.39,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-fa3556dd-127b-4df9-b9ce-17aaa9a2c8b4"
           },
           "run_id": "6b02a25c-540c-4155-83e2-1f26389f94e3",
           "runtime_task_hash": "41fba2498d5124735fbcce49b6f0def4311a2cb48667d015e2eaacaddd8f79fc",
@@ -1065,7 +1068,8 @@
             "content_sha256": "769cad829cd657da8792738157f2e806e31f62e18a704ef9f1e8019981c5c1d6",
             "latency_ms": 4626.68,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-ec0e8131-dd06-42da-8022-ab28efe1dc7c"
           },
           "run_id": "2abc3c40-f0ab-4a5e-bc19-157ecb857b41",
           "runtime_task_hash": "60a0247fd6c9403692261ff6115a73566f049b9a1bfdb32c271f398457edd43e",
@@ -1172,7 +1176,8 @@
             "content_sha256": "769cad829cd657da8792738157f2e806e31f62e18a704ef9f1e8019981c5c1d6",
             "latency_ms": 8477.48,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-0a4f9db8-631c-415b-bc39-25cae8e07fee"
           },
           "run_id": "2cc05d87-4177-4ab0-99d7-e420634e898a",
           "runtime_task_hash": "60a0247fd6c9403692261ff6115a73566f049b9a1bfdb32c271f398457edd43e",
@@ -1279,7 +1284,8 @@
             "content_sha256": "769cad829cd657da8792738157f2e806e31f62e18a704ef9f1e8019981c5c1d6",
             "latency_ms": 5745.54,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-a2583095-de60-412d-ba31-8d3d9c00bd1e"
           },
           "run_id": "84c05522-6555-4299-a1b4-aa07749bd4d4",
           "runtime_task_hash": "60a0247fd6c9403692261ff6115a73566f049b9a1bfdb32c271f398457edd43e",
@@ -1376,7 +1382,8 @@
             "content_sha256": "4c6f9a7ecb64c1b61a436ac5fa26435138706b14724d885f12773b92888c8918",
             "latency_ms": 502.61,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-955811c3-1b19-4a36-89ca-22b7983a0be2"
           },
           "run_id": "8d505038-4c92-4594-af27-e19ad73b6a14",
           "runtime_task_hash": "f4e5938c230eb9d7379b4c7214938eac10a84c2762002691d609ed830d077235",
@@ -1473,7 +1480,8 @@
             "content_sha256": "4c6f9a7ecb64c1b61a436ac5fa26435138706b14724d885f12773b92888c8918",
             "latency_ms": 3613.69,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-74c3b794-be99-4d23-8b04-d77318dd9785"
           },
           "run_id": "3a44231a-c114-4e57-bfa9-cb1b77da50e6",
           "runtime_task_hash": "f4e5938c230eb9d7379b4c7214938eac10a84c2762002691d609ed830d077235",
@@ -1570,7 +1578,8 @@
             "content_sha256": "45859cc9418240d1018dabe19d077f1f4734ab0e613af869cfd59a5afc80460f",
             "latency_ms": 4518.19,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-b00ad2b3-7a4b-4914-80e0-7f6af200964b"
           },
           "run_id": "cb9e70aa-3479-4d1b-9f3b-95af48acc815",
           "runtime_task_hash": "f4e5938c230eb9d7379b4c7214938eac10a84c2762002691d609ed830d077235",
@@ -2212,7 +2221,8 @@
             "content_sha256": "501070dfa38537fd000212cd208bf011f01507cf84d86dc9f777c436b61af41d",
             "latency_ms": 733.07,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-9a3d72fa-21aa-4e33-ac7b-5ccca1d4f0e2"
           },
           "run_id": "64106700-38b0-4f37-9c94-6097d30725b5",
           "runtime_task_hash": "aad6a87e62ef5c31e06393aa562b0dc5eff2b649d3d3ceaf99e645ac1077b6d7",
@@ -2323,7 +2333,8 @@
             "content_sha256": "501070dfa38537fd000212cd208bf011f01507cf84d86dc9f777c436b61af41d",
             "latency_ms": 558.99,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-4752603a-8317-432f-aed1-e6e0faeacd16"
           },
           "run_id": "58de073f-e25d-476b-b18b-e432bcd2180f",
           "runtime_task_hash": "aad6a87e62ef5c31e06393aa562b0dc5eff2b649d3d3ceaf99e645ac1077b6d7",
@@ -2434,7 +2445,8 @@
             "content_sha256": "57e1c746eb3f56649df0fa459936c0bf8b682e9b2fd63fff088662f699a4bd79",
             "latency_ms": 827.66,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-41c7299e-1569-486a-9f06-d3906fcc6edd"
           },
           "run_id": "e4db5fc5-0b15-4cc3-a5b4-ef8311e332e8",
           "runtime_task_hash": "aad6a87e62ef5c31e06393aa562b0dc5eff2b649d3d3ceaf99e645ac1077b6d7",
@@ -2542,7 +2554,8 @@
             "content_sha256": "11081aaf5f0cb377a34f935f90cef4f22d2ab398ed235b6091b500f409794602",
             "latency_ms": 581.13,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-a69c96f7-d85b-446a-b479-10489d90d2fb"
           },
           "run_id": "b92340e0-9e75-4a88-b16f-173f8849468f",
           "runtime_task_hash": "062003c44adf3f4cdddebdc42b9ab7ee2f7681d76e15ac806a7c2128eb7c6d6b",
@@ -2650,7 +2663,8 @@
             "content_sha256": "11081aaf5f0cb377a34f935f90cef4f22d2ab398ed235b6091b500f409794602",
             "latency_ms": 634.98,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-3480a37d-9bcc-4253-832b-f21fb9b9f59c"
           },
           "run_id": "37f0296c-b860-4d1b-a63f-4b97a95c4268",
           "runtime_task_hash": "062003c44adf3f4cdddebdc42b9ab7ee2f7681d76e15ac806a7c2128eb7c6d6b",
@@ -2758,7 +2772,8 @@
             "content_sha256": "11081aaf5f0cb377a34f935f90cef4f22d2ab398ed235b6091b500f409794602",
             "latency_ms": 336.5,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-f66fcc31-109c-4cdf-8140-adf6998c3c63"
           },
           "run_id": "a2300588-45ca-4baa-8ca6-8f257cc678d2",
           "runtime_task_hash": "062003c44adf3f4cdddebdc42b9ab7ee2f7681d76e15ac806a7c2128eb7c6d6b",
@@ -2855,7 +2870,8 @@
             "content_sha256": "3455804d9a774402b33d1593fc9ba85d7502608794bc4ee90ebb3d828f03369e",
             "latency_ms": 533.25,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-ed214e93-1fae-47cc-ac33-533d47674447"
           },
           "run_id": "4a4da3f2-30b7-4c36-8f55-39f78aaeaeee",
           "runtime_task_hash": "63d6234fd49183edd8be2351d2ba0a952c4d0674b8d463290dce7ff5e284775a",
@@ -2952,7 +2968,8 @@
             "content_sha256": "3455804d9a774402b33d1593fc9ba85d7502608794bc4ee90ebb3d828f03369e",
             "latency_ms": 539.66,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-158bc39a-a286-495a-94f2-f9cf46382d26"
           },
           "run_id": "6d77c488-1b15-4708-94ca-d2b282255041",
           "runtime_task_hash": "63d6234fd49183edd8be2351d2ba0a952c4d0674b8d463290dce7ff5e284775a",
@@ -3049,7 +3066,8 @@
             "content_sha256": "45859cc9418240d1018dabe19d077f1f4734ab0e613af869cfd59a5afc80460f",
             "latency_ms": 2821.67,
             "model": "llama-3.3-70b-versatile",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-96996105-f987-4cff-b2b8-c7186f02aa65"
           },
           "run_id": "c0aea225-8c98-44ec-9247-0662b4ba345e",
           "runtime_task_hash": "63d6234fd49183edd8be2351d2ba0a952c4d0674b8d463290dce7ff5e284775a",
@@ -3799,7 +3817,8 @@
             "content_sha256": "d85e9ad92bb73454a9d0e230e13dfff2aafc5ad048e3b820541e181571fab603",
             "latency_ms": 10942.65,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-ab67b5ef-68e5-4b78-995a-904a93ef8e71"
           },
           "run_id": "5887cab7-992b-4235-8dd6-b41aedf09873",
           "runtime_task_hash": "41fba2498d5124735fbcce49b6f0def4311a2cb48667d015e2eaacaddd8f79fc",
@@ -3908,7 +3927,8 @@
             "content_sha256": "d85e9ad92bb73454a9d0e230e13dfff2aafc5ad048e3b820541e181571fab603",
             "latency_ms": 12887.57,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-5482a3c5-e6ca-49db-8534-b9b7f06d96a5"
           },
           "run_id": "45041dc1-eeaa-40b7-9e01-636e53913ec2",
           "runtime_task_hash": "41fba2498d5124735fbcce49b6f0def4311a2cb48667d015e2eaacaddd8f79fc",
@@ -4017,7 +4037,8 @@
             "content_sha256": "cc6bd0806afb8bad86a1daa326681aa491c1201d2187cc68bb4d5b1e3573d66c",
             "latency_ms": 13888.9,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-4861f774-fe54-423f-8771-8bd65b76dc11"
           },
           "run_id": "f1cf67a1-0d4b-4afe-9ac7-77712f14dbeb",
           "runtime_task_hash": "41fba2498d5124735fbcce49b6f0def4311a2cb48667d015e2eaacaddd8f79fc",
@@ -4124,7 +4145,8 @@
             "content_sha256": "f401b38c95ad15d77525c1ddc6230556da523b732d22d7e10b54097b47b7fa5f",
             "latency_ms": 9838.21,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-f54e4e3e-6af4-409f-bb60-6214af12a853"
           },
           "run_id": "4b0db97a-d4f2-4de7-94a4-ee8e78718138",
           "runtime_task_hash": "60a0247fd6c9403692261ff6115a73566f049b9a1bfdb32c271f398457edd43e",
@@ -4231,7 +4253,8 @@
             "content_sha256": "6fe611b46188cd9eee19acb8742268d286f7f46293914c378d93223219c91a06",
             "latency_ms": 10889.71,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-e874159c-cbaf-4665-94cc-5342ad0e3417"
           },
           "run_id": "fb1d3d67-ffe2-448c-b066-ba72855686d8",
           "runtime_task_hash": "60a0247fd6c9403692261ff6115a73566f049b9a1bfdb32c271f398457edd43e",
@@ -4338,7 +4361,8 @@
             "content_sha256": "f401b38c95ad15d77525c1ddc6230556da523b732d22d7e10b54097b47b7fa5f",
             "latency_ms": 9931.97,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-2b023f8d-d04e-4c1a-ad77-97c83605aa36"
           },
           "run_id": "76eb3df9-5e79-40a7-9078-6dbcaecfe8b1",
           "runtime_task_hash": "60a0247fd6c9403692261ff6115a73566f049b9a1bfdb32c271f398457edd43e",
@@ -4435,7 +4459,8 @@
             "content_sha256": "b30f3e747caf2416183a0b4c9b7d119869e0c60cfc086e25d361d66cc2ed06a1",
             "latency_ms": 7704.61,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-c38f0199-ea6d-4abc-a750-6631350b4cd7"
           },
           "run_id": "cb6a906a-03ff-4529-9de0-f908a2730636",
           "runtime_task_hash": "f4e5938c230eb9d7379b4c7214938eac10a84c2762002691d609ed830d077235",
@@ -4532,7 +4557,8 @@
             "content_sha256": "b30f3e747caf2416183a0b4c9b7d119869e0c60cfc086e25d361d66cc2ed06a1",
             "latency_ms": 8822.45,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-6714bced-aea2-4491-abef-292a40d833ba"
           },
           "run_id": "76772032-c6e1-4ce9-a6f6-d04474ecdefe",
           "runtime_task_hash": "f4e5938c230eb9d7379b4c7214938eac10a84c2762002691d609ed830d077235",
@@ -4629,7 +4655,8 @@
             "content_sha256": "b30f3e747caf2416183a0b4c9b7d119869e0c60cfc086e25d361d66cc2ed06a1",
             "latency_ms": 8773.52,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-d897d9df-b66b-40ac-8386-f80faaa598cc"
           },
           "run_id": "c05bc96e-b1c1-4f39-bbf0-ad36f30b6273",
           "runtime_task_hash": "f4e5938c230eb9d7379b4c7214938eac10a84c2762002691d609ed830d077235",
@@ -5271,7 +5298,8 @@
             "content_sha256": "c87bff27b2eb0a97fc53887942d970ffa0d56148af7ece9abfbdb11c66f1fab0",
             "latency_ms": 733.72,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-a0092b3e-1c0e-4856-ae40-56cc1aec7be3"
           },
           "run_id": "fbf76b9c-ea34-4fa7-860e-4214556f35b0",
           "runtime_task_hash": "aad6a87e62ef5c31e06393aa562b0dc5eff2b649d3d3ceaf99e645ac1077b6d7",
@@ -5382,7 +5410,8 @@
             "content_sha256": "2d21e67eef72dc7cb1913f3800dcf6853cbf1e377aae19a6662d3b549db3b12a",
             "latency_ms": 699.3,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-423edaed-36d0-4bd0-a6ac-956089379af4"
           },
           "run_id": "1a3cefee-f2a2-410c-a4d9-c9cf3f955ca4",
           "runtime_task_hash": "aad6a87e62ef5c31e06393aa562b0dc5eff2b649d3d3ceaf99e645ac1077b6d7",
@@ -5493,7 +5522,8 @@
             "content_sha256": "c87bff27b2eb0a97fc53887942d970ffa0d56148af7ece9abfbdb11c66f1fab0",
             "latency_ms": 883.78,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-691d5007-424f-4a82-95ba-9adbcb4c76c6"
           },
           "run_id": "b3f1678e-39f8-4b30-9d86-b5af3473091e",
           "runtime_task_hash": "aad6a87e62ef5c31e06393aa562b0dc5eff2b649d3d3ceaf99e645ac1077b6d7",
@@ -5601,7 +5631,8 @@
             "content_sha256": "d031c127bf235ed9c4294844f333c5f51e8061ff521e0701a7a7752f37771ffe",
             "latency_ms": 1728.61,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-591ebd47-c697-4141-9b4d-c851fce5219d"
           },
           "run_id": "18096763-bfce-4025-87a0-8b385ad0b066",
           "runtime_task_hash": "062003c44adf3f4cdddebdc42b9ab7ee2f7681d76e15ac806a7c2128eb7c6d6b",
@@ -5709,7 +5740,8 @@
             "content_sha256": "1dc83fd28aba6fb26f5676dca9646a0ef6a50648e99cc14b2b1e1b0162e60818",
             "latency_ms": 12642.64,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-abde0696-1fff-4c66-a5c4-cee634064651"
           },
           "run_id": "43706d12-ccc4-41df-9b1b-9ec3e1621ec0",
           "runtime_task_hash": "062003c44adf3f4cdddebdc42b9ab7ee2f7681d76e15ac806a7c2128eb7c6d6b",
@@ -5817,7 +5849,8 @@
             "content_sha256": "cb475300332522a1fae18d6c07076720dd49e6519ad346247ddc3fac24f8dd6e",
             "latency_ms": 9721.48,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-55d11009-da94-46db-8f03-1a4d558ee2c9"
           },
           "run_id": "5289ae7c-21ed-422e-b180-675a85845b04",
           "runtime_task_hash": "062003c44adf3f4cdddebdc42b9ab7ee2f7681d76e15ac806a7c2128eb7c6d6b",
@@ -5914,7 +5947,8 @@
             "content_sha256": "db4ceec9acc902d8a0bc48460b2fa75bf7f743e100480b44a050e487406352db",
             "latency_ms": 3802.13,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-11563140-f3dd-45b5-9972-37dc829dd136"
           },
           "run_id": "d79c73a5-7303-4945-863b-be9d2a9dc398",
           "runtime_task_hash": "63d6234fd49183edd8be2351d2ba0a952c4d0674b8d463290dce7ff5e284775a",
@@ -6011,7 +6045,8 @@
             "content_sha256": "db4ceec9acc902d8a0bc48460b2fa75bf7f743e100480b44a050e487406352db",
             "latency_ms": 8840.53,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-86ea9f08-add0-44e1-961f-40f633bc0848"
           },
           "run_id": "171f0af1-3120-4caa-af3b-45f83553830c",
           "runtime_task_hash": "63d6234fd49183edd8be2351d2ba0a952c4d0674b8d463290dce7ff5e284775a",
@@ -6108,7 +6143,8 @@
             "content_sha256": "db4ceec9acc902d8a0bc48460b2fa75bf7f743e100480b44a050e487406352db",
             "latency_ms": 12731.99,
             "model": "openai/gpt-oss-20b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-0f4bf60a-1a25-45bd-baec-67f2a70cbcd7"
           },
           "run_id": "5088bf1b-8ed3-49c5-9a84-bc381de58507",
           "runtime_task_hash": "63d6234fd49183edd8be2351d2ba0a952c4d0674b8d463290dce7ff5e284775a",
@@ -6858,7 +6894,8 @@
             "content_sha256": "4bac81b5ca2a0661ab3715799a49db13286168c47cd75da473e89c1971268660",
             "latency_ms": 12643.01,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-19e0e549-380a-423e-88be-57df17367c81"
           },
           "run_id": "e5bdf40a-2d25-4190-bac2-655a48daee6a",
           "runtime_task_hash": "41fba2498d5124735fbcce49b6f0def4311a2cb48667d015e2eaacaddd8f79fc",
@@ -6967,7 +7004,8 @@
             "content_sha256": "fa847fcac815304b3808baed4e1aba5dd0474b2d18a0f10257547e40742c6e77",
             "latency_ms": 13873.96,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-392d9908-e28c-439f-839b-423f1a2b10cb"
           },
           "run_id": "8b91cc30-49e8-46f3-a0ba-133ac71d8f23",
           "runtime_task_hash": "41fba2498d5124735fbcce49b6f0def4311a2cb48667d015e2eaacaddd8f79fc",
@@ -7076,7 +7114,8 @@
             "content_sha256": "4bac81b5ca2a0661ab3715799a49db13286168c47cd75da473e89c1971268660",
             "latency_ms": 15747.96,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-8063c877-998b-4a22-b7c0-4f8791730ea5"
           },
           "run_id": "94d1556f-4c0b-4962-9a1d-d155a59b3a05",
           "runtime_task_hash": "41fba2498d5124735fbcce49b6f0def4311a2cb48667d015e2eaacaddd8f79fc",
@@ -7183,7 +7222,8 @@
             "content_sha256": "e64edab1bf5c3dcd1b34c6327686c32398e0d12375ff85c67b9e4f84caabea73",
             "latency_ms": 11250.0,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-73fceb25-be09-432c-b303-677d15bed1ae"
           },
           "run_id": "a0db6dd6-3091-4dae-8902-bd805b6ef650",
           "runtime_task_hash": "60a0247fd6c9403692261ff6115a73566f049b9a1bfdb32c271f398457edd43e",
@@ -7290,7 +7330,8 @@
             "content_sha256": "aa62dd9e3f13d834b335054d8b80ed44a137dbd3dd44889ca04fed330377bd0d",
             "latency_ms": 6245.39,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-a002413b-0d61-4da3-80ac-30c97d872441"
           },
           "run_id": "91cd2e4d-5c52-4040-b399-795e7295b85c",
           "runtime_task_hash": "60a0247fd6c9403692261ff6115a73566f049b9a1bfdb32c271f398457edd43e",
@@ -7397,7 +7438,8 @@
             "content_sha256": "27b722a18f32413b9b6c23265853228e679553b3dabe621bb30e37633bd237c9",
             "latency_ms": 10161.55,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-78808c1e-953c-4b90-85c0-8f33cbded9b5"
           },
           "run_id": "ba9fca7b-c87f-4fca-9cd7-90ce1a982363",
           "runtime_task_hash": "60a0247fd6c9403692261ff6115a73566f049b9a1bfdb32c271f398457edd43e",
@@ -7500,7 +7542,8 @@
             "content_sha256": "1158bffdf13a7ff2a91f4a120a0a13a1016a36791623676243dc306172246402",
             "latency_ms": 9810.68,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-e78cfc78-90fe-4687-a4c3-7567db808918"
           },
           "run_id": "e6460e90-3811-4b63-b73f-a3766266dd10",
           "runtime_task_hash": "f4e5938c230eb9d7379b4c7214938eac10a84c2762002691d609ed830d077235",
@@ -7603,7 +7646,8 @@
             "content_sha256": "640dc008d1a26a3499d07182ae62e6820a696daa0c333c12e3a9c5c7419e027b",
             "latency_ms": 10368.45,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-d1e5684d-84d4-485c-981f-850c6111e8f8"
           },
           "run_id": "8142cde8-0562-4580-aa05-5e4b35998dab",
           "runtime_task_hash": "f4e5938c230eb9d7379b4c7214938eac10a84c2762002691d609ed830d077235",
@@ -7700,7 +7744,8 @@
             "content_sha256": "d1ed22252ab89485e5428134639e44437fd746d16808438843c08cd4d064c0cc",
             "latency_ms": 9559.47,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-f15f7f67-66e3-4861-a77f-8c4e1261317c"
           },
           "run_id": "49d0747c-372e-468d-8fe2-346c7e414451",
           "runtime_task_hash": "f4e5938c230eb9d7379b4c7214938eac10a84c2762002691d609ed830d077235",
@@ -8342,7 +8387,8 @@
             "content_sha256": "845a735be357815b2b48da8a05fa1f44d084b4acaf4969e5af181a221569d9bb",
             "latency_ms": 1389.15,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-cf33b328-2ea6-48a1-bd30-67bae10315c4"
           },
           "run_id": "3183b742-b5bc-4e88-9495-14b296a3863c",
           "runtime_task_hash": "aad6a87e62ef5c31e06393aa562b0dc5eff2b649d3d3ceaf99e645ac1077b6d7",
@@ -8453,7 +8499,8 @@
             "content_sha256": "d8996ce8f39202019333e02e04c57af9471960eeb9125e4a2d096b3b38dfcf42",
             "latency_ms": 1746.79,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-9faafbd4-9327-499d-9e38-8435528747bd"
           },
           "run_id": "5e2f25dd-0be7-49b3-9c96-9e6a81c99d70",
           "runtime_task_hash": "aad6a87e62ef5c31e06393aa562b0dc5eff2b649d3d3ceaf99e645ac1077b6d7",
@@ -8564,7 +8611,8 @@
             "content_sha256": "7f7a3271b295f212bce689ca217154253802a2d11ae7f1480e7ff5ab7431e33a",
             "latency_ms": 1695.99,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-9f631d84-f214-4f7a-8100-dac549fd6a97"
           },
           "run_id": "46033e2e-779d-414a-a364-6f82e1a55244",
           "runtime_task_hash": "aad6a87e62ef5c31e06393aa562b0dc5eff2b649d3d3ceaf99e645ac1077b6d7",
@@ -8672,7 +8720,8 @@
             "content_sha256": "0dc3d4422af496e59f61732f4d9ec1e25817b2728b5238690a6c2751e8754e05",
             "latency_ms": 3312.45,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-a22b820e-24dd-44bf-b84e-74e62987f2f3"
           },
           "run_id": "037028f5-10bf-4bb6-a232-ba0b5583f51e",
           "runtime_task_hash": "062003c44adf3f4cdddebdc42b9ab7ee2f7681d76e15ac806a7c2128eb7c6d6b",
@@ -8780,7 +8829,8 @@
             "content_sha256": "254be64388998480bf51196f52b74f9ee94c76bbd61667c386aa1b9c5ab0f89d",
             "latency_ms": 14389.46,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-f8f754b5-d1ea-4316-889a-db93a3f81174"
           },
           "run_id": "77b9208e-b465-4c37-95fb-5baa793dbfe2",
           "runtime_task_hash": "062003c44adf3f4cdddebdc42b9ab7ee2f7681d76e15ac806a7c2128eb7c6d6b",
@@ -8888,7 +8938,8 @@
             "content_sha256": "32860dfc09d89a80237de4b40e8a8cd4ff220476b7ec06cf134485d86d0b423e",
             "latency_ms": 11373.11,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-8c33c960-5567-45ae-aab3-75035bb7c48e"
           },
           "run_id": "878eacbd-8e0f-488e-b59c-c967db0ba307",
           "runtime_task_hash": "062003c44adf3f4cdddebdc42b9ab7ee2f7681d76e15ac806a7c2128eb7c6d6b",
@@ -8991,7 +9042,8 @@
             "content_sha256": "d18d029c8cca5ddd6e81b3c88dab5bb63339fed5079f39a48835c269faed8ac9",
             "latency_ms": 2706.16,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-7b20223f-c572-4fdc-8d34-86d0c5076009"
           },
           "run_id": "d178b31e-f0aa-4567-8736-10f673e011b0",
           "runtime_task_hash": "63d6234fd49183edd8be2351d2ba0a952c4d0674b8d463290dce7ff5e284775a",
@@ -9088,7 +9140,8 @@
             "content_sha256": "149dd94a052d88fba112eb0cb1c23b50d5156e5f5687c7173d495fc88dd02483",
             "latency_ms": 12576.1,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-87238953-8b08-478e-9049-0ee6a1a8fea4"
           },
           "run_id": "d9b4d97d-17f2-4087-b2d5-00cc9b79c5fa",
           "runtime_task_hash": "63d6234fd49183edd8be2351d2ba0a952c4d0674b8d463290dce7ff5e284775a",
@@ -9185,7 +9238,8 @@
             "content_sha256": "95ef4d9f85b1094ea771c315384473f70dfc08f065b8b64b17653542bdef16c5",
             "latency_ms": 10543.1,
             "model": "openai/gpt-oss-120b",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-c1d96ad8-96f4-4b0f-9546-2ceda05366c0"
           },
           "run_id": "fc3ef3c1-4f42-498f-a75f-d613d6bd9772",
           "runtime_task_hash": "63d6234fd49183edd8be2351d2ba0a952c4d0674b8d463290dce7ff5e284775a",
@@ -9946,7 +10000,8 @@
             "content_sha256": "6cafabbba85a3fb7c245486f01ca5873096bacdd1118c5c6e90bc8849683764d",
             "latency_ms": 18596.95,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-a540c7df-b50a-425e-b5c5-a43c8af21ef3"
           },
           "run_id": "eb0fe231-1d1a-4bfa-8012-b4990f0ea7d1",
           "runtime_task_hash": "41fba2498d5124735fbcce49b6f0def4311a2cb48667d015e2eaacaddd8f79fc",
@@ -10066,7 +10121,8 @@
             "content_sha256": "6cafabbba85a3fb7c245486f01ca5873096bacdd1118c5c6e90bc8849683764d",
             "latency_ms": 13457.94,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-7287ea36-abfb-4d9c-86a4-d54a7f008aa7"
           },
           "run_id": "91155c6a-c25a-4827-bec5-784dc1a41d71",
           "runtime_task_hash": "41fba2498d5124735fbcce49b6f0def4311a2cb48667d015e2eaacaddd8f79fc",
@@ -10186,7 +10242,8 @@
             "content_sha256": "6cafabbba85a3fb7c245486f01ca5873096bacdd1118c5c6e90bc8849683764d",
             "latency_ms": 14520.26,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-efac91e6-5041-423c-bc8d-70d5b221ea4e"
           },
           "run_id": "d1463181-249f-47a7-b84b-b6aa4cb0f782",
           "runtime_task_hash": "41fba2498d5124735fbcce49b6f0def4311a2cb48667d015e2eaacaddd8f79fc",
@@ -10300,7 +10357,8 @@
             "content_sha256": "10ce191717bdf4f5294aa51fdb7f65225b5a702263498685d372f4b9baa55054",
             "latency_ms": 263.04,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-137a308c-6e0e-4bb4-90ec-582a67aadc2d"
           },
           "run_id": "e09b4280-82bc-4c17-ae49-298d361c920c",
           "runtime_task_hash": "60a0247fd6c9403692261ff6115a73566f049b9a1bfdb32c271f398457edd43e",
@@ -10414,7 +10472,8 @@
             "content_sha256": "10ce191717bdf4f5294aa51fdb7f65225b5a702263498685d372f4b9baa55054",
             "latency_ms": 4315.19,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-434a5480-ff9f-40bb-9461-6d0c8aa1098e"
           },
           "run_id": "e3cb139a-46b2-4e0c-a533-0d6e035da0f7",
           "runtime_task_hash": "60a0247fd6c9403692261ff6115a73566f049b9a1bfdb32c271f398457edd43e",
@@ -10528,7 +10587,8 @@
             "content_sha256": "10ce191717bdf4f5294aa51fdb7f65225b5a702263498685d372f4b9baa55054",
             "latency_ms": 9374.13,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-5c44cc09-6c9e-4149-9837-1abfca465776"
           },
           "run_id": "54350d04-6f66-4673-a3db-a4135019df81",
           "runtime_task_hash": "60a0247fd6c9403692261ff6115a73566f049b9a1bfdb32c271f398457edd43e",
@@ -10630,7 +10690,8 @@
             "content_sha256": "abbca0226bc3d2c09e41a6d68a3cdec79bb765c58176f5045f77fcb754fa51aa",
             "latency_ms": 8307.9,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-c03850cb-3d5f-44ad-abba-fd70ad70f51d"
           },
           "run_id": "34ab12b0-897c-46e9-a306-7ca70914c516",
           "runtime_task_hash": "f4e5938c230eb9d7379b4c7214938eac10a84c2762002691d609ed830d077235",
@@ -10732,7 +10793,8 @@
             "content_sha256": "abbca0226bc3d2c09e41a6d68a3cdec79bb765c58176f5045f77fcb754fa51aa",
             "latency_ms": 8361.96,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-b6c72c3e-3213-4d6d-bb65-2d77c47c7835"
           },
           "run_id": "5774479b-ab29-43fb-b7ee-4900db32e197",
           "runtime_task_hash": "f4e5938c230eb9d7379b4c7214938eac10a84c2762002691d609ed830d077235",
@@ -10834,7 +10896,8 @@
             "content_sha256": "abbca0226bc3d2c09e41a6d68a3cdec79bb765c58176f5045f77fcb754fa51aa",
             "latency_ms": 8382.41,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-eb3c7c9f-5445-4e23-8571-304430527bb6"
           },
           "run_id": "1675d241-6b15-4b55-a818-44b1a314e0c5",
           "runtime_task_hash": "f4e5938c230eb9d7379b4c7214938eac10a84c2762002691d609ed830d077235",
@@ -11486,7 +11549,8 @@
             "content_sha256": "8a9ac06ce461093dcd548f422640d5492a6161133e10d995ac18e46877f87667",
             "latency_ms": 327.9,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-7074358f-56eb-4e4d-ae92-e26f1983017f"
           },
           "run_id": "5e05549e-2905-4a4a-93c0-b86d6876a51e",
           "runtime_task_hash": "aad6a87e62ef5c31e06393aa562b0dc5eff2b649d3d3ceaf99e645ac1077b6d7",
@@ -11607,7 +11671,8 @@
             "content_sha256": "8a9ac06ce461093dcd548f422640d5492a6161133e10d995ac18e46877f87667",
             "latency_ms": 313.94,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-a221f151-8749-4a42-b3d7-3ca2b2b59454"
           },
           "run_id": "a44097f3-0e9e-4490-b654-e6206d5f6d42",
           "runtime_task_hash": "aad6a87e62ef5c31e06393aa562b0dc5eff2b649d3d3ceaf99e645ac1077b6d7",
@@ -11731,7 +11796,8 @@
             "content_sha256": "dee056830c97db95838a689f8a569416b37ef03ada849f746e71af013b856cfa",
             "latency_ms": 364.22,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-4b8f6450-005a-450a-bf2e-6d16ab5c4615"
           },
           "run_id": "aa75acb6-ae4f-49b8-9a6b-f81f8baefa00",
           "runtime_task_hash": "aad6a87e62ef5c31e06393aa562b0dc5eff2b649d3d3ceaf99e645ac1077b6d7",
@@ -11846,7 +11912,8 @@
             "content_sha256": "b94ef1e0b4654a8b079a405f74f26fb6cd57c873c20408fc112c626bb8ca4ff8",
             "latency_ms": 10418.91,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-5cc2f10f-d01d-4f6d-8f35-0bb2c38b6264"
           },
           "run_id": "81fe2f50-8924-4c8b-82c8-ae829aa9ac16",
           "runtime_task_hash": "062003c44adf3f4cdddebdc42b9ab7ee2f7681d76e15ac806a7c2128eb7c6d6b",
@@ -11961,7 +12028,8 @@
             "content_sha256": "b04233321704260cbc07aad36431379e4b141499012476ea3b017f2b65b3aaee",
             "latency_ms": 4412.36,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-5e693567-716f-4239-b1d2-ddb20c4d716c"
           },
           "run_id": "144930e9-035a-46f5-bc65-834a79943d29",
           "runtime_task_hash": "062003c44adf3f4cdddebdc42b9ab7ee2f7681d76e15ac806a7c2128eb7c6d6b",
@@ -12076,7 +12144,8 @@
             "content_sha256": "b94ef1e0b4654a8b079a405f74f26fb6cd57c873c20408fc112c626bb8ca4ff8",
             "latency_ms": 15297.55,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-ff642d09-f224-42b7-b22c-fd64b0f8b32e"
           },
           "run_id": "435f5130-7b1a-4a69-87d2-15ca832b489f",
           "runtime_task_hash": "062003c44adf3f4cdddebdc42b9ab7ee2f7681d76e15ac806a7c2128eb7c6d6b",
@@ -12178,7 +12247,8 @@
             "content_sha256": "abbca0226bc3d2c09e41a6d68a3cdec79bb765c58176f5045f77fcb754fa51aa",
             "latency_ms": 8317.19,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-e0d92267-9849-41da-865d-a09eddd625f0"
           },
           "run_id": "0ef4fba3-575e-44c7-a5ea-1c8a2dc37169",
           "runtime_task_hash": "63d6234fd49183edd8be2351d2ba0a952c4d0674b8d463290dce7ff5e284775a",
@@ -12280,7 +12350,8 @@
             "content_sha256": "abbca0226bc3d2c09e41a6d68a3cdec79bb765c58176f5045f77fcb754fa51aa",
             "latency_ms": 15471.53,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-b4a2bf4b-eabe-4952-b3d1-81ace32ee492"
           },
           "run_id": "624fe8fc-a00c-4856-b43e-8dfab722f8be",
           "runtime_task_hash": "63d6234fd49183edd8be2351d2ba0a952c4d0674b8d463290dce7ff5e284775a",
@@ -12382,7 +12453,8 @@
             "content_sha256": "abbca0226bc3d2c09e41a6d68a3cdec79bb765c58176f5045f77fcb754fa51aa",
             "latency_ms": 2374.92,
             "model": "llama-3.1-8b-instant",
-            "provider": "groq"
+            "provider": "groq",
+            "provider_request_id": "chatcmpl-26bfdde0-f142-4818-9bb9-fe0146773313"
           },
           "run_id": "bd3ecf4c-8e2d-4af4-a723-42be34e80d41",
           "runtime_task_hash": "63d6234fd49183edd8be2351d2ba0a952c4d0674b8d463290dce7ff5e284775a",
