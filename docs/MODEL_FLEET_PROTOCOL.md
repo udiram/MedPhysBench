@@ -152,7 +152,7 @@ scored outcomes and remain canonical attempts; they are not transport retries.
 ## Current state
 
 The public website currently exposes 31 model configurations representing 24
-unique base model identifiers across 50 release rows and four release surfaces, including five
+unique base model identifiers across 52 release rows and four release surfaces, including seven
 completed Groq configurations, six GPT-5.6 Sol effort configurations, and one
 GPT-5.6 Terra configuration. These are not 31 unique base models. An Ollama Cloud access probe
 for `qwen3.5:397b-cloud` on 2026-08-02 returned HTTP 429 before a scored artifact
@@ -162,7 +162,7 @@ network context. Neither event supports a model score.
 The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
 19 closed-weight, 31 declared vision-capable, and 11 stewards. After enforcing
 the current grader/scoring manifest contract, the derived funnel reports 24 base models with
-some published access or native evidence, 19 attested common-harness evaluated, and 18 officially
+some published access or native evidence, 21 attested common-harness evaluated, and 20 officially
 rankable base models. Eight complete legacy Ollama/Groq configurations remain visible but are excluded
 from current-contract rank because their attempt manifests lack adapter-settings hashes; four of the
 affected base IDs have no separate v2 row and therefore leave the evaluated/ranked fleet funnel. One
@@ -176,7 +176,7 @@ The public `fleet-status.v3` projection now gives every frozen base ID a
 machine-derived readiness state, next gate, explanatory note, and any exact
 base-model-bound access evidence, including a direct attested-submission link when
 one exists. It also separates the planned-panel composition from the actually
-evaluated slice: the current common-harness slice contains 19 open-weight and zero
+evaluated slice: the current common-harness slice contains 21 open-weight and zero
 closed-weight base models, seven base identities whose source model is vision-capable, seven
 image-capable evaluated routes, six stewards, and two
 size tiers. The OpenKBP field is explicitly a one-response workflow-view gate, not

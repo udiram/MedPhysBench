@@ -147,6 +147,45 @@ def test_submission_match_is_scoped_to_exact_harness_revision() -> None:
     assert summary["harness_revision"] == "reference-json-v2"
 
 
+def test_submission_match_is_scoped_to_exact_results_directory() -> None:
+    release = load_release(ROOT / "releases" / "public_real_workflows_pilot_v0_6.yaml")
+    release_summary = summarize_release(release, ROOT / "results" / "releases")
+    row = next(
+        item
+        for item in release_summary["models"]
+        if item.get("provider") == "ollama" and item.get("model_name") == "phi4-mini:3.8b-q4_K_M"
+    )
+    sibling_run = copy.deepcopy(row)
+    for task in sibling_run["tasks"]:
+        task["artifact_path"] = (
+            "results/releases/public-real-workflows-pilot-v0.6/duplicate_same_model/"
+            + Path(task["artifact_path"]).name
+        )
+    release_summary["models"].append(sibling_run)
+
+    summary = validate_submission(MANIFEST, release_summary=release_summary)
+
+    assert summary["results_directory"].endswith("/phi4_mini_3_8b_q4_k_m")
+
+
+def test_submission_rejects_summary_row_from_a_sibling_results_directory() -> None:
+    release = load_release(ROOT / "releases" / "public_real_workflows_pilot_v0_6.yaml")
+    release_summary = summarize_release(release, ROOT / "results" / "releases")
+    row = next(
+        item
+        for item in release_summary["models"]
+        if item.get("provider") == "ollama" and item.get("model_name") == "phi4-mini:3.8b-q4_K_M"
+    )
+    for task in row["tasks"]:
+        task["artifact_path"] = (
+            "results/releases/public-real-workflows-pilot-v0.6/sibling_run/"
+            + Path(task["artifact_path"]).name
+        )
+
+    with pytest.raises(ValueError, match="results directory; found 0"):
+        validate_submission(MANIFEST, release_summary=release_summary)
+
+
 def test_singleton_exception_does_not_mask_other_integrity_failures() -> None:
     release = load_release(ROOT / "releases" / "public_real_workflows_pilot_v0_6.yaml")
     release_summary = summarize_release(release, ROOT / "results" / "releases")

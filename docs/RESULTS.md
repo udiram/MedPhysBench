@@ -35,11 +35,11 @@ The machine-derived public status currently reports:
 | --- | ---: | --- |
 | Frozen panel | 50 | Selected before further score inspection |
 | Published access/evidence | 24 | Some route-backed or native public evidence exists; this is not a common-harness gate |
-| Attested common-harness evaluated | 19 | At least one submission-attested complete matrix satisfies the current manifest/scoring and execution-evidence contract |
-| Rankable | 18 | At least two attested systems share an exact frozen comparison group |
+| Attested common-harness evaluated | 21 | At least one submission-attested complete matrix satisfies the current manifest/scoring and execution-evidence contract |
+| Rankable | 20 | At least two attested systems share an exact frozen comparison group |
 
-The site exposes all 31 published system configurations and 50 release
-rows. The machine-enforced completion-claim gate is currently 19/50 with 31 frozen
+The site exposes all 31 published system configurations and 52 release
+rows. The machine-enforced completion-claim gate is currently 21/50 with 29 frozen
 base-model IDs remaining; ordinary progress releases may publish while that strict gate
 remains false. Six GPT-5.6 Sol effort settings remain six auditable configurations
 of one base model, while the separately cataloged GPT-5.6 Terra system contributes
@@ -189,19 +189,20 @@ TG-263 naming audit. The CT and expert contours are derived from OpenKBP; the
 reference plan dose is OpenKBP's standardized synthetic plan. Every task requires
 qualified review or escalation and is regraded from the stored candidate output.
 
-Twenty-seven API/local configurations completed three attempts per task. Four legacy rows ran under
+Thirty common-harness configurations completed three attempts per task. Four legacy rows ran under
 one memory-bounded Ollama harness (`temperature=0`, seeds
 `20260731`–`20260733`, 4,096-token context, 768 output-token cap). Five ran on
-Groq's OpenAI-compatible endpoint under one shared JSON-object contract with the
-same temperature, seeds, and output-token cap. Eighteen ran under the digest-pinned
+Groq's OpenAI-compatible endpoint under historical JSON-object contracts. Three
+additional Groq rows use current, frozen JSON-v2 routes, including a two-model exact
+comparison group. Eighteen ran under the digest-pinned
 `reference-json-v2` Ollama contract with the same seeds, a 4,096-token context,
 and 2,048-token output cap. Official ranks are computed within
 each identical provider/harness/configuration group with at least two systems; the
 separate descriptive outcome order spans every complete valid row.
 Exact ties on the declared safe-success, task-success, and safety-gate point estimates
 share a competition rank (`1, 1, 3`); names only determine the display order of tied rows.
-Together with four native GPT-5.6 audits, v0.6 contains 32 rows and 960 attempts.
-Eighteen submission-attested v2 rows receive an official within-group rank. Eight complete legacy
+Together with four native GPT-5.6 audits, v0.6 contains 34 rows and 1,020 attempts.
+Twenty submission-attested rows receive an official within-group rank. Eight complete legacy
 Ollama/Groq rows remain visible but unranked because their attempt manifests lack the required
 adapter-settings hash; one receipt-free Groq row and the four native rows are also visible but
 unranked. A nineteenth current-contract, submission-attested Groq Qwen3.6 row is outcome-orderable
@@ -228,9 +229,19 @@ primary and display both interval definitions for every row.
 | 4 | `llama-3.1-8b-instant` | 0.0% | 0.00–11.35% | 27.78% | 60.0% | 1,002 | 8.343 s |
 | — | `qwen/qwen3.6-27b` (historical route) | evidence unavailable | evidence unavailable | unavailable | 0.0% | unavailable | unavailable |
 
-| Current Groq JSON-v2 status | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens† | Median wall time |
-| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Attested; singleton comparison group | `qwen/qwen3.6-27b` | 60.0% | 42.32–75.41% | 90.0% | 90.0% | 1,454 | 27.634 s |
+| Current Groq JSON-v2 rank/status | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens† | Total tokens† | Median wall time |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | `openai/gpt-oss-20b` | 60.0% | 42.32–75.41% | 100.0% | 60.0% | 1,306.5 | 25,074 | 11.901 s |
+| 2 | `llama-3.3-70b-versatile` | 53.33% | 36.14–69.77% | 100.0% | 60.0% | 991.5 | 18,664 | 2.916 s |
+| Attested; singleton comparison group | `qwen/qwen3.6-27b` | 60.0% | 42.32–75.41% | 90.0% | 90.0% | 1,454 | 45,462 | 27.634 s |
+
+The new exact Groq pair is deliberately reported with consistency, not only a
+point score. GPT-OSS 20B produced the same outcome on all three attempts for every
+task (`all_attempts_agree_rate=1.0`). Llama 3.3 70B had full agreement on 80% of
+tasks; `pass@3` was 60.0% while `pass^3` was 40.0%, exposing two one-attempt
+workflow misses that a best-of-k number would conceal. Both routes retained all
+12 required-image tasks as explicit capability-unavailable outcomes because the
+frozen Groq routes were text-only.
 
 | Ollama v2 rank | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens | Median wall time |
 | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -253,7 +264,7 @@ primary and display both interval definitions for every row.
 | 17 | `llama3.1:8b` | 0.0% | 0.00–11.35% | 33.33% | 60.0% | 954.5 | 17.385 s |
 | 17 | `llama3.2:3b` | 0.0% | 0.00–11.35% | 33.33% | 60.0% | 950.5 | 7.708 s |
 
-All eighteen v2 rows completed the same 30-attempt matrix with exact local artifact
+All eighteen Ollama v2 rows completed the same 30-attempt matrix with exact local artifact
 digests. Seven vision-enabled configurations made 30 real calls, including all 12 required-image attempts;
 the eleven text-only configurations retain those 12 tasks as explicit unsupported-modality
 outcomes, not omissions, so their token/time medians cover 18 actual text calls.

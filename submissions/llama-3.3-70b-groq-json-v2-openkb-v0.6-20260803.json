@@ -1,0 +1,232 @@
+{
+  "adapter_source_commit": "7d128a7ba0d48ee7d00bef97e4c8aa1faa9e006d",
+  "artifact_tree_sha256": "4678ba14e0ca1ff4369e4bdcbfa97118a7816bc9ef71a9560909abd255b30297",
+  "artifacts": [
+    {
+      "bytes": 4418,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_high_dose_segmentation_001--attempt-1.json",
+      "sha256": "c6550319d8112485b34c25c2c7b120a53db753101eb0ba2d8cbc01384c7ba6b2"
+    },
+    {
+      "bytes": 4418,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_high_dose_segmentation_001--attempt-2.json",
+      "sha256": "34138899159fcccb052331e5bd4cf150486c8a586a9a39f757b67695b6d96364"
+    },
+    {
+      "bytes": 4418,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_high_dose_segmentation_001--attempt-3.json",
+      "sha256": "0e13956a5015f8062408e83824395a0a6b610a8c61ec2f7eb8f54513b7b66ec9"
+    },
+    {
+      "bytes": 4012,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_parotid_segmentation_001--attempt-1.json",
+      "sha256": "49f159afff7bbbdfea9af6d0e33ea4bbb18e5b782981cb9ed9765f17366db775"
+    },
+    {
+      "bytes": 4012,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_parotid_segmentation_001--attempt-2.json",
+      "sha256": "385a903476c8752e38b69e5ee0192d5a45333ddc0d834c4863466d3d6c89ca8a"
+    },
+    {
+      "bytes": 4012,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_parotid_segmentation_001--attempt-3.json",
+      "sha256": "6641def11238c54820a975ff14d8dbd298b5e28ef068ca8773d39ceb4cdeb535"
+    },
+    {
+      "bytes": 6238,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_plan_criteria_audit_001--attempt-1.json",
+      "sha256": "d7aea447ad5adebf2b685f80932e641ad73c3b5a2c148c1f1ba9c0c0b6cfee7c"
+    },
+    {
+      "bytes": 6374,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_plan_criteria_audit_001--attempt-2.json",
+      "sha256": "38150a0384674b837cbdf3814fdaa23109c8ee16c4d71ef0eafb5ab2b6785b17"
+    },
+    {
+      "bytes": 6370,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_plan_criteria_audit_001--attempt-3.json",
+      "sha256": "495034279761c7ebb3c2f8c035da325d47062cdceab4344c1ea227c2bc0fb4f5"
+    },
+    {
+      "bytes": 6004,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_structure_inventory_001--attempt-1.json",
+      "sha256": "4787dd44a19cedc2de430baf171a13242120bbb38aea2d1ef1cbea9e2ed2e6a7"
+    },
+    {
+      "bytes": 5996,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_structure_inventory_001--attempt-2.json",
+      "sha256": "68cf476566cca9ba9017a25f56297afa8d855a39d3cbd2415a6222e6c41aed8d"
+    },
+    {
+      "bytes": 5996,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_structure_inventory_001--attempt-3.json",
+      "sha256": "8c5d5c8c78ddf799d0e800aabddef3a3790561ca3bd9132d247bfe25830e4b00"
+    },
+    {
+      "bytes": 5505,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_tg263_naming_audit_001--attempt-1.json",
+      "sha256": "6ca400895664bd6ff3f0afb6fcbf3b6e43f0e17285b58cf36e9846fae4621421"
+    },
+    {
+      "bytes": 5514,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_tg263_naming_audit_001--attempt-2.json",
+      "sha256": "e9c0fd68bcdd3e306c7d2c12d5337e9e306a39fea3f62b88ba7c92bcd8198500"
+    },
+    {
+      "bytes": 5641,
+      "kind": "result",
+      "path": "public_rt_openkb_pt242_tg263_naming_audit_001--attempt-3.json",
+      "sha256": "2d3c70579adbdb38c1f8d0b3d0d344bcc860f92603a6a96eaeb272792ae8ce71"
+    },
+    {
+      "bytes": 4418,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_high_dose_segmentation_001--attempt-1.json",
+      "sha256": "851abcaa6082e1e92bca7f1e702bd45be15a32629a64768d8c646c043fef0791"
+    },
+    {
+      "bytes": 4418,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_high_dose_segmentation_001--attempt-2.json",
+      "sha256": "33813a55cee671743f8fafaad049b3dbd116d20b1a6b7f091d59f8a904d3cd4d"
+    },
+    {
+      "bytes": 4418,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_high_dose_segmentation_001--attempt-3.json",
+      "sha256": "64512f23b922fa1016cf5e2a04755d8492f502d7861ccf5cdd0296b6187917f7"
+    },
+    {
+      "bytes": 4012,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_parotid_segmentation_001--attempt-1.json",
+      "sha256": "8dc8c60e01aa54d13a68c066ee6ca830aa778abc1adf040f473b3d327170b133"
+    },
+    {
+      "bytes": 4012,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_parotid_segmentation_001--attempt-2.json",
+      "sha256": "ba4a12e616dd50aa23794e73d98e64f7b01bbd849e4efb3d374730dda35b94b6"
+    },
+    {
+      "bytes": 4012,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_parotid_segmentation_001--attempt-3.json",
+      "sha256": "5df4512f4114d7a3e47879f3404816ec16162a350999218e88fb4db73b04c59a"
+    },
+    {
+      "bytes": 6412,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_plan_criteria_audit_001--attempt-1.json",
+      "sha256": "5f4718df840b1010b29e0890c57e508e3171dd8f455546d505408a03b6f8b4a1"
+    },
+    {
+      "bytes": 6410,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_plan_criteria_audit_001--attempt-2.json",
+      "sha256": "8ccb405ba551635dae93687ed6a6d9c5667fb3a6be25d589e22e51f3cca659a8"
+    },
+    {
+      "bytes": 6660,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_plan_criteria_audit_001--attempt-3.json",
+      "sha256": "fb3cd1aa78b05d0ccc63365afb7bcb3ce05ba622ffda831e0db21605ecff43dc"
+    },
+    {
+      "bytes": 6221,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_structure_inventory_001--attempt-1.json",
+      "sha256": "8ad23f2cd8ce4ad3358927454eac18de454ca23170507af51b998dbebe016cb7"
+    },
+    {
+      "bytes": 6230,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_structure_inventory_001--attempt-2.json",
+      "sha256": "d14bfff86617735a6029e2fc31ee01a6dd05df5cfd91f9b2bdbc3e66a571adb3"
+    },
+    {
+      "bytes": 6222,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_structure_inventory_001--attempt-3.json",
+      "sha256": "963e14e80d23383bb2c021d8c236e7324b6d91f8e5f10dcca60aaa96c0632c7a"
+    },
+    {
+      "bytes": 5643,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_tg263_naming_audit_001--attempt-1.json",
+      "sha256": "8ef0547fb10c118fdf2f67769d1fe8542d54bfefecb4fd7566cd1dda496d0d87"
+    },
+    {
+      "bytes": 5643,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_tg263_naming_audit_001--attempt-2.json",
+      "sha256": "da1bdc49f9e6d808e29dc3f76e3debf9eface5929d5131ee0fdbe4a3dbef884e"
+    },
+    {
+      "bytes": 5646,
+      "kind": "result",
+      "path": "public_rt_openkb_pt289_tg263_naming_audit_001--attempt-3.json",
+      "sha256": "497fe5d39341ed266cfd0c605ac2a6f94c2cf61deb8f1d46e4dd60abfc71c3cd"
+    }
+  ],
+  "attestations": {
+    "common_harness_unmodified": true,
+    "complete_unfiltered_artifact_set": true,
+    "no_credentials_or_phi": true,
+    "no_manual_output_edits": true,
+    "no_runtime_gold_or_grader_access": true,
+    "redistribution_permitted": true
+  },
+  "budget": {
+    "estimated_cost_usd": 0.0,
+    "funding": "provider_free_tier"
+  },
+  "environment": {
+    "accelerator": "Groq-hosted accelerator; provider hardware not disclosed",
+    "architecture": "arm64",
+    "hardware_summary": "Apple M4 Pro control host with 24 GB unified memory; serial process-isolated campaign; inference hosted by Groq; 4,096-token output cap",
+    "os": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "runtime_versions": {
+      "medphysbench": "0.6.0",
+      "python": "3.14.0"
+    }
+  },
+  "execution_finished_at": "2026-08-03T21:30:03.215070+00:00",
+  "execution_started_at": "2026-08-03T21:27:41.360020+00:00",
+  "harness_source_commit": "7d128a7ba0d48ee7d00bef97e4c8aa1faa9e006d",
+  "model": {
+    "base_model_id": "meta-llama/Llama-3.3-70B-Instruct",
+    "harness_name": "medphysbench-openai-compatible",
+    "harness_revision": "openai-chat-json-v1;format=json_object;mode=best-effort;effort=provider-default",
+    "model_name": "llama-3.3-70b-versatile",
+    "model_revision": "llama-3.3-70b-versatile",
+    "provider": "groq"
+  },
+  "release_contract_hash_v2": "c8bb7a810e9598eb37132884301449c1256447c90426f769fd028d3f7237909e",
+  "release_file": "releases/public_real_workflows_pilot_v0_6.yaml",
+  "release_id": "public-real-workflows-pilot-v0.6",
+  "repo_commit": "7d128a7ba0d48ee7d00bef97e4c8aa1faa9e006d",
+  "results_directory": "results/releases/public-real-workflows-pilot-v0.6/llama_3_3_70b_versatile_groq_json_v2",
+  "schema_version": "medphysbench.common-harness-submission.v1",
+  "submission_id": "llama-3.3-70b-groq-json-v2-openkb-v0.6-20260803",
+  "submission_kind": "managed_local",
+  "submitted_at": "2026-08-03T21:40:39.596780+00:00",
+  "submitter": {
+    "affiliation": "University of Wisconsin\u2013Madison",
+    "name": "Udbhav Ram"
+  }
+}

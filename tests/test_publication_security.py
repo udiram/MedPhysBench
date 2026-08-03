@@ -47,6 +47,28 @@ def test_public_sanitizer_redacts_trace_raw_preview(tmp_path: Path) -> None:
     assert check.returncode == 0
 
 
+def test_public_sanitizer_accepts_a_concrete_model_directory(tmp_path: Path) -> None:
+    model_dir = tmp_path / "release" / "model"
+    model_dir.mkdir(parents=True)
+    artifact_path = model_dir / "attempt.json"
+    artifact_path.write_text(
+        json.dumps({"raw_response": {"content": "private response"}, "trace": []}),
+        encoding="utf-8",
+    )
+
+    completed = subprocess.run(
+        [sys.executable, "scripts/sanitize_public_results.py", str(model_dir)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
+
+    assert "Sanitized 1 public result artifacts." in completed.stdout
+    assert artifact["raw_response"]["content_redacted"] is True
+    assert "content" not in artifact["raw_response"]
+
+
 def test_public_sanitizer_ignores_release_summary_json(tmp_path: Path) -> None:
     releases_root = tmp_path / "releases"
     release_dir = releases_root / "release"

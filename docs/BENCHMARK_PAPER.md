@@ -234,6 +234,14 @@ with 60.0% safe success, 90.0% safety and structured-output validity, 45,462 rep
 same result and forensics surfaces and counts toward evaluated breadth, but has no official ordinal
 rank because no peer shares its exact Groq comparison contract. This raises current-contract attested
 base-model coverage to 19/50 while the exact-comparison rankable count remains 18.
+Two additional current-contract Groq routes then added a genuinely matched
+comparison group: GPT-OSS 20B scored 60.0% safe success and Llama 3.3 70B scored
+53.33%, both with 100% safety on their 18 text calls and 12 explicit unsupported-
+image outcomes. The pair raises attested breadth to 21/50 and rankable breadth to
+20. Provider-reported totals were 25,074 and 18,664 tokens respectively; median
+wall times were 11.901 and 2.916 seconds. These reruns remain separately
+identifiable from the historical Groq configurations through immutable result
+directories, adapter-settings hashes, route manifests, and submission sidecars.
 The three earlier added v2 rows are current-contract reruns of models already represented by
 immutable v1 history, so they deepen contract-comparable evidence without increasing
 unique base-model breadth. Earlier Qwen3-VL partial runs remain unranked raw evidence;

@@ -71,6 +71,24 @@ def _catalog_entry(provider: str, model_name: str) -> dict[str, Any]:
     return matches[0]
 
 
+def _row_matches_results_directory(row: dict[str, Any], results_directory: str) -> bool:
+    """Bind a summarized row to the exact immutable artifact directory.
+
+    Provider/model/harness identifiers are not unique across reruns.  The task
+    artifact paths are emitted by the reporter from the source directory, so
+    requiring every task artifact to live directly under the declared
+    results_directory prevents a submission from attaching to a sibling run.
+    """
+    tasks = row.get("tasks")
+    if not isinstance(tasks, list) or not tasks:
+        return False
+    artifact_paths = [task.get("artifact_path") for task in tasks if isinstance(task, dict)]
+    return len(artifact_paths) == len(tasks) and all(
+        isinstance(path, str) and Path(path).parent.as_posix() == results_directory
+        for path in artifact_paths
+    )
+
+
 def validate_submission(
     manifest_path: Path,
     *,
@@ -165,10 +183,12 @@ def validate_submission(
         and row.get("model_revision") == model["model_revision"]
         and row.get("harness_name") == model["harness_name"]
         and row.get("harness_revision") == model["harness_revision"]
+        and _row_matches_results_directory(row, payload["results_directory"])
     ]
     if len(matches) != 1:
         raise ValueError(
-            "Expected exactly one summarized row for submitted model and harness revision; "
+            "Expected exactly one summarized row for submitted model, harness revision, "
+            "and results directory; "
             f"found {len(matches)}."
         )
     row = matches[0]

@@ -5,22 +5,23 @@
   "summary": {
     "planned_base_models": 50,
     "access_qualified_base_models": 24,
-    "evaluated_base_models": 19,
-    "ranked_base_models": 18,
-    "workflow_view_evaluated_base_models": 19,
-    "workflow_view_ranked_base_models": 18,
+    "evaluated_base_models": 21,
+    "ranked_base_models": 20,
+    "workflow_view_evaluated_base_models": 21,
+    "workflow_view_ranked_base_models": 20,
     "published_system_configurations": 31,
-    "published_release_rows": 50,
+    "published_release_rows": 52,
     "open_planned_models": 31,
     "closed_planned_models": 19,
     "vision_planned_models": 31,
     "steward_count": 11,
-    "evaluated_open_base_models": 19,
+    "evaluated_open_base_models": 21,
     "evaluated_closed_base_models": 0,
     "evaluated_vision_base_models": 7,
     "evaluated_image_route_base_models": 7,
-    "evaluated_steward_count": 6,
+    "evaluated_steward_count": 7,
     "evaluated_size_tiers": [
+      "large",
       "medium",
       "small"
     ],
@@ -29,9 +30,9 @@
   },
   "completion_gate": {
     "required_base_model_count": 50,
-    "observed_base_model_count": 19,
-    "satisfied_base_model_count": 19,
-    "remaining_base_model_count": 31,
+    "observed_base_model_count": 21,
+    "satisfied_base_model_count": 21,
+    "remaining_base_model_count": 29,
     "required_base_model_ids": [
       "openai/gpt-oss-120b",
       "openai/gpt-oss-20b",
@@ -85,8 +86,10 @@
       "amazon.nova-lite-v1:0"
     ],
     "observed_base_model_ids": [
+      "openai/gpt-oss-20b",
       "meta-llama/Llama-3.1-8B-Instruct",
       "meta-llama/Llama-3.2-3B-Instruct",
+      "meta-llama/Llama-3.3-70B-Instruct",
       "Qwen/Qwen2.5-7B-Instruct",
       "Qwen/Qwen3-1.7B",
       "Qwen/Qwen3-8B",
@@ -106,8 +109,10 @@
       "microsoft/phi-4"
     ],
     "satisfied_base_model_ids": [
+      "openai/gpt-oss-20b",
       "meta-llama/Llama-3.1-8B-Instruct",
       "meta-llama/Llama-3.2-3B-Instruct",
+      "meta-llama/Llama-3.3-70B-Instruct",
       "Qwen/Qwen2.5-7B-Instruct",
       "Qwen/Qwen3-1.7B",
       "Qwen/Qwen3-8B",
@@ -128,8 +133,6 @@
     ],
     "remaining_base_model_ids": [
       "openai/gpt-oss-120b",
-      "openai/gpt-oss-20b",
-      "meta-llama/Llama-3.3-70B-Instruct",
       "meta-llama/Llama-3.2-90B-Vision-Instruct",
       "meta-llama/Llama-4-Scout-17B-16E-Instruct",
       "Qwen/Qwen2.5-72B-Instruct",
@@ -162,9 +165,9 @@
     "composition": {
       "open_base_models": {
         "required": 30,
-        "observed": 19,
+        "observed": 21,
         "satisfied": false,
-        "remaining": 11
+        "remaining": 9
       },
       "closed_base_models": {
         "required": 15,
@@ -180,7 +183,7 @@
       },
       "steward_count": {
         "required": 5,
-        "observed": 6,
+        "observed": 7,
         "satisfied": true,
         "remaining": 0
       },
@@ -191,13 +194,12 @@
           "large"
         ],
         "observed": [
+          "large",
           "medium",
           "small"
         ],
-        "satisfied": false,
-        "remaining": [
-          "large"
-        ]
+        "satisfied": true,
+        "remaining": []
       }
     },
     "satisfied": false
@@ -240,7 +242,7 @@
           "date": "2026-08-01",
           "promotion_basis": null,
           "qualification_evidence": null,
-          "note": "Groq-hosted open-weight model evaluated on the OpenKBP v0.6 release with three attempts per task."
+          "note": "The historical Groq route has a complete descriptive run. A fresh JSON-v2 qualification canary on August 3 returned a sanitized provider HTTP 400, so no current-contract campaign was started and the base model remains outside the attested fleet gate."
         }
       ]
     },
@@ -253,7 +255,9 @@
       "modalities": [
         "text"
       ],
-      "evaluated_modalities": [],
+      "evaluated_modalities": [
+        "text"
+      ],
       "size_tier": "medium",
       "planned_routes": [
         "groq",
@@ -261,16 +265,16 @@
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
-      "evaluated": false,
-      "ranked": false,
-      "workflow_view_evaluated": false,
-      "workflow_view_ranked": false,
+      "evaluated": true,
+      "ranked": true,
+      "workflow_view_evaluated": true,
+      "workflow_view_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1,
-      "readiness_state": "access_qualified",
-      "next_gate": "q2_common_harness",
-      "readiness_note": "Provider or local access has passed Q0 or later. The next gate is a complete, attested common-harness matrix; partial attempts and native-only rows do not satisfy it.",
+      "published_row_count": 2,
+      "readiness_state": "workflow_view_evaluated",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP one-response workflow-view matrix is published. This is not a stateful workflow claim; the next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
       "access_evidence": [
         {
           "provider": "groq",
@@ -278,10 +282,14 @@
           "status": "available",
           "qualification_stage": "q2",
           "surface": "groq_openai_compatible",
-          "date": "2026-08-01",
-          "promotion_basis": null,
-          "qualification_evidence": null,
-          "note": "Groq-hosted open-weight model evaluated on the OpenKBP v0.6 release with three attempts per task."
+          "date": "2026-08-03",
+          "promotion_basis": "attested_complete_q2",
+          "qualification_evidence": {
+            "kind": "common_harness_submission",
+            "submission_id": "gpt-oss-20b-groq-json-v2-openkb-v0.6-20260803",
+            "manifest_path": "submissions/gpt-oss-20b-groq-json-v2-openkb-v0.6-20260803.json"
+          },
+          "note": "A fresh JSON-v2 canary preceded a complete 30-attempt OpenKBP v0.6 campaign. This current-contract row remains separately identifiable from the historical Groq configuration."
         }
       ]
     },
@@ -400,7 +408,9 @@
       "modalities": [
         "text"
       ],
-      "evaluated_modalities": [],
+      "evaluated_modalities": [
+        "text"
+      ],
       "size_tier": "large",
       "planned_routes": [
         "groq",
@@ -408,16 +418,16 @@
       ],
       "access_qualified": true,
       "qualification_stage": "q2",
-      "evaluated": false,
-      "ranked": false,
-      "workflow_view_evaluated": false,
-      "workflow_view_ranked": false,
+      "evaluated": true,
+      "ranked": true,
+      "workflow_view_evaluated": true,
+      "workflow_view_ranked": true,
       "system_configuration_count": 1,
       "published_release_count": 1,
-      "published_row_count": 1,
-      "readiness_state": "access_qualified",
-      "next_gate": "q2_common_harness",
-      "readiness_note": "Provider or local access has passed Q0 or later. The next gate is a complete, attested common-harness matrix; partial attempts and native-only rows do not satisfy it.",
+      "published_row_count": 2,
+      "readiness_state": "workflow_view_evaluated",
+      "next_gate": "q3_comparison",
+      "readiness_note": "A complete current-contract OpenKBP one-response workflow-view matrix is published. This is not a stateful workflow claim; the next gate is a larger family-diverse comparison release with external physics review and a matched human baseline.",
       "access_evidence": [
         {
           "provider": "groq",
@@ -425,10 +435,14 @@
           "status": "available",
           "qualification_stage": "q2",
           "surface": "groq_openai_compatible",
-          "date": "2026-08-01",
-          "promotion_basis": null,
-          "qualification_evidence": null,
-          "note": "Groq-hosted model evaluated on the OpenKBP v0.6 release with three attempts per task."
+          "date": "2026-08-03",
+          "promotion_basis": "attested_complete_q2",
+          "qualification_evidence": {
+            "kind": "common_harness_submission",
+            "submission_id": "llama-3.3-70b-groq-json-v2-openkb-v0.6-20260803",
+            "manifest_path": "submissions/llama-3.3-70b-groq-json-v2-openkb-v0.6-20260803.json"
+          },
+          "note": "A fresh JSON-v2 canary preceded a complete 30-attempt OpenKBP v0.6 campaign. This current-contract row remains separately identifiable from the historical Groq configuration."
         }
       ]
     },

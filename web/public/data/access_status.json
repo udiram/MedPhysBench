@@ -247,8 +247,15 @@
     "qualification_stage": "q2",
     "status": "available",
     "surface": "groq_openai_compatible",
-    "date": "2026-08-01",
-    "note": "Groq-hosted model evaluated on the OpenKBP v0.6 release with three attempts per task."
+    "date": "2026-08-03",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "llama-3.3-70b-groq-json-v2-openkb-v0.6-20260803",
+      "manifest_path": "submissions/llama-3.3-70b-groq-json-v2-openkb-v0.6-20260803.json"
+    },
+    "note": "A fresh JSON-v2 canary preceded a complete 30-attempt OpenKBP v0.6 campaign. This current-contract row remains separately identifiable from the historical Groq configuration."
   },
   {
     "model": "openai/gpt-oss-20b",
@@ -257,8 +264,15 @@
     "qualification_stage": "q2",
     "status": "available",
     "surface": "groq_openai_compatible",
-    "date": "2026-08-01",
-    "note": "Groq-hosted open-weight model evaluated on the OpenKBP v0.6 release with three attempts per task."
+    "date": "2026-08-03",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "gpt-oss-20b-groq-json-v2-openkb-v0.6-20260803",
+      "manifest_path": "submissions/gpt-oss-20b-groq-json-v2-openkb-v0.6-20260803.json"
+    },
+    "note": "A fresh JSON-v2 canary preceded a complete 30-attempt OpenKBP v0.6 campaign. This current-contract row remains separately identifiable from the historical Groq configuration."
   },
   {
     "model": "openai/gpt-oss-120b",
@@ -268,7 +282,7 @@
     "status": "available",
     "surface": "groq_openai_compatible",
     "date": "2026-08-01",
-    "note": "Groq-hosted open-weight model evaluated on the OpenKBP v0.6 release with three attempts per task."
+    "note": "The historical Groq route has a complete descriptive run. A fresh JSON-v2 qualification canary on August 3 returned a sanitized provider HTTP 400, so no current-contract campaign was started and the base model remains outside the attested fleet gate."
   },
   {
     "model": "qwen/qwen3.6-27b",

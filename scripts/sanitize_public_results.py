@@ -44,9 +44,14 @@ def sanitize_trace(trace: Any) -> Any:
     return sanitized_trace
 
 
+def _candidate_artifacts(root: Path) -> list[Path]:
+    """Accept either a release directory or one concrete model directory."""
+    return sorted({*root.glob("*.json"), *root.glob("*/*.json")})
+
+
 def sanitize_tree(root: Path) -> int:
     changed = 0
-    for path in sorted(root.glob("*/*.json")):
+    for path in _candidate_artifacts(root):
         artifact = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(artifact, dict):
             continue
@@ -71,7 +76,7 @@ def sanitize_tree(root: Path) -> int:
 
 def find_unsanitized(root: Path) -> list[Path]:
     paths: list[Path] = []
-    for path in sorted(root.glob("*/*.json")):
+    for path in _candidate_artifacts(root):
         artifact = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(artifact, dict):
             continue

@@ -28,12 +28,13 @@ package, or evidence of autonomous clinical competence.
 - Real-image pilot: `public-imaging-pilot-v0.4` (`5` real MRI, CT, and PET tasks)
 - OpenKBP real-data workflow-view pilot: `public-real-workflows-pilot-v0.6` (`10` one-response tasks from
   `2` patient families; `18` submission-attested Ollama v2 configurations with official ranks,
-  `8` complete legacy Ollama/Groq configurations retained descriptively, `1` quarantined Groq
-  configuration, and `4` GPT-5.6 native audits; `31` total rows—`18` ranked and `13` unranked—and
-  `930` total attempt artifacts)
+  `2` submission-attested Groq JSON-v2 configurations with official ranks, `1` attested singleton
+  Groq configuration, `8` complete legacy Ollama/Groq configurations retained descriptively,
+  `1` quarantined Groq configuration, and `4` GPT-5.6 native audits; `34` total rows—`20` ranked
+  and `14` unranked—and `1,020` total attempt artifacts)
 - Scored configurations through Monday, August 3, 2026: five common-harness local core models,
   six explicitly unranked GPT-5.6 core-effort pilots, two harder TG-263 native pilots,
-  three local models on the original image pilot, twenty-seven published API/local configurations on the
+  three local models on the original image pilot, thirty published API/local configurations on the
   OpenKBP pilot, and four GPT-5.6 OpenKBP audits with descriptive outcome ranks
 - Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
 - Frozen 50-base-model panel: [`fleet/public_fleet_v1.yaml`](fleet/public_fleet_v1.yaml)
@@ -94,9 +95,10 @@ package, or evidence of autonomous clinical competence.
 - A schema-driven, serial campaign controller with memory/disk preflight, one child process per
   model, exact release/fleet binding, canonical-matrix verification, and hash-chained resume receipts;
   new v2 manifests bind every configuration to a frozen route and unexpired access receipt.
-- Nineteen attested current-contract base-model evaluations: 18 exact local-Ollama configurations
-  in one rankable comparison group plus a corrected Groq Qwen3.6 configuration that is fully
-  inspectable and outcome-orderable but has no ordinal rank until an exact-contract peer exists.
+- Twenty-one attested current-contract base-model evaluations: 18 exact local-Ollama configurations
+  in one rankable comparison group, a matched Groq group containing GPT-OSS 20B and Llama 3.3 70B,
+  plus a corrected Groq Qwen3.6 configuration that is fully inspectable and outcome-orderable but
+  has no ordinal rank until an exact-contract peer exists.
   Qwen3-VL 8B preserves the default Thinking artifact's non-scoring failed canary separately from a
   digest-pinned Instruct artifact that passed strict JSON/image preflight and the full 30-attempt matrix;
   route declarations and failed/partial campaigns still never create or count scores.
@@ -138,8 +140,8 @@ package, or evidence of autonomous clinical competence.
   sealed-batch hash, model revision, effort, attempt index, output-map digest, timestamps, declared
   transport tools, and all corresponding public result traces without storing hidden reasoning.
 - A machine-derived evidence funnel that reports `50` frozen base IDs, `24` with some published
-  access or native evidence, `18` validly evaluated under the attested current common-harness contract,
-  and `18` rankable—without counting six
+  access or native evidence, `21` validly evaluated under the attested current common-harness contract,
+  and `20` rankable—without counting six
   GPT-5.6 effort settings as six models, treating historical legacy rows as current-contract evidence,
   or presenting a partial local campaign as a score.
 - Eighteen digest-pinned `reference-json-v2` OpenKBP rows now carry attested common-harness
@@ -147,6 +149,9 @@ package, or evidence of autonomous clinical competence.
   current contract without increasing unique-base-model breadth; the distinct Qwen3-VL 8B Instruct
   artifact and text-only community Phi-4 Multimodal configuration each add one newly completed base
   model. The latter has no vision projector, so its 12 image-required tasks remain explicit unavailable outcomes.
+- Two Groq JSON-v2 reruns carry separate attested submission sidecars and form their own exact
+  provider/harness/settings comparison group. Their immutable directories do not overwrite the
+  older Groq configurations of the same base models.
 - Workflow-qualified accounting now separately reports which planned models have actually completed
   a repeated-trial workflow release instead of letting smaller pilot surfaces overstate benchmark
   breadth.
