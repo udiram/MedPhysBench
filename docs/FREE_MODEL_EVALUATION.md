@@ -1,6 +1,6 @@
 # No-cost and free-tier model evaluation
 
-Status checked: 2026-07-31. Provider plans, model catalogs, quotas, data-use terms, regions, and authentication
+Status checked: 2026-08-03. Provider plans, model catalogs, quotas, data-use terms, regions, and authentication
 requirements can change without notice. Recheck every linked official page immediately before a run.
 
 “Free” here means no provider invoice within a current allowance. It does not mean costless: local hardware,
@@ -47,10 +47,14 @@ The repository now ships a strict OpenAI-compatible Chat Completions adapter and
 a Groq preset. It preserves the exact provider/model ID, response format,
 reasoning setting when supported, usage metadata, request IDs, and errors. A
 Groq run requires `GROQ_API_KEY`; the [official free-plan limits](https://console.groq.com/docs/rate-limits)
-are model-specific and mutable. On 2026-08-01, five active chat-model IDs completed
-the public OpenKBP v0.6 matrix: `llama-3.1-8b-instant`,
-`llama-3.3-70b-versatile`, `openai/gpt-oss-20b`, `openai/gpt-oss-120b`, and
-`qwen/qwen3.6-27b`.
+are model-specific and mutable. On 2026-08-01, four chat-model IDs completed rankable
+public OpenKBP v0.6 matrices: `llama-3.1-8b-instant`,
+`llama-3.3-70b-versatile`, `openai/gpt-oss-20b`, and `openai/gpt-oss-120b`. A
+Qwen route reached all 30 task attempts but failed the provider output contract and remained
+unranked. The historical request is preserved; the corrected
+[`groq_reasoning_routes_v2.yaml`](../fleet/groq_reasoning_routes_v2.yaml) contract uses Groq's
+documented `reasoning_effort: none` and `reasoning_format: hidden` fields and still needs a fresh
+successful receipt plus complete rerun before promotion.
 
 ```bash
 GROQ_API_KEY=... medphys-bench run-release \
@@ -72,11 +76,16 @@ remain campaign-invalidating errors. The benchmark never stores the key. A free-
 quota that cannot complete the declared attempt matrix yields an unranked partial
 package, not a shortened rank.
 
-## Current hosted allowances that require adapter work
+Groq's current deprecation schedule also matters for reproducibility: Llama 3.1 8B Instant and
+Llama 3.3 70B Versatile are scheduled to shut down on 2026-08-16, while Qwen3-32B and Llama 4 Scout
+were retired on 2026-07-17 ([official deprecations](https://console.groq.com/docs/deprecations)).
+Historical rows remain auditable, but a retired handle is not a present-day rerun route.
 
-The repository does not currently ship adapters for the services below. They are candidate execution routes, not
-completed integrations or benchmark results. A new adapter must preserve the sealed runtime task, immutable run
-manifest, exact provider/model revision, raw usage metadata, errors, and safety boundary before any scored run.
+## Declared hosted routes that still require access evidence
+
+The generic OpenAI-compatible adapter can execute the frozen Gemini/Cohere and corrected Groq route
+contracts in [`fleet/`](../fleet/), but a declaration is not proof of access. Each route must produce
+a fresh content-addressed canary receipt and a complete evidence-bound campaign before it can add a score.
 
 ### Gemini API free tier
 
@@ -87,13 +96,20 @@ are required. Availability is model- and region-dependent; preview models can ha
 data-use and billing terms for the exact project before sending benchmark content. Enabling billing changes the cost
 boundary, so keep paid use disabled when the intent is a no-cost run.
 
-### GitHub Models included usage
+## Retired surfaces
 
-GitHub states that accounts receive included, rate-limited GitHub Models usage at no cost and that limits vary by
-model and account/Copilot plan ([official billing page](https://docs.github.com/en/billing/concepts/product-billing/github-models),
-[official prototyping and rate-limit page](https://docs.github.com/en/github-models/use-github-models/prototyping-with-ai-models)).
-GitHub authentication is required. Paid usage is opt-in; verify that it remains disabled and capture the model card,
-model identifier, rate-limit tier, and request date in run provenance.
+### GitHub Models — retired, not an evaluation route
+
+GitHub retired the Models playground, catalog, inference API, and BYOK service for all customers on
+2026-07-30 ([official retirement notice](https://docs.github.com/en/github-models)). The endpoint now
+returns HTTP 410 and must not be advertised as a free fleet-expansion path. GitHub Copilot is a separate
+product, not a substitute reproducible inference API for this benchmark.
+
+## Current hosted allowances that require adapter or route work
+
+The services below remain candidates, not completed integrations or benchmark results. A new route must
+preserve the sealed runtime task, immutable run manifest, exact provider/model revision, raw usage metadata,
+errors, and safety boundary before any scored run.
 
 ### Hugging Face Inference Providers credits
 

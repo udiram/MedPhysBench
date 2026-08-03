@@ -1,0 +1,24 @@
+schema_version: medphysbench.model-routes.v1
+route_set_id: groq-reasoning-routes-v2
+fleet_file: fleet/public_fleet_v1.yaml
+fleet_id: public-fleet-v1
+frozen_at: "2026-08-03T13:00:00Z"
+routes:
+  - route_id: groq-qwen-3.6-27b-json-v2
+    base_model_id: Qwen/Qwen3.6-27B
+    adapter: groq
+    provider: groq
+    model: qwen/qwen3.6-27b
+    model_revision: qwen/qwen3.6-27b
+    revision_basis: provider_alias
+    base_url: https://api.groq.com/openai/v1
+    api_key_env: GROQ_API_KEY
+    response_format: json_object
+    strict_schema: false
+    reasoning_effort: none
+    reasoning_format: hidden
+    timeout_seconds: 300
+    max_tokens: 4096
+    max_rate_limit_retries: 20
+    access_ttl_seconds: 21600
+    modalities: [text, image]

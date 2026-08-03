@@ -27,6 +27,7 @@ from medphys_agentbench.route_qualification import (
 ROOT = Path(__file__).resolve().parents[1]
 ROUTE_SET_PATH = ROOT / "fleet" / "model_routes_v1.yaml"
 PROVIDER_ROUTE_SET_PATH = ROOT / "fleet" / "provider_expansion_routes_v2.yaml"
+GROQ_REASONING_ROUTE_SET_PATH = ROOT / "fleet" / "groq_reasoning_routes_v2.yaml"
 RELEASE_FILE = "releases/public_real_workflows_pilot_v0_6.yaml"
 
 
@@ -122,6 +123,20 @@ def test_provider_expansion_routes_are_frozen_but_do_not_claim_access() -> None:
     assert cohere.response_format_dialect == "cohere"
     assert route_set.route("google-gemini-3.6-flash").send_temperature is False
     assert route_set.route("google-gemini-3.5-flash-lite").send_temperature is False
+
+
+def test_qwen_reasoning_route_freezes_json_transport_and_multimodal_capability() -> None:
+    route_set = load_route_set(GROQ_REASONING_ROUTE_SET_PATH)
+    route = route_set.route("groq-qwen-3.6-27b-json-v2")
+
+    assert route.base_model_id == "Qwen/Qwen3.6-27B"
+    assert route.reasoning_effort == "none"
+    assert route.reasoning_format == "hidden"
+    assert route.response_format == "json_object"
+    assert route.strict_schema is False
+    assert route.max_tokens == 4096
+    assert route.max_rate_limit_retries == 20
+    assert route.modalities == ("text", "image")
 
 
 def test_receipt_is_content_addressed_and_identity_bound(tmp_path: Path) -> None:

@@ -24,6 +24,7 @@ existing route, campaign, harness, and adapter-setting hashes.
 | `completion_limit_field` | `max_completion_tokens` | Select exactly one provider completion-limit key. |
 | `response_format_dialect` | `openai` | Use the OpenAI envelope, Cohere envelope, or omit the provider field. |
 | `send_reasoning_effort` | `true` | Include `reasoning_effort` only when a value is declared. |
+| `reasoning_format` | omitted | Freeze provider-native reasoning transport as `hidden`, `parsed`, or `raw`; it is part of route and campaign identity. |
 
 When sampling fields are omitted, the immutable run manifest records `null`; it does not pretend
 that a seed or temperature reached the model. `strict_schema: true` is invalid when response format
@@ -43,6 +44,12 @@ Gemini bases and Cohere Command A+ without changing the five frozen Groq routes.
 | Cohere compatibility | `max_tokens`; `{type: json_object, schema: ...}`; temperature and seed included | Cohere documents the compatibility URL, exact structured-output envelope, supported request fields, and the `none`/`high` reasoning restriction. [Compatibility API](https://docs.cohere.com/docs/compatibility-api) · [Command A+](https://docs.cohere.com/docs/command-a-plus) |
 | NVIDIA build endpoint | Not yet in this route set | NVIDIA documents an OpenAI-compatible endpoint and a free Llama 3.2 90B Vision route using `max_tokens`, but the current frozen fleet declares that base only for self-hosting. It needs a new fleet/route contract and fresh evidence rather than an in-place rewrite. [NVIDIA model endpoint](https://build.nvidia.com/meta/llama-3.2-90b-vision-instruct/build) |
 
+[`groq_reasoning_routes_v2.yaml`](../fleet/groq_reasoning_routes_v2.yaml) freezes a corrected
+Qwen 3.6 27B route without rewriting the historical Groq route used by prior attempts. Groq's
+current model contract documents text and image input, JSON-object mode, `reasoning_effort: none`,
+and `reasoning_format: hidden`; those fields therefore form part of the new route identity rather
+than an undocumented retry heuristic. [Groq Qwen 3.6 model contract](https://console.groq.com/docs/model/qwen/qwen3.6-27b)
+
 ## Receipt integrity
 
 The original [`openai_access_probe.py`](../scripts/probes/openai_access_probe.py) remains byte-frozen
@@ -58,10 +65,20 @@ After committing the route and probe sources, qualify one route at a time:
 python scripts/probes/openai_access_probe_v2.py \
   fleet/provider_expansion_routes_v2.yaml \
   --route-id google-gemini-3.6-flash
+
+# Qwen's corrected Groq request contract. Requires GROQ_API_KEY in the process
+# environment; the value is never accepted as a CLI argument or written.
+uv run python scripts/probes/openai_access_probe_v2.py \
+  fleet/groq_reasoning_routes_v2.yaml \
+  --route-id groq-qwen-3.6-27b-json-v2
 ```
 
 The probe sends only a fixed JSON canary. It never loads a benchmark task, grader, expected answer,
 or patient artifact. Provider response bodies and credentials are not written to the receipt.
+An `auth_missing`, quota, or contract-failure receipt documents the blocked route but cannot be
+promoted into a scoring campaign. After an `available` receipt exists, use the evidence-bound
+`generate-campaign` workflow in [REPRODUCIBILITY.md](REPRODUCIBILITY.md); do not hand-author a
+replacement score row.
 
 ## Promotion gate
 

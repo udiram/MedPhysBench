@@ -120,6 +120,7 @@ def test_probe_uses_the_route_request_dialect(tmp_path: Path) -> None:
     route = next(item for item in route_set_payload["routes"] if item["route_id"] == route_id)
     route.update(send_temperature=False, send_seed=False, completion_limit_field="max_tokens")
     route.update(response_format="json_schema", response_format_dialect="cohere")
+    route.update(reasoning_effort="none", reasoning_format="hidden")
     route_set_path.write_text(yaml.safe_dump(route_set_payload, sort_keys=False), encoding="utf-8")
     _copy_v2_probe_contract(tmp_path)
     adapter_dependency = tmp_path / "src" / "medphys_agentbench" / "adapters" / "openai_compatible.py"
@@ -147,6 +148,8 @@ def test_probe_uses_the_route_request_dialect(tmp_path: Path) -> None:
     assert payload["max_tokens"] == 64
     assert payload["response_format"]["type"] == "json_object"
     assert payload["response_format"]["schema"]["required"] == ["status"]
+    assert payload["reasoning_effort"] == "none"
+    assert payload["reasoning_format"] == "hidden"
     assert receipt["probe_version"] == "openai-access-probe-v2"
     assert {item["path"] for item in receipt["probe_dependencies"]} == {
         "scripts/probes/openai_access_probe.py",

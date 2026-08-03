@@ -1,10 +1,11 @@
-import { ChevronDown } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, Search } from "lucide-react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { domainLabel, formatDuration, formatPercent, formatTokens, normalizeModelDisplayName, providerLabel, shortHash } from "../lib/format";
 import { defectsForTask } from "../lib/defects";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import { modelRunKey } from "../lib/modelRunKey";
 import { publicArtifactHref, taskAttemptKey } from "../lib/forensicsNavigation";
+import { matchesForensicsRunQuery, matchesForensicsTaskQuery, selectForensicsTaskWindow, sortForensicsTasks } from "../lib/forensicsWorkbench";
 import { buildTaskComparison } from "../lib/taskComparison";
 import type { TaskComparisonScope } from "../lib/taskComparison";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
@@ -42,26 +43,34 @@ type DomainSummaryRow = {
 };
 
 const OUTCOME_ORDER: OutcomeKey[] = ["safe_success", "safe_failure", "unsafe", "unavailable", "inconclusive"];
+const DEFAULT_RENDERED_TASK_LIMIT = 120;
 
 export function ResultForensics({ data, defectLedger, modelCatalog, releaseView }: Props) {
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>(() => readEnumParam("fx_source", ["all", "open", "closed", "unknown"] as const, "all"));
   const [providerFilter, setProviderFilter] = useState(() => getUrlParam("fx_provider") ?? "all");
+  const [runQuery, setRunQuery] = useState(() => getUrlParam("fx_run_query") ?? "");
   const [modelKey, setModelKey] = useState<string>(() => getUrlParam("fx_model") ?? "");
   const [domainFilter, setDomainFilter] = useState(() => getUrlParam("fx_domain") ?? "all");
   const [outcomeFilter, setOutcomeFilter] = useState<OutcomeFilter>(() => readEnumParam("fx_outcome", ["all", "safe_success", "safe_failure", "unsafe", "unavailable", "inconclusive", "capability_failure"] as const, "all"));
+  const [taskQuery, setTaskQuery] = useState(() => getUrlParam("fx_task_query") ?? "");
   const [selectedTaskKey, setSelectedTaskKey] = useState<string>(() => getUrlParam("fx_task") ?? "");
   const [comparisonScope, setComparisonScope] = useState<TaskComparisonScope>(() =>
     readEnumParam("fx_compare", ["identical_harness", "all_visible"] as const, "identical_harness")
   );
+  const [taskWindowExpanded, setTaskWindowExpanded] = useState(false);
+  const deferredRunQuery = useDeferredValue(runQuery);
+  const deferredTaskQuery = useDeferredValue(taskQuery);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handlePopState = () => {
       setSourceFilter(readEnumParam("fx_source", ["all", "open", "closed", "unknown"] as const, "all"));
       setProviderFilter(getUrlParam("fx_provider") ?? "all");
+      setRunQuery(getUrlParam("fx_run_query") ?? "");
       setModelKey(getUrlParam("fx_model") ?? "");
       setDomainFilter(getUrlParam("fx_domain") ?? "all");
       setOutcomeFilter(readEnumParam("fx_outcome", ["all", "safe_success", "safe_failure", "unsafe", "unavailable", "inconclusive", "capability_failure"] as const, "all"));
+      setTaskQuery(getUrlParam("fx_task_query") ?? "");
       setSelectedTaskKey(getUrlParam("fx_task") ?? "");
       setComparisonScope(readEnumParam("fx_compare", ["identical_harness", "all_visible"] as const, "identical_harness"));
     };
@@ -98,9 +107,10 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
       .filter((entry) => {
         const matchesSource = sourceFilter === "all" || entry.source === sourceFilter;
         const matchesProvider = providerFilter === "all" || entry.row.provider === providerFilter;
-        return matchesSource && matchesProvider;
+        const matchesRun = matchesForensicsRunQuery(entry.row, deferredRunQuery);
+        return matchesSource && matchesProvider && matchesRun;
       });
-  }, [forensicRows, providerFilter, sourceFilter]);
+  }, [deferredRunQuery, forensicRows, providerFilter, sourceFilter]);
 
   useEffect(() => {
     if (!data) return;
@@ -133,21 +143,32 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
         || (outcomeFilter === "capability_failure"
           ? task.capability_failure === true
           : normalizedOutcome === outcomeFilter);
-      return matchesDomain && matchesOutcome;
+      const matchesTask = matchesForensicsTaskQuery(task, deferredTaskQuery);
+      return matchesDomain && matchesOutcome && matchesTask;
     });
-  }, [domainFilter, outcomeFilter, selectedRow]);
+  }, [deferredTaskQuery, domainFilter, outcomeFilter, selectedRow]);
 
-  const domainBuckets = useMemo(() => groupTasksByDomain(filteredTasks), [filteredTasks]);
+  const orderedFilteredTasks = useMemo(() => sortForensicsTasks(filteredTasks), [filteredTasks]);
+  const renderedTasks = useMemo(
+    () =>
+      taskWindowExpanded
+        ? orderedFilteredTasks
+        : selectForensicsTaskWindow(orderedFilteredTasks, DEFAULT_RENDERED_TASK_LIMIT, selectedTaskKey),
+    [orderedFilteredTasks, selectedTaskKey, taskWindowExpanded],
+  );
+
+  const domainBuckets = useMemo(() => groupTasksByDomain(renderedTasks), [renderedTasks]);
+  const summaryDomainBuckets = useMemo(() => groupTasksByDomain(filteredTasks), [filteredTasks]);
   const distribution = useMemo(() => tallyOutcomes(filteredTasks), [filteredTasks]);
   const allDistribution = useMemo(() => tallyOutcomes(selectedRow?.tasks ?? []), [selectedRow]);
   const selectedTask = useMemo(() => {
-    if (!filteredTasks.length) return null;
+    if (!orderedFilteredTasks.length) return null;
     if (selectedTaskKey) {
-      const match = filteredTasks.find((task) => taskAttemptKey(task) === selectedTaskKey);
+      const match = orderedFilteredTasks.find((task) => taskAttemptKey(task) === selectedTaskKey);
       if (match) return match;
     }
-    return filteredTasks[0];
-  }, [filteredTasks, selectedTaskKey]);
+    return orderedFilteredTasks[0];
+  }, [orderedFilteredTasks, selectedTaskKey]);
   const selectedTaskUnavailable = selectedTask
     ? normalizeForensicsOutcome(selectedTask.outcome_category, selectedTask.capability_failure === true) === "unavailable"
     : false;
@@ -179,7 +200,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
   const failedLanes = useMemo(() => tallyStrings(filteredTasks.flatMap((task) => task.failed_lanes ?? [])), [filteredTasks]);
   const failedGraders = useMemo(() => tallyStrings(filteredTasks.flatMap((task) => task.failed_graders ?? [])), [filteredTasks]);
   const domainSummary = useMemo<DomainSummaryRow[]>(() => {
-    return domainBuckets.map(({ domain, tasks }) => {
+    return summaryDomainBuckets.map(({ domain, tasks }) => {
       const counts = tallyOutcomes(tasks);
       const lanes = tallyStrings(tasks.flatMap((task) => task.failed_lanes ?? []));
       const graders = tallyStrings(tasks.flatMap((task) => task.failed_graders ?? []));
@@ -202,7 +223,11 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
         right.attempts - left.attempts ||
         left.domain.localeCompare(right.domain),
     );
-  }, [domainBuckets]);
+  }, [summaryDomainBuckets]);
+  const domainTotals = useMemo(
+    () => new Map(domainSummary.map((row) => [row.domain, row.attempts])),
+    [domainSummary],
+  );
   const providers = useMemo(
     () => [...new Set([
       ...(data ? [...data.models, ...(data.unranked_models ?? [])] : []).map((row) => row.provider),
@@ -213,6 +238,11 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
 
   const supportsForensics = forensicRows.length > 0;
   const showsPublicOutputs = data?.release.public_attempt_detail === "sanitized_output";
+  const taskWindowed = renderedTasks.length < orderedFilteredTasks.length;
+
+  useEffect(() => {
+    setTaskWindowExpanded(false);
+  }, [modelKey, domainFilter, outcomeFilter, deferredTaskQuery]);
 
   if (!data) {
     return (
@@ -238,7 +268,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
         </div>
         <p className="coverage-summary">
           {supportsForensics
-            ? `${visibleRows.length} rows with attempt labels · ${filteredTasks.length} tasks in current slice`
+            ? `${visibleRows.length} run set${visibleRows.length === 1 ? "" : "s"} with attempt labels · ${filteredTasks.length} task attempt${filteredTasks.length === 1 ? "" : "s"} in current slice`
             : "Aggregate-only release"}
         </p>
       </div>
@@ -295,6 +325,23 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                 <ChevronDown aria-hidden="true" />
               </span>
             </label>
+            <label className="field forensics-search-field">
+              <span>Find run set</span>
+              <span className="search-wrap">
+                <Search aria-hidden="true" />
+                <input
+                  type="search"
+                  value={runQuery}
+                  onChange={(event) => {
+                    const next = event.target.value;
+                    setRunQuery(next);
+                    setUrlParams({ fx_run_query: next || null });
+                  }}
+                  placeholder="Model, provider, harness, or config"
+                  aria-label="Find run set"
+                />
+              </span>
+            </label>
             <label className="field model-field">
               <span>Run set</span>
               <span className="select-wrap">
@@ -310,6 +357,11 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                 </select>
                 <ChevronDown aria-hidden="true" />
               </span>
+              <small className="forensics-control-hint">
+                {visibleRows.length === forensicRows.length
+                  ? `${visibleRows.length} released run sets with attempt labels`
+                  : `${visibleRows.length} matching run sets`}
+              </small>
             </label>
             <label className="field">
               <span>Domain</span>
@@ -367,75 +419,186 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
 
               <div className="forensics-layout">
                 <article className="forensics-main">
-                  <div className="forensics-domain-list">
-                    {filteredTasks.length === 0 ? (
-                      <div className="forensics-empty compact" role="status">
-                        <strong>No task attempts match this filter combination.</strong>
-                        <p>Change the domain or outcome filter to restore task-level evidence.</p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setDomainFilter("all");
-                            setOutcomeFilter("all");
-                            setUrlParams({ fx_domain: null, fx_outcome: null }, { history: "push" });
-                          }}
-                        >
-                          Reset task filters
-                        </button>
-                      </div>
-                    ) : null}
-                    {domainBuckets.map(({ domain, tasks }) => {
-                      const counts = tallyOutcomes(tasks);
-                      return (
-                        <section key={domain} className="forensics-domain-group">
-                          <header>
-                            <div>
-                              <h3>{domainLabel(domain)}</h3>
-                              <p>{tasks.length} task{tasks.length === 1 ? "" : "s"} in current slice</p>
-                            </div>
-                            <div className="forensics-domain-bar" aria-label={`${domain}: outcome split`}>
-                              {OUTCOME_ORDER.map((outcome) => (
-                                <i
-                                  key={outcome}
-                                  className={outcomeClassName(outcome)}
-                                  style={{ width: `${tasks.length ? (counts[outcome] / tasks.length) * 100 : 0}%` }}
-                                />
-                              ))}
-                            </div>
-                          </header>
-                          <div className="forensics-task-grid">
-                            {tasks.map((task) => {
-                              const currentKey = taskAttemptKey(task);
-                              const taskDefectCount = defectsForTask(defectLedger, task.task_id).length;
-                              return (
-                              <button
-                                key={currentKey}
-                                type="button"
-                                className={`forensics-task-card ${outcomeClassName(task.outcome_category, task.capability_failure === true)}${selectedTask && currentKey === taskAttemptKey(selectedTask) ? " selected" : ""}`}
-                                onClick={() => {
-                                  setSelectedTaskKey(currentKey);
-                                  setUrlParams({ fx_task: currentKey }, { history: "push" });
-                                }}
-                              >
-                                <span>{task.title}</span>
-                                <small>{task.task_id}</small>
-                                <small>
-                                  Attempt {task.attempt_index != null ? task.attempt_index + 1 : "—"}
-                                  {task.seed != null ? ` · seed ${task.seed}` : ""}
-                                </small>
-                                {task.model_failure_kind ? <small>{failureKindLabel(task.model_failure_kind)}</small> : null}
-                                {taskDefectCount > 0 ? (
-                                  <small className="forensics-task-qa">QA history · {taskDefectCount} disclosed</small>
-                                ) : null}
-                                <em>{outcomeLabel(task.outcome_category, task.capability_failure === true)}</em>
-                              </button>
-                              );
-                            })}
+                  {filteredTasks.length === 0 ? (
+                    <div className="forensics-empty compact" role="status">
+                      <strong>No task attempts match this filter combination.</strong>
+                      <p>Change the task search, domain, or outcome filter to restore task-level evidence.</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDomainFilter("all");
+                          setOutcomeFilter("all");
+                          setTaskQuery("");
+                          setUrlParams({ fx_domain: null, fx_outcome: null, fx_task_query: null }, { history: "push" });
+                        }}
+                      >
+                        Reset task filters
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <section className="forensics-panel forensics-task-index-panel">
+                        <div className="forensics-task-index-heading">
+                          <div>
+                            <h3>Matching task attempts</h3>
+                            <p>
+                              {taskWindowed
+                                ? `Showing ${renderedTasks.length} of ${orderedFilteredTasks.length} matching attempts, prioritized for failure diagnosis.`
+                                : `${renderedTasks.length} matching attempt${renderedTasks.length === 1 ? "" : "s"} in the current slice.`}
+                            </p>
                           </div>
-                        </section>
-                      );
-                    })}
-                  </div>
+                          <label className="field forensics-task-search">
+                            <span>Find task</span>
+                            <span className="search-wrap">
+                              <Search aria-hidden="true" />
+                              <input
+                                type="search"
+                                value={taskQuery}
+                                onChange={(event) => {
+                                  const next = event.target.value;
+                                  setTaskQuery(next);
+                                  setUrlParams({ fx_task_query: next || null });
+                                }}
+                                placeholder="Task, family, lane, grader, or failure kind"
+                                aria-label="Find task attempts"
+                              />
+                            </span>
+                          </label>
+                        </div>
+                        <div className="forensics-task-index" role="region" aria-label="Matching task attempts" tabIndex={0}>
+                          <table>
+                            <thead>
+                              <tr>
+                                <th>Task</th>
+                                <th>Outcome</th>
+                                <th>Failure signal</th>
+                                <th>Time</th>
+                                <th>Tokens</th>
+                                <th><span className="sr-only">Inspect task</span></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {renderedTasks.map((task) => {
+                                const currentKey = taskAttemptKey(task);
+                                const taskDefectCount = defectsForTask(defectLedger, task.task_id).length;
+                                return (
+                                  <tr key={currentKey}>
+                                    <th scope="row">
+                                      <strong>{task.title}</strong>
+                                      <small>{task.task_id} · {domainLabel(task.domain)}</small>
+                                      <small>
+                                        Attempt {task.attempt_index != null ? task.attempt_index + 1 : "—"}
+                                        {task.seed != null ? ` · seed ${task.seed}` : ""}
+                                        {task.family_id ? ` · family ${task.family_id}` : ""}
+                                      </small>
+                                    </th>
+                                    <td>
+                                      <span className={`forensics-outcome-pill ${outcomeClassName(task.outcome_category, task.capability_failure === true)}${selectedTask && currentKey === taskAttemptKey(selectedTask) ? " selected" : ""}`}>
+                                        {outcomeLabel(task.outcome_category, task.capability_failure === true)}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <strong>{primaryFailureSignal(task)}</strong>
+                                      <small>{secondaryFailureSignal(task, taskDefectCount)}</small>
+                                    </td>
+                                    <td>{formatDuration(task.duration_seconds)}</td>
+                                    <td>{formatTokens(task.token_usage?.total_tokens)}</td>
+                                    <td>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setSelectedTaskKey(currentKey);
+                                          setUrlParams({ fx_task: currentKey }, { history: "push" });
+                                        }}
+                                      >
+                                        Inspect
+                                      </button>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                        {orderedFilteredTasks.length > DEFAULT_RENDERED_TASK_LIMIT ? (
+                          <button
+                            className="evidence-overflow-control"
+                            type="button"
+                            aria-expanded={taskWindowExpanded}
+                            onClick={() => setTaskWindowExpanded((value) => !value)}
+                          >
+                            {taskWindowExpanded
+                              ? `Show the failure-prioritized ${DEFAULT_RENDERED_TASK_LIMIT}-attempt window`
+                              : `Show all ${orderedFilteredTasks.length} matching attempts`}
+                          </button>
+                        ) : null}
+                        {taskWindowed ? (
+                          <p className="forensics-note">
+                            Domain browse below reflects the rendered attempt window. Sidebar summaries remain computed from all {orderedFilteredTasks.length} matching attempts, and deep-linked selections stay in view.
+                          </p>
+                        ) : null}
+                      </section>
+
+                      <div className="forensics-domain-list">
+                        {domainBuckets.map(({ domain, tasks }) => {
+                          const counts = tallyOutcomes(tasks);
+                          const totalAttempts = domainTotals.get(domain) ?? tasks.length;
+                          return (
+                            <section key={domain} className="forensics-domain-group">
+                              <header>
+                                <div>
+                                  <h3>{domainLabel(domain)}</h3>
+                                  <p>
+                                    {taskWindowed && totalAttempts !== tasks.length
+                                      ? `${tasks.length} of ${totalAttempts} matching attempts rendered`
+                                      : `${tasks.length} task${tasks.length === 1 ? "" : "s"} in current slice`}
+                                  </p>
+                                </div>
+                                <div className="forensics-domain-bar" aria-label={`${domain}: outcome split`}>
+                                  {OUTCOME_ORDER.map((outcome) => (
+                                    <i
+                                      key={outcome}
+                                      className={outcomeClassName(outcome)}
+                                      style={{ width: `${tasks.length ? (counts[outcome] / tasks.length) * 100 : 0}%` }}
+                                    />
+                                  ))}
+                                </div>
+                              </header>
+                              <div className="forensics-task-grid">
+                                {tasks.map((task) => {
+                                  const currentKey = taskAttemptKey(task);
+                                  const taskDefectCount = defectsForTask(defectLedger, task.task_id).length;
+                                  return (
+                                    <button
+                                      key={currentKey}
+                                      type="button"
+                                      className={`forensics-task-card ${outcomeClassName(task.outcome_category, task.capability_failure === true)}${selectedTask && currentKey === taskAttemptKey(selectedTask) ? " selected" : ""}`}
+                                      onClick={() => {
+                                        setSelectedTaskKey(currentKey);
+                                        setUrlParams({ fx_task: currentKey }, { history: "push" });
+                                      }}
+                                    >
+                                      <span>{task.title}</span>
+                                      <small>{task.task_id}</small>
+                                      <small>
+                                        Attempt {task.attempt_index != null ? task.attempt_index + 1 : "—"}
+                                        {task.seed != null ? ` · seed ${task.seed}` : ""}
+                                      </small>
+                                      {task.model_failure_kind ? <small>{failureKindLabel(task.model_failure_kind)}</small> : null}
+                                      {taskDefectCount > 0 ? (
+                                        <small className="forensics-task-qa">QA history · {taskDefectCount} disclosed</small>
+                                      ) : null}
+                                      <em>{outcomeLabel(task.outcome_category, task.capability_failure === true)}</em>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </section>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
                 </article>
 
                 <aside className="forensics-sidebar">
@@ -811,8 +974,8 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
             </>
           ) : (
             <div className="forensics-empty">
-              <strong>No released run sets match this source and provider combination.</strong>
-              <p>Change either filter to restore the attempt-level evidence view; the controls remain available.</p>
+              <strong>No released run sets match the current forensic filters.</strong>
+              <p>Change the run search, openness, or provider filter to restore the attempt-level evidence view.</p>
             </div>
           )}
         </>
@@ -896,6 +1059,24 @@ function failureKindLabel(value: string) {
   if (value === "unsupported_required_modality") return "Unsupported required modality";
   if (value === "provider_output_contract_failure") return "Provider output contract failure";
   return value.replaceAll("_", " ");
+}
+
+function primaryFailureSignal(task: ModelTaskResult) {
+  if (task.model_failure_kind) return failureKindLabel(task.model_failure_kind);
+  if (task.failed_lanes?.length) return task.failed_lanes[0];
+  if (task.failed_graders?.length) return task.failed_graders[0];
+  if (normalizeOutcome(task.outcome_category, task.capability_failure === true) === "safe_success") return "No failure signal";
+  return "Outcome recorded without lane trace";
+}
+
+function secondaryFailureSignal(task: ModelTaskResult, defectCount: number) {
+  const parts = [];
+  if (task.failed_graders?.length) parts.push(`${task.failed_graders.length} failed grader${task.failed_graders.length === 1 ? "" : "s"}`);
+  if (task.failed_lanes?.length) parts.push(`${task.failed_lanes.length} failed lane${task.failed_lanes.length === 1 ? "" : "s"}`);
+  if (defectCount > 0) parts.push(`QA history ${defectCount}`);
+  if (parts.length) return parts.join(" · ");
+  if (task.capability_failure) return "Capability declared unavailable before inference";
+  return "No additional failure metadata";
 }
 
 function renderJson(value: unknown) {

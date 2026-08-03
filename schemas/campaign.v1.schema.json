@@ -97,6 +97,7 @@
         "response_format": { "enum": ["json_schema", "json_object"] },
         "strict_schema": { "type": "boolean" },
         "reasoning_effort": { "enum": ["none", "minimal", "low", "medium", "high"] },
+        "reasoning_format": { "enum": ["hidden", "parsed", "raw"] },
         "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 3600 },
         "seed": { "type": ["integer", "null"], "minimum": 0, "maximum": 4294967295 },
         "temperature": { "type": ["number", "null"], "minimum": 0, "maximum": 2 },

@@ -127,6 +127,22 @@ def test_committed_campaign_binds_five_frozen_models_and_release() -> None:
             "not present",
         ),
         (
+            lambda payload: payload["models"][0].update(
+                base_model_id=payload["models"][1]["base_model_id"]
+            ),
+            "does not match an exact declared route identity",
+        ),
+        (
+            lambda payload: payload["models"][1].update(
+                configuration_id="alias-inflation-fixture",
+                model="llama-3.1-8b-instant-alias",
+                model_revision="llama-3.1-8b-instant-alias@shadow",
+                reasoning_effort="high",
+                send_reasoning_effort=True,
+            ),
+            "does not match an exact declared route identity",
+        ),
+        (
             lambda payload: payload["models"][1].update(configuration_id=payload["models"][0]["configuration_id"]),
             "configuration_id values must be unique",
         ),
@@ -188,6 +204,7 @@ def test_command_is_shell_free_resumable_and_never_contains_secret_value() -> No
             completion_limit_field="max_tokens",
             response_format_dialect="cohere",
             send_reasoning_effort=False,
+            reasoning_format="hidden",
         ),
     )
     assert "--omit-temperature" in dialect_command
@@ -197,6 +214,7 @@ def test_command_is_shell_free_resumable_and_never_contains_secret_value() -> No
     assert dialect_command[dialect_command.index("--completion-limit-field") + 1] == "max_tokens"
     assert dialect_command[dialect_command.index("--response-format-dialect") + 1] == "cohere"
     assert "--omit-reasoning-effort" in dialect_command
+    assert dialect_command[dialect_command.index("--reasoning-format") + 1] == "hidden"
 
     plan = campaign_plan(
         campaign,

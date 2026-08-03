@@ -28,6 +28,7 @@ import { ScoreCertaintyFrontier } from "./ScoreCertaintyFrontier";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { classifyAttemptOutcome } from "../types";
 import type {
+  AttemptOutcomeClass,
   Leaderboard,
   FleetStatus,
   ModelCatalogEntry,
@@ -40,6 +41,22 @@ import type {
 type ViewMode = "score" | "tokens" | "time" | "reliability" | "certainty";
 type SourceFilter = "all" | "open" | "closed" | "unknown";
 type SurfaceFilter = "all" | "common" | "native";
+type SortDirection = "asc" | "desc";
+type TableSort = "safe_success" | "model" | "provider" | "attempts" | "surface" | "source" | "status";
+
+type TableScopeStats = {
+  totalRows: number;
+  commonRows: number;
+  nativeRows: number;
+  openRows: number;
+  closedRows: number;
+  unknownRows: number;
+  totalAttempts: number;
+  providerCounts: Record<string, number>;
+  ranked: number;
+  unranked: number;
+  nativeStatus: number;
+};
 
 type Props = {
   data: Leaderboard | null;
@@ -71,6 +88,8 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
   const [providerFilter, setProviderFilter] = useState("all");
   const [surfaceFilter, setSurfaceFilter] = useState<SurfaceFilter>("all");
   const [comparisonFilter, setComparisonFilter] = useState("all");
+  const [tableSort, setTableSort] = useState<TableSort>("safe_success");
+  const [tableSortDirection, setTableSortDirection] = useState<SortDirection>("desc");
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const [focused, setFocused] = useState<string | null>(null);
@@ -140,6 +159,61 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
     [comparisonFilter, scopedRows],
   );
 
+  const tableRows = useMemo(
+    () => [...rows].sort((left, right) => compareRowsForTableSort(left, right, tableSort, tableSortDirection)),
+    [rows, tableSort, tableSortDirection],
+  );
+
+  const scopeStats = useMemo<TableScopeStats>(() => {
+    const providerCounts: Record<string, number> = {};
+    let commonRows = 0;
+    let nativeRows = 0;
+    let openRows = 0;
+    let closedRows = 0;
+    let unknownRows = 0;
+    let totalAttempts = 0;
+    let ranked = 0;
+    let unranked = 0;
+    let nativeStatus = 0;
+
+    for (const entry of rows) {
+      if (entry.surface === "common") {
+        commonRows += 1;
+      } else {
+        nativeRows += 1;
+        nativeStatus += 1;
+      }
+      providerCounts[entry.row.provider] = (providerCounts[entry.row.provider] ?? 0) + 1;
+      if (entry.row.ranking_eligible) {
+        ranked += 1;
+      } else if (entry.surface === "common") {
+        unranked += 1;
+      }
+      if (entry.source === "open") {
+        openRows += 1;
+      } else if (entry.source === "closed") {
+        closedRows += 1;
+      } else {
+        unknownRows += 1;
+      }
+      totalAttempts += entry.row.attempt_count;
+    }
+
+    return {
+      totalRows: rows.length,
+      commonRows,
+      nativeRows,
+      openRows,
+      closedRows,
+      unknownRows,
+      totalAttempts,
+      providerCounts,
+      ranked,
+      unranked,
+      nativeStatus,
+    };
+  }, [rows]);
+
   useEffect(() => {
     if (!data) return;
     if (providerFilter === "all") return;
@@ -172,21 +246,17 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
     return resolveSurface(focusedModel);
   }, [focusedModel]);
 
-  const filteredCommonCount = useMemo(() => rows.filter((entry) => entry.surface === "common").length, [rows]);
-  const filteredNativeCount = useMemo(() => rows.filter((entry) => entry.surface === "native").length, [rows]);
-  const openCount = useMemo(() => rows.filter((entry) => entry.source === "open").length, [rows]);
-  const closedCount = useMemo(() => rows.filter((entry) => entry.source === "closed").length, [rows]);
   const providerLegend = useMemo(
     () =>
       availableProviders
-        .filter((provider) => rows.some((entry) => entry.row.provider === provider))
+        .filter((provider) => provider in scopeStats.providerCounts)
         .map((provider) => ({
           provider,
           label: providerLabel(provider),
           color: providerColor(provider),
-          count: rows.filter((entry) => entry.row.provider === provider).length,
+          count: scopeStats.providerCounts[provider] ?? 0,
         })),
-    [availableProviders, rows],
+    [availableProviders, scopeStats.providerCounts],
   );
 
   useEffect(() => {
@@ -198,6 +268,8 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
       setProviderFilter(getUrlParam("eff_provider") ?? "all");
       setSurfaceFilter(readEnumParam("eff_surface", ["all", "common", "native"] as const, "all"));
       setComparisonFilter(getUrlParam("eff_group") ?? "all");
+      setTableSort(readEnumParam("eff_sort", ["safe_success", "model", "provider", "attempts", "surface", "source", "status"] as const, "safe_success"));
+      setTableSortDirection(readEnumParam("eff_sort_dir", ["asc", "desc"] as const, "desc"));
       setRankedOnly(nextMode === "certainty" ? false : getUrlParam("eff_ranked") === "1");
       setQuery(getUrlParam("eff_query") ?? "");
       setFocused(getUrlParam("eff_focus"));
@@ -213,6 +285,28 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
       setUrlParams({ eff_focus: null });
     }
   }, [data, focused, rows]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handle = setTimeout(() => {
+      const canonicalQuery = deferredQuery.trim();
+      setUrlParams({ eff_query: canonicalQuery || null }, { history: "replace" });
+    }, 180);
+    return () => clearTimeout(handle);
+  }, [deferredQuery]);
+
+  const requestTableSort = (next: TableSort) => {
+    const nextDirection = next === tableSort ? (tableSortDirection === "asc" ? "desc" : "asc") : "desc";
+    setTableSort(next);
+    setTableSortDirection(nextDirection);
+    setUrlParams(
+      {
+        eff_sort: next === "safe_success" ? null : next,
+        eff_sort_dir: nextDirection === "desc" ? null : nextDirection,
+      },
+      { history: "push" },
+    );
+  };
 
   const selectRow = (key: string) => {
     setFocused(key);
@@ -362,7 +456,6 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
               onChange={(event) => {
                 const value = event.target.value;
                 setQuery(value);
-                setUrlParams({ eff_query: value || null });
               }}
               placeholder="Model, provider, or harness revision"
             />
@@ -371,7 +464,10 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
         <label className="field">
           <span>Rows shown</span>
           <div className="model-count-mini" role="status" aria-live="polite">
-            <strong>{rows.length}</strong> displayed · {filteredCommonCount} common, {filteredNativeCount} native
+            <strong>{scopeStats.totalRows}</strong> displayed · {scopeStats.commonRows} common, {scopeStats.nativeRows} native · {scopeStats.totalAttempts} attempts
+            <small>
+              {scopeStats.ranked} rankable · {scopeStats.unranked} common-harness unranked · {scopeStats.nativeStatus} native/import status
+            </small>
             {fleetStatus ? (
               <small>
                 {fleetStatus.summary.evaluated_base_models}/{fleetStatus.summary.planned_base_models} frozen-panel base
@@ -461,21 +557,25 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
             </div>
           ) : null}
           <p className="focused-model">
-            {openCount ? `Open-weight ${openCount}` : "Open-weight 0"}
+            {scopeStats.openRows ? `Open-weight ${scopeStats.openRows}` : "Open-weight 0"}
             {" / "}
-            {closedCount ? `${closedCount} closed` : "0 closed"}
+            {scopeStats.closedRows ? `${scopeStats.closedRows} closed` : "0 closed"}
+            {scopeStats.unknownRows ? ` (${scopeStats.unknownRows} unknown)` : ""}
             {" · "}
-            {rows.length ? `${rows.length} rows in scope` : "No rows in scope"}
+            {scopeStats.totalRows ? `${scopeStats.totalRows} rows in scope` : "No rows in scope"}
           </p>
         </aside>
       </div>
 
       <EfficiencyTable
-        rows={rows}
+        rows={tableRows}
+        tableSort={tableSort}
+        tableSortDirection={tableSortDirection}
         focused={focused}
         onFocus={setFocused}
         onSelect={selectRow}
         modelSourceMap={Object.fromEntries(rows.map((entry) => [entry.key, entry.source]))}
+        onSort={requestTableSort}
       />
 
       {focusedModel && (
@@ -982,19 +1082,28 @@ function ReliabilityCell({ value }: { value: number | null }) {
 
 function EfficiencyTable({
   rows,
+  tableSort,
+  tableSortDirection,
   focused,
   onFocus,
   onSelect,
+  onSort,
   modelSourceMap,
 }: {
   rows: ScopedRow[];
+  tableSort: TableSort;
+  tableSortDirection: SortDirection;
   focused: string | null;
   onFocus: (value: string) => void;
   onSelect: (value: string) => void;
+  onSort: (next: TableSort) => void;
   modelSourceMap: Record<string, ModelOpenness>;
 }) {
   const [expanded, setExpanded] = useState(false);
   const visibleRows = limitEvidenceRows(rows, expanded, DEFAULT_TABLE_ROW_LIMIT);
+  const sortGlyph = tableSortDirection === "asc" ? "▴" : "▾";
+  const ariaSort = (column: TableSort) =>
+    tableSort === column ? (tableSortDirection === "asc" ? "ascending" : "descending") : "none";
   return (
     <div className="efficiency-table-block">
       <div className="efficiency-table-wrap" role="region" aria-label="Efficiency evidence table" tabIndex={0}>
@@ -1002,18 +1111,46 @@ function EfficiencyTable({
           <caption>Efficiency evidence by execution surface</caption>
         <thead>
           <tr>
-            <th>Model</th>
-            <th>Provider</th>
-            <th>Score</th>
+            <th aria-sort={ariaSort("model")}>
+              <button type="button" className="sort-button" onClick={() => onSort("model")}>
+                Model {tableSort === "model" ? sortGlyph : ""}
+              </button>
+            </th>
+            <th aria-sort={ariaSort("provider")}>
+              <button type="button" className="sort-button" onClick={() => onSort("provider")}>
+                Provider {tableSort === "provider" ? sortGlyph : ""}
+              </button>
+            </th>
+            <th aria-sort={ariaSort("safe_success")}>
+              <button type="button" className="sort-button" onClick={() => onSort("safe_success")}>
+                Score {tableSort === "safe_success" ? sortGlyph : ""}
+              </button>
+            </th>
             <th>95% CI</th>
+            <th aria-sort={ariaSort("attempts")}>
+              <button type="button" className="sort-button" onClick={() => onSort("attempts")}>
+                Attempts {tableSort === "attempts" ? sortGlyph : ""}
+              </button>
+            </th>
             <th>Input tokens</th>
             <th>Output tokens</th>
             <th>Median time</th>
             <th>Telemetry coverage</th>
-            <th>Attempts</th>
-            <th>Status</th>
-            <th>Surface</th>
-            <th>Source</th>
+            <th aria-sort={ariaSort("status")}>
+              <button type="button" className="sort-button" onClick={() => onSort("status")}>
+                Status {tableSort === "status" ? sortGlyph : ""}
+              </button>
+            </th>
+            <th aria-sort={ariaSort("surface")}>
+              <button type="button" className="sort-button" onClick={() => onSort("surface")}>
+                Surface {tableSort === "surface" ? sortGlyph : ""}
+              </button>
+            </th>
+            <th aria-sort={ariaSort("source")}>
+              <button type="button" className="sort-button" onClick={() => onSort("source")}>
+                Source {tableSort === "source" ? sortGlyph : ""}
+              </button>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -1050,6 +1187,7 @@ function EfficiencyTable({
                     <small>Integrity checks prevent a performance interval.</small>
                   )}
                 </td>
+                <td>{row.completed_count}/{row.expected_attempt_count}</td>
                 <td>{formatTokens(row.token_usage?.median_input_tokens)}</td>
                 <td>{formatTokens(row.token_usage?.median_output_tokens)}</td>
                 <td>{formatDuration(row.median_duration_seconds)}</td>
@@ -1057,7 +1195,6 @@ function EfficiencyTable({
                   <span>Tokens: {formatCoverage(row.token_usage?.observed_attempts, row.token_usage?.expected_attempts)}</span>
                   <small>Time: {formatCoverage(row.duration_telemetry?.observed_attempts, row.duration_telemetry?.expected_attempts)}</small>
                 </td>
-                <td>{row.completed_count}/{row.expected_attempt_count}</td>
                 <td>{rowEvidenceStatus(row)}</td>
                 <td>{entry.surface === "common" ? "Common harness" : "Native/import"}</td>
                 <td>{sourceLabel(source)}</td>
@@ -1088,15 +1225,22 @@ function RunDiagnosticsPanel({
   onInspectAttempts: () => void;
 }) {
   const tasks = model.tasks ?? [];
-  const safePasses = tasks.filter((task) => taskClassForOutcome(task) === "safe-pass").length;
-  const safeFails = tasks.filter((task) => taskClassForOutcome(task) === "safe-fail").length;
-  const unavailable = tasks.filter((task) => taskClassForOutcome(task) === "unavailable").length;
-  const unsafe = tasks.filter((task) => taskClassForOutcome(task) === "unsafe").length;
-  const unknown = tasks.filter((task) => taskClassForOutcome(task) === "unknown").length;
+  const outcome = tasks.map(taskClassForOutcome);
+  const outcomeCounts = tallyAttemptOutcomes(outcome);
+  const safePasses = outcomeCounts["safe-pass"];
+  const safeFails = outcomeCounts["safe-fail"];
+  const unavailable = outcomeCounts.unavailable;
+  const unsafe = outcomeCounts.unsafe;
+  const unknown = outcomeCounts.unknown;
+  const wrongCount = safeFails + unsafe;
+  const rightPercent = tasks.length ? Math.round((safePasses / tasks.length) * 100) : 0;
+  const wrongPercent = tasks.length ? Math.round((wrongCount / tasks.length) * 100) : 0;
+  const unavailableCount = unavailable + unknown;
   const failedTasks = tasks.filter(
     (task) => (task.failed_lanes?.length ?? 0) > 0 || (task.failed_graders?.length ?? 0) > 0,
   );
-  const lanes = taskFailureLanes(tasks);
+  const lanes = taskFailureLanes(tasks.filter((task) => taskClassForOutcome(task) !== "safe-pass"));
+  const topFailedDomains = taskDomainFailures(tasks);
   const integrityErrors = model.integrity?.integrity_errors ?? [];
   const rankExclusions = integrityErrors.filter((error) => error.startsWith("unranked_"));
   const contractErrors = integrityErrors.filter((error) => !error.startsWith("unranked_"));
@@ -1143,12 +1287,13 @@ function RunDiagnosticsPanel({
         <section className="detail-span">
           <h4>Failure lenses</h4>
           <dl className="metric-list">
-            <div><dt>Right/wrong</dt><dd>{safePasses} passed · {safeFails + unsafe} failed · {unavailable} unavailable</dd></div>
+            <div><dt>Right/wrong</dt><dd>{safePasses} passed ({rightPercent}%) · {wrongCount} failed ({wrongPercent}%) · {unavailableCount} unavailable</dd></div>
             <div><dt>Common failure lanes</dt><dd>{lanes.length > 0 ? lanes.map(([lane, count]) => `${lane}: ${count}`).join(", ") : "No lane failures"}</dd></div>
             <div>
               <dt>Contract errors</dt>
               <dd>{contractErrors.length}</dd>
             </div>
+            <div><dt>Top failed domains</dt><dd>{topFailedDomains.length > 0 ? topFailedDomains[0]?.[0] : "None"} ({topFailedDomains.length ? topFailedDomains[0]?.[1] : "0"} failed tasks)</dd></div>
             <div><dt>Rank exclusions</dt><dd>{rankExclusions.length ? rankExclusions.map(rankExclusionLabel).join(", ") : "None"}</dd></div>
             <div><dt>Observed attempts</dt><dd>{model.integrity?.observed_attempt_keys ?? "—"}</dd></div>
             <div><dt>Missing attempts</dt><dd>{model.integrity?.missing_attempt_keys ?? "—"}</dd></div>
@@ -1314,6 +1459,74 @@ function taskFailureLanes(tasks: ModelTaskResult[]) {
     }
   }
   return [...counts.entries()].sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]));
+}
+
+function tallyAttemptOutcomes(outcomes: AttemptOutcomeClass[]): Record<AttemptOutcomeClass, number> {
+  const counts: Record<AttemptOutcomeClass, number> = {
+    "safe-pass": 0,
+    "safe-fail": 0,
+    unsafe: 0,
+    unavailable: 0,
+    unknown: 0,
+  };
+  for (const outcome of outcomes) counts[outcome] += 1;
+  return counts;
+}
+
+function taskDomainFailures(tasks: ModelTaskResult[]) {
+  const counts = new Map<string, number>();
+  for (const task of tasks) {
+    if (taskClassForOutcome(task) === "safe-pass") continue;
+    const label = domainLabel(task.domain);
+    counts.set(label, (counts.get(label) ?? 0) + 1);
+  }
+  return [...counts.entries()].sort(
+    (left, right) => right[1] - left[1] || left[0].localeCompare(right[0]),
+  );
+}
+
+function compareRowsForTableSort(
+  left: ScopedRow,
+  right: ScopedRow,
+  sortBy: TableSort,
+  sortDirection: SortDirection,
+) {
+  const direction = sortDirection === "asc" ? 1 : -1;
+  let leftKey = 0;
+  let rightKey = 0;
+
+  switch (sortBy) {
+    case "model":
+      return direction * left.row.model_name.localeCompare(right.row.model_name);
+    case "provider":
+      return direction * left.row.provider.localeCompare(right.row.provider);
+    case "attempts":
+      leftKey = left.row.attempt_count;
+      rightKey = right.row.attempt_count;
+      break;
+    case "surface":
+      leftKey = left.surface === "common" ? 1 : 0;
+      rightKey = right.surface === "common" ? 1 : 0;
+      break;
+    case "source":
+      leftKey = left.source === "open" ? 2 : left.source === "closed" ? 1 : 0;
+      rightKey = right.source === "open" ? 2 : right.source === "closed" ? 1 : 0;
+      break;
+    case "status":
+      leftKey = left.row.ranking_eligible ? 2 : left.surface === "common" ? 1 : 0;
+      rightKey = right.row.ranking_eligible ? 2 : right.surface === "common" ? 1 : 0;
+      break;
+    case "safe_success":
+    default:
+      leftKey = left.row.safe_success_rate;
+      rightKey = right.row.safe_success_rate;
+      break;
+  }
+
+  if (leftKey === rightKey) {
+    return direction * left.row.model_name.localeCompare(right.row.model_name);
+  }
+  return direction * (leftKey - rightKey);
 }
 
 function taskClassForOutcome(task: ModelTaskResult) {

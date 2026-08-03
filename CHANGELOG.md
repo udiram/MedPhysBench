@@ -12,6 +12,23 @@
 
 ## Unreleased
 
+- Bound legacy `campaign.v1` model entries to one exact declared executable route, closing
+  base-model relabeling and invented alias/effort paths that could otherwise inflate evaluated
+  fleet breadth. Added adversarial regressions for both attacks while retaining the stricter
+  receipt-bound `campaign.v2` promotion path.
+- Added a frozen Groq Qwen 3.6 27B v2 route with provider-documented hidden reasoning transport,
+  non-thinking effort, JSON-object mode, multimodal capability, bounded retry policy, and matching
+  probe/runtime identity fields. The route remains unranked until a fresh successful access receipt
+  and complete common-harness campaign exist.
+- Scaled result forensics with URL-backed run/task search, failure-prioritized task ordering, a
+  selected-attempt-preserving render window, sortable evidence rows, and model-level outcome/domain
+  diagnostics. The bounded display changes presentation cost only; exports and source evidence keep
+  the full immutable attempt set.
+- Refreshed the no-cost access landscape against current provider sources: GitHub Models is retired
+  and its inference endpoint returns HTTP 410, Groq has imminent and completed model retirements,
+  and declared Gemini/Cohere routes still require fresh credential-backed receipts. None of these
+  catalog or access observations are counted as benchmark results.
+
 - Added fail-closed comparison-release gates: non-public task access, canonical family/source
   diversity, exact task-byte and family-registry binding, verified environment/access-log artifacts,
   and two distinct content-bound custodian attestations. No current public release is promoted by

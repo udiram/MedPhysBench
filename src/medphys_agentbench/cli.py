@@ -120,6 +120,7 @@ def main() -> None:
     run.add_argument("--response-format", choices=["json_schema", "json_object"], default="json_schema")
     run.add_argument("--best-effort-schema", action="store_true")
     run.add_argument("--reasoning-effort", choices=["none", "minimal", "low", "medium", "high"])
+    run.add_argument("--reasoning-format", choices=["hidden", "parsed", "raw"])
     run.add_argument("--timeout", type=int, default=300)
     run.add_argument("--seed", type=int, default=20260731)
     run.add_argument("--temperature", type=float, default=0.0)
@@ -169,6 +170,7 @@ def main() -> None:
     run_release.add_argument("--response-format", choices=["json_schema", "json_object"], default="json_schema")
     run_release.add_argument("--best-effort-schema", action="store_true")
     run_release.add_argument("--reasoning-effort", choices=["none", "minimal", "low", "medium", "high"])
+    run_release.add_argument("--reasoning-format", choices=["hidden", "parsed", "raw"])
     run_release.add_argument("--timeout", type=int, default=300)
     run_release.add_argument("--seed", type=int, default=20260731)
     run_release.add_argument("--temperature", type=float, default=0.0)
@@ -371,6 +373,7 @@ def main() -> None:
             response_format=args.response_format,
             strict_schema=not args.best_effort_schema,
             reasoning_effort=args.reasoning_effort,
+            reasoning_format=args.reasoning_format,
             ollama_keep_alive=args.ollama_keep_alive,
             ollama_num_ctx=args.ollama_num_ctx,
             model_revision_override=model_revision,
@@ -446,6 +449,7 @@ def main() -> None:
                     response_format=args.response_format,
                     strict_schema=not args.best_effort_schema,
                     reasoning_effort=args.reasoning_effort,
+                    reasoning_format=args.reasoning_format,
                     ollama_keep_alive=args.ollama_keep_alive,
                     ollama_num_ctx=args.ollama_num_ctx,
                     model_revision_override=model_revisions[model_name],
@@ -509,6 +513,7 @@ def main() -> None:
                         response_format=args.response_format,
                         strict_schema=not args.best_effort_schema,
                         reasoning_effort=args.reasoning_effort,
+                        reasoning_format=args.reasoning_format,
                         ollama_keep_alive=args.ollama_keep_alive,
                         ollama_num_ctx=args.ollama_num_ctx,
                         model_revision_override=model_revisions[model_name],
@@ -765,6 +770,7 @@ def _build_adapter(
     response_format: str = "json_schema",
     strict_schema: bool = True,
     reasoning_effort: str | None = None,
+    reasoning_format: str | None = None,
     ollama_keep_alive: str | int | None = 0,
     ollama_num_ctx: int = 4096,
     model_revision_override: str | None = None,
@@ -778,6 +784,7 @@ def _build_adapter(
             or completion_limit_field != "max_completion_tokens"
             or response_format_dialect != "openai"
             or not send_reasoning_effort
+            or reasoning_format is not None
         ):
             raise ValueError("OpenAI request dialect options cannot be used with the Ollama adapter.")
         return OllamaAdapter(
@@ -824,6 +831,7 @@ def _build_adapter(
         response_format=response_format,
         strict_schema=strict_schema,
         reasoning_effort=reasoning_effort,
+        reasoning_format=reasoning_format,
         max_rate_limit_retries=max_rate_limit_retries,
         send_temperature=send_temperature,
         send_seed=send_seed,

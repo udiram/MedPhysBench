@@ -94,6 +94,7 @@ class CampaignModel:
     base_url: str | None = None
     api_key_env: str | None = None
     reasoning_effort: str | None = None
+    reasoning_format: str | None = None
     ollama_keep_alive: str | int | None = None
     ollama_num_ctx: int | None = None
     route_id: str | None = None
@@ -209,6 +210,7 @@ def load_campaign(path: str | Path) -> CampaignSpec:
             model.model,
             model.model_revision,
             model.reasoning_effort,
+            model.reasoning_format,
             model.send_temperature,
             model.send_seed,
             model.completion_limit_field,
@@ -234,6 +236,8 @@ def load_campaign(path: str | Path) -> CampaignSpec:
         _validate_model(model)
     if schema_version == "medeval.campaign.v2":
         _validate_evidence_bound_models(payload, models)
+    else:
+        _validate_declared_route_models(payload, models)
 
     return CampaignSpec(
         schema_version=str(payload["schema_version"]),
@@ -318,6 +322,8 @@ def build_model_command(spec: CampaignSpec, model: CampaignModel) -> list[str]:
         command.append("--best-effort-schema")
     if model.reasoning_effort:
         command.extend(["--reasoning-effort", model.reasoning_effort])
+    if model.reasoning_format:
+        command.extend(["--reasoning-format", model.reasoning_format])
     if not model.send_temperature:
         command.append("--omit-temperature")
     if not model.send_seed:
@@ -746,6 +752,7 @@ def _validate_model(model: CampaignModel) -> None:
             or model.completion_limit_field != "max_completion_tokens"
             or model.response_format_dialect != "openai"
             or not model.send_reasoning_effort
+            or model.reasoning_format is not None
         ):
             raise CampaignError(
                 f"Ollama configuration {model.configuration_id} must not declare an OpenAI request dialect."
@@ -761,6 +768,66 @@ def _validate_model(model: CampaignModel) -> None:
             raise CampaignError(f"Hosted configuration {model.configuration_id} must declare api_key_env.")
         if model.adapter == "openai-compatible" and model.base_url is None:
             raise CampaignError(f"OpenAI-compatible configuration {model.configuration_id} must declare base_url.")
+
+
+def _validate_declared_route_models(payload: dict[str, Any], models: tuple[CampaignModel, ...]) -> None:
+    """Bind legacy campaigns to exact declared routes so aliases cannot inflate fleet coverage."""
+    route_sets = []
+    for route_path in sorted(REPOSITORY_ROOT.glob("fleet/*routes*.yaml")):
+        try:
+            route_set = load_route_set(route_path, repository_root=REPOSITORY_ROOT)
+        except ValueError as error:
+            raise CampaignError(f"Cannot validate declared route set {route_path}: {error}") from error
+        if route_set.fleet_id == payload["fleet_id"] and route_set.fleet_file == payload["fleet_file"]:
+            route_sets.append(route_set)
+    if not route_sets:
+        raise CampaignError(
+            f"Legacy campaign for fleet {payload['fleet_id']!r} has no declared executable route set."
+        )
+    routes = [route for route_set in route_sets for route in route_set.routes]
+    for model in models:
+        matches = [route for route in routes if _campaign_route_identity(model, route)]
+        if not matches:
+            raise CampaignError(
+                f"Configuration {model.configuration_id!r} does not match an exact declared route identity."
+            )
+        if len(matches) != 1:
+            raise CampaignError(
+                f"Configuration {model.configuration_id!r} ambiguously matches multiple declared routes."
+            )
+
+
+def _campaign_route_identity(model: CampaignModel, route: Any) -> bool:
+    default_urls = {
+        "groq": "https://api.groq.com/openai/v1",
+        "openai": "https://api.openai.com/v1",
+    }
+    resolved_model_url = model.base_url or default_urls.get(model.adapter)
+    resolved_route_url = route.base_url or default_urls.get(route.adapter)
+    return (
+        model.base_model_id == route.base_model_id
+        and model.adapter == route.adapter
+        and model.provider == route.provider
+        and model.model == route.model
+        and model.model_revision == route.model_revision
+        and model.response_format == route.response_format
+        and model.strict_schema == route.strict_schema
+        and model.timeout_seconds == route.timeout_seconds
+        and model.max_tokens == route.max_tokens
+        and resolved_model_url == resolved_route_url
+        and model.api_key_env == route.api_key_env
+        and model.reasoning_effort == route.reasoning_effort
+        and model.reasoning_format == route.reasoning_format
+        and model.ollama_keep_alive == route.ollama_keep_alive
+        and model.ollama_num_ctx == route.ollama_num_ctx
+        and model.max_rate_limit_retries
+        == (route.max_rate_limit_retries if route.max_rate_limit_retries is not None else 8)
+        and model.send_temperature == route.send_temperature
+        and model.send_seed == route.send_seed
+        and model.completion_limit_field == route.completion_limit_field
+        and model.response_format_dialect == route.response_format_dialect
+        and model.send_reasoning_effort == route.send_reasoning_effort
+    )
 
 
 def _validate_evidence_bound_models(payload: dict[str, Any], models: tuple[CampaignModel, ...]) -> None:
@@ -801,6 +868,7 @@ def _validate_evidence_bound_models(payload: dict[str, Any], models: tuple[Campa
             "base_url": route.base_url,
             "api_key_env": route.api_key_env,
             "reasoning_effort": route.reasoning_effort,
+            "reasoning_format": route.reasoning_format,
             "ollama_keep_alive": route.ollama_keep_alive,
             "ollama_num_ctx": route.ollama_num_ctx,
             "max_rate_limit_retries": route.max_rate_limit_retries if route.max_rate_limit_retries is not None else 8,
@@ -1026,6 +1094,7 @@ def _adapter_for_model(model: CampaignModel) -> OllamaAdapter | OpenAICompatible
         response_format=model.response_format,
         strict_schema=model.strict_schema,
         reasoning_effort=model.reasoning_effort,
+        reasoning_format=model.reasoning_format,
         max_rate_limit_retries=model.max_rate_limit_retries,
         send_temperature=model.send_temperature,
         send_seed=model.send_seed,

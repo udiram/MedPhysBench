@@ -164,6 +164,8 @@ def _make_probe_request(
     )
     if route.send_reasoning_effort and route.reasoning_effort is not None:
         request_payload["reasoning_effort"] = route.reasoning_effort
+    if route.reasoning_format is not None:
+        request_payload["reasoning_format"] = route.reasoning_format
     request = urllib.request.Request(
         f"{route.base_url.rstrip('/')}/chat/completions",
         data=json.dumps(request_payload).encode("utf-8"),

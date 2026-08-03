@@ -1743,6 +1743,11 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   margin-top: 22px;
 }
 .forensics-controls .model-field { grid-column: span 2; }
+.forensics-controls .forensics-search-field { grid-column: span 2; }
+.forensics-control-hint {
+  color: var(--muted);
+  font: 500 10px/1.45 "IBM Plex Mono", monospace;
+}
 .forensics-kpis {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -1797,6 +1802,29 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   padding: 16px;
   background: var(--surface);
 }
+.forensics-task-index-panel {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.forensics-task-index-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.9fr);
+  gap: 14px;
+  align-items: end;
+}
+.forensics-task-index-heading h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+.forensics-task-index-heading p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+.forensics-task-search { margin: 0; }
 .forensics-panel h3 {
   margin: 0 0 14px;
   font-size: 14px;
@@ -1897,6 +1925,83 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 .forensics-task-comparison button:hover {
   border-color: var(--accent);
   background: rgba(217, 164, 65, 0.08);
+}
+.forensics-task-index {
+  overflow: auto;
+  border: 1px solid var(--line);
+}
+.forensics-task-index table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+.forensics-task-index th,
+.forensics-task-index td {
+  padding: 12px 13px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: left;
+  vertical-align: top;
+}
+.forensics-task-index thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  color: var(--muted);
+  font: 600 10px/1.35 "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.forensics-task-index tbody tr:last-child th,
+.forensics-task-index tbody tr:last-child td { border-bottom: 0; }
+.forensics-task-index tbody tr:hover { background: rgba(255, 255, 255, 0.02); }
+.forensics-task-index tbody th strong,
+.forensics-task-index td strong,
+.forensics-task-index tbody th small,
+.forensics-task-index td small { display: block; }
+.forensics-task-index tbody th strong,
+.forensics-task-index td strong {
+  color: var(--text);
+  font-size: 12px;
+}
+.forensics-task-index tbody th small,
+.forensics-task-index td small {
+  margin-top: 4px;
+  color: var(--muted);
+  font: 500 10px/1.45 "IBM Plex Mono", monospace;
+}
+.forensics-task-index button {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--line-strong);
+  color: var(--accent);
+  font: 600 10px/1 "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.forensics-task-index button:hover {
+  border-color: var(--accent);
+  background: rgba(217, 164, 65, 0.08);
+}
+.forensics-outcome-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-left: 2px solid transparent;
+  color: var(--muted-strong);
+  background: var(--surface-alt);
+  font: 600 10px/1.2 "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.forensics-outcome-pill.selected {
+  border-color: var(--text);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 .forensics-domain-list {
   display: grid;
@@ -3084,9 +3189,14 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   }
   .forensic-comparison-scope { width: 100%; min-width: 0; }
   .forensics-domain-summary-row dl { grid-template-columns: 1fr; }
-  .forensics-controls .model-field { grid-column: auto; }
+  .forensics-controls .model-field,
+  .forensics-controls .forensics-search-field { grid-column: auto; }
   .forensics-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .forensics-kpi:last-child { grid-column: 1 / -1; }
+  .forensics-task-index-heading {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
   .forensics-domain-group header,
   .forensics-meta,
   .forensics-task-grid {

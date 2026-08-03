@@ -57,6 +57,7 @@ class ModelRoute:
     base_url: str | None = None
     api_key_env: str | None = None
     reasoning_effort: str | None = None
+    reasoning_format: str | None = None
     ollama_keep_alive: str | int | None = None
     ollama_num_ctx: int | None = None
     max_rate_limit_retries: int | None = None
@@ -127,7 +128,7 @@ def load_route_set(path: str | Path, *, repository_root: Path = REPOSITORY_ROOT)
     }
 
     route_ids: set[str] = set()
-    identity_keys: set[tuple[str, str, str, str, str | None, bool, bool, str, str, bool]] = set()
+    identity_keys: set[tuple[str, str, str, str, str | None, str | None, bool, bool, str, str, bool]] = set()
     routes: list[ModelRoute] = []
     for item in payload["routes"]:
         route_id = str(item["route_id"])
@@ -150,6 +151,7 @@ def load_route_set(path: str | Path, *, repository_root: Path = REPOSITORY_ROOT)
             str(item["model"]),
             str(item["model_revision"]),
             str(item["reasoning_effort"]) if item.get("reasoning_effort") else None,
+            str(item["reasoning_format"]) if item.get("reasoning_format") else None,
             bool(item.get("send_temperature", True)),
             bool(item.get("send_seed", True)),
             str(item.get("completion_limit_field", "max_completion_tokens")),
@@ -173,6 +175,7 @@ def load_route_set(path: str | Path, *, repository_root: Path = REPOSITORY_ROOT)
             or str(item.get("completion_limit_field", "max_completion_tokens")) != "max_completion_tokens"
             or str(item.get("response_format_dialect", "openai")) != "openai"
             or not bool(item.get("send_reasoning_effort", True))
+            or item.get("reasoning_format") is not None
         ):
             raise RouteQualificationError(f"Ollama route {route_id!r} must not declare an OpenAI request dialect.")
         routes.append(

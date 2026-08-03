@@ -72,6 +72,7 @@ def test_openai_compatible_propagates_common_harness_contract(monkeypatch: pytes
         max_tokens=512,
         timeout_seconds=30,
         reasoning_effort="high",
+        reasoning_format="hidden",
     )
 
     result = adapter.execute(task)
@@ -85,6 +86,7 @@ def test_openai_compatible_propagates_common_harness_contract(monkeypatch: pytes
     assert payload["temperature"] == 0.0
     assert payload["max_completion_tokens"] == 512
     assert payload["reasoning_effort"] == "high"
+    assert payload["reasoning_format"] == "hidden"
     assert set(payload) == {
         "model",
         "messages",
@@ -93,12 +95,15 @@ def test_openai_compatible_propagates_common_harness_contract(monkeypatch: pytes
         "max_completion_tokens",
         "response_format",
         "reasoning_effort",
+        "reasoning_format",
     }
     assert payload["response_format"]["json_schema"]["strict"] is True
     assert payload["response_format"]["json_schema"]["schema"] == task.expected_output_schema
     assert result.final_output["answer_ratio"] == 0.25
     assert result.raw_response["usage"]["total_tokens"] == 60
     assert "secret-not-recorded" not in json.dumps(result.raw_response)
+    assert adapter.runtime_settings()["reasoning_format"] == "hidden"
+    assert "reasoning-format=hidden" in adapter.model_descriptor().harness_revision
 
 
 def test_default_request_dialect_preserves_frozen_runtime_settings_hash() -> None:

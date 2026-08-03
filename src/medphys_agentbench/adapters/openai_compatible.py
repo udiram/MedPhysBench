@@ -31,6 +31,7 @@ from .base import (
 
 CompletionLimitField = Literal["max_completion_tokens", "max_tokens"]
 ResponseFormatDialect = Literal["openai", "cohere", "omit"]
+ReasoningFormat = Literal["hidden", "parsed", "raw"]
 DEFAULT_COMPLETION_LIMIT_FIELD: CompletionLimitField = "max_completion_tokens"
 
 
@@ -75,6 +76,7 @@ class OpenAICompatibleAdapter:
     response_format: str = "json_schema"
     strict_schema: bool = True
     reasoning_effort: str | None = None
+    reasoning_format: ReasoningFormat | None = None
     artifact_root: Path = Path.cwd()
     model_revision_override: str | None = None
     max_rate_limit_retries: int = 8
@@ -103,6 +105,8 @@ class OpenAICompatibleAdapter:
             raise ValueError("strict_schema cannot be true when response_format_dialect is 'omit'.")
         if not self.send_reasoning_effort and self.reasoning_effort is not None:
             raise ValueError("reasoning_effort must be None when send_reasoning_effort is false.")
+        if self.reasoning_format not in {None, "hidden", "parsed", "raw"}:
+            raise ValueError("reasoning_format must be 'hidden', 'parsed', 'raw', or None.")
 
     @property
     def name(self) -> str:
@@ -115,12 +119,15 @@ class OpenAICompatibleAdapter:
     def model_descriptor(self) -> ModelDescriptor:
         mode = "strict" if self.strict_schema and self.response_format == "json_schema" else "best-effort"
         effort = self.reasoning_effort or "provider-default"
+        harness_revision = f"{self.harness_revision};format={self.response_format};mode={mode};effort={effort}"
+        if self.reasoning_format is not None:
+            harness_revision += f";reasoning-format={self.reasoning_format}"
         return ModelDescriptor(
             provider=self.provider,
             model_name=self.model_name,
             model_revision=self.model_revision,
             harness_name="medphysbench-openai-compatible",
-            harness_revision=f"{self.harness_revision};format={self.response_format};mode={mode};effort={effort}",
+            harness_revision=harness_revision,
         )
 
     def runtime_settings(self) -> dict[str, Any]:
@@ -135,6 +142,8 @@ class OpenAICompatibleAdapter:
             "max_rate_limit_retries": self.max_rate_limit_retries,
             "artifact_transport": "openai_message_content",
         }
+        if self.reasoning_format is not None:
+            settings["reasoning_format"] = self.reasoning_format
         if (
             not self.send_temperature
             or not self.send_seed
@@ -176,6 +185,8 @@ class OpenAICompatibleAdapter:
         )
         if self.send_reasoning_effort and self.reasoning_effort is not None:
             request_payload["reasoning_effort"] = self.reasoning_effort
+        if self.reasoning_format is not None:
+            request_payload["reasoning_format"] = self.reasoning_format
 
         request = urllib.request.Request(
             f"{self.base_url.rstrip('/')}/chat/completions",
