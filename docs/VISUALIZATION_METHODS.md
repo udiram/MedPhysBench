@@ -94,6 +94,15 @@ execution surface, expanded model row, selected release card, forensic run set,
 domain, outcome, and selected task survive refresh and can be shared as a direct
 link for audit or review.
 
+Selecting any attempt also opens a task-first comparison table across every run set
+surviving the active openness and provider filters. It reports attempts, safe-success
+rate, outcome mix, top failed grader, and execution-surface label, then switches directly
+into that model's matched evidence. The table is descriptive across surfaces and never
+creates an official cross-surface rank. Provider choices remain discoverable when the
+selected release has zero matching rows, producing an explicit empty state instead of a
+silent filter reset. Plot controls repeat the frozen-panel denominator (`evaluated/50`)
+so visible configuration counts cannot be mistaken for unique evaluated base-model breadth.
+
 ### Unified outcome interval plot
 
 The default plot is a horizontal dot-and-whisker view that includes every row surviving the

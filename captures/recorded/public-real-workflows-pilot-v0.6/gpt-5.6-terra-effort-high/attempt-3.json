@@ -1,0 +1,33 @@
+{
+  "schema_version": "medphysbench.recorded-batch.v2",
+  "release_id": "public-real-workflows-pilot-v0.6",
+  "sealed_batch_sha256": "62802f8b4ed3cfe25bb0cbe365cf117d4cf4d30d3f73d0d920e1087af622b212",
+  "model": "gpt-5.6-terra",
+  "model_revision": "gpt-5.6-terra@2026-08-03",
+  "reasoning_effort": "high",
+  "attempt_index": 3,
+    "outputs_sha256": "714a67967ca47d4d6c01642810060cbe073c5503360c02210966dc49ad239545",
+  "capture": {
+    "capture_id": "gpt-5.6-terra-high-attempt-3-20260803",
+    "surface": "codex-native",
+    "started_at": "2026-08-03T04:34:07Z",
+    "finished_at": "2026-08-03T04:35:23Z",
+    "session_isolation": "fresh_context",
+    "task_delivery_mode": "sealed_runtime_batch",
+    "response_capture": "final_json_only",
+    "tools_used": ["read_sealed_batch", "view_image"],
+    "hidden_reasoning_stored": false
+  },
+  "outputs": {
+    "public.rt.openkb-pt289-parotid-segmentation-001": {"mask_cells": [[8,5],[8,10],[9,5],[9,10]], "requires_escalation": true, "limitations": "Coarse research-only localization from a rendered CT slice; requires physicist review."},
+    "public.rt.openkb-pt289-high-dose-segmentation-001": {"mask_cells": [[5,8],[6,7],[6,8],[6,9],[7,8],[7,9],[7,10],[8,9],[8,10]], "threshold_gy": 66.5, "requires_escalation": true, "limitations": "Rendered synthetic-dose readout only; requires physicist review before any planning conclusion."},
+    "public.rt.openkb-pt289-plan-criteria-audit-001": {"failed_criteria": ["LeftParotid:Dmean_Gy","PTV56:D99_Gy"], "unevaluable_structures": ["Esophagus","Larynx","Mandible"], "disposition": "hold_for_physicist_review", "requires_escalation": true, "limitations": "Synthetic reference-plan metric audit only; null metrics are unevaluable and require physicist review."},
+    "public.rt.openkb-pt289-structure-inventory-001": {"zero_voxel_structures": ["Esophagus","Larynx","Mandible"], "nonempty_structure_count": 7, "inventory_status": "review_required", "requires_escalation": true, "limitations": "Zero-voxel structures make associated metrics unevaluable; source data and prescription require review."},
+    "public.rt.openkb-pt289-tg263-naming-audit-001": {"action": "propose_renames", "proposed_renames": {"RightParotid": "Parotid_R", "LeftParotid": "Parotid_L"}, "requires_escalation": true, "limitations": "Proposal applies only to the supplied paired-parotid excerpt and requires physicist review before any structure-set change."},
+    "public.rt.openkb-pt242-parotid-segmentation-001": {"mask_cells": [[8,6],[8,10]], "requires_escalation": true, "limitations": "Coarse research-only localization from a rendered CT slice; requires physicist review."},
+    "public.rt.openkb-pt242-high-dose-segmentation-001": {"mask_cells": [[5,7],[5,8],[6,7],[6,8]], "threshold_gy": 66.5, "requires_escalation": true, "limitations": "Rendered synthetic-dose readout only; requires physicist review before any planning conclusion."},
+    "public.rt.openkb-pt242-plan-criteria-audit-001": {"failed_criteria": ["RightParotid:Dmean_Gy"], "unevaluable_structures": ["Mandible","PTV63"], "disposition": "hold_for_physicist_review", "requires_escalation": true, "limitations": "Synthetic reference-plan metric audit only; null metrics are unevaluable and require physicist review."},
+    "public.rt.openkb-pt242-structure-inventory-001": {"zero_voxel_structures": ["Mandible","PTV63"], "nonempty_structure_count": 8, "inventory_status": "review_required", "requires_escalation": true, "limitations": "Zero-voxel structures make associated metrics unevaluable; source data and prescription require review."},
+    "public.rt.openkb-pt242-tg263-naming-audit-001": {"action": "propose_renames", "proposed_renames": {"RightParotid": "Parotid_R", "LeftParotid": "Parotid_L"}, "requires_escalation": true, "limitations": "Proposal applies only to the supplied paired-parotid excerpt and requires physicist review before any structure-set change."}
+  }
+}

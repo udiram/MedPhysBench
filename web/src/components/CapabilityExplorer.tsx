@@ -122,7 +122,10 @@ export function CapabilityExplorer({ data, loadError = false, releaseView, model
             <select value={providerFilter} onChange={(event) => setProviderFilter(event.target.value)}>
               <option value="all">All providers</option>
               {[...new Set(
-                (data ? [...data.models, ...(data.unranked_models ?? [])] : []).map((row) => row.provider),
+                [
+                  ...(data ? [...data.models, ...(data.unranked_models ?? [])] : []).map((row) => row.provider),
+                  ...modelCatalog.map((entry) => entry.provider),
+                ],
               )]
                 .sort((left, right) => left.localeCompare(right))
                 .map((providerValue) => (

@@ -172,6 +172,7 @@ function App() {
         />
         <EfficiencyExplorer
           data={selected.data}
+          fleetStatus={fleetStatus}
           modelCatalog={modelCatalog}
           releaseView={releaseView}
         />

@@ -22,6 +22,12 @@ artifacts and never invent token usage that the provider did not return. A compl
 missing usage telemetry remains inspectable but cannot pass the current common-harness publication
 gate.
 
+Recorded native surfaces must use `recorded-batch.v2` for new public evidence. The capture binds the
+exact sealed batch, model revision, effort, attempt, output digest, fresh-context timestamps, and
+declared transport-only tools. The recorded adapter writes the capture ID into every result trace and
+raw-response receipt, declares `live_provider_request=false`, and leaves latency and token usage
+unavailable. A valid capture improves provenance; it does not satisfy common-harness qualification.
+
 ## Qualification tests
 
 - exact-object and duplicate-key parsing;

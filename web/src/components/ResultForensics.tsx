@@ -4,6 +4,7 @@ import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel
 import { defectsForTask } from "../lib/defects";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import { modelRunKey } from "../lib/modelRunKey";
+import { buildTaskComparison } from "../lib/taskComparison";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { normalizeForensicsOutcome } from "../types";
 import type { DefectLedger, ForensicsOutcomeCategory, Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, ReleaseView } from "../types";
@@ -148,6 +149,9 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
     () => defectsForTask(defectLedger, selectedTask?.task_id ?? ""),
     [defectLedger, selectedTask?.task_id],
   );
+  const taskComparison = useMemo(() => {
+    return buildTaskComparison(visibleRows, selectedTask?.task_id ?? null);
+  }, [selectedTask, visibleRows]);
 
   useEffect(() => {
     if (!selectedRow) return;
@@ -191,8 +195,11 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
     );
   }, [domainBuckets]);
   const providers = useMemo(
-    () => [...new Set((data ? [...data.models, ...(data.unranked_models ?? [])] : []).map((row) => row.provider))].sort(),
-    [data],
+    () => [...new Set([
+      ...(data ? [...data.models, ...(data.unranked_models ?? [])] : []).map((row) => row.provider),
+      ...modelCatalog.map((entry) => entry.provider),
+    ])].sort(),
+    [data, modelCatalog],
   );
 
   const supportsForensics = forensicRows.length > 0;
@@ -517,7 +524,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                   </section>
 
                   {selectedTask ? (
-                    <section className="forensics-panel">
+                    <section className="forensics-panel selected-task-panel">
                       <h3>Selected task evidence</h3>
                       <div className={`forensics-task-detail ${outcomeClassName(selectedTask.outcome_category, selectedTask.capability_failure === true)}`}>
                         <strong>{selectedTask.title}</strong>
@@ -664,6 +671,83 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                   </section>
                 </aside>
               </div>
+              {selectedTask && taskComparison.length ? (
+                <section className="forensics-comparison-panel">
+                  <div className="forensics-comparison-heading">
+                    <div>
+                      <h3>Same task across run sets</h3>
+                      <p>
+                        Task-matched comparison inside the current openness and provider filters. Execution surfaces stay
+                        labeled; this table does not create a cross-surface official rank.
+                      </p>
+                    </div>
+                    <strong>{taskComparison.length} run sets</strong>
+                  </div>
+                  <div
+                    className="forensics-task-comparison"
+                    role="region"
+                    aria-label={`Run-set comparison for ${selectedTask.title}`}
+                    tabIndex={0}
+                  >
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Run set</th>
+                          <th>Surface</th>
+                          <th>Safe success</th>
+                          <th>Outcome mix</th>
+                          <th>Top failed grader</th>
+                          <th><span className="sr-only">Inspect run set</span></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {taskComparison.map((comparison) => (
+                          <tr key={comparison.entry.key}>
+                            <th scope="row">
+                              <strong>{comparison.entry.row.model_name}</strong>
+                              <small>{providerLabel(comparison.entry.row.provider)} · {sourceLabel(comparison.entry.source)}</small>
+                            </th>
+                            <td>{surfaceLabel(inferExecutionSurface(comparison.entry.row))}</td>
+                            <td>
+                              <strong>{formatPercent(comparison.safeSuccessRate)}</strong>
+                              <small>{comparison.outcomes.safe_success}/{comparison.attempts.length} attempts</small>
+                            </td>
+                            <td>
+                              S {comparison.outcomes.safe_success} · F {comparison.outcomes.safe_failure} · U {comparison.outcomes.unsafe} · A {comparison.outcomes.unavailable}
+                            </td>
+                            <td>{comparison.topFailedGrader ?? "None"}</td>
+                            <td>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const nextIndex = comparison.entry.row.tasks.findIndex(
+                                    (task) => task.task_id === selectedTask.task_id,
+                                  );
+                                  const nextTask = comparison.entry.row.tasks[nextIndex];
+                                  if (!nextTask) return;
+                                  const nextTaskKey = taskKey(nextTask, nextIndex);
+                                  setModelKey(comparison.entry.key);
+                                  setDomainFilter("all");
+                                  setOutcomeFilter("all");
+                                  setSelectedTaskKey(nextTaskKey);
+                                  setUrlParams({
+                                    fx_model: comparison.entry.key,
+                                    fx_domain: null,
+                                    fx_outcome: null,
+                                    fx_task: nextTaskKey,
+                                  }, { history: "push" });
+                                }}
+                              >
+                                Inspect
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              ) : null}
             </>
           ) : (
             <div className="forensics-empty">

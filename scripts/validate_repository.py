@@ -14,6 +14,7 @@ from jsonschema import Draft202012Validator, FormatChecker
 
 from medphys_agentbench.artifacts import resolve_asset_reference
 from medphys_agentbench.json_utils import decode_strict_json_object, stable_hash
+from medphys_agentbench.recorded_capture import validate_recorded_batch
 from medphys_agentbench.release_loader import load_release
 from medphys_agentbench.runner import adapter_runtime_settings
 from medphys_agentbench.scoring import score_attempt
@@ -157,6 +158,7 @@ def validate_repository() -> dict[str, int]:
         "model_fleet": _validator("model-fleet.v1.schema.json"),
         "fleet_status": _validator("fleet-status.v1.schema.json"),
         "common_harness_submission": _validator("common-harness-submission.v1.schema.json"),
+        "recorded_batch_v2": _validator("recorded-batch.v2.schema.json"),
         "defect_ledger": _validator("defect-ledger.v1.schema.json"),
     }
 
@@ -241,6 +243,7 @@ def validate_repository() -> dict[str, int]:
         grader_mutation_count += validate_grader_mutations(task, reference_output, path)
 
     result_paths = sorted((ROOT / "results" / "releases").glob("*/*/*.json"))
+    result_index: dict[tuple[str, str, str, int, str], dict[str, Any]] = {}
     for path in result_paths:
         payload = _load_json(path)
         _validate(validators["result"], payload, path)
@@ -271,6 +274,64 @@ def validate_repository() -> dict[str, int]:
         trace = payload.get("trace")
         if isinstance(trace, list) and any(isinstance(item, dict) and "raw_preview" in item for item in trace):
             raise ValueError(f"{path}: public result trace contains an unredacted raw preview.")
+        relative_parts = path.relative_to(ROOT / "results" / "releases").parts
+        model = manifest["model"]
+        result_key = (
+            relative_parts[0],
+            str(model["model_name"]),
+            str(model["model_revision"]),
+            int(payload["attempt_index"]),
+            str(manifest["task_id"]),
+        )
+        if result_key in result_index:
+            raise ValueError(f"{path}: duplicate public result identity {result_key!r}.")
+        result_index[result_key] = payload
+
+    capture_paths = sorted((ROOT / "captures" / "recorded").rglob("*.json"))
+    capture_ids: set[str] = set()
+    for path in capture_paths:
+        capture = _load_json(path)
+        _validate(validators["recorded_batch_v2"], capture, path)
+        release_id = str(capture["release_id"])
+        release = releases_by_id.get(release_id)
+        if release is None:
+            raise ValueError(f"{path}: recorded capture references unknown release {release_id!r}.")
+        tasks = release.load_tasks()
+        validate_recorded_batch(
+            capture,
+            release_id=release_id,
+            tasks=tasks,
+            model=str(capture["model"]),
+            model_revision=str(capture["model_revision"]),
+            reasoning_effort=str(capture["reasoning_effort"]),
+            attempt_index=int(capture["attempt_index"]),
+        )
+        model_name = f"{capture['model']} [effort={capture['reasoning_effort']}]"
+        capture_id = str(capture["capture"]["capture_id"])
+        if capture_id in capture_ids:
+            raise ValueError(f"{path}: duplicate recorded capture_id {capture_id!r}.")
+        capture_ids.add(capture_id)
+        for task_id, output in capture["outputs"].items():
+            result_key = (
+                release_id,
+                model_name,
+                str(capture["model_revision"]),
+                int(capture["attempt_index"]) - 1,
+                str(task_id),
+            )
+            result = result_index.get(result_key)
+            if result is None:
+                raise ValueError(f"{path}: no public result matches capture output {result_key!r}.")
+            if result["output"] != output:
+                raise ValueError(f"{path}: captured output differs from public result for {task_id!r}.")
+            trace = result.get("trace")
+            if not isinstance(trace, list) or not any(
+                isinstance(event, dict) and event.get("capture_id") == capture_id for event in trace
+            ):
+                raise ValueError(f"{path}: public result trace does not bind capture_id {capture_id!r}.")
+            raw_response = result.get("raw_response")
+            if not isinstance(raw_response, dict) or raw_response.get("capture_id") != capture_id:
+                raise ValueError(f"{path}: public result raw-response record does not bind capture_id {capture_id!r}.")
 
     submission_paths = sorted((ROOT / "submissions").glob("*.json"))
     for path in submission_paths:
@@ -285,6 +346,7 @@ def validate_repository() -> dict[str, int]:
         "task_count": len(task_paths),
         "result_count": len(result_paths),
         "submission_count": len(submission_paths),
+        "recorded_capture_count": len(capture_paths),
         "grader_mutation_count": grader_mutation_count,
         "fleet_model_count": len(fleet_ids),
     }

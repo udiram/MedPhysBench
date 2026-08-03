@@ -147,7 +147,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(payload, dict)
     rows = [*payload["models"], *payload.get("unranked_models", [])]
-    assert len(rows) == 25
+    assert len(rows) == 26
     v2_rows = [
         row
         for row in rows
@@ -217,6 +217,18 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
             "total_tokens": None,
         }
         assert task["response_receipt"] == {}
+
+    terra = next(row for row in rows if row["model_name"] == "gpt-5.6-terra [effort=high]")
+    assert terra["provider"] == "codex-native"
+    assert terra["execution_surface"] == "recorded_output_import"
+    assert terra["ranking_eligible"] is False
+    assert terra["outcome_order_eligible"] is True
+    assert terra["safe_success_rate"] == 0.6333
+    assert terra["family_cluster_safe_success_ci95"] == [0.6, 0.6667]
+    assert terra["safety_gate_rate"] == 1.0
+    assert terra["valid_output_rate"] == 1.0
+    assert terra["attempt_count"] == terra["expected_attempt_count"] == 30
+    assert all(task["response_receipt"] == {} for task in terra["tasks"])
 
 
 def test_v2_ollama_group_freezes_the_published_sampling_and_adapter_contract() -> None:

@@ -4,13 +4,13 @@
   "fleet_id": "public-fleet-v1",
   "summary": {
     "planned_base_models": 50,
-    "access_qualified_base_models": 22,
+    "access_qualified_base_models": 23,
     "evaluated_base_models": 20,
     "ranked_base_models": 20,
     "workflow_qualified_base_models": 20,
     "workflow_ranked_base_models": 20,
-    "published_system_configurations": 28,
-    "published_release_rows": 43,
+    "published_system_configurations": 29,
+    "published_release_rows": 44,
     "open_planned_models": 31,
     "closed_planned_models": 19,
     "vision_planned_models": 31,
@@ -799,15 +799,15 @@
         "openai",
         "codex_native"
       ],
-      "access_qualified": false,
-      "qualification_stage": null,
+      "access_qualified": true,
+      "qualification_stage": "q2",
       "evaluated": false,
       "ranked": false,
       "workflow_qualified": false,
       "workflow_ranked": false,
-      "system_configuration_count": 0,
-      "published_release_count": 0,
-      "published_row_count": 0
+      "system_configuration_count": 1,
+      "published_release_count": 1,
+      "published_row_count": 1
     },
     {
       "base_model_id": "gpt-5.6-luna",

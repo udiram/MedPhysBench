@@ -28,12 +28,12 @@ package, or evidence of autonomous clinical competence.
 - Real-image pilot: `public-imaging-pilot-v0.4` (`5` real MRI, CT, and PET tasks)
 - OpenKBP real-workflow pilot: `public-real-workflows-pilot-v0.6` (`10` tasks from
   `2` patient families; `17` ranked Ollama configurations, `4` ranked Groq
-  configurations, `1` quarantined Groq configuration, and `3` GPT-5.6 native effort audits;
-  `750` total attempt artifacts)
-- Scored configurations through Sunday, August 2, 2026: five common-harness local core models,
+  configurations, `1` quarantined Groq configuration, and `4` GPT-5.6 native audits;
+  `780` total attempt artifacts)
+- Scored configurations through Monday, August 3, 2026: five common-harness local core models,
   six explicitly unranked GPT-5.6 core-effort pilots, two harder TG-263 native pilots,
   three local models on the original image pilot, twenty-two API/local configurations on the
-  OpenKBP pilot, and three GPT-5.6 OpenKBP effort audits with descriptive outcome ranks
+  OpenKBP pilot, and four GPT-5.6 OpenKBP audits with descriptive outcome ranks
 - Browser-optimized leaderboard projection: [`web/public/data/leaderboard.json`](web/public/data/leaderboard.json)
 - Frozen 50-base-model panel: [`fleet/public_fleet_v1.yaml`](fleet/public_fleet_v1.yaml)
 - Reproducible fleet funnel: [`web/public/data/fleet_status.json`](web/public/data/fleet_status.json)
@@ -96,7 +96,7 @@ package, or evidence of autonomous clinical competence.
 - Harness-group release ranks plus a clearly labeled descriptive cross-surface outcome order;
   incomplete or manifest-inconsistent runs remain published but receive neither.
 - Architecture, governance, evaluation, onboarding, and deployment documentation in [`docs/`](docs/).
-- Repository-wide validation of all eleven JSON Schemas, every authored/runtime task projection,
+- Repository-wide validation of all twelve JSON Schemas, every authored/runtime task projection,
   every artifact digest, constructed reference feasibility, and every published result artifact.
 - A unified browser model index that exposes open/closed and provider filters, release-specific
   scores, task-level outcome facets, failed grader contracts, exact configuration hashes, and
@@ -107,7 +107,10 @@ package, or evidence of autonomous clinical competence.
   reduced deterministic verdicts, redacted receipts, failed-lane tallies, shareable URL state, and
   immutable hashes. Aggregate-only is the default; non-public and comparison-profile releases
   cannot opt in.
-- A machine-derived qualification funnel that reports `50` frozen base IDs, `22` access-qualified,
+- Versioned recorded-capture v2 contracts that bind a fresh-context native run to the exact release,
+  sealed-batch hash, model revision, effort, attempt index, output-map digest, timestamps, declared
+  transport tools, and all corresponding public result traces without storing hidden reasoning.
+- A machine-derived qualification funnel that reports `50` frozen base IDs, `23` access-qualified,
   `20` validly evaluated under the current manifest contract, and `20` rankable—without counting six
   GPT-5.6 effort settings as six models, treating historical legacy rows as current-contract evidence,
   or presenting a partial local campaign as a score.

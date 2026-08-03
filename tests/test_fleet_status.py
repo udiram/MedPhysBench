@@ -47,13 +47,13 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert status == rebuilt
     assert rebuilt["summary"] == {
         "planned_base_models": 50,
-        "access_qualified_base_models": 22,
+        "access_qualified_base_models": 23,
         "evaluated_base_models": 20,
         "ranked_base_models": 20,
         "workflow_qualified_base_models": 20,
         "workflow_ranked_base_models": 20,
-        "published_system_configurations": 28,
-        "published_release_rows": 43,
+        "published_system_configurations": 29,
+        "published_release_rows": 44,
         "open_planned_models": 31,
         "closed_planned_models": 19,
         "vision_planned_models": 31,
@@ -75,8 +75,9 @@ def test_catalog_maps_system_configurations_to_unique_frozen_base_models() -> No
 
     assert len(keys) == len(set(keys))
     assert all(entry["base_model_id"] in frozen_ids for entry in catalog)
-    assert len({entry["base_model_id"] for entry in catalog}) == 22
+    assert len({entry["base_model_id"] for entry in catalog}) == 23
     assert sum(entry["base_model_id"] == "gpt-5.6-sol" for entry in catalog) == 6
+    assert sum(entry["base_model_id"] == "gpt-5.6-terra" for entry in catalog) == 1
 
 
 def test_incomplete_campaign_cannot_increment_evaluated_or_ranked_counts(tmp_path: Path) -> None:

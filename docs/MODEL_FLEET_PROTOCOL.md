@@ -118,10 +118,10 @@ scored outcomes and remain canonical attempts; they are not transport retries.
 
 ## Current state
 
-The public website currently exposes 28 model configurations representing 22
+The public website currently exposes 29 model configurations representing 23
 unique base model identifiers across four release surfaces, including five
-completed Groq configurations and six GPT-5.6 effort configurations. These are
-not 27 unique base models. An Ollama Cloud access probe
+completed Groq configurations, six GPT-5.6 Sol effort configurations, and one
+GPT-5.6 Terra configuration. These are not 29 unique base models. An Ollama Cloud access probe
 for `qwen3.5:397b-cloud` on 2026-08-02 returned HTTP 429 before a scored artifact
 was created. The lab-node hostname was not resolvable from the current Mac
 network context. Neither event supports a model score.
@@ -129,10 +129,10 @@ network context. Neither event supports a model score.
 The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
 19 closed-weight, 31 declared vision-capable, and 11 stewards. After enforcing
 the current grader/scoring manifest contract, the derived funnel
-reports 22 access-qualified, 20 common-harness evaluated, and 20 officially
+reports 23 access-qualified, 20 common-harness evaluated, and 20 officially
 rankable base models. One fully attempted Groq row is excluded from evaluated/ranked
 counts because its provider-output failure artifacts lack model-response receipts and telemetry.
-GPT-5.6's complete native rows remain visible in the same
+GPT-5.6 Sol and Terra complete native rows remain visible in the same
 model index and attempt forensics, but do not inflate that common-harness funnel.
 `deepseek-r1:1.5b` completed a fresh 30-attempt Q2 matrix with artifact digest
 `sha256:e0979632db5a88d1a53884cb2a941772d10ff5d055aabaa6801c4e36f3a6c2d7`.

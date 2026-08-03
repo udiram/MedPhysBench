@@ -34,13 +34,14 @@ The machine-derived public status currently reports:
 | Qualification gate | Unique base models | Meaning |
 | --- | ---: | --- |
 | Frozen panel | 50 | Selected before further score inspection |
-| Access qualified | 22 | Live Q0 or later access evidence exists |
+| Access qualified | 23 | Live Q0 or later access evidence exists |
 | Validly evaluated | 20 | At least one complete matrix satisfies the current manifest/scoring and execution-evidence contract |
 | Rankable | 20 | At least two systems share an exact frozen comparison group |
 
-The site exposes all 28 published system configurations and 43 release
-rows. Six GPT-5.6 effort settings therefore remain six auditable configurations
-of one base model, while Groq-hosted and local routes of the same open-weight
+The site exposes all 29 published system configurations and 44 release
+rows. Six GPT-5.6 Sol effort settings remain six auditable configurations
+of one base model, while the separately cataloged GPT-5.6 Terra system contributes
+one additional base model and configuration. Groq-hosted and local routes of the same open-weight
 base also count once toward breadth. Five legacy core-only base models remain
 visible but no longer count as current-contract evaluated because their v1
 artifacts predate grader hashes and scoring revisions. `deepseek-r1:1.5b` completed
@@ -268,24 +269,30 @@ usage, or completion-time telemetry. The configuration remains visible but is
 quarantined from both official rank and descriptive outcome order. This is an
 execution-evidence failure, not a claim about latent medical-physics knowledge.
 
-Three GPT-5.6 effort settings completed the same sealed ten-task runtime three
-times, producing 30 deterministically regraded attempts per effort. These are real
-model outputs and now receive a visible descriptive cross-surface outcome order.
+Four GPT-5.6 configurations completed the same sealed ten-task runtime three
+times, producing 30 deterministically regraded attempts per configuration. Three are
+GPT-5.6 Sol effort settings; the fourth is GPT-5.6 Terra at high effort, collected in
+three independent fresh contexts under the stricter recorded-capture v2 contract.
+These are real model outputs and receive the same visible descriptive cross-surface outcome order.
 They are not promoted into either official harness-group rank because the native
 surface does not expose comparable API sampling, token, or latency telemetry.
 
 | Outcome order | Native surface | Safe success | Attempt 95% CI | Safety | Valid output | All-attempt agreement | Rank status |
 | ---: | --- | ---: | ---: | ---: | ---: | ---: | --- |
-| 1 | GPT-5.6 high | 76.67% | 59.07–88.21% | 100.0% | 100.0% | 90.0% | Native; no official harness-group rank |
-| 2 | GPT-5.6 ultra | 73.33% | 55.55–85.82% | 100.0% | 100.0% | 60.0% | Native; no official harness-group rank |
-| 3 | GPT-5.6 low | 66.67% | 48.78–80.77% | 100.0% | 100.0% | 80.0% | Native; no official harness-group rank |
+| 1 | GPT-5.6 Sol high | 76.67% | 59.07–88.21% | 100.0% | 100.0% | 90.0% | Native; no official harness-group rank |
+| 2 | GPT-5.6 Sol ultra | 73.33% | 55.55–85.82% | 100.0% | 100.0% | 60.0% | Native; no official harness-group rank |
+| 3 | GPT-5.6 Sol low | 66.67% | 48.78–80.77% | 100.0% | 100.0% | 80.0% | Native; no official harness-group rank |
+| 4 | GPT-5.6 Terra high | 63.33% | 45.51–78.13% | 100.0% | 100.0% | 90.0% | Native v2 capture; no official harness-group rank |
 
-The repeated matrix resolves the earlier one-shot low/high reversal, but it still
+The repeated Sol matrix resolves the earlier one-shot low/high reversal, but it still
 does not establish a statistically decisive effort ordering: the Wilson intervals
 overlap substantially and the release contains only two correlated patient
-families. High has the largest point estimate, while ultra has the lowest repeated-
-attempt agreement. All three remain subject to the same independent-review and
-human-baseline gaps as the API/local rows.
+families. Sol high has the largest point estimate, while Sol ultra has the lowest repeated-
+attempt agreement. Terra passed all 18 plan-criteria, structure-inventory, and TG-263
+naming attempts plus one of six high-dose localization attempts; its six parotid-grid
+attempts and the other five high-dose attempts failed the Dice threshold while preserving
+the required escalation boundary. All four configurations remain subject to the same
+independent-review and human-baseline gaps as the API/local rows.
 
 `qwen3.5:4b` passed the non-image data-integrity/naming tasks and some plan/dose
 work but remained weak on coarse segmentation (`0.3651` mean segmentation-lane

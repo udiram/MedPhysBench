@@ -136,8 +136,19 @@ uv run medphys-bench score-recorded-batch \
   --results-dir runs
 ```
 
-The recorded file must bind the exact sealed-batch SHA-256 and task ID set. These imports are
-always marked `codex-native` and unranked; they are not substitutes for a qualified provider adapter.
+The recorded file must bind the exact sealed-batch SHA-256 and task ID set. New evidence packages
+use `medphysbench.recorded-batch.v2`, which additionally binds the release ID, exact model revision,
+reasoning effort, one-based attempt index, stable output-map digest, capture timestamps, fresh-context
+isolation, sealed-batch delivery mode, final-JSON-only response capture, declared transport tools, and
+the fact that hidden reasoning was not stored. The CLI rejects any disagreement between the capture,
+command line, sealed runtime projection, and result destination. Version 1 remains readable for
+historical imports but does not make these stronger capture claims.
+
+Committed v2 capture records live under `captures/recorded/<release>/<configuration>/`. Repository
+validation resolves every capture back to all expected public result files, verifies byte-semantic
+output equality, and requires both the result trace and redacted runtime receipt to carry the same
+capture ID. These imports are always marked `codex-native` and unranked; they are not substitutes for
+a qualified provider adapter and do not gain invented token or latency telemetry.
 
 ## Build the website
 

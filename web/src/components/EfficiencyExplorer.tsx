@@ -20,6 +20,7 @@ import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { classifyAttemptOutcome } from "../types";
 import type {
   Leaderboard,
+  FleetStatus,
   ModelCatalogEntry,
   ModelOpenness,
   ModelResult,
@@ -33,6 +34,7 @@ type SurfaceFilter = "all" | "common" | "native";
 
 type Props = {
   data: Leaderboard | null;
+  fleetStatus: FleetStatus | null;
   modelCatalog: ModelCatalogEntry[];
   releaseView: ReleaseView;
 };
@@ -53,7 +55,7 @@ const PROVIDER_SWATCHES: Record<string, string> = {
   ollama: "#d9a441",
 };
 
-export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
+export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseView }: Props) {
   const [mode, setMode] = useState<ViewMode>("score");
   const [rankedOnly, setRankedOnly] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
@@ -72,8 +74,11 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
   );
   const allRows: ModelResult[] = useMemo(() => (data ? [...data.models, ...(data.unranked_models ?? [])] : []), [data]);
   const availableProviders = useMemo(
-    () => [...new Set(allRows.map((row) => row.provider))].sort((left, right) => left.localeCompare(right)),
-    [allRows],
+    () => [...new Set([
+      ...allRows.map((row) => row.provider),
+      ...modelCatalog.map((entry) => entry.provider),
+    ])].sort((left, right) => left.localeCompare(right)),
+    [allRows, modelCatalog],
   );
 
   const rows = useMemo(() => {
@@ -301,6 +306,13 @@ export function EfficiencyExplorer({ data, modelCatalog, releaseView }: Props) {
           <span>Rows shown</span>
           <div className="model-count-mini" role="status" aria-live="polite">
             <strong>{rows.length}</strong> displayed · {filteredCommonCount} common, {filteredNativeCount} native
+            {fleetStatus ? (
+              <small>
+                {fleetStatus.summary.evaluated_base_models}/{fleetStatus.summary.planned_base_models} frozen-panel base
+                models evaluated · {fleetStatus.summary.planned_base_models - fleetStatus.summary.evaluated_base_models}{" "}
+                awaiting common-harness evidence
+              </small>
+            ) : null}
           </div>
         </label>
       </div>

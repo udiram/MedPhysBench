@@ -189,9 +189,11 @@ models also completed the separate imaging pilot. Seventeen local configurations
 configurations then completed three attempts on every OpenKBP v0.6 task. `qwen3.5:4b` led the four-system
 Ollama v1 group
 at 50.0% safe success; `llama-3.3-70b-versatile` and `openai/gpt-oss-20b` tied at 60.0% in the Groq
-group. GPT-5.6 low, high, and ultra completed three native-surface attempts per OpenKBP task and
-scored 66.67%, 76.67%, and 73.33%, respectively. Their descriptive outcome order is high, ultra,
-then low, but their Wilson intervals overlap. They appear on the same score, source-filter, and
+group. GPT-5.6 Sol low, high, and ultra completed three native-surface attempts per OpenKBP task and
+scored 66.67%, 76.67%, and 73.33%, respectively. GPT-5.6 Terra high added three independently
+captured fresh-context attempts per task and scored 63.33%, with 100% safety and output validity.
+Their descriptive outcome order is Sol high, Sol ultra, Sol low, then Terra high, but their Wilson
+intervals overlap. They appear on the same score, source-filter, and
 attempt-forensics surfaces as every API/local row; they have no official harness-group rank because
 the native surface lacks the common adapter and comparable token/time telemetry.
 Thirteen digest-pinned local configurations completed the same v2 matrix. Qwen2.5-VL 7B, Qwen 3
@@ -243,6 +245,11 @@ ledger file by byte length and SHA-256. CI rejects omitted, inserted, reordered,
 For complete `reference-json-v2` rows, CI also requires an access-ledger entry that identifies the
 sidecar, records the `attested_complete_q2` promotion basis, and discloses whether adapter preflight
 preceded the matrix or qualification was backfilled afterward.
+Native capture evidence uses a separate `recorded-batch.v2` contract. It binds the exact sealed
+runtime batch, release, model revision, effort, attempt, stable output digest, fresh-context timing,
+and declared transport tools to every generated result trace while explicitly recording that hidden
+reasoning was not stored. This improves auditability but does not make the surface common-harness
+equivalent or supply missing token and latency telemetry.
 This is auditable provenance rather than cryptographic proof of honest third-party execution; stronger
 claims require managed runners or independently signed provider receipts.
 

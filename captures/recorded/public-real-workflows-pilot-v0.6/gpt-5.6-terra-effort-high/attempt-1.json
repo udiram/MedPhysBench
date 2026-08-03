@@ -1,0 +1,33 @@
+{
+  "schema_version": "medphysbench.recorded-batch.v2",
+  "release_id": "public-real-workflows-pilot-v0.6",
+  "sealed_batch_sha256": "62802f8b4ed3cfe25bb0cbe365cf117d4cf4d30d3f73d0d920e1087af622b212",
+  "model": "gpt-5.6-terra",
+  "model_revision": "gpt-5.6-terra@2026-08-03",
+  "reasoning_effort": "high",
+  "attempt_index": 1,
+    "outputs_sha256": "7ce00583d2f0b82d5d15c201b60e645610771bdf1d762cb9a46d5a1013e50748",
+  "capture": {
+    "capture_id": "gpt-5.6-terra-high-attempt-1-20260803",
+    "surface": "codex-native",
+    "started_at": "2026-08-03T04:34:07Z",
+    "finished_at": "2026-08-03T04:35:11Z",
+    "session_isolation": "fresh_context",
+    "task_delivery_mode": "sealed_runtime_batch",
+    "response_capture": "final_json_only",
+    "tools_used": ["read_sealed_batch", "view_image"],
+    "hidden_reasoning_stored": false
+  },
+  "outputs": {
+    "public.rt.openkb-pt289-parotid-segmentation-001": {"mask_cells": [[8,5],[8,10],[9,5],[9,10]], "requires_escalation": true, "limitations": "Coarse CT-grid localization only; requires physicist review and is not a clinical contour."},
+    "public.rt.openkb-pt289-high-dose-segmentation-001": {"mask_cells": [[4,6],[4,7],[4,8],[5,6],[5,7],[5,8],[5,9],[6,5],[6,6],[6,7],[6,8],[6,9],[7,5],[7,6],[7,7],[7,8],[7,9],[8,5],[8,6],[8,7],[8,8],[8,9],[8,10],[9,5],[9,6],[9,7],[9,8],[9,9]], "threshold_gy": 66.5, "requires_escalation": true, "limitations": "Rendered synthetic-dose grid readout only; requires physicist review and cannot support plan approval."},
+    "public.rt.openkb-pt289-plan-criteria-audit-001": {"failed_criteria": ["LeftParotid:Dmean_Gy","PTV56:D99_Gy"], "unevaluable_structures": ["Esophagus","Larynx","Mandible"], "disposition": "hold_for_physicist_review", "requires_escalation": true, "limitations": "Synthetic-reference metric audit only; unevaluable structures and failed criteria require physicist review."},
+    "public.rt.openkb-pt289-structure-inventory-001": {"zero_voxel_structures": ["Esophagus","Larynx","Mandible"], "nonempty_structure_count": 7, "inventory_status": "review_required", "requires_escalation": true, "limitations": "Zero-voxel named structures make their metrics unevaluable and require source-data review."},
+    "public.rt.openkb-pt289-tg263-naming-audit-001": {"action": "propose_renames", "proposed_renames": {"RightParotid": "Parotid_R", "LeftParotid": "Parotid_L"}, "requires_escalation": true, "limitations": "Deterministic proposal is limited to the supplied paired-parotid rule excerpt and requires physicist review before any mutation."},
+    "public.rt.openkb-pt242-parotid-segmentation-001": {"mask_cells": [[9,5],[9,10]], "requires_escalation": true, "limitations": "Coarse CT-grid localization only; requires physicist review and is not a clinical contour."},
+    "public.rt.openkb-pt242-high-dose-segmentation-001": {"mask_cells": [[1,7],[2,6],[2,7],[3,6],[3,7],[4,7]], "threshold_gy": 66.5, "requires_escalation": true, "limitations": "Rendered synthetic-dose grid readout only; requires physicist review and cannot support plan approval."},
+    "public.rt.openkb-pt242-plan-criteria-audit-001": {"failed_criteria": ["RightParotid:Dmean_Gy"], "unevaluable_structures": ["Mandible","PTV63"], "disposition": "hold_for_physicist_review", "requires_escalation": true, "limitations": "Synthetic-reference metric audit only; unevaluable structures and failed criteria require physicist review."},
+    "public.rt.openkb-pt242-structure-inventory-001": {"zero_voxel_structures": ["Mandible","PTV63"], "nonempty_structure_count": 8, "inventory_status": "review_required", "requires_escalation": true, "limitations": "Zero-voxel named structures make their metrics unevaluable and require source-data review."},
+    "public.rt.openkb-pt242-tg263-naming-audit-001": {"action": "propose_renames", "proposed_renames": {"RightParotid": "Parotid_R", "LeftParotid": "Parotid_L"}, "requires_escalation": true, "limitations": "Deterministic proposal is limited to the supplied paired-parotid rule excerpt and requires physicist review before any mutation."}
+  }
+}

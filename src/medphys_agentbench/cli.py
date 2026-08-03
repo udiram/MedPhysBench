@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 from dataclasses import asdict
@@ -21,7 +20,7 @@ from .adapters.recorded import RecordedOutputAdapter
 from .adapters.reference import DevelopmentReferenceAgent
 from .contracts import ModelDescriptor, TaskSpec
 from .json_utils import stable_hash
-from .prompting import SYSTEM_PROMPT
+from .recorded_capture import sealed_batch_payload, validate_recorded_batch
 from .release_loader import load_release
 from .reporting import summarize_release, write_summary
 from .runner import (
@@ -550,7 +549,7 @@ def main() -> None:
     if args.command == "export-runtime":
         release = load_release(args.release_file)
         tasks = release.load_tasks()
-        payload = _sealed_batch_payload(release.release_id, tasks)
+        payload = sealed_batch_payload(release.release_id, tasks)
         _write_json(args.output, payload)
         print(json.dumps({"output": str(args.output), "task_count": len(tasks)}, sort_keys=True))
         return
@@ -564,18 +563,25 @@ def main() -> None:
         if not isinstance(outputs, dict):
             raise SystemExit("Recorded batch must contain an object named 'outputs'.")
         tasks = release.load_tasks()
-        _validate_recorded_batch(
-            batch,
-            release_id=release.release_id,
-            tasks=tasks,
-            model=args.model,
-            reasoning_effort=args.reasoning_effort,
-        )
+        try:
+            capture_metadata = validate_recorded_batch(
+                batch,
+                release_id=release.release_id,
+                tasks=tasks,
+                model=args.model,
+                model_revision=args.model_revision,
+                reasoning_effort=args.reasoning_effort,
+                attempt_index=args.attempt_index,
+            )
+        except ValueError as error:
+            raise SystemExit(str(error)) from error
         adapter = RecordedOutputAdapter(
             outputs=outputs,
             model_name=args.model,
             model_revision=args.model_revision,
             reasoning_effort=args.reasoning_effort,
+            capture_metadata=capture_metadata,
+            capture_schema_version=str(batch.get("schema_version")),
         )
         model_slug = _slugify(f"{args.model}_effort_{args.reasoning_effort}")
         model_dir = args.results_dir / release.release_id / model_slug
@@ -783,44 +789,6 @@ def _validate_resumable_attempt(
             "Use a new results directory for this campaign. Current runners store transport failures "
             "in an append-only side ledger so the canonical attempt remains resumable."
         )
-
-
-def _sealed_batch_payload(release_id: str, tasks: list[TaskSpec]) -> dict[str, object]:
-    return {
-        "schema_version": "medphysbench.sealed-batch.v1",
-        "release_id": release_id,
-        "system_prompt": SYSTEM_PROMPT,
-        "tasks": [task.runtime_task().to_dict() for task in tasks],
-    }
-
-
-def _sealed_batch_sha256(release_id: str, tasks: list[TaskSpec]) -> str:
-    payload = _sealed_batch_payload(release_id, tasks)
-    serialized = json.dumps(payload, indent=2, sort_keys=True) + "\n"
-    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-
-
-def _validate_recorded_batch(
-    batch: dict[str, object],
-    *,
-    release_id: str,
-    tasks: list[TaskSpec],
-    model: str,
-    reasoning_effort: str,
-) -> None:
-    expected_ids = {task.task_id for task in tasks}
-    outputs = batch["outputs"]
-    assert isinstance(outputs, dict)
-    actual_ids = set(outputs)
-    if actual_ids != expected_ids:
-        missing = sorted(expected_ids - actual_ids)
-        extra = sorted(actual_ids - expected_ids)
-        raise SystemExit(f"Recorded batch task IDs mismatch; missing={missing}, extra={extra}.")
-    expected_hash = _sealed_batch_sha256(release_id, tasks)
-    if batch.get("sealed_batch_sha256") != expected_hash:
-        raise SystemExit("Recorded batch sealed_batch_sha256 does not match this release runtime.")
-    if batch.get("model") != model or batch.get("reasoning_effort") != reasoning_effort:
-        raise SystemExit("Recorded batch model or reasoning_effort does not match CLI declarations.")
 
 
 if __name__ == "__main__":

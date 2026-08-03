@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphysbench.org/schemas/recorded-batch.v2.schema.json",
+  "title": "MedPhysBench recorded-output capture v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "release_id",
+    "sealed_batch_sha256",
+    "model",
+    "model_revision",
+    "reasoning_effort",
+    "attempt_index",
+    "outputs_sha256",
+    "capture",
+    "outputs"
+  ],
+  "properties": {
+    "schema_version": {"const": "medphysbench.recorded-batch.v2"},
+    "release_id": {"type": "string", "minLength": 1},
+    "sealed_batch_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "model": {"type": "string", "minLength": 1},
+    "model_revision": {"type": "string", "minLength": 1},
+    "reasoning_effort": {
+      "enum": ["low", "medium", "high", "xhigh", "max", "ultra"]
+    },
+    "attempt_index": {"type": "integer", "minimum": 1},
+    "outputs_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capture_id",
+        "surface",
+        "started_at",
+        "finished_at",
+        "session_isolation",
+        "task_delivery_mode",
+        "response_capture",
+        "tools_used",
+        "hidden_reasoning_stored"
+      ],
+      "properties": {
+        "capture_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$"},
+        "surface": {"const": "codex-native"},
+        "started_at": {"type": "string", "format": "date-time"},
+        "finished_at": {"type": "string", "format": "date-time"},
+        "session_isolation": {"const": "fresh_context"},
+        "task_delivery_mode": {"const": "sealed_runtime_batch"},
+        "response_capture": {"const": "final_json_only"},
+        "tools_used": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"enum": ["read_sealed_batch", "view_image"]}
+        },
+        "hidden_reasoning_stored": {"const": false}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "object"}
+    }
+  }
+}
