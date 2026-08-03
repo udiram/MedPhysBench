@@ -14,7 +14,9 @@
     "open_planned_models": 31,
     "closed_planned_models": 19,
     "vision_planned_models": 31,
-    "steward_count": 11
+    "steward_count": 11,
+    "route_set_count": 2,
+    "declared_route_count": 12
   },
   "models": [
     {

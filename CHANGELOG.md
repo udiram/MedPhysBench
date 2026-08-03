@@ -12,6 +12,15 @@
 
 ## Unreleased
 
+- Added a backward-compatible, manifest-declared OpenAI request dialect for provider-specific
+  sampling, completion-limit, structured-output, and reasoning fields. Legacy Groq adapter,
+  route, and campaign hashes are golden-tested; omitted sampling fields are recorded as `null`.
+- Preserved the byte-frozen v1 access probe and added a dependency-bound v2 canary probe plus a
+  separate seven-route Gemini/Cohere expansion contract. These declarations do not claim access or
+  scores; each route still requires a fresh receipt and complete evidence-bound campaign. V2
+  receipts now fail closed on dependency substitution, and routes that omit provider response-format
+  enforcement cannot qualify based only on locally parseable JSON.
+
 - Added a provider-neutral per-model comparison workbench for GPT-5.6, Groq, Ollama, and every
   other cataloged route, with exact run-contract identities, cross-run outcome summaries,
   family-level pass/failure matrices, failure-domain/lane/grader distributions, and direct links

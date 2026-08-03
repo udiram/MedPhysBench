@@ -15,7 +15,7 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from ..artifacts import openai_message_content
 from ..contracts import ModelDescriptor, RuntimeTask
@@ -28,6 +28,38 @@ from .base import (
     UnsupportedCapabilityError,
     public_endpoint_url,
 )
+
+CompletionLimitField = Literal["max_completion_tokens", "max_tokens"]
+ResponseFormatDialect = Literal["openai", "cohere", "omit"]
+DEFAULT_COMPLETION_LIMIT_FIELD: CompletionLimitField = "max_completion_tokens"
+
+
+def apply_openai_request_dialect(
+    payload: dict[str, Any],
+    *,
+    temperature: float,
+    seed: int | None,
+    max_tokens: int,
+    send_temperature: bool = True,
+    send_seed: bool = True,
+    completion_limit_field: CompletionLimitField = DEFAULT_COMPLETION_LIMIT_FIELD,
+) -> dict[str, Any]:
+    """Apply a declared provider request dialect without changing the response contract."""
+    if completion_limit_field not in {"max_completion_tokens", "max_tokens"}:
+        raise ValueError("completion_limit_field must be 'max_completion_tokens' or 'max_tokens'.")
+    request_payload = dict(payload)
+    request_payload.pop("max_completion_tokens", None)
+    request_payload.pop("max_tokens", None)
+    if send_temperature:
+        request_payload["temperature"] = temperature
+    else:
+        request_payload.pop("temperature", None)
+    if send_seed and seed is not None:
+        request_payload["seed"] = seed
+    else:
+        request_payload.pop("seed", None)
+    request_payload[completion_limit_field] = max_tokens
+    return request_payload
 
 
 @dataclass
@@ -46,6 +78,11 @@ class OpenAICompatibleAdapter:
     artifact_root: Path = Path.cwd()
     model_revision_override: str | None = None
     max_rate_limit_retries: int = 8
+    send_temperature: bool = True
+    send_seed: bool = True
+    completion_limit_field: CompletionLimitField = DEFAULT_COMPLETION_LIMIT_FIELD
+    response_format_dialect: ResponseFormatDialect = "openai"
+    send_reasoning_effort: bool = True
 
     harness_revision = "openai-chat-json-v1"
 
@@ -58,6 +95,14 @@ class OpenAICompatibleAdapter:
             raise ValueError("provider must be non-empty.")
         if not 0 <= self.max_rate_limit_retries <= 20:
             raise ValueError("max_rate_limit_retries must be between 0 and 20.")
+        if self.completion_limit_field not in {"max_completion_tokens", "max_tokens"}:
+            raise ValueError("completion_limit_field must be 'max_completion_tokens' or 'max_tokens'.")
+        if self.response_format_dialect not in {"openai", "cohere", "omit"}:
+            raise ValueError("response_format_dialect must be 'openai', 'cohere', or 'omit'.")
+        if self.response_format_dialect == "omit" and self.strict_schema:
+            raise ValueError("strict_schema cannot be true when response_format_dialect is 'omit'.")
+        if not self.send_reasoning_effort and self.reasoning_effort is not None:
+            raise ValueError("reasoning_effort must be None when send_reasoning_effort is false.")
 
     @property
     def name(self) -> str:
@@ -79,7 +124,7 @@ class OpenAICompatibleAdapter:
         )
 
     def runtime_settings(self) -> dict[str, Any]:
-        return {
+        settings: dict[str, Any] = {
             "schema_version": "medphysbench.adapter-settings.v1",
             "endpoint_kind": "openai_chat_completions",
             "base_url": public_endpoint_url(self.base_url),
@@ -90,6 +135,21 @@ class OpenAICompatibleAdapter:
             "max_rate_limit_retries": self.max_rate_limit_retries,
             "artifact_transport": "openai_message_content",
         }
+        if (
+            not self.send_temperature
+            or not self.send_seed
+            or self.completion_limit_field != DEFAULT_COMPLETION_LIMIT_FIELD
+            or self.response_format_dialect != "openai"
+            or not self.send_reasoning_effort
+        ):
+            settings["request_dialect"] = {
+                "send_temperature": self.send_temperature,
+                "send_seed": self.send_seed,
+                "completion_limit_field": self.completion_limit_field,
+                "response_format_dialect": self.response_format_dialect,
+                "send_reasoning_effort": self.send_reasoning_effort,
+            }
+        return settings
 
     def execute(self, task: RuntimeTask) -> AgentResult:
         started = time.perf_counter()
@@ -98,19 +158,23 @@ class OpenAICompatibleAdapter:
             self.artifact_root,
             build_user_prompt(task),
         )
-        request_payload: dict[str, Any] = {
-            "model": self.model_name,
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_content},
-            ],
-            "temperature": self.temperature,
-            "max_completion_tokens": self.max_tokens,
-            "response_format": self._response_format(task),
-        }
-        if self.seed is not None:
-            request_payload["seed"] = self.seed
-        if self.reasoning_effort is not None:
+        request_payload = apply_openai_request_dialect(
+            {
+                "model": self.model_name,
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_content},
+                ],
+                **self._response_format_payload(task),
+            },
+            temperature=self.temperature,
+            seed=self.seed,
+            max_tokens=self.max_tokens,
+            send_temperature=self.send_temperature,
+            send_seed=self.send_seed,
+            completion_limit_field=self.completion_limit_field,
+        )
+        if self.send_reasoning_effort and self.reasoning_effort is not None:
             request_payload["reasoning_effort"] = self.reasoning_effort
 
         request = urllib.request.Request(
@@ -242,16 +306,27 @@ class OpenAICompatibleAdapter:
             },
         )
 
-    def _response_format(self, task: RuntimeTask) -> dict[str, Any]:
+    def _response_format_payload(self, task: RuntimeTask) -> dict[str, Any]:
+        if self.response_format_dialect == "omit":
+            return {}
         if self.response_format == "json_object":
-            return {"type": "json_object"}
+            return {"response_format": {"type": "json_object"}}
+        if self.response_format_dialect == "cohere":
+            return {
+                "response_format": {
+                    "type": "json_object",
+                    "schema": task.expected_output_schema,
+                }
+            }
         return {
-            "type": "json_schema",
-            "json_schema": {
-                "name": "medphysbench_output",
-                "strict": self.strict_schema,
-                "schema": task.expected_output_schema,
-            },
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "medphysbench_output",
+                    "strict": self.strict_schema,
+                    "schema": task.expected_output_schema,
+                },
+            }
         }
 
 

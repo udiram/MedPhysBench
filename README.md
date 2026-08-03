@@ -58,7 +58,7 @@ package, or evidence of autonomous clinical competence.
 | Audit the benchmark methodology and reporting contract | [Methods review](docs/BENCHMARK_METHODS_REVIEW.md) · [Public reporting standard](docs/PUBLIC_REPORTING_STANDARD.md) |
 | Reproduce the public release | [Reproducibility guide](docs/REPRODUCIBILITY.md) · [Evaluation protocol](docs/EVALUATION_PROTOCOL.md) |
 | Inspect what could invalidate a score | [Defect ledger](governance/benchmark-defects.json) · [Threat model](docs/THREAT_MODEL.md) · [Data statement](docs/DATA_STATEMENT.md) |
-| Add a provider or model | [Adapter contract](docs/ADAPTER_CONTRACT.md) · [Model onboarding](docs/MODEL_ONBOARDING.md) |
+| Add a provider or model | [Adapter contract](docs/ADAPTER_CONTRACT.md) · [Provider routes](docs/PROVIDER_ROUTE_CONTRACTS.md) · [Model onboarding](docs/MODEL_ONBOARDING.md) |
 | Submit auditable model results | [Contribution guide](CONTRIBUTING.md#result-submission-requirements) · [submission schema](schemas/common-harness-submission.v1.schema.json) |
 | Propose a task | [Contribution guide](CONTRIBUTING.md) · [Task catalog](docs/TASK_CATALOG.md) |
 | Understand the harder RT roadmap | [Benchmark hardening](docs/BENCHMARK_HARDENING.md) · [RT competency map](docs/RT_COMPETENCY_MAP.md) · [AAPM coverage](docs/AAPM_TASK_GROUP_COVERAGE.md) · [planning sandbox](docs/PLANNING_SANDBOX.md) · [TG-263 lane](docs/TG263_BENCHMARK.md) |

@@ -179,12 +179,31 @@ def validate_repository() -> dict[str, int]:
     if len(fleet_ids) != fleet["target_base_model_count"]:
         raise ValueError(f"{fleet_path}: target_base_model_count does not match the frozen list.")
 
-    route_set_path = ROOT / "fleet" / "model_routes_v1.yaml"
-    route_set_payload = _load_yaml(route_set_path)
-    _validate(validators["model_routes"], route_set_payload, route_set_path)
-    route_set = load_route_set(route_set_path)
-    if route_set.fleet_id != fleet["fleet_id"]:
-        raise ValueError(f"{route_set_path}: route set does not match the frozen fleet.")
+    route_set_paths = sorted((ROOT / "fleet").glob("*routes*.yaml"))
+    if not route_set_paths:
+        raise ValueError("No executable route-set manifests were found under fleet/.")
+    route_sets = []
+    route_set_ids: set[str] = set()
+    route_ids: set[str] = set()
+    for route_set_path in route_set_paths:
+        route_set_payload = _load_yaml(route_set_path)
+        _validate(validators["model_routes"], route_set_payload, route_set_path)
+        route_set = load_route_set(route_set_path)
+        if route_set.fleet_id != fleet["fleet_id"]:
+            raise ValueError(f"{route_set_path}: route set does not match the frozen fleet.")
+        if route_set.route_set_id in route_set_ids:
+            raise ValueError(f"{route_set_path}: duplicate route_set_id {route_set.route_set_id!r}.")
+        route_set_ids.add(route_set.route_set_id)
+        for route in route_set.routes:
+            if route.base_model_id not in fleet_ids:
+                raise ValueError(
+                    f"{route_set_path}: route {route.route_id!r} references base model "
+                    f"{route.base_model_id!r} outside the frozen fleet."
+                )
+            if route.route_id in route_ids:
+                raise ValueError(f"{route_set_path}: duplicate cross-manifest route_id {route.route_id!r}.")
+            route_ids.add(route.route_id)
+        route_sets.append(route_set)
 
     fleet_status_path = ROOT / "web" / "public" / "data" / "fleet_status.json"
     fleet_status = _load_json(fleet_status_path)
@@ -423,7 +442,7 @@ def validate_repository() -> dict[str, int]:
         "campaign_count": len(campaign_paths),
         "grader_mutation_count": grader_mutation_count,
         "fleet_model_count": len(fleet_ids),
-        "route_count": len(route_set.routes),
+        "route_count": sum(len(route_set.routes) for route_set in route_sets),
     }
 
 

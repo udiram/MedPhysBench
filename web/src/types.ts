@@ -366,6 +366,8 @@ export type FleetStatusSummary = {
   closed_planned_models: number;
   vision_planned_models: number;
   steward_count: number;
+  route_set_count: number;
+  declared_route_count: number;
 };
 
 export type FleetStatusModel = {

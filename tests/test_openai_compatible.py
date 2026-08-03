@@ -15,6 +15,7 @@ from medphys_agentbench.adapters.openai_compatible import (
     UnsupportedCapabilityError,
 )
 from medphys_agentbench.cli import _build_adapter
+from medphys_agentbench.json_utils import stable_hash
 from medphys_agentbench.task_loader import load_task
 
 
@@ -50,8 +51,7 @@ def test_openai_compatible_propagates_common_harness_contract(monkeypatch: pytes
                         "finish_reason": "stop",
                         "message": {
                             "content": (
-                                '{"distance_cm":100,"answer_ratio":0.25,'
-                                '"requires_escalation":false,"assumptions":[]}'
+                                '{"distance_cm":100,"answer_ratio":0.25,"requires_escalation":false,"assumptions":[]}'
                             )
                         },
                     }
@@ -85,11 +85,96 @@ def test_openai_compatible_propagates_common_harness_contract(monkeypatch: pytes
     assert payload["temperature"] == 0.0
     assert payload["max_completion_tokens"] == 512
     assert payload["reasoning_effort"] == "high"
+    assert set(payload) == {
+        "model",
+        "messages",
+        "temperature",
+        "seed",
+        "max_completion_tokens",
+        "response_format",
+        "reasoning_effort",
+    }
     assert payload["response_format"]["json_schema"]["strict"] is True
     assert payload["response_format"]["json_schema"]["schema"] == task.expected_output_schema
     assert result.final_output["answer_ratio"] == 0.25
     assert result.raw_response["usage"]["total_tokens"] == 60
     assert "secret-not-recorded" not in json.dumps(result.raw_response)
+
+
+def test_default_request_dialect_preserves_frozen_runtime_settings_hash() -> None:
+    adapter = OpenAICompatibleAdapter(
+        model_name="openai/gpt-oss-20b",
+        api_key="test-only",
+        base_url="https://api.groq.com/openai/v1",
+        provider="groq",
+        timeout_seconds=300,
+        response_format="json_object",
+        strict_schema=False,
+        max_rate_limit_retries=8,
+    )
+
+    settings = adapter.runtime_settings()
+
+    assert "request_dialect" not in settings
+    assert stable_hash(settings) == "a404afcd3a58a1452e04f8009b7f6bc0ac482f3666493339e181a752e6aada19"
+
+
+def test_nondefault_request_dialect_is_applied_and_frozen(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_urlopen(request: urllib.request.Request, timeout: int) -> _FakeResponse:
+        captured["payload"] = json.loads(bytes(request.data or b"").decode("utf-8"))
+        return _FakeResponse(
+            {
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {
+                            "content": (
+                                '{"distance_cm":100,"answer_ratio":0.25,"requires_escalation":false,"assumptions":[]}'
+                            )
+                        },
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    task = load_task("tasks/public/core_physics/inverse_square_001/task.yaml").runtime_task()
+    adapter = OpenAICompatibleAdapter(
+        model_name="provider/model",
+        api_key="test-only",
+        base_url="https://api.example.test/v1",
+        provider="example",
+        temperature=0.2,
+        seed=17,
+        max_tokens=256,
+        send_temperature=False,
+        send_seed=False,
+        completion_limit_field="max_tokens",
+        response_format_dialect="cohere",
+        send_reasoning_effort=False,
+    )
+
+    adapter.execute(task)
+    payload = captured["payload"]
+    assert isinstance(payload, dict)
+    assert "temperature" not in payload
+    assert "seed" not in payload
+    assert "max_completion_tokens" not in payload
+    assert payload["max_tokens"] == 256
+    assert "reasoning_effort" not in payload
+    assert payload["response_format"] == {
+        "type": "json_object",
+        "schema": task.expected_output_schema,
+    }
+    assert adapter.runtime_settings()["request_dialect"] == {
+        "send_temperature": False,
+        "send_seed": False,
+        "completion_limit_field": "max_tokens",
+        "response_format_dialect": "cohere",
+        "send_reasoning_effort": False,
+    }
 
 
 def test_openai_compatible_does_not_repair_malformed_json(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -164,6 +249,79 @@ def test_openai_compatible_rejects_unbounded_rate_limit_retries() -> None:
         )
 
 
+def test_openai_compatible_rejects_unknown_completion_limit_field() -> None:
+    with pytest.raises(ValueError, match="completion_limit_field"):
+        OpenAICompatibleAdapter(
+            model_name="test-model",
+            api_key="test-only",
+            base_url="https://api.example.test/v1",
+            provider="test-provider",
+            completion_limit_field="unknown",  # type: ignore[arg-type]
+        )
+
+
+def test_openai_compatible_can_omit_provider_response_and_reasoning_fields(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    def fake_urlopen(request: urllib.request.Request, timeout: int) -> _FakeResponse:
+        captured["payload"] = json.loads(bytes(request.data or b"").decode("utf-8"))
+        return _FakeResponse(
+            {
+                "choices": [
+                    {
+                        "message": {
+                            "content": (
+                                '{"distance_cm":100,"answer_ratio":0.25,"requires_escalation":false,"assumptions":[]}'
+                            )
+                        }
+                    }
+                ]
+            }
+        )
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    task = load_task("tasks/public/core_physics/inverse_square_001/task.yaml").runtime_task()
+    adapter = OpenAICompatibleAdapter(
+        model_name="nvidia/model",
+        api_key="test-only",
+        base_url="https://integrate.api.nvidia.com/v1",
+        provider="nvidia",
+        response_format="json_object",
+        strict_schema=False,
+        completion_limit_field="max_tokens",
+        response_format_dialect="omit",
+        send_reasoning_effort=False,
+    )
+
+    adapter.execute(task)
+
+    payload = captured["payload"]
+    assert isinstance(payload, dict)
+    assert "response_format" not in payload
+    assert "reasoning_effort" not in payload
+    assert payload["max_tokens"] == 1024
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {"response_format_dialect": "omit", "strict_schema": True},
+        {"send_reasoning_effort": False, "reasoning_effort": "high"},
+    ],
+)
+def test_openai_compatible_rejects_contradictory_dialect(overrides: dict[str, object]) -> None:
+    with pytest.raises(ValueError):
+        OpenAICompatibleAdapter(
+            model_name="test-model",
+            api_key="test-only",
+            base_url="https://api.example.test/v1",
+            provider="test-provider",
+            **overrides,  # type: ignore[arg-type]
+        )
+
+
 def test_openai_compatible_retries_rate_limits_with_auditable_trace(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -224,10 +382,7 @@ def test_openai_compatible_classifies_unsupported_required_artifact(
             400,
             "bad request",
             {},
-            io.BytesIO(
-                b'{"error":{"message":"messages[1].content must be a string",'
-                b'"param":"messages[1].content"}}'
-            ),
+            io.BytesIO(b'{"error":{"message":"messages[1].content must be a string","param":"messages[1].content"}}'),
         )
 
     monkeypatch.setattr(urllib.request, "urlopen", reject_artifact)

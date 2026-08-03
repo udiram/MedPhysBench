@@ -95,6 +95,8 @@ export function FleetCoverage({ data }: Props) {
         <span><strong>{data.summary.steward_count}</strong> stewards</span>
         <span><strong>{data.summary.published_system_configurations}</strong> published configurations</span>
         <span><strong>{data.summary.published_release_rows}</strong> release rows</span>
+        <span><strong>{data.summary.declared_route_count}</strong> executable routes declared</span>
+        <span><strong>{data.summary.route_set_count}</strong> frozen route sets</span>
       </div>
 
       <details className="fleet-registry">

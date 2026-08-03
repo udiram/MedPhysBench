@@ -15,6 +15,7 @@ from medphys_agentbench.qualification import (
     find_access_entry,
     validate_attested_q2_qualification,
 )
+from medphys_agentbench.route_qualification import load_route_set
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_FLEET = REPO_ROOT / "fleet" / "public_fleet_v1.yaml"
@@ -27,6 +28,7 @@ DEFAULT_LEADERBOARDS = (
     REPO_ROOT / "web" / "public" / "data" / "public-real-workflows-pilot-v0.6.json",
 )
 DEFAULT_OUTPUT = REPO_ROOT / "web" / "public" / "data" / "fleet_status.json"
+DEFAULT_ROUTE_SETS = tuple(sorted((REPO_ROOT / "fleet").glob("*routes*.yaml")))
 WORKFLOW_QUALIFYING_RELEASE_IDS = {"public-real-workflows-pilot-v0.6"}
 
 COMPARABILITY_ONLY_ISSUES = {
@@ -78,6 +80,7 @@ def build_fleet_status(
     catalog_path: Path = DEFAULT_CATALOG,
     access_path: Path = DEFAULT_ACCESS,
     leaderboard_paths: tuple[Path, ...] = DEFAULT_LEADERBOARDS,
+    route_set_paths: tuple[Path, ...] = DEFAULT_ROUTE_SETS,
 ) -> dict[str, Any]:
     fleet = _load_fleet(fleet_path)
     fleet_models = fleet.get("models")
@@ -92,6 +95,21 @@ def build_fleet_status(
     if duplicate_ids:
         raise ValueError(f"Fleet manifest has duplicate base model IDs: {duplicate_ids}")
     fleet_index = {str(row["base_model_id"]): row for row in fleet_models}
+    route_sets = [load_route_set(path) for path in route_set_paths]
+    if not route_sets:
+        raise ValueError("At least one frozen executable route set is required.")
+    if any(route_set.fleet_id != fleet["fleet_id"] for route_set in route_sets):
+        raise ValueError("Every executable route set must bind to the selected frozen fleet.")
+    routes = [route for route_set in route_sets for route in route_set.routes]
+    unknown_route_models = sorted({route.base_model_id for route in routes}.difference(fleet_index))
+    if unknown_route_models:
+        raise ValueError(
+            "Executable routes reference base models outside the frozen fleet: "
+            f"{unknown_route_models}"
+        )
+    route_ids = [route.route_id for route in routes]
+    if len(route_ids) != len(set(route_ids)):
+        raise ValueError("Executable route IDs must be unique across frozen route sets.")
 
     catalog = _load_json(catalog_path)
     if not isinstance(catalog, list):
@@ -246,6 +264,8 @@ def build_fleet_status(
             "closed_planned_models": sum(row["openness"] == "closed" for row in model_rows),
             "vision_planned_models": sum("image" in row["modalities"] for row in model_rows),
             "steward_count": len({row["steward"] for row in model_rows}),
+            "route_set_count": len(route_sets),
+            "declared_route_count": len(route_ids),
         },
         "models": model_rows,
     }

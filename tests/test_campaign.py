@@ -103,6 +103,7 @@ def _write_valid_campaign_matrix(campaign: CampaignSpec) -> list[Path]:
 
 def test_committed_campaign_binds_five_frozen_models_and_release() -> None:
     campaign = load_campaign(CAMPAIGN_PATH)
+    assert campaign.manifest_hash == "6c790df5e849cc9d61b9e5918c5ffddcc2aafc467c1980ea5015bcfc64bb0480"
     assert campaign.release_id == "public-real-workflows-pilot-v0.6"
     assert campaign.fleet_id == "public-fleet-v1"
     assert campaign.attempts == 3
@@ -170,9 +171,32 @@ def test_command_is_shell_free_resumable_and_never_contains_secret_value() -> No
     assert "--resume" in command
     assert "--fail-fast" in command
     assert "--best-effort-schema" in command
+    assert command.index("--seed") < command.index("--max-tokens")
+    assert command.index("--temperature") < command.index("--max-tokens")
     assert command[command.index("--max-rate-limit-retries") + 1] == "8"
     assert "GROQ_API_KEY" in command
     assert "literal-secret" not in " ".join(command)
+
+    dialect_command = build_model_command(
+        campaign,
+        replace(
+            model,
+            seed=None,
+            temperature=None,
+            send_temperature=False,
+            send_seed=False,
+            completion_limit_field="max_tokens",
+            response_format_dialect="cohere",
+            send_reasoning_effort=False,
+        ),
+    )
+    assert "--omit-temperature" in dialect_command
+    assert "--omit-seed" in dialect_command
+    assert "--temperature" not in dialect_command
+    assert "--seed" not in dialect_command
+    assert dialect_command[dialect_command.index("--completion-limit-field") + 1] == "max_tokens"
+    assert dialect_command[dialect_command.index("--response-format-dialect") + 1] == "cohere"
+    assert "--omit-reasoning-effort" in dialect_command
 
     plan = campaign_plan(
         campaign,

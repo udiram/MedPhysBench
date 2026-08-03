@@ -119,12 +119,25 @@ def main() -> None:
     run.add_argument("--provider")
     run.add_argument("--response-format", choices=["json_schema", "json_object"], default="json_schema")
     run.add_argument("--best-effort-schema", action="store_true")
-    run.add_argument("--reasoning-effort", choices=["low", "medium", "high"])
+    run.add_argument("--reasoning-effort", choices=["none", "minimal", "low", "medium", "high"])
     run.add_argument("--timeout", type=int, default=300)
     run.add_argument("--seed", type=int, default=20260731)
     run.add_argument("--temperature", type=float, default=0.0)
     run.add_argument("--max-tokens", type=int, default=1024)
     run.add_argument("--max-rate-limit-retries", type=int, default=8)
+    run.add_argument("--omit-temperature", action="store_true")
+    run.add_argument("--omit-seed", action="store_true")
+    run.add_argument(
+        "--completion-limit-field",
+        choices=["max_completion_tokens", "max_tokens"],
+        default="max_completion_tokens",
+    )
+    run.add_argument(
+        "--response-format-dialect",
+        choices=["openai", "cohere", "omit"],
+        default="openai",
+    )
+    run.add_argument("--omit-reasoning-effort", action="store_true")
     run.add_argument(
         "--ollama-keep-alive",
         default="0",
@@ -155,12 +168,25 @@ def main() -> None:
     run_release.add_argument("--provider")
     run_release.add_argument("--response-format", choices=["json_schema", "json_object"], default="json_schema")
     run_release.add_argument("--best-effort-schema", action="store_true")
-    run_release.add_argument("--reasoning-effort", choices=["low", "medium", "high"])
+    run_release.add_argument("--reasoning-effort", choices=["none", "minimal", "low", "medium", "high"])
     run_release.add_argument("--timeout", type=int, default=300)
     run_release.add_argument("--seed", type=int, default=20260731)
     run_release.add_argument("--temperature", type=float, default=0.0)
     run_release.add_argument("--max-tokens", type=int, default=1024)
     run_release.add_argument("--max-rate-limit-retries", type=int, default=8)
+    run_release.add_argument("--omit-temperature", action="store_true")
+    run_release.add_argument("--omit-seed", action="store_true")
+    run_release.add_argument(
+        "--completion-limit-field",
+        choices=["max_completion_tokens", "max_tokens"],
+        default="max_completion_tokens",
+    )
+    run_release.add_argument(
+        "--response-format-dialect",
+        choices=["openai", "cohere", "omit"],
+        default="openai",
+    )
+    run_release.add_argument("--omit-reasoning-effort", action="store_true")
     run_release.add_argument(
         "--ollama-keep-alive",
         default="0",
@@ -335,6 +361,11 @@ def main() -> None:
             temperature=args.temperature,
             max_tokens=args.max_tokens,
             max_rate_limit_retries=args.max_rate_limit_retries,
+            send_temperature=not args.omit_temperature,
+            send_seed=not args.omit_seed,
+            completion_limit_field=args.completion_limit_field,
+            response_format_dialect=args.response_format_dialect,
+            send_reasoning_effort=not args.omit_reasoning_effort,
             api_key_env=args.api_key_env,
             provider=args.provider,
             response_format=args.response_format,
@@ -347,8 +378,8 @@ def main() -> None:
         result = run_trial(
             task,
             adapter,
-            seed=args.seed,
-            temperature=args.temperature,
+            seed=None if args.omit_seed else args.seed,
+            temperature=None if args.omit_temperature else args.temperature,
             max_tokens=args.max_tokens,
         )
         payload = {**result.to_dict(), "status": "completed", "attempt_index": 0}
@@ -405,6 +436,11 @@ def main() -> None:
                     temperature=args.temperature,
                     max_tokens=args.max_tokens,
                     max_rate_limit_retries=args.max_rate_limit_retries,
+                    send_temperature=not args.omit_temperature,
+                    send_seed=not args.omit_seed,
+                    completion_limit_field=args.completion_limit_field,
+                    response_format_dialect=args.response_format_dialect,
+                    send_reasoning_effort=not args.omit_reasoning_effort,
                     api_key_env=args.api_key_env,
                     provider=args.provider,
                     response_format=args.response_format,
@@ -427,8 +463,8 @@ def main() -> None:
                                 model_descriptor=descriptor,
                                 adapter_settings=settings,
                                 attempt_index=attempt_index,
-                                seed=args.seed + attempt_index,
-                                temperature=args.temperature,
+                                seed=None if args.omit_seed else args.seed + attempt_index,
+                                temperature=None if args.omit_temperature else args.temperature,
                                 max_tokens=args.max_tokens,
                             )
 
@@ -438,7 +474,7 @@ def main() -> None:
             model_dir.mkdir(parents=True, exist_ok=True)
             for task in tasks:
                 for attempt_index in range(attempts):
-                    attempt_seed = args.seed + attempt_index
+                    attempt_seed = args.seed if args.omit_seed else args.seed + attempt_index
                     output_path = model_dir / (f"{_slugify(task.task_id)}--attempt-{attempt_index + 1}.json")
                     if output_path.exists():
                         print(
@@ -463,6 +499,11 @@ def main() -> None:
                         temperature=args.temperature,
                         max_tokens=args.max_tokens,
                         max_rate_limit_retries=args.max_rate_limit_retries,
+                        send_temperature=not args.omit_temperature,
+                        send_seed=not args.omit_seed,
+                        completion_limit_field=args.completion_limit_field,
+                        response_format_dialect=args.response_format_dialect,
+                        send_reasoning_effort=not args.omit_reasoning_effort,
                         api_key_env=args.api_key_env,
                         provider=args.provider,
                         response_format=args.response_format,
@@ -477,8 +518,8 @@ def main() -> None:
                         result = run_trial(
                             task,
                             adapter,
-                            seed=attempt_seed,
-                            temperature=args.temperature,
+                            seed=None if args.omit_seed else attempt_seed,
+                            temperature=None if args.omit_temperature else args.temperature,
                             max_tokens=args.max_tokens,
                             run_id=run_id,
                         )
@@ -514,8 +555,8 @@ def main() -> None:
                             "manifest": create_run_manifest(
                                 task,
                                 adapter,
-                                seed=attempt_seed,
-                                temperature=args.temperature,
+                                seed=None if args.omit_seed else attempt_seed,
+                                temperature=None if args.omit_temperature else args.temperature,
                                 max_tokens=args.max_tokens,
                                 run_id=run_id,
                             ).to_dict(),
@@ -544,8 +585,8 @@ def main() -> None:
                             "manifest": create_run_manifest(
                                 task,
                                 adapter,
-                                seed=attempt_seed,
-                                temperature=args.temperature,
+                                seed=None if args.omit_seed else attempt_seed,
+                                temperature=None if args.omit_temperature else args.temperature,
                                 max_tokens=args.max_tokens,
                                 run_id=run_id,
                             ).to_dict(),
@@ -620,8 +661,8 @@ def main() -> None:
                             model_descriptor=adapter.model_descriptor(),
                             adapter_settings=adapter_runtime_settings(adapter),
                             attempt_index=attempt_index,
-                            seed=attempt_seed,
-                            temperature=args.temperature,
+                            seed=None if args.omit_seed else attempt_seed,
+                            temperature=None if args.omit_temperature else args.temperature,
                             max_tokens=args.max_tokens,
                         )
                         print(
@@ -714,6 +755,11 @@ def _build_adapter(
     temperature: float,
     max_tokens: int,
     max_rate_limit_retries: int = 8,
+    send_temperature: bool = True,
+    send_seed: bool = True,
+    completion_limit_field: str = "max_completion_tokens",
+    response_format_dialect: str = "openai",
+    send_reasoning_effort: bool = True,
     api_key_env: str | None = None,
     provider: str | None = None,
     response_format: str = "json_schema",
@@ -726,6 +772,14 @@ def _build_adapter(
     if not 0 <= max_rate_limit_retries <= 20:
         raise ValueError("--max-rate-limit-retries must be between 0 and 20.")
     if adapter == "ollama":
+        if (
+            not send_temperature
+            or not send_seed
+            or completion_limit_field != "max_completion_tokens"
+            or response_format_dialect != "openai"
+            or not send_reasoning_effort
+        ):
+            raise ValueError("OpenAI request dialect options cannot be used with the Ollama adapter.")
         return OllamaAdapter(
             model_name=model_name,
             base_url=base_url or "http://127.0.0.1:11434",
@@ -771,6 +825,11 @@ def _build_adapter(
         strict_schema=strict_schema,
         reasoning_effort=reasoning_effort,
         max_rate_limit_retries=max_rate_limit_retries,
+        send_temperature=send_temperature,
+        send_seed=send_seed,
+        completion_limit_field=completion_limit_field,
+        response_format_dialect=response_format_dialect,
+        send_reasoning_effort=send_reasoning_effort,
         model_revision_override=model_revision_override,
     )
 

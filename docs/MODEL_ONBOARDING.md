@@ -72,6 +72,11 @@ agnostic technical suite:
 Run conformance before letting a new model see any sealed test item. It is
 unfair—and scientifically noisy—to compare models through a broken adapter.
 
+For OpenAI-compatible providers, also freeze the provider request dialect and qualify it with the
+commit-bound canary workflow in [PROVIDER_ROUTE_CONTRACTS.md](PROVIDER_ROUTE_CONTRACTS.md). Never
+discover a working payload by silently dropping fields during a scored run; a changed payload is a
+new tested system contract.
+
 ## 3. Evaluation ladder for a new release
 
 ```mermaid

@@ -32,7 +32,9 @@
         "open_planned_models",
         "closed_planned_models",
         "vision_planned_models",
-        "steward_count"
+        "steward_count",
+        "route_set_count",
+        "declared_route_count"
       ],
       "properties": {
         "planned_base_models": { "type": "integer", "minimum": 0 },
@@ -46,7 +48,9 @@
         "open_planned_models": { "type": "integer", "minimum": 0 },
         "closed_planned_models": { "type": "integer", "minimum": 0 },
         "vision_planned_models": { "type": "integer", "minimum": 0 },
-        "steward_count": { "type": "integer", "minimum": 0 }
+        "steward_count": { "type": "integer", "minimum": 0 },
+        "route_set_count": { "type": "integer", "minimum": 1 },
+        "declared_route_count": { "type": "integer", "minimum": 1 }
       }
     },
     "access_evidence": {

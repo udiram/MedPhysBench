@@ -8,6 +8,7 @@ import yaml
 from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 
 from medphys_agentbench.qualification import validate_attested_q2_qualification
+from medphys_agentbench.route_qualification import load_route_set
 from scripts.build_fleet_status import build_fleet_status
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,6 +39,17 @@ def test_frozen_fleet_meets_preregistered_composition() -> None:
     assert {entry["size_tier"] for entry in models} >= {"small", "medium", "large"}
 
 
+def test_every_executable_route_resolves_to_the_frozen_fleet() -> None:
+    fleet = yaml.safe_load(FLEET_PATH.read_text(encoding="utf-8"))
+    frozen_ids = {entry["base_model_id"] for entry in fleet["models"]}
+    route_paths = sorted((ROOT / "fleet").glob("*routes*.yaml"))
+    routes = [route for path in route_paths for route in load_route_set(path).routes]
+
+    assert route_paths
+    assert routes
+    assert all(route.base_model_id in frozen_ids for route in routes)
+
+
 def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     schema = _load_json(ROOT / "schemas" / "fleet-status.v2.schema.json")
     status = _load_json(STATUS_PATH)
@@ -59,6 +71,8 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
         "closed_planned_models": 19,
         "vision_planned_models": 31,
         "steward_count": 11,
+        "route_set_count": 2,
+        "declared_route_count": 12,
     }
     assert all("size_tier" in entry for entry in rebuilt["models"])
     assert all("planned_routes" in entry for entry in rebuilt["models"])

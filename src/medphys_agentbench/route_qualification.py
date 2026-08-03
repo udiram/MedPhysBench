@@ -25,6 +25,13 @@ _SECRET_KEY = re.compile(
     re.IGNORECASE,
 )
 _SECRET_VALUE = re.compile(r"^(?:sk-|gsk_|ghp_|hf_|xox[pbar]-)", re.IGNORECASE)
+OPENAI_ACCESS_PROBE_V2_PATH = "scripts/probes/openai_access_probe_v2.py"
+OPENAI_ACCESS_PROBE_V2_DEPENDENCIES = (
+    "scripts/probes/openai_access_probe.py",
+    "src/medphys_agentbench/adapters/openai_compatible.py",
+    "src/medphys_agentbench/json_utils.py",
+    "src/medphys_agentbench/route_qualification.py",
+)
 
 
 class RouteQualificationError(ValueError):
@@ -53,6 +60,11 @@ class ModelRoute:
     ollama_keep_alive: str | int | None = None
     ollama_num_ctx: int | None = None
     max_rate_limit_retries: int | None = None
+    send_temperature: bool = True
+    send_seed: bool = True
+    completion_limit_field: str = "max_completion_tokens"
+    response_format_dialect: str = "openai"
+    send_reasoning_effort: bool = True
 
 
 @dataclass(frozen=True)
@@ -115,7 +127,7 @@ def load_route_set(path: str | Path, *, repository_root: Path = REPOSITORY_ROOT)
     }
 
     route_ids: set[str] = set()
-    identity_keys: set[tuple[str, str, str, str, str | None]] = set()
+    identity_keys: set[tuple[str, str, str, str, str | None, bool, bool, str, str, bool]] = set()
     routes: list[ModelRoute] = []
     for item in payload["routes"]:
         route_id = str(item["route_id"])
@@ -138,10 +150,31 @@ def load_route_set(path: str | Path, *, repository_root: Path = REPOSITORY_ROOT)
             str(item["model"]),
             str(item["model_revision"]),
             str(item["reasoning_effort"]) if item.get("reasoning_effort") else None,
+            bool(item.get("send_temperature", True)),
+            bool(item.get("send_seed", True)),
+            str(item.get("completion_limit_field", "max_completion_tokens")),
+            str(item.get("response_format_dialect", "openai")),
+            bool(item.get("send_reasoning_effort", True)),
         )
         if identity in identity_keys:
             raise RouteQualificationError(f"Route set contains duplicate executable identity {identity!r}.")
         identity_keys.add(identity)
+        if item.get("response_format_dialect", "openai") == "omit" and bool(item["strict_schema"]):
+            raise RouteQualificationError(
+                f"Route {route_id!r} cannot claim strict_schema when response_format is omitted."
+            )
+        if not bool(item.get("send_reasoning_effort", True)) and item.get("reasoning_effort") is not None:
+            raise RouteQualificationError(
+                f"Route {route_id!r} cannot declare reasoning_effort when the request field is omitted."
+            )
+        if str(item["adapter"]) == "ollama" and (
+            not bool(item.get("send_temperature", True))
+            or not bool(item.get("send_seed", True))
+            or str(item.get("completion_limit_field", "max_completion_tokens")) != "max_completion_tokens"
+            or str(item.get("response_format_dialect", "openai")) != "openai"
+            or not bool(item.get("send_reasoning_effort", True))
+        ):
+            raise RouteQualificationError(f"Ollama route {route_id!r} must not declare an OpenAI request dialect.")
         routes.append(
             ModelRoute(
                 **{
@@ -193,6 +226,22 @@ def load_access_probe_receipt(
     implementation_hash = sha256(implementation_path.read_bytes()).hexdigest()
     if implementation_hash != payload["probe_implementation_sha256"]:
         raise RouteQualificationError("Access receipt probe implementation hash mismatch.")
+    dependencies = payload.get("probe_dependencies", [])
+    if payload["probe_version"] == "openai-access-probe-v2":
+        if payload["probe_implementation_path"] != OPENAI_ACCESS_PROBE_V2_PATH:
+            raise RouteQualificationError("OpenAI access probe v2 receipt uses an unexpected implementation path.")
+        dependency_paths = [str(dependency["path"]) for dependency in dependencies]
+        if len(dependency_paths) != len(set(dependency_paths)) or set(dependency_paths) != set(
+            OPENAI_ACCESS_PROBE_V2_DEPENDENCIES
+        ):
+            raise RouteQualificationError("OpenAI access probe v2 receipt dependency set mismatch.")
+    for dependency in dependencies:
+        dependency_path = _probe_dependency_path(str(dependency["path"]), root)
+        if not dependency_path.is_file():
+            raise RouteQualificationError(f"Access receipt probe dependency is missing: {dependency_path}.")
+        dependency_hash = sha256(dependency_path.read_bytes()).hexdigest()
+        if dependency_hash != dependency["content_sha256"]:
+            raise RouteQualificationError("Access receipt probe dependency hash mismatch.")
     route = route_set.route(str(payload["route_id"]))
     expected = {
         "route_spec_sha256": route.route_spec_sha256,
@@ -224,6 +273,10 @@ def load_access_probe_receipt(
     if payload["outcome"] == "available" and payload["quota"]["status"] == "insufficient":
         raise RouteQualificationError("An available receipt cannot claim insufficient quota.")
     if payload["outcome"] == "available":
+        if route.response_format_dialect == "omit":
+            raise RouteQualificationError(
+                "An available receipt cannot prove a provider response contract when response_format is omitted."
+            )
         observed = {str(value) for value in payload["capabilities"]["observed"]}
         response_contract = payload["sanitized_metadata"].get("response_contract")
         if route.response_format not in observed or response_contract != route.response_format:
@@ -320,6 +373,17 @@ def _relative_label(path: Path, root: Path, prefix: str) -> str:
     return label
 
 
+def _probe_dependency_path(value: str, root: Path) -> Path:
+    for prefix in ("scripts/probes", "src/medphys_agentbench"):
+        try:
+            return _repository_path(value, root, prefix)
+        except RouteQualificationError:
+            continue
+    raise RouteQualificationError(
+        f"Probe dependency path {value!r} must stay under scripts/probes/ or src/medphys_agentbench/."
+    )
+
+
 def _parse_timestamp(value: str, field: str) -> datetime:
     try:
         return _as_utc(datetime.fromisoformat(value.replace("Z", "+00:00")))
@@ -378,12 +442,24 @@ def _validate_source_commit(
         ) from error
     if sha256(implementation).hexdigest() != payload["probe_implementation_sha256"]:
         raise RouteQualificationError("Access receipt source_commit contains different probe implementation bytes.")
+    for dependency in payload.get("probe_dependencies", []):
+        try:
+            committed_dependency = subprocess.run(
+                ["git", "show", f"{commit}:{dependency['path']}"],
+                cwd=root,
+                check=True,
+                capture_output=True,
+            ).stdout
+        except subprocess.CalledProcessError as error:
+            raise RouteQualificationError(
+                "Access receipt source_commit is missing a declared probe dependency."
+            ) from error
+        if sha256(committed_dependency).hexdigest() != dependency["content_sha256"]:
+            raise RouteQualificationError("Access receipt source_commit contains different probe dependency bytes.")
     committed_route_set = yaml.safe_load(route_set_bytes.decode("utf-8"))
     committed_routes = committed_route_set.get("routes", []) if isinstance(committed_route_set, dict) else []
     committed_matches = [
-        item
-        for item in committed_routes
-        if isinstance(item, dict) and item.get("route_id") == route.route_id
+        item for item in committed_routes if isinstance(item, dict) and item.get("route_id") == route.route_id
     ]
     if len(committed_matches) != 1 or stable_hash(committed_matches[0]) != route.route_spec_sha256:
         raise RouteQualificationError("Access receipt source_commit contains a different executable route contract.")

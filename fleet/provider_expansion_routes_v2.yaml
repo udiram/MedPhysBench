@@ -1,0 +1,122 @@
+schema_version: medphysbench.model-routes.v1
+route_set_id: provider-expansion-routes-v2
+fleet_file: fleet/public_fleet_v1.yaml
+fleet_id: public-fleet-v1
+frozen_at: '2026-08-03T01:00:00Z'
+routes:
+  - route_id: google-gemini-3.6-flash
+    base_model_id: gemini-3.6-flash
+    adapter: openai-compatible
+    provider: google
+    model: gemini-3.6-flash
+    model_revision: gemini-3.6-flash
+    revision_basis: provider_alias
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key_env: GEMINI_API_KEY
+    response_format: json_schema
+    strict_schema: true
+    send_temperature: false
+    timeout_seconds: 300
+    max_tokens: 4096
+    max_rate_limit_retries: 8
+    access_ttl_seconds: 21600
+    modalities: [text, image]
+  - route_id: google-gemini-3.5-flash
+    base_model_id: gemini-3.5-flash
+    adapter: openai-compatible
+    provider: google
+    model: gemini-3.5-flash
+    model_revision: gemini-3.5-flash
+    revision_basis: provider_alias
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key_env: GEMINI_API_KEY
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 4096
+    max_rate_limit_retries: 8
+    access_ttl_seconds: 21600
+    modalities: [text, image]
+  - route_id: google-gemini-3.5-flash-lite
+    base_model_id: gemini-3.5-flash-lite
+    adapter: openai-compatible
+    provider: google
+    model: gemini-3.5-flash-lite
+    model_revision: gemini-3.5-flash-lite
+    revision_basis: provider_alias
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key_env: GEMINI_API_KEY
+    response_format: json_schema
+    strict_schema: true
+    send_temperature: false
+    timeout_seconds: 300
+    max_tokens: 4096
+    max_rate_limit_retries: 8
+    access_ttl_seconds: 21600
+    modalities: [text, image]
+  - route_id: google-gemini-3.1-flash-lite
+    base_model_id: gemini-3.1-flash-lite
+    adapter: openai-compatible
+    provider: google
+    model: gemini-3.1-flash-lite
+    model_revision: gemini-3.1-flash-lite
+    revision_basis: provider_alias
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key_env: GEMINI_API_KEY
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 4096
+    max_rate_limit_retries: 8
+    access_ttl_seconds: 21600
+    modalities: [text, image]
+  - route_id: google-gemini-2.5-pro
+    base_model_id: gemini-2.5-pro
+    adapter: openai-compatible
+    provider: google
+    model: gemini-2.5-pro
+    model_revision: gemini-2.5-pro
+    revision_basis: provider_alias
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key_env: GEMINI_API_KEY
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 4096
+    max_rate_limit_retries: 8
+    access_ttl_seconds: 21600
+    modalities: [text, image]
+  - route_id: google-gemini-2.5-flash
+    base_model_id: gemini-2.5-flash
+    adapter: openai-compatible
+    provider: google
+    model: gemini-2.5-flash
+    model_revision: gemini-2.5-flash
+    revision_basis: provider_alias
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key_env: GEMINI_API_KEY
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 4096
+    max_rate_limit_retries: 8
+    access_ttl_seconds: 21600
+    modalities: [text, image]
+  - route_id: cohere-command-a-plus-05-2026
+    base_model_id: command-a-plus-05-2026
+    adapter: openai-compatible
+    provider: cohere
+    model: command-a-plus-05-2026
+    model_revision: command-a-plus-05-2026
+    revision_basis: provider_snapshot
+    base_url: https://api.cohere.ai/compatibility/v1
+    api_key_env: COHERE_API_KEY
+    response_format: json_schema
+    strict_schema: true
+    completion_limit_field: max_tokens
+    response_format_dialect: cohere
+    timeout_seconds: 300
+    max_tokens: 4096
+    max_rate_limit_retries: 8
+    access_ttl_seconds: 21600
+    modalities: [text, image]

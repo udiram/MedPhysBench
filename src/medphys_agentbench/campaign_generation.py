@@ -102,9 +102,7 @@ def generate_campaign_payload(
             "minimum_available_memory_gib": minimum_available_memory_gib,
             "minimum_free_disk_gib": minimum_free_disk_gib,
         },
-        "models": [
-            _model_payload(route, receipt, seed=seed, temperature=temperature) for route, receipt in selected
-        ],
+        "models": [_model_payload(route, receipt, seed=seed, temperature=temperature) for route, receipt in selected],
     }
     _validate_campaign_v2(payload)
     return payload
@@ -144,8 +142,8 @@ def _model_payload(route: ModelRoute, receipt: AccessProbeReceipt, *, seed: int,
         "response_format": route.response_format,
         "strict_schema": route.strict_schema,
         "timeout_seconds": route.timeout_seconds,
-        "seed": seed,
-        "temperature": temperature,
+        "seed": seed if route.send_seed else None,
+        "temperature": temperature if route.send_temperature else None,
         "max_tokens": route.max_tokens,
     }
     optional = {
@@ -157,6 +155,16 @@ def _model_payload(route: ModelRoute, receipt: AccessProbeReceipt, *, seed: int,
         "max_rate_limit_retries": route.max_rate_limit_retries,
     }
     payload.update({key: value for key, value in optional.items() if value is not None})
+    if not route.send_temperature:
+        payload["send_temperature"] = False
+    if not route.send_seed:
+        payload["send_seed"] = False
+    if route.completion_limit_field != "max_completion_tokens":
+        payload["completion_limit_field"] = route.completion_limit_field
+    if route.response_format_dialect != "openai":
+        payload["response_format_dialect"] = route.response_format_dialect
+    if not route.send_reasoning_effort:
+        payload["send_reasoning_effort"] = False
     return payload
 
 

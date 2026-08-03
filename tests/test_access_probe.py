@@ -5,13 +5,20 @@ import json
 import shutil
 import urllib.error
 from datetime import UTC, datetime
+from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 
-from medphys_agentbench.route_qualification import load_access_probe_receipt, load_route_set
+from medphys_agentbench.route_qualification import (
+    load_access_probe_receipt,
+    load_route_set,
+    receipt_payload_with_hash,
+)
 from scripts.probes.openai_access_probe import probe_openai_route
+from scripts.probes.openai_access_probe_v2 import probe_openai_route as probe_openai_route_v2
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -54,6 +61,25 @@ def _clock() -> Any:
     return lambda: next(values)
 
 
+def _copy_v2_probe_contract(tmp_path: Path) -> None:
+    labels = (
+        "scripts/probes/openai_access_probe_v2.py",
+        "src/medphys_agentbench/adapters/openai_compatible.py",
+        "src/medphys_agentbench/json_utils.py",
+        "src/medphys_agentbench/route_qualification.py",
+    )
+    for label in labels:
+        destination = tmp_path / label
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / label, destination)
+
+
+def test_v1_probe_bytes_remain_frozen() -> None:
+    assert sha256((ROOT / "scripts" / "probes" / "openai_access_probe.py").read_bytes()).hexdigest() == (
+        "7213f4dc7971bbef238d1a77145ec9c62a6c29392f30df271237547cf4c188df"
+    )
+
+
 def test_probe_writes_valid_contract_evidence_without_scores_or_secrets(tmp_path: Path) -> None:
     route_set_path, route_id = _probe_repository(tmp_path)
     secret = "gsk_TEST_PROVIDER_KEY_NOT_FOR_STORAGE"
@@ -86,6 +112,121 @@ def test_probe_writes_valid_contract_evidence_without_scores_or_secrets(tmp_path
     assert str(payload["sanitized_metadata"]["provider_request_id"]).startswith("sha256:")
     assert not (tmp_path / "runs").exists()
     assert not (tmp_path / "results").exists()
+
+
+def test_probe_uses_the_route_request_dialect(tmp_path: Path) -> None:
+    route_set_path, route_id = _probe_repository(tmp_path)
+    route_set_payload = yaml.safe_load(route_set_path.read_text(encoding="utf-8"))
+    route = next(item for item in route_set_payload["routes"] if item["route_id"] == route_id)
+    route.update(send_temperature=False, send_seed=False, completion_limit_field="max_tokens")
+    route.update(response_format="json_schema", response_format_dialect="cohere")
+    route_set_path.write_text(yaml.safe_dump(route_set_payload, sort_keys=False), encoding="utf-8")
+    _copy_v2_probe_contract(tmp_path)
+    adapter_dependency = tmp_path / "src" / "medphys_agentbench" / "adapters" / "openai_compatible.py"
+    captured: dict[str, object] = {}
+
+    def opener(request: Any, **_kwargs: object) -> _FakeResponse:
+        captured["payload"] = json.loads(bytes(request.data or b"").decode("utf-8"))
+        return _FakeResponse({"choices": [{"message": {"content": '{"status":"ok"}'}}]})
+
+    _path, receipt = probe_openai_route_v2(
+        route_set_path,
+        route_id,
+        repository_root=tmp_path,
+        environ={"GROQ_API_KEY": "test-only"},
+        opener=opener,
+        now=_clock(),
+        source_commit="a" * 40,
+    )
+
+    payload = captured["payload"]
+    assert isinstance(payload, dict)
+    assert "temperature" not in payload
+    assert "seed" not in payload
+    assert "max_completion_tokens" not in payload
+    assert payload["max_tokens"] == 64
+    assert payload["response_format"]["type"] == "json_object"
+    assert payload["response_format"]["schema"]["required"] == ["status"]
+    assert receipt["probe_version"] == "openai-access-probe-v2"
+    assert {item["path"] for item in receipt["probe_dependencies"]} == {
+        "scripts/probes/openai_access_probe.py",
+        "src/medphys_agentbench/adapters/openai_compatible.py",
+        "src/medphys_agentbench/json_utils.py",
+        "src/medphys_agentbench/route_qualification.py",
+    }
+
+    forged = {key: value for key, value in receipt.items() if key not in {"content_sha256", "probe_dependencies"}}
+    _path.write_text(json.dumps(receipt_payload_with_hash(forged)), encoding="utf-8")
+    route_set = load_route_set(route_set_path, repository_root=tmp_path)
+    with pytest.raises(ValueError, match="probe_dependencies"):
+        load_access_probe_receipt(_path, route_set, repository_root=tmp_path)
+    _path.write_text(json.dumps(receipt), encoding="utf-8")
+
+    wrong_implementation = {key: value for key, value in receipt.items() if key != "content_sha256"}
+    wrong_implementation["probe_implementation_path"] = "scripts/probes/openai_access_probe.py"
+    wrong_implementation["probe_implementation_sha256"] = sha256(
+        (tmp_path / "scripts" / "probes" / "openai_access_probe.py").read_bytes()
+    ).hexdigest()
+    _path.write_text(json.dumps(receipt_payload_with_hash(wrong_implementation)), encoding="utf-8")
+    with pytest.raises(ValueError, match="unexpected implementation path"):
+        load_access_probe_receipt(_path, route_set, repository_root=tmp_path)
+    _path.write_text(json.dumps(receipt), encoding="utf-8")
+
+    adapter_dependency.write_text("# tampered after probe\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="dependency hash mismatch"):
+        load_access_probe_receipt(_path, route_set, repository_root=tmp_path)
+
+    shutil.copy2(ROOT / "src" / "medphys_agentbench" / "adapters" / "openai_compatible.py", adapter_dependency)
+    json_dependency = tmp_path / "src" / "medphys_agentbench" / "json_utils.py"
+    json_dependency.write_text("# tampered strict decoder after probe\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="dependency hash mismatch"):
+        load_access_probe_receipt(_path, route_set, repository_root=tmp_path)
+
+    shutil.copy2(ROOT / "src" / "medphys_agentbench" / "json_utils.py", json_dependency)
+    route_dependency = tmp_path / "src" / "medphys_agentbench" / "route_qualification.py"
+    route_dependency.write_text("# tampered receipt validator after probe\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="dependency hash mismatch"):
+        load_access_probe_receipt(_path, route_set, repository_root=tmp_path)
+
+
+def test_v2_probe_does_not_promote_local_json_parsing_as_provider_contract(tmp_path: Path) -> None:
+    route_set_path, route_id = _probe_repository(tmp_path)
+    route_set_payload = yaml.safe_load(route_set_path.read_text(encoding="utf-8"))
+    route = next(item for item in route_set_payload["routes"] if item["route_id"] == route_id)
+    route.update(response_format="json_schema", response_format_dialect="omit", strict_schema=False)
+    route_set_path.write_text(yaml.safe_dump(route_set_payload, sort_keys=False), encoding="utf-8")
+    _copy_v2_probe_contract(tmp_path)
+    captured: dict[str, object] = {}
+
+    def opener(request: Any, **_kwargs: object) -> _FakeResponse:
+        captured["payload"] = json.loads(bytes(request.data or b"").decode("utf-8"))
+        return _FakeResponse({"choices": [{"message": {"content": '{"status":"ok"}'}}]})
+
+    path, receipt = probe_openai_route_v2(
+        route_set_path,
+        route_id,
+        repository_root=tmp_path,
+        environ={"GROQ_API_KEY": "test-only"},
+        opener=opener,
+        now=_clock(),
+        source_commit="a" * 40,
+    )
+
+    assert "response_format" not in captured["payload"]
+    assert receipt["outcome"] == "contract_unsupported"
+    assert receipt["capabilities"]["observed"] == ["json_parseable", "text"]
+    assert receipt["sanitized_metadata"]["response_contract"] == "adapter_local_json_parse"
+    route_set = load_route_set(route_set_path, repository_root=tmp_path)
+    assert load_access_probe_receipt(path, route_set, repository_root=tmp_path).outcome == "contract_unsupported"
+
+    forged = {key: value for key, value in receipt.items() if key != "content_sha256"}
+    forged["outcome"] = "available"
+    forged["capabilities"] = {"observed": ["json_schema", "text"], "inferred": ["text"]}
+    forged["sanitized_metadata"] = dict(forged["sanitized_metadata"])
+    forged["sanitized_metadata"]["response_contract"] = "json_schema"
+    path.write_text(json.dumps(receipt_payload_with_hash(forged)), encoding="utf-8")
+    with pytest.raises(ValueError, match="cannot prove a provider response contract"):
+        load_access_probe_receipt(path, route_set, repository_root=tmp_path)
 
 
 def test_probe_records_missing_credential_without_network_call(tmp_path: Path) -> None:

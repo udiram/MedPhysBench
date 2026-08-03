@@ -26,6 +26,7 @@ from medphys_agentbench.route_qualification import (
 
 ROOT = Path(__file__).resolve().parents[1]
 ROUTE_SET_PATH = ROOT / "fleet" / "model_routes_v1.yaml"
+PROVIDER_ROUTE_SET_PATH = ROOT / "fleet" / "provider_expansion_routes_v2.yaml"
 RELEASE_FILE = "releases/public_real_workflows_pilot_v0_6.yaml"
 
 
@@ -87,6 +88,40 @@ def test_committed_route_set_exposes_five_exact_groq_routes_without_claiming_acc
     assert all(route.revision_basis == "provider_alias" for route in route_set.routes)
     assert all(route.base_url == "https://api.groq.com/openai/v1" for route in route_set.routes)
     assert all(route.max_rate_limit_retries == 8 for route in route_set.routes)
+    assert {route.route_id: route.route_spec_sha256 for route in route_set.routes} == {
+        "groq-gpt-oss-120b": "c2a1159795627f6c068ae82e57fb5ed12d74a2d383980868a6f79ce58d14cca1",
+        "groq-gpt-oss-20b": "1b62334037eed3fa846ef69feb269d913340555f9e6f683607e0d635b068557f",
+        "groq-llama-3.1-8b-instant": "9aa9a499f94007cfc61da05eb8f9b53800a870876b6e9bb1325b3e8ce5c14b5f",
+        "groq-llama-3.3-70b-versatile": "d65ee2f69cbd36f44a13cf08d7d8a5f93052a24705495ebe08280f58eecfb92d",
+        "groq-qwen-3.6-27b": "95e16daa78ba0f10594a6d0d60a6f440a4d43de32a7217fb6090bbfb957660c5",
+    }
+    assert all(route.send_temperature is True for route in route_set.routes)
+    assert all(route.send_seed is True for route in route_set.routes)
+    assert all(route.completion_limit_field == "max_completion_tokens" for route in route_set.routes)
+    assert all(route.response_format_dialect == "openai" for route in route_set.routes)
+    assert all(route.send_reasoning_effort is True for route in route_set.routes)
+
+
+def test_provider_expansion_routes_are_frozen_but_do_not_claim_access() -> None:
+    route_set = load_route_set(PROVIDER_ROUTE_SET_PATH)
+
+    assert route_set.route_set_id == "provider-expansion-routes-v2"
+    assert len(route_set.routes) == 7
+    assert {route.provider for route in route_set.routes} == {"google", "cohere"}
+    assert {route.route_id: route.route_spec_sha256 for route in route_set.routes} == {
+        "cohere-command-a-plus-05-2026": "cd305e9b740ebd69e62b63b0939e6956a00c43f0f6062d7dfeb2aa1f7046e2d9",
+        "google-gemini-2.5-flash": "8220597b372b51d5768686d77f0f9352a8727b7addd9683b957425b303b7abca",
+        "google-gemini-2.5-pro": "580a093869c12d0746c3e710f14eac165c9ebf4ca201819437092f8b544a1cb3",
+        "google-gemini-3.1-flash-lite": "f25ccb7e39c2ffd65256910395601b3350933f64dd173aa4dc61a0c23196e1f6",
+        "google-gemini-3.5-flash": "9f6cddabc0fb8fd4aeb76e29036c89441e9a56b1c03d539a1cd003006520a6c7",
+        "google-gemini-3.5-flash-lite": "e1645f61f762dfaf4cde13d102cd4ab5dc0ecdde8bfe4384c9347078aaa65ec3",
+        "google-gemini-3.6-flash": "1977d5a102c298036ab969be96f910962853e35e6a8ec09f7657ec5918f7b094",
+    }
+    cohere = route_set.route("cohere-command-a-plus-05-2026")
+    assert cohere.completion_limit_field == "max_tokens"
+    assert cohere.response_format_dialect == "cohere"
+    assert route_set.route("google-gemini-3.6-flash").send_temperature is False
+    assert route_set.route("google-gemini-3.5-flash-lite").send_temperature is False
 
 
 def test_receipt_is_content_addressed_and_identity_bound(tmp_path: Path) -> None:
@@ -272,7 +307,14 @@ def test_v2_campaign_load_revalidates_route_receipt_and_release_bindings(
     )
 
     original_routes = yaml.safe_load(ROUTE_SET_PATH.read_text(encoding="utf-8"))
-    original_route = original_routes["routes"][0]
+    original_route = {
+        **original_routes["routes"][0],
+        "send_temperature": False,
+        "send_seed": False,
+        "completion_limit_field": "max_tokens",
+        "response_format_dialect": "cohere",
+        "send_reasoning_effort": False,
+    }
     fleet_path = tmp_path / "fleet" / "public_fleet_v1.yaml"
     fleet_path.parent.mkdir(parents=True)
     fleet_path.write_text(
@@ -330,6 +372,28 @@ def test_v2_campaign_load_revalidates_route_receipt_and_release_bindings(
     assert campaign.schema_version == "medeval.campaign.v2"
     assert campaign.route_set_id == "route-test-set-v1"
     assert campaign.models[0].access_receipt_sha256 == receipt.content_sha256
+    assert campaign.models[0].send_temperature is False
+    assert campaign.models[0].send_seed is False
+    assert campaign.models[0].temperature is None
+    assert campaign.models[0].seed is None
+    assert campaign.models[0].completion_limit_field == "max_tokens"
+    assert campaign.models[0].response_format_dialect == "cohere"
+    assert campaign.models[0].send_reasoning_effort is False
+    assert payload["models"][0]["send_temperature"] is False
+    assert payload["models"][0]["send_seed"] is False
+    assert payload["models"][0]["temperature"] is None
+    assert payload["models"][0]["seed"] is None
+    assert payload["models"][0]["completion_limit_field"] == "max_tokens"
+    assert payload["models"][0]["response_format_dialect"] == "cohere"
+    assert payload["models"][0]["send_reasoning_effort"] is False
+
+    drift_payload = json.loads(json.dumps(payload))
+    drift_payload["campaign_id"] = "route-drift-campaign-v2"
+    drift_payload["models"][0]["completion_limit_field"] = "max_completion_tokens"
+    drift_path = tmp_path / "campaigns" / "route_drift.yaml"
+    drift_path.write_text(yaml.safe_dump(drift_payload, sort_keys=False), encoding="utf-8")
+    with pytest.raises(CampaignError, match="differs from route"):
+        load_campaign(drift_path)
 
     changed = dict(receipt.payload)
     changed["sanitized_metadata"] = {**changed["sanitized_metadata"], "latency_ms": 43.0}

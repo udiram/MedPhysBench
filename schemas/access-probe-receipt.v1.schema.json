@@ -47,6 +47,23 @@
       "pattern": "^scripts/probes/[A-Za-z0-9._/-]+\\.py$"
     },
     "probe_implementation_sha256": { "$ref": "#/$defs/sha256" },
+    "probe_dependencies": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "content_sha256"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^(scripts/probes|src/medphys_agentbench)/[A-Za-z0-9._/-]+\\.py$"
+          },
+          "content_sha256": { "$ref": "#/$defs/sha256" }
+        }
+      }
+    },
     "source_commit": { "type": "string", "pattern": "^[a-f0-9]{7,64}$" },
     "started_at": { "type": "string", "format": "date-time" },
     "completed_at": { "type": "string", "format": "date-time" },
@@ -101,6 +118,15 @@
     },
     "content_sha256": { "$ref": "#/$defs/sha256" }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "probe_version": { "const": "openai-access-probe-v2" } },
+        "required": ["probe_version"]
+      },
+      "then": { "required": ["probe_dependencies"] }
+    }
+  ],
   "$defs": {
     "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
   }

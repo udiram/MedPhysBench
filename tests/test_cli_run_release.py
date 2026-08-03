@@ -145,6 +145,52 @@ def test_run_release_uses_attempt_seed_in_adapter_and_refuses_overwrite(
         cli.main()
 
 
+def test_run_release_records_omitted_sampling_as_null_without_seed_drift(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    adapter_seeds: list[int] = []
+    runner_sampling: list[tuple[object, object]] = []
+
+    def fake_build_adapter(*args: object, seed: int, **kwargs: object) -> _FakeAdapter:
+        assert kwargs["send_seed"] is False
+        assert kwargs["send_temperature"] is False
+        adapter_seeds.append(seed)
+        return _FakeAdapter(str(args[1]), seed)
+
+    def fake_run_trial(*_args: object, seed: object, temperature: object, **_kwargs: object) -> _FakeResult:
+        runner_sampling.append((seed, temperature))
+        return _FakeResult()
+
+    monkeypatch.setattr(cli, "_build_adapter", fake_build_adapter)
+    monkeypatch.setattr(cli, "run_trial", fake_run_trial)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "medphys-bench",
+            "run-release",
+            "releases/public_imaging_pilot_v0_4.yaml",
+            "--adapter",
+            "groq",
+            "--model",
+            "provider-default-sampling",
+            "--attempts",
+            "2",
+            "--seed",
+            "41",
+            "--omit-seed",
+            "--omit-temperature",
+            "--results-dir",
+            str(tmp_path),
+        ],
+    )
+
+    cli.main()
+
+    assert adapter_seeds == [41] * 10
+    assert runner_sampling == [(None, None)] * 10
+
+
 def test_run_release_scores_unsupported_required_modality_as_completed_zero(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

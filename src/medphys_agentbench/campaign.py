@@ -88,8 +88,8 @@ class CampaignModel:
     response_format: str
     strict_schema: bool
     timeout_seconds: int
-    seed: int
-    temperature: float
+    seed: int | None
+    temperature: float | None
     max_tokens: int
     base_url: str | None = None
     api_key_env: str | None = None
@@ -102,6 +102,11 @@ class CampaignModel:
     access_receipt_sha256: str | None = None
     quota_assessment: str | None = None
     max_rate_limit_retries: int = 8
+    send_temperature: bool = True
+    send_seed: bool = True
+    completion_limit_field: str = "max_completion_tokens"
+    response_format_dialect: str = "openai"
+    send_reasoning_effort: bool = True
 
 
 @dataclass(frozen=True)
@@ -198,7 +203,19 @@ def load_campaign(path: str | Path) -> CampaignSpec:
     if len(configuration_ids) != len(set(configuration_ids)):
         raise CampaignError("Campaign configuration_id values must be unique.")
     identities = [
-        (model.adapter, model.provider, model.model, model.model_revision, model.reasoning_effort) for model in models
+        (
+            model.adapter,
+            model.provider,
+            model.model,
+            model.model_revision,
+            model.reasoning_effort,
+            model.send_temperature,
+            model.send_seed,
+            model.completion_limit_field,
+            model.response_format_dialect,
+            model.send_reasoning_effort,
+        )
+        for model in models
     ]
     if len(identities) != len(set(identities)):
         raise CampaignError("Campaign contains a duplicate evaluated system identity.")
@@ -287,14 +304,12 @@ def build_model_command(spec: CampaignSpec, model: CampaignModel) -> list[str]:
         model.response_format,
         "--timeout",
         str(model.timeout_seconds),
-        "--seed",
-        str(model.seed),
-        "--temperature",
-        str(model.temperature),
-        "--max-tokens",
-        str(model.max_tokens),
-        "--resume",
     ]
+    if model.seed is not None:
+        command.extend(["--seed", str(model.seed)])
+    if model.temperature is not None:
+        command.extend(["--temperature", str(model.temperature)])
+    command.extend(["--max-tokens", str(model.max_tokens), "--resume"])
     if model.base_url:
         command.extend(["--base-url", model.base_url])
     if model.api_key_env:
@@ -303,6 +318,16 @@ def build_model_command(spec: CampaignSpec, model: CampaignModel) -> list[str]:
         command.append("--best-effort-schema")
     if model.reasoning_effort:
         command.extend(["--reasoning-effort", model.reasoning_effort])
+    if not model.send_temperature:
+        command.append("--omit-temperature")
+    if not model.send_seed:
+        command.append("--omit-seed")
+    if model.completion_limit_field != "max_completion_tokens":
+        command.extend(["--completion-limit-field", model.completion_limit_field])
+    if model.response_format_dialect != "openai":
+        command.extend(["--response-format-dialect", model.response_format_dialect])
+    if not model.send_reasoning_effort:
+        command.append("--omit-reasoning-effort")
     if model.adapter != "ollama":
         command.extend(["--max-rate-limit-retries", str(model.max_rate_limit_retries)])
     if model.adapter == "ollama":
@@ -599,7 +624,7 @@ def verify_model_completion(spec: CampaignSpec, model: CampaignModel) -> dict[st
             "model": expected_descriptor,
             "adapter_settings": expected_adapter_settings,
             "adapter_settings_hash": stable_hash(expected_adapter_settings),
-            "seed": model.seed + attempt_index,
+            "seed": model.seed + attempt_index if model.seed is not None else None,
             "temperature": model.temperature,
             "max_tokens": model.max_tokens,
             "prompt_hash": prompt_hash_for_task(task),
@@ -698,7 +723,33 @@ def _validate_model(model: CampaignModel) -> None:
             raise CampaignError(
                 f"base_url for {model.configuration_id} must not contain credentials, query parameters, or fragments."
             )
+    if (model.send_seed and model.seed is None) or (not model.send_seed and model.seed is not None):
+        raise CampaignError(f"Configuration {model.configuration_id} must record seed only when send_seed is true.")
+    if (model.send_temperature and model.temperature is None) or (
+        not model.send_temperature and model.temperature is not None
+    ):
+        raise CampaignError(
+            f"Configuration {model.configuration_id} must record temperature only when send_temperature is true."
+        )
+    if model.response_format_dialect == "omit" and model.strict_schema:
+        raise CampaignError(
+            f"Configuration {model.configuration_id} cannot claim strict_schema when response_format is omitted."
+        )
+    if not model.send_reasoning_effort and model.reasoning_effort is not None:
+        raise CampaignError(
+            f"Configuration {model.configuration_id} cannot record reasoning_effort when the field is omitted."
+        )
     if model.adapter == "ollama":
+        if (
+            not model.send_temperature
+            or not model.send_seed
+            or model.completion_limit_field != "max_completion_tokens"
+            or model.response_format_dialect != "openai"
+            or not model.send_reasoning_effort
+        ):
+            raise CampaignError(
+                f"Ollama configuration {model.configuration_id} must not declare an OpenAI request dialect."
+            )
         if model.api_key_env is not None:
             raise CampaignError(f"Ollama configuration {model.configuration_id} must not declare api_key_env.")
         if str(model.ollama_keep_alive) != "0":
@@ -753,6 +804,11 @@ def _validate_evidence_bound_models(payload: dict[str, Any], models: tuple[Campa
             "ollama_keep_alive": route.ollama_keep_alive,
             "ollama_num_ctx": route.ollama_num_ctx,
             "max_rate_limit_retries": route.max_rate_limit_retries if route.max_rate_limit_retries is not None else 8,
+            "send_temperature": route.send_temperature,
+            "send_seed": route.send_seed,
+            "completion_limit_field": route.completion_limit_field,
+            "response_format_dialect": route.response_format_dialect,
+            "send_reasoning_effort": route.send_reasoning_effort,
         }
         mismatches = [key for key, value in expected.items() if getattr(model, key) != value]
         if mismatches:
@@ -942,8 +998,8 @@ def _adapter_for_model(model: CampaignModel) -> OllamaAdapter | OpenAICompatible
         return OllamaAdapter(
             model_name=model.model,
             base_url=model.base_url or "http://127.0.0.1:11434",
-            temperature=model.temperature,
-            seed=model.seed,
+            temperature=model.temperature if model.temperature is not None else 0.0,
+            seed=model.seed if model.seed is not None else 0,
             max_tokens=model.max_tokens,
             timeout_seconds=model.timeout_seconds,
             artifact_root=REPOSITORY_ROOT,
@@ -963,14 +1019,19 @@ def _adapter_for_model(model: CampaignModel) -> OllamaAdapter | OpenAICompatible
         api_key="campaign-contract-placeholder",
         base_url=base_url,
         provider=model.provider,
-        temperature=model.temperature,
-        seed=model.seed,
+        temperature=model.temperature if model.temperature is not None else 0.0,
+        seed=model.seed if model.seed is not None else 0,
         max_tokens=model.max_tokens,
         timeout_seconds=model.timeout_seconds,
         response_format=model.response_format,
         strict_schema=model.strict_schema,
         reasoning_effort=model.reasoning_effort,
         max_rate_limit_retries=model.max_rate_limit_retries,
+        send_temperature=model.send_temperature,
+        send_seed=model.send_seed,
+        completion_limit_field=model.completion_limit_field,
+        response_format_dialect=model.response_format_dialect,
+        send_reasoning_effort=model.send_reasoning_effort,
         artifact_root=REPOSITORY_ROOT,
         model_revision_override=model.model_revision,
     )
