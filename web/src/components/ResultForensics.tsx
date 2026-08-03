@@ -138,6 +138,9 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
     }
     return filteredTasks[0];
   }, [filteredTasks, selectedTaskKey]);
+  const selectedTaskUnavailable = selectedTask
+    ? normalizeForensicsOutcome(selectedTask.outcome_category, selectedTask.capability_failure === true) === "unavailable"
+    : false;
 
   useEffect(() => {
     if (!selectedRow) return;
@@ -508,6 +511,14 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                       <div className={`forensics-task-detail ${outcomeClassName(selectedTask.outcome_category, selectedTask.capability_failure === true)}`}>
                         <strong>{selectedTask.title}</strong>
                         <p>{domainLabel(selectedTask.domain)} · {outcomeLabel(selectedTask.outcome_category, selectedTask.capability_failure === true)}</p>
+                        {selectedTaskUnavailable ? (
+                          <div className="forensics-unavailable-note" role="note">
+                            <strong>No provider call was made</strong>
+                            <p>
+                              The run declared the required modality unavailable before inference. The zero score and grader failures below describe the absent submission against the frozen task contract; they are not unsafe model actions and do not enter provider-call safety or telemetry denominators.
+                            </p>
+                          </div>
+                        ) : null}
                         <dl className="forensics-meta compact">
                           <div><dt>Task</dt><dd>{selectedTask.task_id}</dd></div>
                           <div><dt>Run</dt><dd>{shortHash(selectedTask.run_id)}</dd></div>
@@ -527,7 +538,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                         </dl>
                         <div className="forensics-tag-groups">
                           <div>
-                            <span>Failed lanes</span>
+                            <span>{selectedTaskUnavailable ? "Zero-score contract lanes" : "Failed lanes"}</span>
                             <ul>
                               {(selectedTask.failed_lanes?.length ? selectedTask.failed_lanes : ["None"]).map((value) => (
                                 <li key={value}>{value}</li>
@@ -535,7 +546,7 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                             </ul>
                           </div>
                           <div>
-                            <span>Failed graders</span>
+                            <span>{selectedTaskUnavailable ? "Contract checks" : "Failed graders"}</span>
                             <ul>
                               {(selectedTask.failed_graders?.length ? selectedTask.failed_graders : ["None"]).map((value) => (
                                 <li key={value}>{value}</li>
@@ -548,14 +559,22 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                             <div className="forensics-evidence-block">
                               <div className="forensics-evidence-heading">
                                 <span>Structured model output</span>
-                                <small>Schema-filtered public-development answer · provider reasoning excluded</small>
+                                <small>
+                                  {selectedTaskUnavailable
+                                    ? "No candidate output exists because inference was skipped"
+                                    : "Schema-filtered public-development answer · provider reasoning excluded"}
+                                </small>
                               </div>
                               <pre>{renderJson(selectedTask.output)}</pre>
                             </div>
                             <div className="forensics-evidence-block">
                               <div className="forensics-evidence-heading">
                                 <span>Deterministic grader verdicts</span>
-                                <small>Gold-bearing grader evidence withheld</small>
+                                <small>
+                                  {selectedTaskUnavailable
+                                    ? "Contract checks for the absent submission · not model actions"
+                                    : "Gold-bearing grader evidence withheld"}
+                                </small>
                               </div>
                               <ul className="forensics-grader-list">
                                 {(selectedTask.grader_results ?? []).map((grader) => (
@@ -582,7 +601,11 @@ export function ResultForensics({ data, modelCatalog, releaseView }: Props) {
                             <pre>{renderJson(selectedTask.response_receipt)}</pre>
                           </details>
                         ) : (
-                          <p className="forensics-note">No provider/runtime receipt is available for this attempt.</p>
+                          <p className="forensics-note">
+                            {selectedTaskUnavailable
+                              ? "No provider/runtime receipt, token count, or latency exists because no inference call was made."
+                              : "No provider/runtime receipt is available for this attempt."}
+                          </p>
                         )}
                       </div>
                     </section>

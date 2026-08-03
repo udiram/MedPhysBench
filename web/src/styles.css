@@ -1769,6 +1769,25 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   font-size: 12px;
   line-height: 1.6;
 }
+.forensics-unavailable-note {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(79, 107, 217, 0.4);
+  border-left: 3px solid #4f6bd9;
+  background: rgba(79, 107, 217, 0.08);
+}
+.forensics-unavailable-note strong {
+  color: var(--text);
+  font: 600 11px/1.4 "IBM Plex Mono", monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.forensics-unavailable-note p {
+  margin: 6px 0 0;
+  color: var(--muted-strong);
+  font-size: 12px;
+  line-height: 1.55;
+}
 .forensics-failure-columns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2254,6 +2273,68 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   gap: 1px;
   background: var(--line);
 }
+.variant-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+.variant-table {
+  width: 100%;
+  min-width: 720px;
+}
+.variant-rank-cell {
+  min-width: 210px;
+  white-space: normal !important;
+}
+.variant-rank-state {
+  display: block;
+  color: var(--text);
+  font: 600 11px/1.4 "IBM Plex Mono", monospace;
+}
+.variant-integrity {
+  margin-top: 7px;
+  color: var(--muted-strong);
+  font: 500 10px/1.45 "IBM Plex Mono", monospace;
+}
+.variant-integrity summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: rgba(217, 164, 65, 0.36);
+  text-underline-offset: 3px;
+}
+.variant-integrity ul {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.variant-integrity li {
+  display: grid;
+  gap: 2px;
+  max-width: 360px;
+  padding-left: 10px;
+  border-left: 1px solid var(--line-strong);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.variant-integrity li div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.variant-integrity li strong {
+  color: var(--text);
+  font-size: 10px;
+}
+.variant-integrity li em {
+  color: var(--accent);
+  font-style: normal;
+}
+.variant-integrity li span { color: var(--muted); }
 .registry-run-grid {
   display: grid;
   gap: 12px;
@@ -2645,6 +2726,7 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 }
 .run-task-summary-grid article,
 .run-task-signature {
+  min-width: 0;
   padding: 13px;
   background: var(--surface-alt);
   border: 1px solid var(--line);
@@ -2660,11 +2742,13 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   margin-top: 5px;
   color: var(--text);
   font-size: 14px;
+  overflow-wrap: anywhere;
 }
 .run-task-summary-grid small {
   display: block;
   margin-top: 5px;
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 .run-task-presentation {
   display: inline-flex;

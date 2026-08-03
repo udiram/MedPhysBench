@@ -1,6 +1,7 @@
 import { ChevronDown, Search } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { domainLabel, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
+import { groupIntegrityIssues, integrityIssueHeadline } from "../lib/integrity";
 import { resolveRunBaseModelId } from "../lib/modelIdentity";
 import { isCommonHarnessRun, isNativeRun } from "../lib/runSurface";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
@@ -840,10 +841,25 @@ function ModelRegistryRow({
                               {variant.common_count} common
                               {variant.native_count > 0 ? ` · ${variant.native_count} native` : ""}
                             </td>
-                            <td>
-                              {variant.rankable_count}/{variant.run_count}
+                            <td className="variant-rank-cell">
+                              <span className="variant-rank-state">{variant.rankable_count}/{variant.run_count} eligible</span>
                               {variant.integrity_issues.length > 0 ? (
-                                <small>{variant.integrity_issues.slice(0, 2).join(", ")}</small>
+                                <details className="variant-integrity">
+                                  <summary>{integrityIssueHeadline(variant.integrity_issues)}</summary>
+                                  <ul>
+                                    {groupIntegrityIssues(variant.integrity_issues).map((finding) => {
+                                      return (
+                                        <li key={finding.code}>
+                                          <div>
+                                            <strong>{finding.label}</strong>
+                                            <em>{finding.count}</em>
+                                          </div>
+                                          {finding.examples.map((example) => <span key={example}>{example}</span>)}
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                </details>
                               ) : null}
                             </td>
                           </tr>
