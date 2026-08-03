@@ -147,6 +147,7 @@ def _validate_defect_ledger_semantics(
 def validate_repository() -> dict[str, int]:
     from scripts.build_fleet_status import build_fleet_status
     from scripts.common_harness_submission import validate_submission
+    from scripts.descriptive_admission import validate_descriptive_admissions
 
     validators = {
         "task": _validator("task.v1.schema.json"),
@@ -163,6 +164,7 @@ def validate_repository() -> dict[str, int]:
         "fleet_status_v2": _validator("fleet-status.v2.schema.json"),
         "fleet_status_v3": _validator("fleet-status.v3.schema.json"),
         "common_harness_submission": _validator("common-harness-submission.v1.schema.json"),
+        "descriptive_admission": _validator("descriptive-admission.v1.schema.json"),
         "recorded_batch_v2": _validator("recorded-batch.v2.schema.json"),
         "defect_ledger": _validator("defect-ledger.v1.schema.json"),
         "release_evidence_index": _validator("release-evidence-index.v1.schema.json"),
@@ -462,6 +464,13 @@ def validate_repository() -> dict[str, int]:
         _validate(validators["common_harness_submission"], _load_json(path), path)
         validate_submission(path)
 
+    descriptive_admission_paths = sorted(
+        (ROOT / "governance").glob("descriptive-admissions-*.json")
+    )
+    for path in descriptive_admission_paths:
+        _validate(validators["descriptive_admission"], _load_json(path), path)
+        validate_descriptive_admissions(path)
+
     return {
         "schema_count": len(validators),
         "release_count": len(release_paths),
@@ -471,6 +480,7 @@ def validate_repository() -> dict[str, int]:
         "task_count": len(task_paths),
         "result_count": len(result_paths),
         "submission_count": len(submission_paths),
+        "descriptive_admission_count": len(descriptive_admission_paths),
         "recorded_capture_count": len(capture_paths),
         "campaign_count": len(campaign_paths),
         "grader_mutation_count": grader_mutation_count,

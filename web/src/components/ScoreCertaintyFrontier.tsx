@@ -25,11 +25,13 @@ export function ScoreCertaintyFrontier({
   onFocus,
   onSelect,
   focused,
+  allowDescriptive,
 }: {
   rows: ScopedRow[];
   onFocus: (value: string) => void;
   onSelect: (value: string) => void;
   focused: string | null;
+  allowDescriptive: boolean;
 }) {
   const [metric, setMetric] = useState<CertaintyMetric>("tokens");
   const [includeDescriptive, setIncludeDescriptive] = useState(false);
@@ -39,9 +41,10 @@ export function ScoreCertaintyFrontier({
     [rows],
   );
 
+  const effectiveIncludeDescriptive = allowDescriptive && includeDescriptive;
   const frontier = useMemo(
-    () => buildScoreCertaintyFrontierRows(modelRows, metric, includeDescriptive),
-    [modelRows, metric, includeDescriptive],
+    () => buildScoreCertaintyFrontierRows(modelRows, metric, effectiveIncludeDescriptive),
+    [modelRows, metric, effectiveIncludeDescriptive],
   );
   const { rows: frontierRows, completeRows, partialRows, missingRows, frontierGroups } = frontier;
 
@@ -134,15 +137,17 @@ export function ScoreCertaintyFrontier({
             </select>
           </span>
         </label>
-        <label className="rank-toggle">
-          <input
-            type="checkbox"
-            checked={includeDescriptive}
-            onChange={(event) => setIncludeDescriptive(event.target.checked)}
-          />
-          <span aria-hidden="true" />
-          Include outcome-only / native rows (descriptive mode)
-        </label>
+        {allowDescriptive ? (
+          <label className="rank-toggle">
+            <input
+              type="checkbox"
+              checked={includeDescriptive}
+              onChange={(event) => setIncludeDescriptive(event.target.checked)}
+            />
+            <span aria-hidden="true" />
+            Include outcome-only / native rows (descriptive mode)
+          </label>
+        ) : null}
       </div>
       <div className="chart-keyline">
         <span>Higher score better; lower x better. {frontierRows.length} rows in slice.</span>

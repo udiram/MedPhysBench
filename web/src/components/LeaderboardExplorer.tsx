@@ -23,6 +23,7 @@ import {
 import { releaseIdForView } from "../lib/releaseEvidence";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import { competitionRankMap } from "../lib/ranking";
+import { rowVisibleInResultsScope, type ResultsScope } from "../lib/resultsScope";
 
 type SortKey =
   | "model_name"
@@ -39,6 +40,7 @@ type LeaderboardExplorerProps = {
   modelCatalog: ModelCatalogEntry[];
   loadError: boolean;
   releaseView: ReleaseView;
+  resultsScope: ResultsScope;
   tg263Audit: Tg263Audit | null;
 };
 
@@ -116,6 +118,7 @@ export function LeaderboardExplorer({
   modelCatalog,
   loadError,
   releaseView,
+  resultsScope,
   tg263Audit,
 }: LeaderboardExplorerProps) {
   const [query, setQuery] = useState("");
@@ -129,6 +132,7 @@ export function LeaderboardExplorer({
   const [summaryExpanded, setSummaryExpanded] = useState(false);
   useEffect(() => setSummaryExpanded(false), [data?.release.release_id]);
   const deferredQuery = useDeferredValue(query);
+  const effectiveStatusFilter = resultsScope === "official" ? "ranked" : statusFilter;
   const allRows = useMemo(
     () => withDerivedOutcomeRanks(data ? [...data.models, ...(data.unranked_models ?? [])] : []),
     [data],
@@ -156,13 +160,17 @@ export function LeaderboardExplorer({
           model.model_name.toLowerCase().includes(q) ||
           model.provider.toLowerCase().includes(q);
         const matchesStatus =
-          statusFilter === "all" ||
-          (statusFilter === "ranked" && model.ranking_eligible) ||
-          (statusFilter === "review" && !model.ranking_eligible);
+          effectiveStatusFilter === "all" ||
+          (effectiveStatusFilter === "ranked" && model.ranking_eligible) ||
+          (effectiveStatusFilter === "review" && !model.ranking_eligible);
         const source = modelSourceRow(model, catalogIndexForModelRow(model, catalogIndex));
         const matchesSource = sourceFilter === "all" || source === sourceFilter;
         const matchesProvider = providerFilter === "all" || model.provider === providerFilter;
-        return matchesQuery && matchesStatus && matchesSource && matchesProvider;
+        return rowVisibleInResultsScope(model, resultsScope)
+          && matchesQuery
+          && matchesStatus
+          && matchesSource
+          && matchesProvider;
       })
       .sort((left, right) => compareRows(left, right, sortKey, sortDirection, domainFilter));
   }, [
@@ -172,12 +180,13 @@ export function LeaderboardExplorer({
     domainFilter,
     sortDirection,
     sortKey,
-    statusFilter,
+    effectiveStatusFilter,
     sourceFilter,
     providerFilter,
+    resultsScope,
   ]);
 
-  const summaryRows = [...allRows].sort(
+  const summaryRows = allRows.filter((row) => rowVisibleInResultsScope(row, resultsScope)).sort(
     (left, right) =>
       (left.outcome_rank ?? Infinity) - (right.outcome_rank ?? Infinity) ||
       left.model_name.localeCompare(right.model_name),
@@ -208,7 +217,11 @@ export function LeaderboardExplorer({
           {releaseView === "tg263" ? (
             <Tg263AuditChart audit={tg263Audit} />
           ) : (
-            <OutcomeIntervalPlot key={data?.release.release_id ?? releaseView} data={data} />
+            <OutcomeIntervalPlot
+              key={`${data?.release.release_id ?? releaseView}-${resultsScope}`}
+              data={data}
+              resultsScope={resultsScope}
+            />
           )}
         </article>
         <aside className="results-summary">
@@ -307,13 +320,19 @@ export function LeaderboardExplorer({
         <label className="field">
           <span>Run set</span>
           <span className="select-wrap">
-            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+            <select
+              value={effectiveStatusFilter}
+              disabled={resultsScope === "official"}
+              aria-describedby={resultsScope === "official" ? "leaderboard-scope-lock" : undefined}
+              onChange={(event) => setStatusFilter(event.target.value)}
+            >
               <option value="all">All runs</option>
                 <option value="ranked">Comparable runs</option>
                 <option value="review">Outcome-only runs</option>
             </select>
             <ChevronDown aria-hidden="true" />
           </span>
+          {resultsScope === "official" ? <small id="leaderboard-scope-lock">Locked by evidence scope</small> : null}
         </label>
         <label className="field">
           <span>Openness</span>
@@ -450,7 +469,7 @@ export function LeaderboardExplorer({
   );
 }
 
-function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
+function OutcomeIntervalPlot({ data, resultsScope }: { data: Leaderboard | null; resultsScope: ResultsScope }) {
   const [expanded, setExpanded] = useState(false);
   if (!data) {
     return (
@@ -460,7 +479,8 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
       </div>
     );
   }
-  const allRows = withDerivedOutcomeRanks([...(data?.models ?? []), ...(data?.unranked_models ?? [])]);
+  const allRows = withDerivedOutcomeRanks([...(data?.models ?? []), ...(data?.unranked_models ?? [])])
+    .filter((row) => rowVisibleInResultsScope(row, resultsScope));
   const rows = allRows
     .filter((row) => row.outcome_rank != null)
     .sort((left, right) => (left.outcome_rank ?? Infinity) - (right.outcome_rank ?? Infinity));
@@ -498,11 +518,19 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
             success. {usesFamilyIntervals ? "Attempt-level Wilson intervals remain in the evidence table." : ""}
           </p>
         </div>
-        <span className="results-inline-note">Official rank and cross-surface outcome order remain distinct</span>
+        <span className="results-inline-note">
+          {resultsScope === "official"
+            ? "Every rank remains local to one frozen harness group"
+            : "Official rank and cross-surface outcome order remain distinct"}
+        </span>
       </div>
       <svg className="results-chart outcome-interval-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby="results-chart-title results-chart-description">
         <title id="results-chart-title">Safe task success with 95 percent confidence intervals</title>
-        <desc id="results-chart-description">Models are ordered by their descriptive outcome rank. Circles are official harness-group rows and diamonds are complete native-surface rows. Horizontal lines show the primary confidence interval, clustered by patient family when available.</desc>
+        <desc id="results-chart-description">
+          {resultsScope === "official"
+            ? "Rank-eligible models are shown within their frozen harness groups. Horizontal lines show the primary confidence interval, clustered by patient family when available."
+            : "Models are ordered by their descriptive outcome rank. Circles are official harness-group rows and diamonds are complete native-surface rows. Horizontal lines show the primary confidence interval, clustered by patient family when available."}
+        </desc>
         {[0, 0.25, 0.5, 0.75, 1].map((tick) => (
           <g key={tick}>
             <line x1={scaleX(tick)} x2={scaleX(tick)} y1={margin.top - 18} y2={height - margin.bottom} className="chart-grid" />

@@ -24,6 +24,7 @@ import {
 } from "../lib/efficiencyScope";
 import { modelRunKey } from "../lib/modelRunKey";
 import { scoreEvidenceAvailable, scoreEvidenceKind } from "../lib/resultEvidence";
+import { rowVisibleInResultsScope, type ResultsScope } from "../lib/resultsScope";
 import { ScoreCertaintyFrontier } from "./ScoreCertaintyFrontier";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { classifyAttemptOutcome } from "../types";
@@ -63,6 +64,7 @@ type Props = {
   fleetStatus: FleetStatus | null;
   modelCatalog: ModelCatalogEntry[];
   releaseView: ReleaseView;
+  resultsScope: ResultsScope;
 };
 
 type ScopedRow = {
@@ -81,7 +83,7 @@ const PROVIDER_SWATCHES: Record<string, string> = {
   ollama: "#d9a441",
 };
 
-export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseView }: Props) {
+export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseView, resultsScope }: Props) {
   const [mode, setMode] = useState<ViewMode>("score");
   const [rankedOnly, setRankedOnly] = useState(false);
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
@@ -122,6 +124,7 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
         return { key, row, source, surface };
       })
       .filter((entry) => {
+        const matchesGlobalScope = rowVisibleInResultsScope(entry.row, resultsScope);
         const matchesRanked = mode === "certainty" || !rankedOnly || entry.row.ranking_eligible;
         const matchesSource = sourceFilter === "all" || entry.source === sourceFilter;
         const matchesProvider = providerFilter === "all" || entry.row.provider === providerFilter;
@@ -138,13 +141,13 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
           (entry.row.execution_surface ?? "").toLowerCase().includes(normalized) ||
           (entry.row.run_profile?.harness_revision ?? "").toLowerCase().includes(normalized);
 
-        return matchesRanked && matchesSource && matchesSurface && matchesQuery && matchesProvider;
+        return matchesGlobalScope && matchesRanked && matchesSource && matchesSurface && matchesQuery && matchesProvider;
       })
       .sort((left, right) =>
         right.row.safe_success_rate - left.row.safe_success_rate ||
         left.row.model_name.localeCompare(right.row.model_name),
       );
-  }, [allRows, catalogIndex, deferredQuery, mode, rankedOnly, sourceFilter, surfaceFilter, providerFilter]);
+  }, [allRows, catalogIndex, deferredQuery, mode, rankedOnly, resultsScope, sourceFilter, surfaceFilter, providerFilter]);
 
   const comparisonScopes = useMemo(
     () => buildComparisonScopes(scopedRows.map((entry) => entry.row)),
@@ -366,7 +369,8 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
           <label className="rank-toggle">
             <input
               type="checkbox"
-              checked={rankedOnly}
+              checked={resultsScope === "official" || rankedOnly}
+              disabled={resultsScope === "official"}
               onChange={(event) => {
                 const checked = event.target.checked;
                 setRankedOnly(checked);
@@ -374,7 +378,7 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
               }}
             />
             <span aria-hidden="true" />
-            Official group-ranked rows only
+            {resultsScope === "official" ? "Locked by evidence scope" : "Official group-ranked rows only"}
           </label>
         )}
       </div>
@@ -496,7 +500,13 @@ export function EfficiencyExplorer({ data, fleetStatus, modelCatalog, releaseVie
           {mode === "score" ? (
             <ScoreIntervalPlot rows={rows} onFocus={setFocused} onSelect={selectRow} focused={focused} />
           ) : mode === "certainty" ? (
-            <ScoreCertaintyFrontier rows={rows} onFocus={setFocused} onSelect={selectRow} focused={focused} />
+            <ScoreCertaintyFrontier
+              rows={rows}
+              onFocus={setFocused}
+              onSelect={selectRow}
+              focused={focused}
+              allowDescriptive={resultsScope === "descriptive"}
+            />
           ) : mode === "reliability" ? (
             <ReliabilityProfile rows={rows} onFocus={setFocused} />
           ) : (

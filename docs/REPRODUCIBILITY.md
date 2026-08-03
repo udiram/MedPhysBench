@@ -276,6 +276,21 @@ The current public inventory contains sixteen such attested v2 sidecars. Sidecar
 is configuration evidence, not unique-model breadth: three are current-contract reruns
 of base models already counted by the fleet funnel.
 
+Historical common-harness rows that are visible but ineligible for official rank pass a separate
+descriptive-publication gate:
+
+```bash
+uv run python scripts/descriptive_admission.py \
+  governance/descriptive-admissions-public-real-workflows-pilot-v0.6.json
+uv run python scripts/descriptive_admission.py \
+  governance/descriptive-admissions-public-imaging-pilot-v0.4.json
+```
+
+These ledgers must exactly cover the release's descriptive common-harness rows and bind each row to
+its direct result directory, full expected attempt matrix, artifact-tree hash, and exact accepted
+integrity-error set. They grant visibility only; they never restore rank eligibility or current-
+contract fleet credit. Repository validation and the public projection builder both enforce them.
+
 The OpenKBP leaderboard has three byte-identical published projections plus the derived fleet
 status. Rebuild them together, or make CI prove that no copy drifted:
 

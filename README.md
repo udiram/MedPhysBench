@@ -47,6 +47,10 @@ package, or evidence of autonomous clinical competence.
 - OpenKBP review ledger: [`reviews/public-real-workflows-pilot-v0.6.json`](reviews/public-real-workflows-pilot-v0.6.json)
 - Canonical release evidence index: [`governance/release-evidence-index.json`](governance/release-evidence-index.json)
 - Public defect ledger: [`governance/benchmark-defects.json`](governance/benchmark-defects.json)
+- Descriptive-only evidence admissions:
+  [`governance/descriptive-admissions-public-real-workflows-pilot-v0.6.json`](governance/descriptive-admissions-public-real-workflows-pilot-v0.6.json)
+  and
+  [`governance/descriptive-admissions-public-imaging-pilot-v0.4.json`](governance/descriptive-admissions-public-imaging-pilot-v0.4.json)
 - Release writeup: [`docs/RESULTS.md`](docs/RESULTS.md)
 - Benchmark card: [`docs/BENCHMARK_CARD.md`](docs/BENCHMARK_CARD.md)
 - Changelog: [`CHANGELOG.md`](CHANGELOG.md)
@@ -105,10 +109,14 @@ package, or evidence of autonomous clinical competence.
 - A provisional two-patient OpenKBP lane covering parotid localization, dose-region
   interpretation, published-criteria plan audit, structure inventory, and TG-263 naming,
   with three attempts per task/model and family-cluster uncertainty.
-- Harness-group release ranks plus a clearly labeled descriptive cross-surface outcome order;
-  incomplete or manifest-inconsistent runs remain published but receive neither.
+- One default all-published evidence surface for GPT-5.6, Groq, Ollama, and every other provider,
+  plus one global `Official comparison only` scope. Harness-group ranks and cross-surface outcome
+  order remain distinct metadata; the unified presentation never manufactures a cross-contract rank.
+- Fail-closed admission for every public result row: officially ranked common-harness rows require
+  exact submission sidecars, while historical descriptive-only common-harness rows require reviewed,
+  content-addressed admission ledgers that pin identity, artifact tree, matrix, and known integrity gaps.
 - Architecture, governance, evaluation, onboarding, and deployment documentation in [`docs/`](docs/).
-- Repository-wide validation of all 22 JSON Schemas, every authored/runtime task projection,
+- Repository-wide validation of all 23 JSON Schemas, every authored/runtime task projection,
   every artifact digest, constructed reference feasibility, and every published result artifact.
 - A unified browser model index that exposes open/closed and provider filters, release-specific
   scores, task-level outcome facets, failed grader contracts, exact configuration hashes, and
@@ -203,6 +211,12 @@ output and the release task contract, verifies the expected task/attempt matrix,
 and hash consistency, and ranks only eligible run sets within identical harness groups. Unsupported
 modalities and output-contract failures count as completed zero-score attempts; unresolved transport
 errors remain in the evidence package and invalidate the official campaign rank.
+
+The public projection builder applies a second admission boundary. A ranked common-harness row must
+resolve to one strictly validated submission sidecar. A descriptive-only common-harness row must
+resolve to one release-specific admission entry whose identity, exact result directory, artifact
+count/tree hash, complete matrix, and declared integrity errors still match. Native recorded captures
+remain governed by their separate sealed-batch capture contract.
 
 ## Status note
 

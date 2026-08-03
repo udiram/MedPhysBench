@@ -8,6 +8,7 @@ import { publicArtifactHref, taskAttemptKey } from "../lib/forensicsNavigation";
 import { matchesForensicsRunQuery, matchesForensicsTaskQuery, selectForensicsTaskWindow, sortForensicsTasks } from "../lib/forensicsWorkbench";
 import { buildTaskComparison } from "../lib/taskComparison";
 import type { TaskComparisonScope } from "../lib/taskComparison";
+import { effectiveComparisonScope, rowVisibleInResultsScope, type ResultsScope } from "../lib/resultsScope";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { normalizeForensicsOutcome } from "../types";
 import type { DefectLedger, ForensicsOutcomeCategory, Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, ReleaseView } from "../types";
@@ -21,6 +22,7 @@ type Props = {
   defectLedger: DefectLedger | null;
   modelCatalog: ModelCatalogEntry[];
   releaseView: ReleaseView;
+  resultsScope: ResultsScope;
 };
 
 type OutcomeKey = ForensicsOutcomeCategory;
@@ -46,7 +48,7 @@ type DomainSummaryRow = {
 const OUTCOME_ORDER: OutcomeKey[] = ["safe_success", "safe_failure", "unsafe", "unavailable", "inconclusive"];
 const DEFAULT_RENDERED_TASK_LIMIT = 120;
 
-export function ResultForensics({ data, defectLedger, modelCatalog, releaseView }: Props) {
+export function ResultForensics({ data, defectLedger, modelCatalog, releaseView, resultsScope }: Props) {
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>(() => readEnumParam("fx_source", ["all", "open", "closed", "unknown"] as const, "all"));
   const [providerFilter, setProviderFilter] = useState(() => getUrlParam("fx_provider") ?? "all");
   const [runQuery, setRunQuery] = useState(() => getUrlParam("fx_run_query") ?? "");
@@ -61,6 +63,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
   const [taskWindowExpanded, setTaskWindowExpanded] = useState(false);
   const deferredRunQuery = useDeferredValue(runQuery);
   const deferredTaskQuery = useDeferredValue(taskQuery);
+  const effectivePeerScope = effectiveComparisonScope(resultsScope, comparisonScope);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -109,9 +112,9 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
         const matchesSource = sourceFilter === "all" || entry.source === sourceFilter;
         const matchesProvider = providerFilter === "all" || entry.row.provider === providerFilter;
         const matchesRun = matchesForensicsRunQuery(entry.row, deferredRunQuery);
-        return matchesSource && matchesProvider && matchesRun;
+        return rowVisibleInResultsScope(entry.row, resultsScope) && matchesSource && matchesProvider && matchesRun;
       });
-  }, [deferredRunQuery, forensicRows, providerFilter, sourceFilter]);
+  }, [deferredRunQuery, forensicRows, providerFilter, resultsScope, sourceFilter]);
 
   useEffect(() => {
     if (!data) return;
@@ -179,10 +182,10 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
   );
   const taskComparison = useMemo(() => {
     return buildTaskComparison(visibleRows, selectedTask?.task_id ?? null, {
-      scope: comparisonScope,
+      scope: effectivePeerScope,
       reference: selected,
     });
-  }, [comparisonScope, selected, selectedTask, visibleRows]);
+  }, [effectivePeerScope, selected, selectedTask, visibleRows]);
 
   useEffect(() => {
     if (!selectedRow) return;
@@ -897,7 +900,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                     <div>
                       <h3>Same task across run sets</h3>
                       <p>
-                        {comparisonScope === "identical_harness"
+                        {effectivePeerScope === "identical_harness"
                           ? "Controlled peers only: the same frozen comparison group and harness revision. Native or unmatched rows remain outside this view."
                           : "Broader descriptive view inside the current openness and provider filters. Execution surfaces stay labeled; this does not create an official rank."}
                       </p>
@@ -906,7 +909,8 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                       <span>Comparison scope</span>
                       <span className="select-wrap">
                         <select
-                          value={comparisonScope}
+                          value={effectivePeerScope}
+                          disabled={resultsScope === "official"}
                           onChange={(event) => {
                             const value = event.target.value as TaskComparisonScope;
                             setComparisonScope(value);
@@ -918,6 +922,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView 
                         </select>
                         <ChevronDown aria-hidden="true" />
                       </span>
+                      {resultsScope === "official" ? <small>Locked by evidence scope</small> : null}
                     </label>
                     <strong>{taskComparison.length} run sets</strong>
                   </div>

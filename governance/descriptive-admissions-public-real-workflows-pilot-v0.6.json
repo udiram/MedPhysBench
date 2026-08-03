@@ -1,0 +1,126 @@
+{
+  "schema_version": "medphysbench.descriptive-admission.v1",
+  "admission_id": "openkb-v0.6-legacy-descriptive-20260803",
+  "admitted_at": "2026-08-03T14:42:00Z",
+  "admission_commit": "ffdd9b12f8ecfdcd2fa80685d79e03bce21098bc",
+  "release_file": "releases/public_real_workflows_pilot_v0_6.yaml",
+  "release_id": "public-real-workflows-pilot-v0.6",
+  "scope": "descriptive_publication_only",
+  "review_statement": "These content-addressed historical rows may remain publicly inspectable but cannot receive an official rank or satisfy current-contract fleet completion.",
+  "entries": [
+    {
+      "provider": "ollama",
+      "model_name": "gemma3:4b",
+      "model_revision": "gemma3:4b",
+      "harness_name": "medphysbench-ollama",
+      "harness_revision": "reference-json-v1",
+      "results_directory": "results/releases/public-real-workflows-pilot-v0.6/gemma3_4b",
+      "artifact_count": 30,
+      "artifact_tree_sha256": "c3a528615360c91a2fa9ffc6c9dc63ab13b34c23af63f74fec561da581068749",
+      "accepted_integrity_errors": ["missing_adapter_settings_hash"],
+      "limitations": ["Historical adapter settings were not content-addressed."]
+    },
+    {
+      "provider": "groq",
+      "model_name": "llama-3.1-8b-instant",
+      "model_revision": "llama-3.1-8b-instant",
+      "harness_name": "medphysbench-openai-compatible",
+      "harness_revision": "openai-chat-json-v1;format=json_object;mode=best-effort;effort=provider-default",
+      "results_directory": "results/releases/public-real-workflows-pilot-v0.6/llama_3_1_8b_instant",
+      "artifact_count": 30,
+      "artifact_tree_sha256": "18023213a57beadfcaf201c617b4f6ecfa5fbc25787fa6703964a887fa54daac",
+      "accepted_integrity_errors": ["missing_adapter_settings_hash"],
+      "limitations": ["Historical adapter settings were not content-addressed."]
+    },
+    {
+      "provider": "groq",
+      "model_name": "llama-3.3-70b-versatile",
+      "model_revision": "llama-3.3-70b-versatile",
+      "harness_name": "medphysbench-openai-compatible",
+      "harness_revision": "openai-chat-json-v1;format=json_object;mode=best-effort;effort=provider-default",
+      "results_directory": "results/releases/public-real-workflows-pilot-v0.6/llama_3_3_70b_versatile",
+      "artifact_count": 30,
+      "artifact_tree_sha256": "976822679e039d8f4daa0280a3202b810d7b1fbfb6dd91caf5af7722ac68b05f",
+      "accepted_integrity_errors": ["missing_adapter_settings_hash"],
+      "limitations": ["Historical adapter settings were not content-addressed."]
+    },
+    {
+      "provider": "groq",
+      "model_name": "openai/gpt-oss-120b",
+      "model_revision": "openai/gpt-oss-120b",
+      "harness_name": "medphysbench-openai-compatible",
+      "harness_revision": "openai-chat-json-v1;format=json_object;mode=best-effort;effort=provider-default",
+      "results_directory": "results/releases/public-real-workflows-pilot-v0.6/openai_gpt_oss_120b",
+      "artifact_count": 30,
+      "artifact_tree_sha256": "c930e7badf7dcf213d99dc83d8866e9955f1163b203b0c824045f30aac69676a",
+      "accepted_integrity_errors": ["missing_adapter_settings_hash"],
+      "limitations": ["Historical adapter settings were not content-addressed."]
+    },
+    {
+      "provider": "groq",
+      "model_name": "openai/gpt-oss-20b",
+      "model_revision": "openai/gpt-oss-20b",
+      "harness_name": "medphysbench-openai-compatible",
+      "harness_revision": "openai-chat-json-v1;format=json_object;mode=best-effort;effort=provider-default",
+      "results_directory": "results/releases/public-real-workflows-pilot-v0.6/openai_gpt_oss_20b",
+      "artifact_count": 30,
+      "artifact_tree_sha256": "13ab3d6cef74413b3fc617d5f10b1c157c00ae791e6b7c6ee56ea4bc25a67ba3",
+      "accepted_integrity_errors": ["missing_adapter_settings_hash"],
+      "limitations": ["Historical adapter settings were not content-addressed."]
+    },
+    {
+      "provider": "groq",
+      "model_name": "qwen/qwen3.6-27b",
+      "model_revision": "qwen/qwen3.6-27b",
+      "harness_name": "medphysbench-openai-compatible",
+      "harness_revision": "openai-chat-json-v1;format=json_object;mode=best-effort;effort=provider-default",
+      "results_directory": "results/releases/public-real-workflows-pilot-v0.6/qwen_qwen3_6_27b",
+      "artifact_count": 30,
+      "artifact_tree_sha256": "803c3f8a5684d445c69841e93fb5cdee3a7f54ccdb527f66a8fa1cf4901914bd",
+      "accepted_integrity_errors": [
+        "missing_adapter_settings_hash",
+        "missing_duration_telemetry",
+        "missing_model_response_trace",
+        "missing_provider_receipt",
+        "missing_usage_telemetry"
+      ],
+      "limitations": ["Provider calls and usage telemetry are not independently evidenced for this historical row."]
+    },
+    {
+      "provider": "ollama",
+      "model_name": "qwen2.5vl:3b",
+      "model_revision": "qwen2.5vl:3b",
+      "harness_name": "medphysbench-ollama",
+      "harness_revision": "reference-json-v1",
+      "results_directory": "results/releases/public-real-workflows-pilot-v0.6/qwen2_5vl_3b",
+      "artifact_count": 30,
+      "artifact_tree_sha256": "1f62c27f4ccf7f0467217a4c68bbe08b79fc5f4fe5ab9d5e4792145cadc785f7",
+      "accepted_integrity_errors": ["missing_adapter_settings_hash"],
+      "limitations": ["Historical adapter settings were not content-addressed."]
+    },
+    {
+      "provider": "ollama",
+      "model_name": "qwen3-vl:8b",
+      "model_revision": "qwen3-vl:8b",
+      "harness_name": "medphysbench-ollama",
+      "harness_revision": "reference-json-v1",
+      "results_directory": "results/releases/public-real-workflows-pilot-v0.6/qwen3_vl_8b",
+      "artifact_count": 30,
+      "artifact_tree_sha256": "acf316796af923427a4a9c943d2cb770c3ee1c68d290fc6e0fefdbd24a4758c9",
+      "accepted_integrity_errors": ["missing_adapter_settings_hash"],
+      "limitations": ["Historical adapter settings were not content-addressed."]
+    },
+    {
+      "provider": "ollama",
+      "model_name": "qwen3.5:4b",
+      "model_revision": "qwen3.5:4b",
+      "harness_name": "medphysbench-ollama",
+      "harness_revision": "reference-json-v1",
+      "results_directory": "results/releases/public-real-workflows-pilot-v0.6/qwen3_5_4b",
+      "artifact_count": 30,
+      "artifact_tree_sha256": "a270d5b91dc095831e8b1fdea334c4a1c4dc7daabf003de812edbbc46468c221",
+      "accepted_integrity_errors": ["missing_adapter_settings_hash"],
+      "limitations": ["Historical adapter settings were not content-addressed."]
+    }
+  ]
+}

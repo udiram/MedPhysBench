@@ -34,8 +34,9 @@ the planned review unit is two independent qualified physicists plus an adjudica
 disagreement; a severe feasibility, rights, leakage, or grader-validity flag blocks promotion.
 
 The immediate public result should consequently be read as engineering evidence: 50 frozen model
-targets, 20 base models evaluated on one-response OpenKBP workflow views, 29 published system
-configurations, and a provisional two-family pilot. None is stateful-workflow-qualified. Interface
+targets, 23 with some published OpenKBP evidence, 16 with current-contract common-harness completion,
+29 published system configurations, and a provisional two-family pilot. None is
+stateful-workflow-qualified. Interface
 polish, provider coverage, and additional attempts cannot by
 themselves advance that release to domain-reviewed, human-baselined, protected, or externally
 replicated status.
@@ -44,6 +45,9 @@ replicated status.
 
 | Benchmark practice | Why it matters | MedPhysBench action |
 | --- | --- | --- |
+| Submission admission and reproducibility requirements in [SWE-bench](https://www.swebench.com/submit.html) | A leaderboard row is a reviewed evidence package, not an arbitrary aggregate uploaded by a model owner. | Require exact artifact-attested sidecars for official rows and content-addressed admission ledgers for historical descriptive rows; reject any unadmitted singleton before projection. |
+| Standardized scenarios plus prompt-level inspection in [HELM Capabilities](https://crfm.stanford.edu/helm/capabilities/v1.3.0/) | One interface can expose heterogeneous systems without pretending every scenario or setting is directly comparable. | Use one provider-neutral evidence surface with a global official-scope restriction, exact contract metadata, and task/attempt drilldowns; never create a provider-specific visual silo. |
+| Multi-environment agent evaluation in [AgentBench](https://github.com/THUDM/AgentBench) | Aggregate agent scores are interpretable only when the environment, interaction budget, and per-environment behavior remain visible. | Keep capability families, workflow depth, execution surface, budget, and final-state evidence explicit rather than collapsing them into one medical-physics competence number. |
 | Datapoint-level audits in [the 2026 SWE-Bench Pro review](https://openai.com/index/separating-signal-from-noise-coding-evaluations/) | Longer, more realistic tasks can still be broken by underspecified prompts, overly strict tests, low-coverage tests, or misleading instructions; the audit estimated roughly 30% of the public set was broken. | Run automated attempt/failure-trace triage, independent investigator passes, and blinded domain-expert review; treat both false rejection and false acceptance as release-blocking defects. |
 | Human feasibility review in [SWE-bench Verified](https://openai.com/index/introducing-swe-bench-verified/) | Executable tests can still be unfair, underspecified, or reject valid solutions. | Require two independent qualified physicist reviews for D3/D4 and real-workflow families before promotion. |
 | Continuing defect audits in [SWE-bench](https://openai.com/index/why-we-no-longer-evaluate-swe-bench-verified/) | A released benchmark can later prove broken or contaminated. | Maintain a public defect and invalidation ledger; never silently rewrite a released score. |

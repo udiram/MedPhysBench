@@ -12,6 +12,16 @@
 
 ## Unreleased
 
+- Unified the public results scope across the leaderboard, efficiency, capability, and forensics
+  views. The default `All published evidence` scope places GPT-5.6, Groq, Ollama, and every other
+  published row on the same discovery surface; `Official comparison only` is one global,
+  URL-backed restriction rather than a set of contradictory component toggles. Cross-contract
+  order remains explicitly descriptive and cannot become an official rank.
+- Added schema-validated, content-addressed descriptive-admission ledgers for historical
+  common-harness rows. Every such row must now match one reviewed identity, exact release result
+  directory, artifact count/tree hash, attempt matrix, and accepted integrity-error set before the
+  public projection builder will publish it. Added adversarial coverage for arbitrary singleton
+  injection, artifact mutation, integrity drift, and missing admission.
 - Added a model-by-task fingerprint matrix to the public forensics workbench. Exact run sets share
   one provider-neutral surface; hardest task views appear first; unsafe, unavailable, safe-failure,
   mixed, and inconclusive outcomes remain distinct; and every cell opens its highest-severity exact

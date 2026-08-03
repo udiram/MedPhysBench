@@ -9,6 +9,7 @@ import {
   interactionDepthLabel,
 } from "../lib/releaseEvidence";
 import { isCommonHarnessRun } from "../lib/runSurface";
+import { rowVisibleInResultsScope, type ResultsScope } from "../lib/resultsScope";
 import type { Leaderboard, ModelCatalogEntry, ModelResult, ReleaseEvidence, ReleaseView } from "../types";
 
 type ViewMode = "capability" | "failures" | "evidence";
@@ -21,6 +22,7 @@ type Props = {
   releaseView: ReleaseView;
   modelCatalog: ModelCatalogEntry[];
   releaseEvidence: ReleaseEvidence | null;
+  resultsScope: ResultsScope;
 };
 
 type Family = {
@@ -30,12 +32,12 @@ type Family = {
   domain?: string;
 };
 
-export function CapabilityExplorer({ data, loadError = false, releaseView, modelCatalog, releaseEvidence }: Props) {
+export function CapabilityExplorer({ data, loadError = false, releaseView, modelCatalog, releaseEvidence, resultsScope }: Props) {
   const [view, setView] = useState<ViewMode>("capability");
   const [scope, setScope] = useState<ScopeMode>("all");
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("all");
   const [providerFilter, setProviderFilter] = useState("all");
-  const effectiveScope = scope;
+  const effectiveScope = resultsScope === "official" ? "official" : scope;
 
   const rows = useMemo(() => {
     const catalogIndex = Object.fromEntries(
@@ -44,13 +46,14 @@ export function CapabilityExplorer({ data, loadError = false, releaseView, model
     const combined = data ? [...data.models, ...(data.unranked_models ?? [])] : [];
     return combined
       .filter((row) => {
+        const matchesGlobalScope = rowVisibleInResultsScope(row, resultsScope);
         const surfaceMatch =
           effectiveScope === "all" ||
           (effectiveScope === "official" ? isCommonHarnessRow(row) : !isCommonHarnessRow(row));
         const source = modelSource(row, catalogIndex);
         const sourceMatch = sourceFilter === "all" || source === sourceFilter;
         const providerMatch = providerFilter === "all" || row.provider === providerFilter;
-        return surfaceMatch && sourceMatch && providerMatch;
+        return matchesGlobalScope && surfaceMatch && sourceMatch && providerMatch;
       })
       .sort((a, b) => {
         if (effectiveScope === "official") {
@@ -58,7 +61,7 @@ export function CapabilityExplorer({ data, loadError = false, releaseView, model
         }
         return (a.outcome_rank ?? Infinity) - (b.outcome_rank ?? Infinity);
       });
-  }, [data, effectiveScope, modelCatalog, sourceFilter, providerFilter]);
+  }, [data, effectiveScope, modelCatalog, sourceFilter, providerFilter, resultsScope]);
   const families = useMemo(() => buildFamilies(data, rows), [data, rows]);
 
   if (!data) {
@@ -108,7 +111,13 @@ export function CapabilityExplorer({ data, loadError = false, releaseView, model
             ["official", "Common harness"],
             ["native", "Native / imported"],
           ] as const).map(([value, label]) => (
-            <button key={value} type="button" aria-pressed={effectiveScope === value} onClick={() => setScope(value)}>
+            <button
+              key={value}
+              type="button"
+              aria-pressed={effectiveScope === value}
+              disabled={resultsScope === "official" && value !== "official"}
+              onClick={() => setScope(value)}
+            >
               {label}
             </button>
           ))}

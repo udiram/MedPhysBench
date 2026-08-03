@@ -11,8 +11,10 @@ import { Hero } from "./components/Hero";
 import { LeaderboardExplorer } from "./components/LeaderboardExplorer";
 import { PublicModelIndex } from "./components/PublicModelIndex";
 import { ResultForensics } from "./components/ResultForensics";
+import { ResultsScopeBar } from "./components/ResultsScopeBar";
 import { useLeaderboard } from "./hooks/useLeaderboard";
 import { releaseEvidenceFor, releaseIdForView } from "./lib/releaseEvidence";
+import type { ResultsScope } from "./lib/resultsScope";
 import { readEnumParam, setUrlParams } from "./lib/urlState";
 import type { AccessStatus, DefectLedger, FleetStatus, ModelCatalogEntry, ReleaseEvidenceIndex, ReleaseView, Tg263Audit } from "./types";
 
@@ -40,6 +42,7 @@ function App() {
   const [defectLedger, setDefectLedger] = useState<DefectLedger | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [releaseView, setReleaseView] = useState<ReleaseView>("real");
+  const [resultsScope, setResultsScope] = useState<ResultsScope>("descriptive");
   const selected =
     releaseView === "core"
       ? core
@@ -95,6 +98,7 @@ function App() {
     if (typeof window === "undefined") return;
     const handlePopState = () => {
       setReleaseView(readEnumParam("release", ["core", "imaging", "tg263", "real"] as const, "real"));
+      setResultsScope(readEnumParam("results_scope", ["descriptive", "official"] as const, "descriptive"));
     };
     handlePopState();
     window.addEventListener("popstate", handlePopState);
@@ -104,6 +108,15 @@ function App() {
   const handleReleaseViewChange = (value: ReleaseView) => {
     setReleaseView(value);
     setUrlParams({ release: value === "real" ? null : value }, { history: "push" });
+  };
+
+  const handleResultsScopeChange = (value: ResultsScope) => {
+    setResultsScope(value);
+    const updates: Record<string, string | null> = {
+      results_scope: value === "descriptive" ? null : value,
+    };
+    if (value === "official") updates.fx_compare = null;
+    setUrlParams(updates, { history: "push" });
   };
 
   useEffect(() => {
@@ -164,12 +177,14 @@ function App() {
           <a href="#efficiency">Plots</a>
           <a href="#forensics">Attempt forensics</a>
         </nav>
+        <ResultsScopeBar data={selected.data} onChange={handleResultsScopeChange} value={resultsScope} />
         <LeaderboardExplorer
           data={selected.data}
           accessStatus={accessStatus}
           modelCatalog={modelCatalog}
           loadError={selected.loadError}
           releaseView={releaseView}
+          resultsScope={resultsScope}
           tg263Audit={tg263Audit}
         />
         <EfficiencyExplorer
@@ -177,6 +192,7 @@ function App() {
           fleetStatus={fleetStatus}
           modelCatalog={modelCatalog}
           releaseView={releaseView}
+          resultsScope={resultsScope}
         />
         <CapabilityExplorer
           data={selected.data}
@@ -184,12 +200,14 @@ function App() {
           releaseView={releaseView}
           modelCatalog={modelCatalog}
           releaseEvidence={selectedEvidence}
+          resultsScope={resultsScope}
         />
         <ResultForensics
           data={selected.data}
           defectLedger={defectLedger}
           modelCatalog={modelCatalog}
           releaseView={releaseView}
+          resultsScope={resultsScope}
         />
         <FleetCoverage data={fleetStatus} />
         <EvidenceSections

@@ -175,6 +175,18 @@ Ranks are descriptive. Overlapping intervals and small public task counts make c
 differences unsuitable for superiority claims. Larger sealed suites should use hierarchical
 bootstrap intervals and publish rank uncertainty.
 
+The public interface defaults to one all-published evidence scope: GPT-5.6, Groq, Ollama, and
+other providers share the same score, efficiency, capability, and forensics navigation. A single
+global `Official comparison only` switch restricts all of those views to contract-comparable rows.
+This presentation choice does not relax the statistical contract: cross-surface order is still
+descriptive, and only identical frozen comparison groups receive official ranks.
+
+Publication itself is also fail-closed. Official common-harness rows require artifact-attested
+submission sidecars. Historical common-harness rows kept only for descriptive analysis require a
+release-specific, content-addressed admission ledger binding their exact identity, result directory,
+artifact tree, complete matrix, and accepted integrity gaps. Native captures retain a separate
+sealed-batch provenance contract.
+
 ### 6.1 Public baseline snapshot
 
 Five local models completed the 64-task core through the common Ollama harness. Their historical scores ranged

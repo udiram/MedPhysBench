@@ -15,8 +15,10 @@ from medphys_agentbench.reporting import summarize_release
 
 try:
     from scripts.common_harness_submission import validate_submission
+    from scripts.descriptive_admission import validate_descriptive_admissions
 except ModuleNotFoundError:  # Direct script execution places scripts/ rather than the repository on sys.path.
     from common_harness_submission import validate_submission
+    from descriptive_admission import validate_descriptive_admissions
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -53,6 +55,7 @@ def _build_projection(
     results_root: Path,
     expected_attempts_per_task: int | None,
     submissions_dir: Path,
+    descriptive_admissions: Path | None = None,
 ) -> tuple[dict[str, Any], bytes]:
     release = load_release(release_file)
     leaderboard = summarize_release(
@@ -65,6 +68,12 @@ def _build_projection(
         release_id=release.release_id,
         results_root=results_root,
         submissions_dir=submissions_dir,
+    )
+    _require_descriptive_common_harness_admissions(
+        leaderboard=leaderboard,
+        release_id=release.release_id,
+        admission_path=descriptive_admissions
+        or ROOT / "governance" / f"descriptive-admissions-{release.release_id}.json",
     )
     evidence_timestamps = [
         str(task["created_at"])
@@ -135,6 +144,27 @@ def _require_ranked_submission_manifests(
             validated_paths.add(manifest_path)
 
 
+def _require_descriptive_common_harness_admissions(
+    *,
+    leaderboard: dict[str, Any],
+    release_id: str,
+    admission_path: Path,
+) -> None:
+    descriptive_rows = [
+        row
+        for row in leaderboard.get("unranked_models", [])
+        if row.get("execution_surface") == "common_harness"
+    ]
+    if not descriptive_rows:
+        return
+    if not admission_path.is_file():
+        raise ValueError(
+            "Every descriptive common-harness row requires one content-addressed admission ledger; "
+            f"missing {admission_path} for {release_id}."
+        )
+    validate_descriptive_admissions(admission_path, release_summary=leaderboard)
+
+
 def _coerce_paths(*paths: Path) -> list[Path]:
     seen: set[Path] = set()
     output: list[Path] = []
@@ -197,6 +227,11 @@ def main() -> None:
         default=ROOT / "submissions",
         help="Directory containing strict common-harness submission manifests required for every ranked row.",
     )
+    parser.add_argument(
+        "--descriptive-admissions",
+        type=Path,
+        help="Content-addressed admission ledger required for descriptive-only common-harness rows.",
+    )
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
@@ -209,6 +244,7 @@ def main() -> None:
         results_root=args.results_root,
         expected_attempts_per_task=args.expected_attempts,
         submissions_dir=args.submissions_dir,
+        descriptive_admissions=args.descriptive_admissions,
     )
 
     payloads = {

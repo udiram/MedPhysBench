@@ -53,8 +53,25 @@ release; it must not substitute release-specific claims from component code.
 - A provider alias is not an identity. Persist provider, exact model revision, date, adapter, harness revision, effort/sampling settings, and system description.
 - Native-system results may receive a descriptive outcome order only when the attempt matrix is complete and internally consistent.
 - Never display native and common-harness rows as one official ordinal leaderboard.
+- Present all published systems in one provider-neutral discovery surface by default. A global
+  `Official comparison only` scope may restrict every results component together, but provider,
+  source-availability, or execution-surface filters must not silently change the comparison contract.
 - Default the public page to the release with the strongest broadly interpretable evidence, not the newest or highest-scoring lane.
 - A perfect score on a public development set is a saturation signal, not proof of clinical or autonomous competence.
+
+## Public-result admission
+
+- Every officially ranked common-harness row requires one exact, schema-valid submission sidecar
+  bound to the release result directory and its complete artifact tree.
+- Every historical common-harness row retained only for descriptive inspection requires one
+  release-specific descriptive-admission entry. The entry pins provider/model/harness identity,
+  the direct result directory, artifact count and tree hash, complete expected attempt matrix, and
+  the exact integrity-error set accepted for descriptive publication.
+- An admission permits visibility only. It cannot set `ranking_eligible`, create an official rank,
+  excuse new integrity drift, or count a historical row as current-contract fleet completion.
+- Native recorded captures remain subject to their own sealed-batch and output-map contracts; a
+  descriptive-admission ledger is not a substitute for native-capture provenance.
+- Missing, extra, duplicate, relocated, mutated, or newly degraded evidence fails projection build.
 
 ## Fleet breadth and qualification
 

@@ -102,6 +102,13 @@ execution surface, expanded model row, selected release card, forensic run set,
 domain, outcome, and selected task survive refresh and can be shared as a direct
 link for audit or review.
 
+Results scope is global rather than component-local. The default `All published evidence` state
+keeps GPT-5.6, Groq, Ollama, and all other published rows available across score, efficiency,
+capability, and forensics views. `Official comparison only` applies the same restriction to every
+view and persists as `results_scope=official`; controls that would broaden one component while the
+global scope is official are disabled. The unified default is a discovery and diagnostic surface,
+not a cross-contract ordinal leaderboard.
+
 Selecting any attempt also opens a task-first comparison table across every run set
 surviving the active openness and provider filters. It reports attempts, safe-success
 rate, outcome mix, top failed grader, and execution-surface label, then switches directly

@@ -1,0 +1,84 @@
+{
+  "schema_version": "medphysbench.descriptive-admission.v1",
+  "admission_id": "imaging-v0.4-legacy-descriptive-20260803",
+  "admitted_at": "2026-08-03T14:42:00Z",
+  "admission_commit": "ffdd9b12f8ecfdcd2fa80685d79e03bce21098bc",
+  "release_file": "releases/public_imaging_pilot_v0_4.yaml",
+  "release_id": "public-imaging-pilot-v0.4",
+  "scope": "descriptive_publication_only",
+  "review_statement": "These content-addressed historical imaging rows may remain publicly inspectable but cannot receive an official rank or satisfy current-contract fleet completion.",
+  "entries": [
+    {
+      "provider": "ollama",
+      "model_name": "gemma3:4b",
+      "model_revision": "gemma3:4b",
+      "harness_name": "medphysbench-ollama",
+      "harness_revision": "reference-json-v1",
+      "results_directory": "results/releases/public-imaging-pilot-v0.4/gemma3_4b",
+      "artifact_count": 5,
+      "artifact_tree_sha256": "c8d8ac66696a5e5ce4e0dc20ed311d0e79c18014d8367d13500282a7bff2bccc",
+      "accepted_integrity_errors": [
+        "missing_adapter_settings_hash",
+        "missing_grader_hash:public.imaging.real-ct-lung-segmentation-001:0",
+        "missing_grader_hash:public.imaging.real-mri-hippocampus-localization-001:0",
+        "missing_grader_hash:public.imaging.real-mri-hippocampus-segmentation-001:0",
+        "missing_grader_hash:public.nm.real-pet-bladder-localization-001:0",
+        "missing_grader_hash:public.nm.real-pet-cohort-classification-001:0",
+        "missing_scoring_revision:public.imaging.real-ct-lung-segmentation-001:0",
+        "missing_scoring_revision:public.imaging.real-mri-hippocampus-localization-001:0",
+        "missing_scoring_revision:public.imaging.real-mri-hippocampus-segmentation-001:0",
+        "missing_scoring_revision:public.nm.real-pet-bladder-localization-001:0",
+        "missing_scoring_revision:public.nm.real-pet-cohort-classification-001:0"
+      ],
+      "limitations": ["Historical grading and scoring revisions were not content-addressed per task."]
+    },
+    {
+      "provider": "ollama",
+      "model_name": "qwen2.5vl:3b",
+      "model_revision": "qwen2.5vl:3b",
+      "harness_name": "medphysbench-ollama",
+      "harness_revision": "reference-json-v1",
+      "results_directory": "results/releases/public-imaging-pilot-v0.4/qwen2_5vl_3b",
+      "artifact_count": 5,
+      "artifact_tree_sha256": "4707e7352e574d461e5859b23e3c87cf1a9c12e40e3539695b7f4146eae91098",
+      "accepted_integrity_errors": [
+        "missing_adapter_settings_hash",
+        "missing_grader_hash:public.imaging.real-ct-lung-segmentation-001:0",
+        "missing_grader_hash:public.imaging.real-mri-hippocampus-localization-001:0",
+        "missing_grader_hash:public.imaging.real-mri-hippocampus-segmentation-001:0",
+        "missing_grader_hash:public.nm.real-pet-bladder-localization-001:0",
+        "missing_grader_hash:public.nm.real-pet-cohort-classification-001:0",
+        "missing_scoring_revision:public.imaging.real-ct-lung-segmentation-001:0",
+        "missing_scoring_revision:public.imaging.real-mri-hippocampus-localization-001:0",
+        "missing_scoring_revision:public.imaging.real-mri-hippocampus-segmentation-001:0",
+        "missing_scoring_revision:public.nm.real-pet-bladder-localization-001:0",
+        "missing_scoring_revision:public.nm.real-pet-cohort-classification-001:0"
+      ],
+      "limitations": ["Historical grading and scoring revisions were not content-addressed per task."]
+    },
+    {
+      "provider": "ollama",
+      "model_name": "qwen3-vl:8b",
+      "model_revision": "qwen3-vl:8b",
+      "harness_name": "medphysbench-ollama",
+      "harness_revision": "reference-json-v1",
+      "results_directory": "results/releases/public-imaging-pilot-v0.4/qwen3_vl_8b",
+      "artifact_count": 5,
+      "artifact_tree_sha256": "d5548a066cccd842a4668da033873a529f42f688b8b230d2098e1e08cc57da66",
+      "accepted_integrity_errors": [
+        "missing_adapter_settings_hash",
+        "missing_grader_hash:public.imaging.real-ct-lung-segmentation-001:0",
+        "missing_grader_hash:public.imaging.real-mri-hippocampus-localization-001:0",
+        "missing_grader_hash:public.imaging.real-mri-hippocampus-segmentation-001:0",
+        "missing_grader_hash:public.nm.real-pet-bladder-localization-001:0",
+        "missing_grader_hash:public.nm.real-pet-cohort-classification-001:0",
+        "missing_scoring_revision:public.imaging.real-ct-lung-segmentation-001:0",
+        "missing_scoring_revision:public.imaging.real-mri-hippocampus-localization-001:0",
+        "missing_scoring_revision:public.imaging.real-mri-hippocampus-segmentation-001:0",
+        "missing_scoring_revision:public.nm.real-pet-bladder-localization-001:0",
+        "missing_scoring_revision:public.nm.real-pet-cohort-classification-001:0"
+      ],
+      "limitations": ["Historical grading and scoring revisions were not content-addressed per task."]
+    }
+  ]
+}
