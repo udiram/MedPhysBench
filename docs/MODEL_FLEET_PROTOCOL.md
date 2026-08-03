@@ -151,10 +151,10 @@ scored outcomes and remain canonical attempts; they are not transport retries.
 
 ## Current state
 
-The public website currently exposes 29 model configurations representing 23
-unique base model identifiers across 47 release rows and four release surfaces, including five
+The public website currently exposes 30 model configurations representing 23
+unique base model identifiers across 48 release rows and four release surfaces, including five
 completed Groq configurations, six GPT-5.6 Sol effort configurations, and one
-GPT-5.6 Terra configuration. These are not 29 unique base models. An Ollama Cloud access probe
+GPT-5.6 Terra configuration. These are not 30 unique base models. An Ollama Cloud access probe
 for `qwen3.5:397b-cloud` on 2026-08-02 returned HTTP 429 before a scored artifact
 was created. The lab-node hostname was not resolvable from the current Mac
 network context. Neither event supports a model score.
@@ -162,7 +162,7 @@ network context. Neither event supports a model score.
 The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
 19 closed-weight, 31 declared vision-capable, and 11 stewards. After enforcing
 the current grader/scoring manifest contract, the derived funnel
-reports 23 access-qualified, 16 common-harness evaluated, and 16 officially
+reports 23 access-qualified, 17 common-harness evaluated, and 17 officially
 rankable base models. Eight complete legacy Ollama/Groq configurations remain visible but are excluded
 from current-contract rank because their attempt manifests lack adapter-settings hashes; four of the
 affected base IDs have no separate v2 row and therefore leave the evaluated/ranked fleet funnel. One
@@ -175,15 +175,15 @@ The public `fleet-status.v3` projection now gives every frozen base ID a
 machine-derived readiness state, next gate, explanatory note, and any exact
 base-model-bound access evidence, including a direct attested-submission link when
 one exists. It also separates the planned-panel composition from the actually
-evaluated slice: the current common-harness slice contains 16 open-weight and zero
-closed-weight base models, five vision-capable base models, six stewards, and two
+evaluated slice: the current common-harness slice contains 17 open-weight and zero
+closed-weight base models, six vision-capable base models, six stewards, and two
 size tiers. The OpenKBP field is explicitly a one-response workflow-view gate, not
 stateful workflow qualification. “Planned route” means no Q0 evidence is
 committed; it is not a claim that an API handle, free quota, local artifact, or
 compatible hardware is currently available. The website can therefore filter the
-remaining 30 models by openness, route, and missing gate without inventing access
+remaining 33 models by openness, route, and missing gate without inventing access
 reasons or confusing native GPT-5.6 evidence with common-harness qualification.
-Four frozen route sets now declare 29 executable configurations. Sixteen are digest-pinned Ollama
+Six frozen route sets now declare 31 executable configurations. Seventeen are digest-pinned Ollama
 routes corresponding exactly to current-contract submission sidecars; the remaining routes cover
 Groq and hosted-provider expansion candidates. Route presence is operational readiness metadata,
 not a score, an access claim, or a unique-base-model completion.
@@ -251,7 +251,7 @@ including all 12 image-grid attempts, achieved 10.0% safe success, 60.0% safety,
 100% schema validity, and passed a zero-change deterministic regrade. The attested public
 artifact tree is
 `sha256:6959930732876ef1b1bdf9e1a8da009be1cd79a0c31d38860e1e8fa42f0f4437`.
-All sixteen current v2 rows
+All seventeen current v2 rows
 now have their own sidecar with exact source commits, execution window, model
 identity, environment, and a SHA-256 inventory of every result artifact. The
 access ledger records whether qualification preceded the matrix or was backfilled
@@ -262,11 +262,12 @@ and Qwen2.5-VL 3B without adding a unique base model. Their exact revisions are
 `sha256:a2af6cc3eb7fa8be8504abaf9b04e88f17a119ec3f04a3addf55f92841195f5a`, and
 `sha256:fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1`.
 They achieved 50%, 20%, and 0% safe success with safety rates of 100%, 100%, and
-70%, respectively. A Qwen3-VL 8B rerun was stopped after one attempt when free
-memory fell to 22%; that partial run remains unranked raw evidence and does not
-replace its immutable legacy v1 row.
+70%, respectively. Earlier Qwen3-VL runs stopped at resource guards and remain
+unranked raw evidence. The distinct digest-pinned `qwen3-vl:8b-instruct` artifact
+later completed a clean 30-attempt matrix with 30.0% safe success, 100% safety,
+and 100% schema validity under a frozen bounded unload-recovery policy.
 
-The resulting current v2 group contains sixteen exact model configurations. A complete
+The resulting current v2 group contains seventeen exact model configurations. A complete
 campaign with any other token cap, adapter-settings hash, harness revision, or seed
 policy remains visible evidence but cannot enter that ranking group.
 

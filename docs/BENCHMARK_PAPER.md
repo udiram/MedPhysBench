@@ -210,24 +210,26 @@ Their descriptive outcome order is Sol high, Sol ultra, Sol low, then Terra high
 intervals overlap. They appear on the same score, source-filter, and
 attempt-forensics surfaces as every API/local row; they have no official harness-group rank because
 the native surface lacks the common adapter and comparable token/time telemetry.
-Sixteen digest-pinned local configurations completed the same v2 matrix. Qwen3.5 4B led at
+Seventeen digest-pinned local configurations completed the same v2 matrix. Qwen3.5 4B led at
 50.0%. Qwen2.5-VL 7B, Qwen 3
 14B, and Qwen 3 8B each reached 40.0% safe success; the vision model separated
 itself through 100% schema validity and safety while making real calls on all
 twelve image tasks. Gemma 3 12B also reached 40.0% with 100% schema validity and
 safety on 30 real multimodal calls. Gemma 3 4B reached 20.0%; Qwen 2.5 7B Instruct reached 30.0%; Phi-4 Mini, Phi-4 14B,
-Mistral Nemo 12B, and a community-quantized Pixtral 12B route reached 10.0%; Qwen 3 1.7B,
+Mistral Nemo 12B, and a community-quantized Pixtral 12B route reached 10.0%; Qwen3-VL 8B Instruct
+reached 30.0% with 100% safety and schema validity; Qwen 3 1.7B,
 Qwen2.5-VL 3B, DeepSeek R1 1.5B, Llama 3.1 8B, and Llama 3.2 3B reached 0.0%.
 Every text-only model retained twelve explicit unsupported-image outcomes in the denominator;
-the six multimodal rows made real calls on all 30 attempts. The sixteen-system exact-configuration
+the seven multimodal rows made real calls on all 30 attempts. The seventeen-system exact-configuration
 group now receives the only official within-group ranks in v0.6; every ranked row is also bound to one
 strictly validated common-harness submission sidecar. It is not merged with the older Ollama, Groq,
 or native GPT-5.6 groups. Public defect `MPB-2026-003` records the fail-closed reclassification; no
 immutable attempt or primary score changed.
-The three added v2 rows are current-contract reruns of models already represented by
+The three earlier added v2 rows are current-contract reruns of models already represented by
 immutable v1 history, so they deepen contract-comparable evidence without increasing
-unique base-model breadth. A Qwen3-VL 8B v2 rerun stopped after one attempt at the
-declared memory guard and remains unranked raw evidence; its legacy v1 row is unchanged.
+unique base-model breadth. Earlier Qwen3-VL partial runs remain unranked raw evidence;
+the separately pinned non-thinking Instruct artifact later completed 30/30 attempts in a new
+resource-bounded result root and adds one unique base-model completion.
 Full evidence is published in
 [`RESULTS.md`](RESULTS.md) and the release directories.
 

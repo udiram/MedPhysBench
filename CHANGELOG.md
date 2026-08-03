@@ -12,6 +12,10 @@
 
 ## Unreleased
 
+- Published a complete, digest-pinned Qwen3-VL 8B Instruct current-contract matrix: 30/30
+  attempts, 30.0% safe success, 100% safety/schema validity, median 1,308.5 tokens, and median
+  17.279-second wall time. The attested sidecar raises current-contract evaluated/ranked breadth
+  to 17 of 50 base models and public v0.6 to 30 system rows without reusing partial campaigns.
 - Closed the campaign memory-guard gap between model subprocesses and individual attempts. Frozen
   memory/disk floors now reach `run-release`, are checked before every missing attempt, and emit an
   immutable non-scoring resource-block receipt without consuming the resumable attempt key. The

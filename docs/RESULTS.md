@@ -35,10 +35,10 @@ The machine-derived public status currently reports:
 | --- | ---: | --- |
 | Frozen panel | 50 | Selected before further score inspection |
 | Access qualified | 23 | Live Q0 or later access evidence exists |
-| Validly evaluated | 16 | At least one submission-attested complete matrix satisfies the current manifest/scoring and execution-evidence contract |
-| Rankable | 16 | At least two attested systems share an exact frozen comparison group |
+| Validly evaluated | 17 | At least one submission-attested complete matrix satisfies the current manifest/scoring and execution-evidence contract |
+| Rankable | 17 | At least two attested systems share an exact frozen comparison group |
 
-The site exposes all 29 published system configurations and 47 release
+The site exposes all 30 published system configurations and 48 release
 rows. Six GPT-5.6 Sol effort settings remain six auditable configurations
 of one base model, while the separately cataloged GPT-5.6 Terra system contributes
 one additional base model and configuration. Groq-hosted and local routes of the same open-weight
@@ -187,19 +187,19 @@ TG-263 naming audit. The CT and expert contours are derived from OpenKBP; the
 reference plan dose is OpenKBP's standardized synthetic plan. Every task requires
 qualified review or escalation and is regraded from the stored candidate output.
 
-Twenty-five API/local configurations completed three attempts per task. Four legacy rows ran under
+Twenty-six API/local configurations completed three attempts per task. Four legacy rows ran under
 one memory-bounded Ollama harness (`temperature=0`, seeds
 `20260731`–`20260733`, 4,096-token context, 768 output-token cap). Five ran on
 Groq's OpenAI-compatible endpoint under one shared JSON-object contract with the
-same temperature, seeds, and output-token cap. Sixteen ran under the digest-pinned
+same temperature, seeds, and output-token cap. Seventeen ran under the digest-pinned
 `reference-json-v2` Ollama contract with the same seeds, a 4,096-token context,
 and 2,048-token output cap. Official ranks are computed within
 each identical provider/harness/configuration group with at least two systems; the
 separate descriptive outcome order spans every complete valid row.
 Exact ties on the declared safe-success, task-success, and safety-gate point estimates
 share a competition rank (`1, 1, 3`); names only determine the display order of tied rows.
-Together with four native GPT-5.6 audits, v0.6 contains 29 rows and 870 attempts.
-Sixteen submission-attested v2 rows receive an official within-group rank. Eight complete legacy
+Together with four native GPT-5.6 audits, v0.6 contains 30 rows and 900 attempts.
+Seventeen submission-attested v2 rows receive an official within-group rank. Eight complete legacy
 Ollama/Groq rows remain visible but unranked because their attempt manifests lack the required
 adapter-settings hash; one receipt-free Groq row and the four native rows are also visible but
 unranked. Public defect `MPB-2026-003` records this fail-closed correction. The immutable attempts,
@@ -232,19 +232,20 @@ primary and display both interval definitions for every row.
 | 2 | `qwen3:14b` | 40.0% | 24.59–57.68% | 100.0% | 60.0% | 1,025 | 30.736 s |
 | 2 | `qwen3:8b` | 40.0% | 24.59–57.68% | 100.0% | 60.0% | 1,025 | 17.580 s |
 | 6 | `qwen2.5:7b-instruct` | 30.0% | 16.66–47.88% | 100.0% | 60.0% | 1,019 | 15.604 s |
-| 7 | `gemma3:4b` | 20.0% | 9.51–37.31% | 100.0% | 100.0% | 1,301.5 | 16.253 s |
-| 8 | `phi4-mini:3.8b-q4_K_M` | 10.0% | 3.46–25.62% | 100.0% | 60.0% | 938.5 | 9.632 s |
-| 8 | `phi4:14b` | 10.0% | 3.46–25.62% | 100.0% | 60.0% | 969.5 | 30.142 s |
-| 10 | `mistral-nemo:12b-instruct-2407-q4_K_M` | 10.0% | 3.46–25.62% | 66.67% | 60.0% | 1,053.5 | 26.964 s |
-| 11 | `hf.co/EnlistedGhost/Pixtral-12B-2409-GGUF:Q4_K_M` | 10.0% | 3.46–25.62% | 60.0% | 100.0% | 1,379.5 | 41.562 s |
-| 12 | `qwen3:1.7b` | 0.0% | 0.00–11.35% | 100.0% | 60.0% | 1,029 | 6.420 s |
-| 13 | `qwen2.5vl:3b` | 0.0% | 0.00–11.35% | 70.0% | 100.0% | 1,396 | 13.561 s |
-| 14 | `deepseek-r1:1.5b` | 0.0% | 0.00–11.35% | 50.0% | 60.0% | 1,616 | 14.805 s |
-| 15 | `llama3.1:8b` | 0.0% | 0.00–11.35% | 33.33% | 60.0% | 954.5 | 17.385 s |
-| 15 | `llama3.2:3b` | 0.0% | 0.00–11.35% | 33.33% | 60.0% | 950.5 | 7.708 s |
+| 6 | `qwen3-vl:8b-instruct` | 30.0% | 16.66–47.88% | 100.0% | 100.0% | 1,308.5 | 17.279 s |
+| 8 | `gemma3:4b` | 20.0% | 9.51–37.31% | 100.0% | 100.0% | 1,301.5 | 16.253 s |
+| 9 | `phi4-mini:3.8b-q4_K_M` | 10.0% | 3.46–25.62% | 100.0% | 60.0% | 938.5 | 9.632 s |
+| 9 | `phi4:14b` | 10.0% | 3.46–25.62% | 100.0% | 60.0% | 969.5 | 30.142 s |
+| 11 | `mistral-nemo:12b-instruct-2407-q4_K_M` | 10.0% | 3.46–25.62% | 66.67% | 60.0% | 1,053.5 | 26.964 s |
+| 12 | `hf.co/EnlistedGhost/Pixtral-12B-2409-GGUF:Q4_K_M` | 10.0% | 3.46–25.62% | 60.0% | 100.0% | 1,379.5 | 41.562 s |
+| 13 | `qwen3:1.7b` | 0.0% | 0.00–11.35% | 100.0% | 60.0% | 1,029 | 6.420 s |
+| 14 | `qwen2.5vl:3b` | 0.0% | 0.00–11.35% | 70.0% | 100.0% | 1,396 | 13.561 s |
+| 15 | `deepseek-r1:1.5b` | 0.0% | 0.00–11.35% | 50.0% | 60.0% | 1,616 | 14.805 s |
+| 16 | `llama3.1:8b` | 0.0% | 0.00–11.35% | 33.33% | 60.0% | 954.5 | 17.385 s |
+| 16 | `llama3.2:3b` | 0.0% | 0.00–11.35% | 33.33% | 60.0% | 950.5 | 7.708 s |
 
-All sixteen v2 rows completed the same 30-attempt matrix with exact local artifact
-digests. Six multimodal rows made 30 real calls, including all 12 required-image attempts;
+All seventeen v2 rows completed the same 30-attempt matrix with exact local artifact
+digests. Seven multimodal rows made 30 real calls, including all 12 required-image attempts;
 the ten text-only rows retain those 12 tasks as explicit unsupported-modality
 outcomes, not omissions, so their token/time medians cover 18 actual text calls.
 Safety percentages for those text-only rows also use the 18 actual provider calls;
@@ -275,9 +276,10 @@ preserved 100% safety; Qwen2.5-VL 3B produced nine unsafe attempts, yielding 70%
 safety despite 100% schema-valid output. These reruns deepen current-contract evidence
 for already evaluated base models; they do not increase unique base-model breadth.
 
-A planned `qwen3-vl:8b` v2 rerun stopped after its first attempt when free memory
-fell to 22%. That incomplete raw evidence is not a release row or score. The immutable
-legacy v1 row remains published, and no partial result enters the v2 comparison group.
+Earlier Qwen3-VL campaigns stopped at their declared resource guards. Their incomplete raw
+evidence is not a release row or score. The distinct non-thinking
+`qwen3-vl:8b-instruct` digest later completed 30/30 attempts in a new result root with a
+bounded unload-recovery wait; the immutable legacy v1 and partial evidence remain unchanged.
 
 The Pixtral row is deliberately labeled as a community-quantized system rather than an
 official Mistral GGUF. The route pins the post-trained `mistralai/Pixtral-12B-2409`

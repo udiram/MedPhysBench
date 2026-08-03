@@ -172,10 +172,12 @@ revisions `sha256:2a654d98e6fba55d452b7043684e9b57a947e393bbffa62485a7aac05ee4ee
 `sha256:a2af6cc3eb7fa8be8504abaf9b04e88f17a119ec3f04a3addf55f92841195f5a`,
 and `sha256:fb90415cde1ef08aa669ae74b082d49b158729b6db1ab183c941417d507e71a1`,
 respectively. Their 90 canonical attempts and three submission sidecars are new v2
-evidence; the earlier v1 artifacts remain immutable historical rows. A Qwen3-VL 8B
-v2 run stopped after one attempt when free memory reached 22%. It was not resumed,
-promoted, or counted as a complete matrix; its raw partial evidence must not be used
-to replace the published legacy row.
+evidence; the earlier v1 artifacts remain immutable historical rows. The original
+`qwen3-vl:8b` Thinking artifact and interrupted Qwen3-VL campaigns remain non-scoring.
+A distinct `qwen3-vl:8b-instruct` artifact, pinned to
+`sha256:0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319`,
+completed a new 30-attempt matrix in a separate result root after the campaign froze
+a 30-second unload-recovery wait without weakening its 35% and 6 GiB memory floors.
 
 The summarizer still decides comparability from the frozen manifest hashes; matching
 the visible flags alone does not override a different harness revision, adapter
@@ -277,7 +279,7 @@ promotion basis is `attested_complete_q2`, whose chronology says whether preflig
 full matrix, and whose evidence points to that exact sidecar. The fleet projection, submission
 validator, and repository-wide validator all enforce this binding.
 
-The current public inventory contains sixteen such attested v2 sidecars. Sidecar count
+The current public inventory contains seventeen such attested v2 sidecars. Sidecar count
 is configuration evidence, not unique-model breadth: three are current-contract reruns
 of base models already counted by the fleet funnel.
 

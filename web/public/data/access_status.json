@@ -180,6 +180,23 @@
     "note": "Vision-capable model completed the 30-attempt OpenKBP v0.6 matrix through the local Ollama common harness."
   },
   {
+    "model": "qwen3-vl:8b-instruct",
+    "provider": "ollama",
+    "base_model_id": "Qwen/Qwen3-VL-8B-Instruct",
+    "qualification_stage": "q2",
+    "status": "available",
+    "surface": "local_ollama_vision",
+    "date": "2026-08-03",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "qwen3-vl-8b-instruct-openkb-v0.6-20260803",
+      "manifest_path": "submissions/qwen3-vl-8b-instruct-openkb-v0.6-20260803.json"
+    },
+    "note": "Digest-pinned Qwen3-VL 8B Instruct artifact sha256:0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319 passed a strict JSON Schema and image-transport preflight before completing the full 30-attempt OpenKBP Q2 matrix. The current reference-json-v2 run used a 4,096-token context, a 2,048-token output cap, serial keep_alive=0 execution, and frozen per-attempt resource floors; all 30 outcomes were safe and 9 passed."
+  },
+  {
     "model": "qwen2.5vl:3b",
     "provider": "ollama",
     "base_model_id": "Qwen/Qwen2.5-VL-3B-Instruct",

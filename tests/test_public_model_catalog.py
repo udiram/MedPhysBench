@@ -147,7 +147,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(payload, dict)
     rows = [*payload["models"], *payload.get("unranked_models", [])]
-    assert len(rows) == 29
+    assert len(rows) == 30
     v2_rows = [
         row
         for row in rows
@@ -169,10 +169,11 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
         "qwen3:1.7b",
         "qwen3:8b",
         "qwen3:14b",
+        "qwen3-vl:8b-instruct",
         "qwen3.5:4b",
     }
     assert all(row["ranking_eligible"] is True for row in v2_rows)
-    assert sorted(row["rank"] for row in v2_rows) == [1, 2, 2, 2, 2, 6, 7, 8, 8, 10, 11, 12, 13, 14, 15, 15]
+    assert sorted(row["rank"] for row in v2_rows) == [1, 2, 2, 2, 2, 6, 6, 8, 9, 9, 11, 12, 13, 14, 15, 16, 16]
 
     for model_name in ("qwen3.5:4b", "gemma3:4b", "qwen2.5vl:3b"):
         immutable_rows = [row for row in rows if row["provider"] == "ollama" and row["model_name"] == model_name]
@@ -265,7 +266,7 @@ def test_v2_ollama_group_freezes_the_published_sampling_and_adapter_contract() -
         if isinstance(model, dict) and model.get("harness_revision") == "reference-json-v2":
             manifests.append(manifest)
 
-    assert len(manifests) == 16 * 30
+    assert len(manifests) == 17 * 30
     assert {manifest["max_tokens"] for manifest in manifests} == {2048}
     assert {manifest["temperature"] for manifest in manifests} == {0.0}
     assert {manifest["seed"] for manifest in manifests} == {20260731, 20260732, 20260733}

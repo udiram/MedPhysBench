@@ -206,8 +206,9 @@ def test_qwen_reasoning_route_freezes_json_transport_and_multimodal_capability()
     assert route.modalities == ("text", "image")
 
 
-def test_local_ollama_route_set_binds_the_16_attested_reference_json_v2_submissions() -> None:
+def test_local_ollama_route_sets_bind_the_17_attested_reference_json_v2_submissions() -> None:
     route_set = load_route_set(LOCAL_OLLAMA_ROUTE_SET_PATH)
+    qwen_instruct_route_set = load_route_set(LOCAL_OLLAMA_CANDIDATE_V2_ROUTE_SET_PATH)
 
     assert route_set.route_set_id == "local-ollama-routes-v1"
     assert len(route_set.routes) == 16
@@ -224,7 +225,7 @@ def test_local_ollama_route_set_binds_the_16_attested_reference_json_v2_submissi
     assert route_set.route("ollama-qwen2-5vl-7b-q4-k-m").modalities == ("text", "image")
     route_identities = {
         (route.base_model_id, route.model, route.model_revision)
-        for route in route_set.routes
+        for route in (*route_set.routes, *qwen_instruct_route_set.routes)
     }
     submission_identities = set()
     for path in (ROOT / "submissions").glob("*.json"):

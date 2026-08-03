@@ -94,10 +94,10 @@ package, or evidence of autonomous clinical competence.
 - A schema-driven, serial campaign controller with memory/disk preflight, one child process per
   model, exact release/fleet binding, canonical-matrix verification, and hash-chained resume receipts;
   new v2 manifests bind every configuration to a frozen route and unexpired access receipt.
-- A reviewed local-Ollama qualification lane with 16 attested routes plus separately frozen,
-  explicitly unevaluated Qwen3-VL 8B Thinking and Instruct candidate routes, with exact tag-to-artifact
-  verification, declared vision-capability checks, a 64-token strict-JSON canary, and `keep_alive=0`.
-  These routes operationalize existing evidence; they do not create or count scores.
+- A reviewed local-Ollama qualification lane with 17 attested current-contract configurations.
+  Qwen3-VL 8B preserves the default Thinking artifact's non-scoring failed canary separately from a
+  digest-pinned Instruct artifact that passed strict JSON/image preflight and the full 30-attempt matrix;
+  route declarations and failed/partial campaigns still never create or count scores.
 - Strict structured-output parsing: one exact JSON object, with no repair from Markdown wrappers,
   duplicate keys, trailing prose, or non-finite numbers.
 - A 97-task public catalog spanning core physics, RT physics, brachytherapy,
@@ -136,13 +136,13 @@ package, or evidence of autonomous clinical competence.
   sealed-batch hash, model revision, effort, attempt index, output-map digest, timestamps, declared
   transport tools, and all corresponding public result traces without storing hidden reasoning.
 - A machine-derived qualification funnel that reports `50` frozen base IDs, `23` access-qualified,
-  `16` validly evaluated under the current manifest contract, and `16` rankable—without counting six
+  `17` validly evaluated under the current manifest contract, and `17` rankable—without counting six
   GPT-5.6 effort settings as six models, treating historical legacy rows as current-contract evidence,
   or presenting a partial local campaign as a score.
-- Sixteen digest-pinned `reference-json-v2` OpenKBP rows now carry attested common-harness
+- Seventeen digest-pinned `reference-json-v2` OpenKBP rows now carry attested common-harness
   submission sidecars. Three reruns migrate Qwen3.5 4B, Gemma 3 4B, and Qwen2.5-VL 3B onto the
-  current contract; they deepen evidence for already counted base models and do not increase the
-  unique-base-model completion numerator.
+  current contract without increasing unique-base-model breadth; the distinct Qwen3-VL 8B Instruct
+  artifact adds one newly completed multimodal base model.
 - Workflow-qualified accounting now separately reports which planned models have actually completed
   a repeated-trial workflow release instead of letting smaller pilot surfaces overstate benchmark
   breadth.
