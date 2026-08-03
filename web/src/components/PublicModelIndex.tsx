@@ -41,6 +41,8 @@ type ModelGroup = {
   base_model_id: string;
   model_name: string;
   display_name: string;
+  family_name: string;
+  steward_name: string;
   providers: string[];
   provider_label: string;
   catalog: ModelCatalogEntry | null;
@@ -230,6 +232,8 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
         base_model_id: baseModelId,
         model_name: fallbackDisplay,
         display_name: fallbackDisplay,
+        family_name: primary?.family ?? fleetEntry?.family ?? "Unknown",
+        steward_name: primary?.steward ?? fleetEntry?.steward ?? "Unknown",
         providers,
         provider_label:
           providers.length > 0
@@ -277,6 +281,8 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
       if (!group.catalog && run.catalog_entry) {
         group.catalog = run.catalog_entry;
         group.catalogEntries = [run.catalog_entry];
+        group.family_name = run.catalog_entry.family;
+        group.steward_name = run.catalog_entry.steward;
       } else if (run.catalog_entry && !group.catalogEntries.includes(run.catalog_entry)) {
         group.catalogEntries.push(run.catalog_entry);
       }
@@ -298,6 +304,33 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
     () => uniqueValues(allGroups.flatMap((group) => group.providers)).sort((a, b) => a.localeCompare(b)),
     [allGroups],
   );
+
+  const familyPeersByBase = useMemo(() => {
+    const grouped = new Map<string, ModelGroup[]>();
+    for (const group of allGroups) {
+      const familyName = group.catalog?.family ?? group.family_name;
+      const stewardName = group.catalog?.steward ?? group.steward_name;
+      if (!familyName || familyName === "Unknown") continue;
+      const key = `${stewardName}::${familyName}`;
+      const bucket = grouped.get(key) ?? [];
+      bucket.push(group);
+      grouped.set(key, bucket);
+    }
+
+    const peersByBase = new Map<string, ModelGroup[]>();
+    for (const bucket of grouped.values()) {
+      if (bucket.length < 2) continue;
+      const sorted = [...bucket].sort(
+        (left, right) =>
+          (right.best_safe_success_rate ?? -1) - (left.best_safe_success_rate ?? -1) ||
+          left.display_name.localeCompare(right.display_name),
+      );
+      for (const group of sorted) {
+        peersByBase.set(group.base_model_id, sorted);
+      }
+    }
+    return peersByBase;
+  }, [allGroups]);
 
   const groups = useMemo(() => {
     const normalized = deferredQuery.trim().toLowerCase();
@@ -587,6 +620,7 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
                   <ModelRegistryRow
                     key={group.key}
                     expanded={expanded === group.key}
+                    familyPeers={familyPeersByBase.get(group.base_model_id) ?? []}
                     group={group}
                     runKey={runKey}
                     onToggle={() => {
@@ -613,11 +647,13 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets }: PublicModel
 function ModelRegistryRow({
   group,
   expanded,
+  familyPeers,
   onToggle,
   runKey,
 }: {
   group: ModelGroup;
   expanded: boolean;
+  familyPeers: ModelGroup[];
   onToggle: () => void;
   runKey?: string | null;
 }) {
@@ -676,6 +712,7 @@ function ModelRegistryRow({
               {group.fleetEntry?.steward ?? group.catalog?.steward ?? "Catalog pending"}
               {group.providers.length > 0 ? ` · ${group.providers.map((item) => providerLabel(item)).join(" + ")}` : ""}
               {variantSummaries.length > 0 ? ` · ${variantSummaries.length} variant${variantSummaries.length === 1 ? "" : "s"}` : ""}
+              {familyPeers.length > 1 ? ` · ${familyPeers.length} systems in ${group.family_name}` : ""}
             </small>
           </button>
         </td>
@@ -700,7 +737,7 @@ function ModelRegistryRow({
                   </div>
                   <div>
                     <dt>Model family</dt>
-                    <dd>{group.catalog?.family ?? group.catalogEntries[0]?.family ?? "Unknown"}</dd>
+                    <dd>{group.catalog?.family ?? group.family_name}</dd>
                   </div>
                   <div>
                     <dt>Providers</dt>
@@ -736,6 +773,39 @@ function ModelRegistryRow({
                   </div>
                 </dl>
               </section>
+              {familyPeers.length > 1 ? (
+                <section className="detail-span">
+                  <h4>Related systems in this family</h4>
+                  <div className="variant-table-wrap" role="region" aria-label={`${group.family_name} family systems`} tabIndex={0}>
+                    <table className="variant-table">
+                      <thead>
+                        <tr>
+                          <th>System</th>
+                          <th>Base model ID</th>
+                          <th>Routes</th>
+                          <th>Public rows</th>
+                          <th>Best published</th>
+                          <th>Family status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {familyPeers.map((peer) => (
+                          <tr key={peer.base_model_id}>
+                            <td>
+                              <strong>{peer.display_name}</strong>
+                            </td>
+                            <td>{peer.base_model_id}</td>
+                            <td>{peer.fleetEntry?.planned_routes.map((value) => plannedRouteLabel(value)).join(", ") || "Unspecified"}</td>
+                            <td>{peer.runs.length}</td>
+                            <td>{formatPercent(peer.best_safe_success_rate)}</td>
+                            <td>{fleetStatusLabel(peer.fleetEntry, peer.has_reference_data)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              ) : null}
               <section className="detail-span">
                 <h4>System variants in current slice</h4>
                 {variantSummaries.length > 0 ? (
