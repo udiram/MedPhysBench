@@ -9,6 +9,7 @@ import { providerIdsForSlice } from "../lib/modelSlice";
 import { navigateToRunForensics } from "../lib/forensicsNavigation";
 import { isCommonHarnessRun, isNativeRun } from "../lib/runSurface";
 import { scoreEvidenceAvailable } from "../lib/resultEvidence";
+import { matchesSearchText, normalizeSearchText } from "../lib/searchNormalization";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { classifyAttemptOutcome } from "../types";
 import type {
@@ -320,28 +321,19 @@ export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease
   }, [allGroups]);
 
   const groups = useMemo(() => {
-    const normalized = deferredQuery.trim().toLowerCase();
+    const normalized = normalizeSearchText(deferredQuery);
     return allGroups
       .filter((group) => {
-        const familyHints = group.catalogEntries.map((entry) => entry.family.toLowerCase());
-        const runNameHints = group.runs.map((run) => run.model_name.toLowerCase());
-        const catalogHints = group.catalog ? [group.catalog.base_model_id.toLowerCase(), group.catalog.steward.toLowerCase()] : [];
-        const baseHints = group.base_model_id.toLowerCase();
-        const providerHints = group.providers.join(" ").toLowerCase();
-        const routeHints = (group.fleetEntry?.planned_routes ?? []).map((value) => plannedRouteLabel(value).toLowerCase());
-        const matchesQuery =
-          !normalized ||
-          group.model_name.toLowerCase().includes(normalized) ||
-          group.display_name.toLowerCase().includes(normalized) ||
-          baseHints.includes(normalized) ||
-          providerHints.includes(normalized) ||
-          group.providers.some((item) => providerLabel(item).toLowerCase().includes(normalized)) ||
-          familyHints.some((item) => item.includes(normalized)) ||
-          runNameHints.some((item) => item.includes(normalized)) ||
-          routeHints.some((item) => item.includes(normalized)) ||
-          catalogHints.some((item) => item.includes(normalized)) ||
-          group.catalogEntries.some((entry) => (entry.family ?? "").toLowerCase().includes(normalized)) ||
-          group.runs.some((run) => run.release_id.toLowerCase().includes(normalized));
+        const searchCandidates = [
+          group.model_name,
+          group.display_name,
+          group.base_model_id,
+          ...group.providers,
+          ...group.providers.map(providerLabel),
+          ...group.catalogEntries.flatMap((entry) => [entry.base_model_id, entry.family, entry.steward]),
+          ...group.runs.flatMap((run) => [run.model_name, run.release_id]),
+        ];
+        const matchesQuery = !normalized || searchCandidates.some((candidate) => matchesSearchText(candidate, normalized));
         const matchesOpenness = openness === "all" || group.openness === openness;
         const matchesProvider = provider === "all" || group.providers.includes(provider);
         return matchesQuery && matchesOpenness && matchesProvider;

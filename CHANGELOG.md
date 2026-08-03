@@ -12,6 +12,9 @@
 
 ## Unreleased
 
+- Normalized model-registry search across punctuation and spacing so queries such as `gpt 5.6`,
+  `GPT-5.6`, and `gpt5.6` resolve the same systems. Provider text search now follows published
+  provider evidence instead of speculative planned routes.
 - Versioned the fleet projection to `fleet-status.v3`, replacing the misleading
   `workflow_qualified` terminology with explicit one-response OpenKBP workflow-view fields.
   The public funnel now reports evaluated open/closed, vision, steward, and size-tier composition
