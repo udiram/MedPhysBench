@@ -94,7 +94,8 @@ package, or evidence of autonomous clinical competence.
 - A schema-driven, serial campaign controller with memory/disk preflight, one child process per
   model, exact release/fleet binding, canonical-matrix verification, and hash-chained resume receipts;
   new v2 manifests bind every configuration to a frozen route and unexpired access receipt.
-- A reviewed local-Ollama qualification lane with 16 digest-pinned routes, exact tag-to-artifact
+- A reviewed local-Ollama qualification lane with 16 attested routes plus a separately frozen,
+  explicitly unevaluated Qwen3-VL 8B candidate route, with exact tag-to-artifact
   verification, declared vision-capability checks, a 64-token strict-JSON canary, and `keep_alive=0`.
   These routes operationalize existing evidence; they do not create or count scores.
 - Strict structured-output parsing: one exact JSON object, with no repair from Markdown wrappers,

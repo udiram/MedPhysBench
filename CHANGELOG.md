@@ -12,6 +12,9 @@
 
 ## Unreleased
 
+- Declared a digest-pinned Qwen3-VL 8B local route with vision transport, strict JSON Schema,
+  4,096-token context, and `keep_alive=0`. Route declaration alone does not create access evidence,
+  evaluated breadth, a score, or a rank; those remain gated on a fresh receipt and complete campaign.
 - Unified the public results scope across the leaderboard, efficiency, capability, and forensics
   views. The default `All published evidence` scope places GPT-5.6, Groq, Ollama, and every other
   published row on the same discovery surface; `Official comparison only` is one global,

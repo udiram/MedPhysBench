@@ -51,11 +51,16 @@ and `reasoning_format: hidden`; those fields therefore form part of the new rout
 than an undocumented retry heuristic. [Groq Qwen 3.6 model contract](https://console.groq.com/docs/model/qwen/qwen3.6-27b)
 
 [`local_ollama_routes_v1.yaml`](../fleet/local_ollama_routes_v1.yaml) freezes 16 existing,
-submission-attested local configurations as executable routes. Each route binds the mutable Ollama
+submission-attested local configurations. A separate
+[`local_ollama_candidate_routes_v1.yaml`](../fleet/local_ollama_candidate_routes_v1.yaml) isolates
+the digest-pinned Qwen3-VL 8B candidate so adding a probe target does not rewrite the attested route
+set. Each route binds the mutable Ollama
 tag to its observed immutable artifact digest, exact base-model ID, 4,096-token context,
 JSON-schema output, and `keep_alive=0`. This route set does not add new scores: it makes the
-already-published current-contract local lane addressable by the same receipt-bound control plane
-used for hosted providers.
+already-published current-contract local lane—and one explicitly unevaluated candidate—addressable
+by the same receipt-bound control plane used for hosted providers. The Qwen3-VL route must still
+produce a fresh access receipt, complete campaign, and attested submission before it can affect
+evaluated breadth or any score surface.
 
 ## Receipt integrity
 
