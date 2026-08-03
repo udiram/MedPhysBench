@@ -1,6 +1,28 @@
 import { modelRunKey } from "./modelRunKey.ts";
 import { setUrlParams } from "./urlState.ts";
+import { normalizeModelDisplayName, providerLabel } from "./format.ts";
 import type { ModelResult, ModelTaskResult } from "../types";
+
+type ForensicsLabelRun = {
+  provider: string;
+  model_name: string;
+  comparison_group?: string | null;
+  harness_revision?: string | null;
+  execution_surface?: string | null;
+};
+
+export function runForensicsAccessibleLabel(
+  row: ForensicsLabelRun,
+  options: { action?: string; releaseTitle?: string } = {},
+) {
+  const comparisonIdentity = row.comparison_group?.split("::").at(-1);
+  const immutableContext = comparisonIdentity?.replace(/^config=/, "configuration ")
+    ?? row.harness_revision
+    ?? row.execution_surface
+    ?? "published run";
+  const releaseContext = options.releaseTitle ? ` in ${options.releaseTitle}` : "";
+  return `${options.action ?? "Open attempt forensics"} for ${normalizeModelDisplayName(row.model_name)} on ${providerLabel(row.provider)}${releaseContext} — ${immutableContext}`;
+}
 
 export function taskAttemptKey(task: ModelTaskResult) {
   if (task.attempt_id) return task.attempt_id;

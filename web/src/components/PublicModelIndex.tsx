@@ -1,12 +1,12 @@
 import { ChevronDown, Search } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { domainLabel, formatBytes, formatDuration, formatPercent, formatTokens, normalizeModelDisplayName, providerLabel, shortHash } from "../lib/format";
+import { domainLabel, formatBytes, formatDuration, formatPercent, formatTokens, providerLabel, shortHash } from "../lib/format";
 import { groupIntegrityIssues, integrityIssueHeadline } from "../lib/integrity";
 import { resolveRunBaseModelId } from "../lib/modelIdentity";
 import { compareModelRuns, modelRunKey, modelRunUrlSelection, releasedModelRunKey } from "../lib/modelRunKey";
 import { buildModelWorkbench, compactWorkbenchIdentity } from "../lib/modelWorkbench";
 import { providerIdsForSlice, resolveProviderSelection } from "../lib/modelSlice";
-import { navigateToRunForensics, navigateToTaskForensics, taskAttemptKey } from "../lib/forensicsNavigation";
+import { navigateToRunForensics, navigateToTaskForensics, runForensicsAccessibleLabel, taskAttemptKey } from "../lib/forensicsNavigation";
 import { isCommonHarnessRun, isNativeRun } from "../lib/runSurface";
 import { scoreEvidenceAvailable } from "../lib/resultEvidence";
 import { matchesSearchText, normalizeSearchText } from "../lib/searchNormalization";
@@ -119,11 +119,14 @@ function executionProviderLabel(value: string) {
   return providerLabel(value);
 }
 
-function runForensicsLabel(run: Pick<PublicRun, "execution_surface" | "model_name" | "provider" | "release_title">) {
+function runForensicsLabel(run: PublicRun) {
   const surface = run.execution_surface === "recorded_output_import" || run.provider === "codex-native"
     ? "native-surface"
     : "common-harness";
-  return `Open ${surface} attempt forensics for ${normalizeModelDisplayName(run.model_name)} on ${executionProviderLabel(run.provider)} in ${run.release_title}`;
+  return runForensicsAccessibleLabel(run, {
+    action: `Open ${surface} attempt forensics`,
+    releaseTitle: run.release_title,
+  });
 }
 
 export function PublicModelIndex({ catalog, fleetStatus, datasets, activeRelease }: PublicModelIndexProps) {

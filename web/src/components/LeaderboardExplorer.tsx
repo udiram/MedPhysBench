@@ -25,7 +25,7 @@ import { versionedDataUrl } from "../lib/dataAssets";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import { competitionRankMap } from "../lib/ranking";
 import { rowVisibleInResultsScope, type ResultsScope } from "../lib/resultsScope";
-import { navigateToRunForensics } from "../lib/forensicsNavigation";
+import { navigateToRunForensics, runForensicsAccessibleLabel } from "../lib/forensicsNavigation";
 
 type SortKey =
   | "model_name"
@@ -809,7 +809,7 @@ function ModelDetailRow({
               <section className="detail-span registry-run-actions">
                 <button
                   type="button"
-                  aria-label={`Open full attempt forensics for ${normalizeModelDisplayName(model.model_name)} on ${providerLabel(model.provider)} (${model.harness_revision ?? surfaceLabel(inferExecutionSurface(model))})`}
+                  aria-label={runForensicsAccessibleLabel(model, { action: "Open full attempt forensics" })}
                   onClick={() => navigateToRunForensics(model)}
                 >
                   Open full attempt forensics

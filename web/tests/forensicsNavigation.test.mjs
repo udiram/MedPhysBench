@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { publicArtifactHref, taskAttemptKey, taskForensicsSelection } from "../src/lib/forensicsNavigation.ts";
+import { publicArtifactHref, runForensicsAccessibleLabel, taskAttemptKey, taskForensicsSelection } from "../src/lib/forensicsNavigation.ts";
 
 test("attempt IDs remain the canonical forensic navigation key", () => {
   const task = {
@@ -93,4 +93,24 @@ test("task drilldown binds the exact run and attempt without carrying stale filt
   assert.match(selection.fx_model, /groq/);
   assert.equal(selection.fx_domain, null);
   assert.equal(selection.fx_outcome, null);
+});
+
+test("same-model reruns receive distinct forensic action names", () => {
+  const shared = {
+    provider: "groq",
+    model_name: "openai/gpt-oss-20b",
+    harness_revision: "openai-chat-json-v1",
+  };
+  const current = runForensicsAccessibleLabel({
+    ...shared,
+    comparison_group: "groq::harness::config=a2805525e3c98399",
+  });
+  const historical = runForensicsAccessibleLabel({
+    ...shared,
+    comparison_group: "groq::harness::config=bf8cca6e670e07b8",
+  });
+
+  assert.notEqual(current, historical);
+  assert.match(current, /configuration a2805525e3c98399/);
+  assert.match(historical, /configuration bf8cca6e670e07b8/);
 });
