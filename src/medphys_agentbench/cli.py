@@ -96,6 +96,24 @@ def main() -> None:
     generate_campaign.add_argument("--seed", type=int, default=20260731)
     generate_campaign.add_argument("--temperature", type=float, default=0.0)
     generate_campaign.add_argument(
+        "--minimum-available-memory-fraction",
+        type=float,
+        default=0.30,
+        help="Stop before a model call when available memory falls below this fraction (default: 0.30).",
+    )
+    generate_campaign.add_argument(
+        "--minimum-available-memory-gib",
+        type=float,
+        default=4,
+        help="Stop before a model call when available memory falls below this GiB floor (default: 4).",
+    )
+    generate_campaign.add_argument(
+        "--minimum-free-disk-gib",
+        type=float,
+        default=10,
+        help="Stop before a model call when free disk falls below this GiB floor (default: 10).",
+    )
+    generate_campaign.add_argument(
         "--allow-unknown-quota",
         action="store_true",
         help="Record an explicit override when the provider does not expose quota state.",
@@ -326,6 +344,9 @@ def main() -> None:
                 seed=args.seed,
                 temperature=args.temperature,
                 allow_unknown_quota=args.allow_unknown_quota,
+                minimum_available_memory_fraction=args.minimum_available_memory_fraction,
+                minimum_available_memory_gib=args.minimum_available_memory_gib,
+                minimum_free_disk_gib=args.minimum_free_disk_gib,
             )
             created = write_campaign_manifest(args.output, payload)
         except (RouteQualificationError, ValueError) as error:

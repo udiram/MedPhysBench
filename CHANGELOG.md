@@ -24,6 +24,8 @@
   and total coverage fields plus a regression test.
 - Renamed the hero's mixed unranked count from `Native outcome rows` to the accurate
   `Descriptive-only rows`; native and common-harness exclusions remain distinguishable below.
+- Exposed campaign memory-fraction, memory-GiB, and free-disk floors in the generator CLI so
+  conservative workstation limits are frozen into the immutable campaign instead of hand-edited.
 - Declared a digest-pinned Qwen3-VL 8B local route with vision transport, strict JSON Schema,
   4,096-token context, and `keep_alive=0`. Route declaration alone does not create access evidence,
   evaluated breadth, a score, or a rank; those remain gated on a fresh receipt and complete campaign.

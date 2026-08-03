@@ -79,6 +79,9 @@ uv run medphys-bench generate-campaign \
   --campaign-id groq-gpt-oss-20b-q2-v2 \
   --results-dir runs/groq-gpt-oss-20b-q2-v2 \
   --as-of 2026-08-03T12:00:00Z \
+  --minimum-available-memory-fraction 0.35 \
+  --minimum-available-memory-gib 6 \
+  --minimum-free-disk-gib 10 \
   --output campaigns/groq-gpt-oss-20b-q2-v2.yaml
 ```
 
@@ -86,6 +89,8 @@ The generator refuses expired, future-dated, tampered, identity-mismatched,
 unavailable, insufficient-quota, or mixed credential-surface inputs. Unknown
 quota also fails closed unless `--allow-unknown-quota` is explicitly recorded in
 the generated manifest. Generation contacts no provider and creates no run state.
+The memory and disk flags are frozen into the campaign instead of being runtime-only
+operator switches, so a resumed run cannot quietly weaken its safety floor.
 The probe emits typed access failures (missing authorization, model not found,
 quota exhausted, rate limited, unsupported contract, or network error) as
 non-scoring receipts. A successful receipt proves the route's declared JSON
