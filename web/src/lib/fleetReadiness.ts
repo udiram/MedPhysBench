@@ -3,7 +3,7 @@ import type { FleetStatusModel } from "../types";
 export type FleetSourceFilter = "all" | "open" | "closed";
 export type FleetStageFilter =
   | "all"
-  | "workflow"
+  | "workflow_view"
   | "ranked"
   | "evaluated"
   | "access"
@@ -24,11 +24,11 @@ export function filterFleetModels(models: FleetStatusModel[], filters: FleetFilt
     const matchesSource = filters.source === "all" || model.openness === filters.source;
     const matchesStage =
       filters.stage === "all" ||
-      (filters.stage === "workflow" && model.workflow_qualified) ||
+      (filters.stage === "workflow_view" && model.workflow_view_evaluated) ||
       (filters.stage === "ranked" && model.ranked) ||
       (filters.stage === "evaluated" && model.evaluated) ||
       (filters.stage === "access" && model.access_qualified) ||
-      (filters.stage === "needs_evidence" && !model.workflow_qualified) ||
+      (filters.stage === "needs_evidence" && !model.workflow_view_evaluated) ||
       (filters.stage === "planned" && !model.access_qualified);
     const matchesRoute = filters.route === "all" || model.planned_routes.includes(filters.route);
     const searchText = [
@@ -57,7 +57,7 @@ export function filterFleetModels(models: FleetStatusModel[], filters: FleetFilt
 export function fleetNextGateLabel(value: FleetStatusModel["next_gate"]) {
   if (value === "q0_access") return "Q0 · verify exact access";
   if (value === "q2_common_harness") return "Q2 · common-harness matrix";
-  if (value === "q2_workflow") return "Q2 · workflow matrix";
+  if (value === "q2_workflow_view") return "Q2 · OpenKBP workflow-view matrix";
   return "Q3 · reviewed comparison";
 }
 

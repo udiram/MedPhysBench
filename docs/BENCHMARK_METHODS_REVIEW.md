@@ -34,8 +34,9 @@ the planned review unit is two independent qualified physicists plus an adjudica
 disagreement; a severe feasibility, rights, leakage, or grader-validity flag blocks promotion.
 
 The immediate public result should consequently be read as engineering evidence: 50 frozen model
-targets, 20 workflow-qualified base models, 29 published system configurations, and a provisional
-two-family workflow pilot. Interface polish, provider coverage, and additional attempts cannot by
+targets, 20 base models evaluated on one-response OpenKBP workflow views, 29 published system
+configurations, and a provisional two-family pilot. None is stateful-workflow-qualified. Interface
+polish, provider coverage, and additional attempts cannot by
 themselves advance that release to domain-reviewed, human-baselined, protected, or externally
 replicated status.
 

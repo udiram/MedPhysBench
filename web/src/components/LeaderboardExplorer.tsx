@@ -1,5 +1,5 @@
 import { ArrowDownToLine, ChevronDown, Search } from "lucide-react";
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { classifyAttemptOutcome } from "../types";
 import type { AccessStatus, Leaderboard, ModelCatalogEntry, ModelResult, ReleaseView, Tg263Audit } from "../types";
 import {
@@ -15,6 +15,11 @@ import {
   shortHash,
 } from "../lib/format";
 import { modelRunKey } from "../lib/modelRunKey";
+import {
+  DEFAULT_CHART_ROW_LIMIT,
+  DEFAULT_TABLE_ROW_LIMIT,
+  limitEvidenceRows,
+} from "../lib/efficiencyScope";
 import { releaseIdForView } from "../lib/releaseEvidence";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import { competitionRankMap } from "../lib/ranking";
@@ -121,6 +126,8 @@ export function LeaderboardExplorer({
   const [sortKey, setSortKey] = useState<SortKey>("safe_success_rate");
   const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [summaryExpanded, setSummaryExpanded] = useState(false);
+  useEffect(() => setSummaryExpanded(false), [data?.release.release_id]);
   const deferredQuery = useDeferredValue(query);
   const allRows = useMemo(
     () => withDerivedOutcomeRanks(data ? [...data.models, ...(data.unranked_models ?? [])] : []),
@@ -175,6 +182,7 @@ export function LeaderboardExplorer({
       (left.outcome_rank ?? Infinity) - (right.outcome_rank ?? Infinity) ||
       left.model_name.localeCompare(right.model_name),
   );
+  const visibleSummaryRows = limitEvidenceRows(summaryRows, summaryExpanded, DEFAULT_TABLE_ROW_LIMIT);
   const blocked = accessStatus.filter((item) => item.status !== "available");
 
   return (
@@ -200,14 +208,18 @@ export function LeaderboardExplorer({
           {releaseView === "tg263" ? (
             <Tg263AuditChart audit={tg263Audit} />
           ) : (
-            <OutcomeIntervalPlot data={data} />
+            <OutcomeIntervalPlot key={data?.release.release_id ?? releaseView} data={data} />
           )}
         </article>
         <aside className="results-summary">
           <div className="results-summary-head">
             <div>
               <h3>Published outcomes</h3>
-              <p>{data ? `${summaryRows.length} run sets · ${data.tasks.length} public tasks` : "Loading release contract"}</p>
+              <p>
+                {data
+                  ? `${summaryExpanded ? summaryRows.length : `Top ${visibleSummaryRows.length} of ${summaryRows.length}`} run sets · ${data.tasks.length} public tasks`
+                  : "Loading release contract"}
+              </p>
             </div>
           </div>
           {!data ? (
@@ -227,7 +239,7 @@ export function LeaderboardExplorer({
                   </tr>
                 </thead>
                 <tbody>
-                  {summaryRows.map((model) => (
+                  {visibleSummaryRows.map((model) => (
                     <tr key={modelRunKey(model)}>
                       <td>#{model.outcome_rank ?? "—"}</td>
                       <td>
@@ -259,6 +271,17 @@ export function LeaderboardExplorer({
               <p>Incomplete or integrity-invalid runs remain outside the descriptive outcome order.</p>
             </div>
           )}
+
+          {summaryRows.length > DEFAULT_TABLE_ROW_LIMIT ? (
+            <button
+              className="evidence-overflow-control"
+              type="button"
+              aria-expanded={summaryExpanded}
+              onClick={() => setSummaryExpanded((value) => !value)}
+            >
+              {summaryExpanded ? "Show the leading outcome rows" : `Show all ${summaryRows.length} outcome rows`}
+            </button>
+          ) : null}
 
           <p className="summary-footnote">
             Outcome order is descriptive across complete rows. Exact point-estimate ties share a rank; names only order tied rows. Family-cluster intervals are primary when patient-family IDs are available; Wilson attempt-level intervals remain visible as a secondary sensitivity analysis. Official rank is shown only within identical frozen harness groups.
@@ -428,6 +451,7 @@ export function LeaderboardExplorer({
 }
 
 function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
+  const [expanded, setExpanded] = useState(false);
   if (!data) {
     return (
       <div className="visual-empty visual-loading" role="status">
@@ -441,6 +465,7 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
     .filter((row) => row.outcome_rank != null)
     .sort((left, right) => (left.outcome_rank ?? Infinity) - (right.outcome_rank ?? Infinity));
   const omitted = allRows.length - rows.length;
+  const visibleRows = limitEvidenceRows(rows, expanded, DEFAULT_CHART_ROW_LIMIT);
 
   if (rows.length === 0) {
     return (
@@ -453,7 +478,7 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
 
   const width = 760;
   const rowHeight = 46;
-  const height = 82 + rows.length * rowHeight;
+  const height = 82 + visibleRows.length * rowHeight;
   const margin = { top: 50, right: 28, bottom: 32, left: 222 };
   const scaleX = (value: number) => margin.left + value * (width - margin.left - margin.right);
   const intervalFor = (row: ModelResult) => primaryScoreInterval(row);
@@ -486,7 +511,7 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
             </text>
           </g>
         ))}
-        {rows.map((row, index) => {
+        {visibleRows.map((row, index) => {
           const y = margin.top + index * rowHeight + rowHeight / 2;
           const interval = intervalFor(row);
           const markerX = scaleX(row.safe_success_rate);
@@ -517,7 +542,7 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
         })}
       </svg>
       <ol className="mobile-interval-list" aria-label="Safe success interval summary">
-        {rows.map((row) => {
+        {visibleRows.map((row) => {
           const interval = intervalFor(row);
           return (
             <li key={modelRunKey(row)}>
@@ -545,6 +570,16 @@ function OutcomeIntervalPlot({ data }: { data: Leaderboard | null }) {
           );
         })}
       </ol>
+      {rows.length > DEFAULT_CHART_ROW_LIMIT ? (
+        <button
+          className="evidence-overflow-control"
+          type="button"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          {expanded ? "Show the leading interval rows" : `Show all ${rows.length} rows in the interval plot`}
+        </button>
+      ) : null}
       <div className="outcome-plot-key" aria-label="Plot key">
         <span><i className="outcome-key-common" /> Common-harness comparable row</span>
         <span><i className="outcome-key-native" /> Native/import row</span>

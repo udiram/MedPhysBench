@@ -12,6 +12,13 @@
 
 ## Unreleased
 
+- Versioned the fleet projection to `fleet-status.v3`, replacing the misleading
+  `workflow_qualified` terminology with explicit one-response OpenKBP workflow-view fields.
+  The public funnel now reports evaluated open/closed, vision, steward, and size-tier composition
+  separately from the planned 50-model panel; stateful workflow qualification remains reserved for
+  receipt-backed future releases.
+- Bounded the default published-outcome interval plot and exact-value summary while preserving every
+  row behind accessible show-all controls, reducing the 29-row overview without hiding evidence.
 - Added a canonical, schema-validated release-evidence index covering all six release manifests.
   Repository validation recomputes manifest/release hashes, task and family counts, defect bindings,
   and review-ledger bindings; incomplete human, reviewer, holdout, replication, and interaction

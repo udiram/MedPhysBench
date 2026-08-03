@@ -167,10 +167,14 @@ counts because its provider-output failure artifacts lack model-response receipt
 GPT-5.6 Sol and Terra complete native rows remain visible in the same
 model index and attempt forensics, but do not inflate that common-harness funnel.
 
-The public `fleet-status.v2` projection now gives every frozen base ID a
+The public `fleet-status.v3` projection now gives every frozen base ID a
 machine-derived readiness state, next gate, explanatory note, and any exact
 base-model-bound access evidence, including a direct attested-submission link when
-one exists. “Planned route” means no Q0 evidence is
+one exists. It also separates the planned-panel composition from the actually
+evaluated slice: the current common-harness slice contains 20 open-weight and zero
+closed-weight base models, six vision-capable base models, seven stewards, and three
+size tiers. The OpenKBP field is explicitly a one-response workflow-view gate, not
+stateful workflow qualification. “Planned route” means no Q0 evidence is
 committed; it is not a claim that an API handle, free quota, local artifact, or
 compatible hardware is currently available. The website can therefore filter the
 remaining 30 models by openness, route, and missing gate without inventing access

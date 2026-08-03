@@ -160,6 +160,7 @@ def validate_repository() -> dict[str, int]:
         "model_fleet": _validator("model-fleet.v1.schema.json"),
         "fleet_status_v1": _validator("fleet-status.v1.schema.json"),
         "fleet_status_v2": _validator("fleet-status.v2.schema.json"),
+        "fleet_status_v3": _validator("fleet-status.v3.schema.json"),
         "common_harness_submission": _validator("common-harness-submission.v1.schema.json"),
         "recorded_batch_v2": _validator("recorded-batch.v2.schema.json"),
         "defect_ledger": _validator("defect-ledger.v1.schema.json"),
@@ -209,7 +210,7 @@ def validate_repository() -> dict[str, int]:
 
     fleet_status_path = ROOT / "web" / "public" / "data" / "fleet_status.json"
     fleet_status = _load_json(fleet_status_path)
-    _validate(validators["fleet_status_v2"], fleet_status, fleet_status_path)
+    _validate(validators["fleet_status_v3"], fleet_status, fleet_status_path)
     if fleet_status["fleet_id"] != fleet["fleet_id"]:
         raise ValueError(f"{fleet_status_path}: fleet_id does not match the frozen fleet manifest.")
     if fleet_status["summary"]["planned_base_models"] != len(fleet_ids):

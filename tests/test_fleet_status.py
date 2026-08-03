@@ -51,7 +51,7 @@ def test_every_executable_route_resolves_to_the_frozen_fleet() -> None:
 
 
 def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
-    schema = _load_json(ROOT / "schemas" / "fleet-status.v2.schema.json")
+    schema = _load_json(ROOT / "schemas" / "fleet-status.v3.schema.json")
     status = _load_json(STATUS_PATH)
     assert isinstance(schema, dict)
     Draft202012Validator(schema, format_checker=FormatChecker()).validate(status)
@@ -63,14 +63,19 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
         "access_qualified_base_models": 23,
         "evaluated_base_models": 20,
         "ranked_base_models": 20,
-        "workflow_qualified_base_models": 20,
-        "workflow_ranked_base_models": 20,
+        "workflow_view_evaluated_base_models": 20,
+        "workflow_view_ranked_base_models": 20,
         "published_system_configurations": 29,
         "published_release_rows": 47,
         "open_planned_models": 31,
         "closed_planned_models": 19,
         "vision_planned_models": 31,
         "steward_count": 11,
+        "evaluated_open_base_models": 20,
+        "evaluated_closed_base_models": 0,
+        "evaluated_vision_base_models": 6,
+        "evaluated_steward_count": 7,
+        "evaluated_size_tiers": ["large", "medium", "small"],
         "route_set_count": 2,
         "declared_route_count": 12,
     }
@@ -79,7 +84,7 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert any("groq" in entry["planned_routes"] for entry in rebuilt["models"])
     assert any("ollama" in entry["planned_routes"] for entry in rebuilt["models"])
     assert all(entry["readiness_note"] for entry in rebuilt["models"])
-    assert sum(entry["readiness_state"] == "workflow_qualified" for entry in rebuilt["models"]) == 20
+    assert sum(entry["readiness_state"] == "workflow_view_evaluated" for entry in rebuilt["models"]) == 20
     assert sum(entry["readiness_state"] == "route_planned" for entry in rebuilt["models"]) == 27
     terra = next(entry for entry in rebuilt["models"] if entry["base_model_id"] == "gpt-5.6-terra")
     assert terra["readiness_state"] == "access_qualified"
@@ -187,7 +192,7 @@ def test_complete_v2_row_requires_attested_qualification_evidence(
         build_fleet_status(access_path=access_path)
 
 
-def test_v2_workflow_comparison_group_is_now_officially_ranked() -> None:
+def test_v2_workflow_view_comparison_group_is_now_officially_ranked() -> None:
     status = build_fleet_status()
     deepseek = next(
         row for row in status["models"] if row["base_model_id"] == "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
@@ -196,11 +201,11 @@ def test_v2_workflow_comparison_group_is_now_officially_ranked() -> None:
     assert deepseek["access_qualified"] is True
     assert deepseek["evaluated"] is True
     assert deepseek["ranked"] is True
-    assert deepseek["workflow_qualified"] is True
-    assert deepseek["workflow_ranked"] is True
+    assert deepseek["workflow_view_evaluated"] is True
+    assert deepseek["workflow_view_ranked"] is True
 
 
-def test_qwen25vl_7b_is_exactly_bound_through_access_and_workflow_results() -> None:
+def test_qwen25vl_7b_is_exactly_bound_through_access_and_workflow_view_results() -> None:
     status = build_fleet_status()
     qwen = next(row for row in status["models"] if row["base_model_id"] == "Qwen/Qwen2.5-VL-7B-Instruct")
 
@@ -208,8 +213,8 @@ def test_qwen25vl_7b_is_exactly_bound_through_access_and_workflow_results() -> N
     assert qwen["access_qualified"] is True
     assert qwen["evaluated"] is True
     assert qwen["ranked"] is True
-    assert qwen["workflow_qualified"] is True
-    assert qwen["workflow_ranked"] is True
+    assert qwen["workflow_view_evaluated"] is True
+    assert qwen["workflow_view_ranked"] is True
     assert qwen["published_row_count"] == 1
 
 
@@ -225,8 +230,8 @@ def test_pixtral_community_quantization_is_attested_and_ranked() -> None:
     assert pixtral["access_qualified"] is True
     assert pixtral["evaluated"] is True
     assert pixtral["ranked"] is True
-    assert pixtral["workflow_qualified"] is True
-    assert pixtral["workflow_ranked"] is True
+    assert pixtral["workflow_view_evaluated"] is True
+    assert pixtral["workflow_view_ranked"] is True
     assert pixtral["published_row_count"] == 1
     assert provenance["kind"] == "community_quantization"
     assert provenance["source_url"] == (
@@ -247,16 +252,16 @@ def test_pixtral_community_quantization_is_attested_and_ranked() -> None:
     }
 
 
-def test_workflow_qualified_counts_only_common_harness_real_workflow_release() -> None:
+def test_workflow_view_counts_only_common_harness_openkbp_release() -> None:
     status = build_fleet_status()
-    assert status["summary"]["workflow_qualified_base_models"] == 20
-    assert status["summary"]["workflow_ranked_base_models"] == 20
+    assert status["summary"]["workflow_view_evaluated_base_models"] == 20
+    assert status["summary"]["workflow_view_ranked_base_models"] == 20
 
     gpt = next(row for row in status["models"] if row["base_model_id"] == "gpt-5.6-sol")
     assert gpt["evaluated"] is False
-    assert gpt["workflow_qualified"] is False
+    assert gpt["workflow_view_evaluated"] is False
     assert gpt["published_row_count"] > 0
 
     planned_only = next(row for row in status["models"] if row["base_model_id"] == "Qwen/Qwen3-32B")
     assert planned_only["evaluated"] is False
-    assert planned_only["workflow_qualified"] is False
+    assert planned_only["workflow_view_evaluated"] is False

@@ -1762,8 +1762,8 @@ function fleetStatusLabel(entry: FleetStatusModel | null, hasReferenceData: bool
   if (!entry) {
     return hasReferenceData ? "Published outside frozen fleet" : "Catalog pending";
   }
+  if (entry.workflow_view_ranked) return "OpenKBP view ranked";
   if (entry.ranked) return "Rankable";
-  if (entry.workflow_qualified) return "Workflow qualified";
   if (entry.evaluated) return "Published";
   if (entry.access_qualified) return qualificationStageLabel(entry.qualification_stage);
   return "Planned";

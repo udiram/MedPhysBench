@@ -29,7 +29,7 @@ DEFAULT_LEADERBOARDS = (
 )
 DEFAULT_OUTPUT = REPO_ROOT / "web" / "public" / "data" / "fleet_status.json"
 DEFAULT_ROUTE_SETS = tuple(sorted((REPO_ROOT / "fleet").glob("*routes*.yaml")))
-WORKFLOW_QUALIFYING_RELEASE_IDS = {"public-real-workflows-pilot-v0.6"}
+WORKFLOW_VIEW_RELEASE_IDS = {"public-real-workflows-pilot-v0.6"}
 
 COMPARABILITY_ONLY_ISSUES = {
     "unranked_singleton_comparison_group",
@@ -159,8 +159,8 @@ def build_fleet_status(
 
     evaluated_by_base: dict[str, bool] = defaultdict(bool)
     ranked_by_base: dict[str, bool] = defaultdict(bool)
-    workflow_evaluated_by_base: dict[str, bool] = defaultdict(bool)
-    workflow_ranked_by_base: dict[str, bool] = defaultdict(bool)
+    workflow_view_evaluated_by_base: dict[str, bool] = defaultdict(bool)
+    workflow_view_ranked_by_base: dict[str, bool] = defaultdict(bool)
     releases_by_base: dict[str, set[str]] = defaultdict(set)
     row_count_by_base: dict[str, int] = defaultdict(int)
     visible_configurations: set[tuple[str, str]] = set()
@@ -202,10 +202,10 @@ def build_fleet_status(
                 evaluated_by_base[base_model_id] = True
                 if row.get("ranking_eligible") is True:
                     ranked_by_base[base_model_id] = True
-                if release_id in WORKFLOW_QUALIFYING_RELEASE_IDS:
-                    workflow_evaluated_by_base[base_model_id] = True
+                if release_id in WORKFLOW_VIEW_RELEASE_IDS:
+                    workflow_view_evaluated_by_base[base_model_id] = True
                     if row.get("ranking_eligible") is True:
-                        workflow_ranked_by_base[base_model_id] = True
+                        workflow_view_ranked_by_base[base_model_id] = True
 
     model_rows: list[dict[str, Any]] = []
     for planned in fleet_models:
@@ -215,7 +215,7 @@ def build_fleet_status(
         readiness_state, next_gate, readiness_note = _readiness(
             access_qualified=bool(stages),
             evaluated=evaluated_by_base[base_model_id],
-            workflow_qualified=workflow_evaluated_by_base[base_model_id],
+            workflow_view_evaluated=workflow_view_evaluated_by_base[base_model_id],
         )
         model_rows.append(
             {
@@ -231,8 +231,8 @@ def build_fleet_status(
                 "qualification_stage": highest_stage,
                 "evaluated": evaluated_by_base[base_model_id],
                 "ranked": ranked_by_base[base_model_id],
-                "workflow_qualified": workflow_evaluated_by_base[base_model_id],
-                "workflow_ranked": workflow_ranked_by_base[base_model_id],
+                "workflow_view_evaluated": workflow_view_evaluated_by_base[base_model_id],
+                "workflow_view_ranked": workflow_view_ranked_by_base[base_model_id],
                 "system_configuration_count": len(configurations_by_base.get(base_model_id, set())),
                 "published_release_count": len(releases_by_base.get(base_model_id, set())),
                 "published_row_count": row_count_by_base[base_model_id],
@@ -248,7 +248,7 @@ def build_fleet_status(
         )
 
     return {
-        "schema_version": "medphysbench.fleet-status.v2",
+        "schema_version": "medphysbench.fleet-status.v3",
         "generated_at": str(fleet["frozen_at"]),
         "fleet_id": str(fleet["fleet_id"]),
         "summary": {
@@ -256,14 +256,21 @@ def build_fleet_status(
             "access_qualified_base_models": sum(row["access_qualified"] for row in model_rows),
             "evaluated_base_models": sum(row["evaluated"] for row in model_rows),
             "ranked_base_models": sum(row["ranked"] for row in model_rows),
-            "workflow_qualified_base_models": sum(row["workflow_qualified"] for row in model_rows),
-            "workflow_ranked_base_models": sum(row["workflow_ranked"] for row in model_rows),
+            "workflow_view_evaluated_base_models": sum(row["workflow_view_evaluated"] for row in model_rows),
+            "workflow_view_ranked_base_models": sum(row["workflow_view_ranked"] for row in model_rows),
             "published_system_configurations": len(visible_configurations),
             "published_release_rows": sum(row_count_by_base.values()),
             "open_planned_models": sum(row["openness"] == "open" for row in model_rows),
             "closed_planned_models": sum(row["openness"] == "closed" for row in model_rows),
             "vision_planned_models": sum("image" in row["modalities"] for row in model_rows),
             "steward_count": len({row["steward"] for row in model_rows}),
+            "evaluated_open_base_models": sum(row["evaluated"] and row["openness"] == "open" for row in model_rows),
+            "evaluated_closed_base_models": sum(row["evaluated"] and row["openness"] == "closed" for row in model_rows),
+            "evaluated_vision_base_models": sum(
+                row["evaluated"] and "image" in row["modalities"] for row in model_rows
+            ),
+            "evaluated_steward_count": len({row["steward"] for row in model_rows if row["evaluated"]}),
+            "evaluated_size_tiers": sorted({row["size_tier"] for row in model_rows if row["evaluated"]}),
             "route_set_count": len(route_sets),
             "declared_route_count": len(route_ids),
         },
@@ -275,21 +282,22 @@ def _readiness(
     *,
     access_qualified: bool,
     evaluated: bool,
-    workflow_qualified: bool,
+    workflow_view_evaluated: bool,
 ) -> tuple[str, str, str]:
-    if workflow_qualified:
+    if workflow_view_evaluated:
         return (
-            "workflow_qualified",
+            "workflow_view_evaluated",
             "q3_comparison",
-            "A complete current-contract OpenKBP common-harness matrix is published. The next gate is a larger "
-            "family-diverse comparison release with external physics review and a matched human baseline.",
+            "A complete current-contract OpenKBP one-response workflow-view matrix is published. This is not a "
+            "stateful workflow claim; the next gate is a larger family-diverse comparison release with external "
+            "physics review and a matched human baseline.",
         )
     if evaluated:
         return (
             "evaluated",
-            "q2_workflow",
+            "q2_workflow_view",
             "Complete common-harness evidence exists on another public release. The next gate is the repeated-attempt "
-            "OpenKBP real-workflow matrix under one frozen configuration.",
+            "OpenKBP one-response workflow-view matrix under one frozen configuration.",
         )
     if access_qualified:
         return (

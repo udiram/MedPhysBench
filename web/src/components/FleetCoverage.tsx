@@ -19,8 +19,8 @@ const FUNNEL_STAGES = [
   ["planned_base_models", "Frozen panel", "Predeclared unique base IDs"],
   ["access_qualified_base_models", "Access qualified", "Live Q0 or later evidence"],
   ["evaluated_base_models", "Common-harness evaluated", "Complete current-contract matrix on a common adapter"],
-  ["workflow_qualified_base_models", "Workflow qualified", "Common-harness OpenKBP workflow-view matrix"],
   ["ranked_base_models", "Rankable", "Complete common-harness evidence"],
+  ["workflow_view_evaluated_base_models", "OpenKBP workflow-view", "Complete one-response OpenKBP view matrix; not stateful"],
 ] as const;
 
 export function FleetCoverage({ data }: Props) {
@@ -57,7 +57,7 @@ export function FleetCoverage({ data }: Props) {
       <div className="section-heading fleet-heading">
         <div>
           <p className="eyebrow">Fleet integrity</p>
-          <h2>{target} planned. {data.summary.workflow_qualified_base_models} workflow-qualified. {data.summary.evaluated_base_models} validly evaluated.</h2>
+          <h2>{target} planned. {data.summary.access_qualified_base_models} access-qualified. {data.summary.evaluated_base_models} common-harness evaluated.</h2>
         </div>
         <p>
           The panel counts unique base model IDs—not effort settings, providers, aliases, or partial attempts. A model advances only
@@ -89,6 +89,7 @@ export function FleetCoverage({ data }: Props) {
       </ol>
 
       <div className="fleet-coverage-line" aria-label="Frozen fleet composition">
+        <span><strong>Planned panel</strong></span>
         <span><strong>{data.summary.open_planned_models}</strong> open-weight</span>
         <span><strong>{data.summary.closed_planned_models}</strong> closed</span>
         <span><strong>{data.summary.vision_planned_models}</strong> vision-capable</span>
@@ -97,6 +98,15 @@ export function FleetCoverage({ data }: Props) {
         <span><strong>{data.summary.published_release_rows}</strong> release rows</span>
         <span><strong>{data.summary.declared_route_count}</strong> executable routes declared</span>
         <span><strong>{data.summary.route_set_count}</strong> frozen route sets</span>
+      </div>
+
+      <div className="fleet-coverage-line" aria-label="Actually evaluated fleet composition">
+        <span><strong>Evaluated slice</strong></span>
+        <span><strong>{data.summary.evaluated_open_base_models}</strong> open-weight</span>
+        <span><strong>{data.summary.evaluated_closed_base_models}</strong> closed</span>
+        <span><strong>{data.summary.evaluated_vision_base_models}</strong> vision-capable</span>
+        <span><strong>{data.summary.evaluated_steward_count}</strong> stewards</span>
+        <span><strong>{data.summary.evaluated_size_tiers.join(" · ") || "none"}</strong> size tiers represented</span>
       </div>
 
       <details className="fleet-registry">
@@ -132,11 +142,11 @@ export function FleetCoverage({ data }: Props) {
               <span className="select-wrap">
                 <select value={stage} onChange={(event) => setStage(event.target.value as FleetStageFilter)}>
                   <option value="all">Every stage</option>
-                  <option value="workflow">Workflow qualified</option>
+                  <option value="workflow_view">OpenKBP workflow-view evaluated</option>
                   <option value="ranked">Rankable</option>
                   <option value="evaluated">Published evaluation</option>
                   <option value="access">Access qualified</option>
-                  <option value="needs_evidence">Needs workflow evidence</option>
+                  <option value="needs_evidence">Needs OpenKBP view evidence</option>
                   <option value="planned">No access evidence</option>
                 </select>
                 <ChevronDown aria-hidden="true" />
@@ -173,19 +183,17 @@ export function FleetCoverage({ data }: Props) {
 }
 
 function FleetModelCard({ model }: { model: FleetStatusModel }) {
-  const status = model.ranked
-    ? "Rankable"
-    : model.workflow_qualified
-      ? "Workflow qualified"
-    : model.evaluated
-      ? "Published"
-      : model.access_qualified
-        ? model.qualification_stage?.toUpperCase() ?? "Access"
-        : "Planned";
-  const statusClass = model.ranked
+  const status = model.workflow_view_ranked
+    ? "OpenKBP view ranked"
+    : model.ranked
+      ? "Rankable"
+      : model.evaluated
+        ? "Published"
+        : model.access_qualified
+          ? model.qualification_stage?.toUpperCase() ?? "Access"
+          : "Planned";
+  const statusClass = model.workflow_view_ranked || model.ranked
     ? "ranked"
-    : model.workflow_qualified
-      ? "evaluated"
     : model.evaluated
       ? "evaluated"
       : model.access_qualified

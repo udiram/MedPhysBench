@@ -3,6 +3,8 @@ import test from "node:test";
 
 import {
   buildComparisonScopes,
+  DEFAULT_CHART_ROW_LIMIT,
+  DEFAULT_TABLE_ROW_LIMIT,
   limitEvidenceRows,
   runComparisonScopeKey,
 } from "../src/lib/efficiencyScope.ts";
@@ -48,7 +50,10 @@ test("comparison scopes preserve frozen harness identity", () => {
 
 test("dense evidence views default to a bounded row count without deleting data", () => {
   const rows = Array.from({ length: 29 }, (_, index) => index);
-  assert.deepEqual(limitEvidenceRows(rows, false, 14), rows.slice(0, 14));
-  assert.deepEqual(limitEvidenceRows(rows, true, 14), rows);
+  assert.equal(DEFAULT_CHART_ROW_LIMIT, 14);
+  assert.equal(DEFAULT_TABLE_ROW_LIMIT, 16);
+  assert.deepEqual(limitEvidenceRows(rows, false, DEFAULT_CHART_ROW_LIMIT), rows.slice(0, 14));
+  assert.deepEqual(limitEvidenceRows(rows, false, DEFAULT_TABLE_ROW_LIMIT), rows.slice(0, 16));
+  assert.deepEqual(limitEvidenceRows(rows, true, DEFAULT_CHART_ROW_LIMIT), rows);
   assert.deepEqual(rows, Array.from({ length: 29 }, (_, index) => index));
 });

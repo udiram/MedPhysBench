@@ -21,14 +21,14 @@ const rows = [
     qualification_stage: "q2",
     evaluated: true,
     ranked: true,
-    workflow_qualified: true,
-    workflow_ranked: true,
+    workflow_view_evaluated: true,
+    workflow_view_ranked: true,
     system_configuration_count: 1,
     published_release_count: 1,
     published_row_count: 1,
-    readiness_state: "workflow_qualified",
+    readiness_state: "workflow_view_evaluated",
     next_gate: "q3_comparison",
-    readiness_note: "Complete workflow evidence exists.",
+    readiness_note: "Complete one-response OpenKBP workflow-view evidence exists.",
     access_evidence: [{
       provider: "groq",
       model: "model-a-route",
@@ -58,8 +58,8 @@ const rows = [
     qualification_stage: "q2",
     evaluated: false,
     ranked: false,
-    workflow_qualified: false,
-    workflow_ranked: false,
+    workflow_view_evaluated: false,
+    workflow_view_ranked: false,
     system_configuration_count: 1,
     published_release_count: 1,
     published_row_count: 1,
@@ -91,8 +91,8 @@ const rows = [
     qualification_stage: null,
     evaluated: false,
     ranked: false,
-    workflow_qualified: false,
-    workflow_ranked: false,
+    workflow_view_evaluated: false,
+    workflow_view_ranked: false,
     system_configuration_count: 0,
     published_release_count: 0,
     published_row_count: 0,
@@ -104,6 +104,11 @@ const rows = [
 ];
 
 test("fleet readiness filters preserve honest base-model stages", () => {
+  assert.deepEqual(
+    filterFleetModels(rows, { source: "all", stage: "workflow_view", route: "all", query: "" })
+      .map((row) => row.base_model_id),
+    ["open/model-a"],
+  );
   assert.deepEqual(
     filterFleetModels(rows, { source: "closed", stage: "needs_evidence", route: "all", query: "" })
       .map((row) => row.base_model_id),
@@ -137,6 +142,7 @@ test("fleet search reaches route evidence and readiness notes", () => {
 test("fleet gate and route labels stay reader-facing", () => {
   assert.equal(fleetNextGateLabel("q0_access"), "Q0 · verify exact access");
   assert.equal(fleetNextGateLabel("q2_common_harness"), "Q2 · common-harness matrix");
+  assert.equal(fleetNextGateLabel("q2_workflow_view"), "Q2 · OpenKBP workflow-view matrix");
   assert.equal(fleetNextGateLabel("q3_comparison"), "Q3 · reviewed comparison");
   assert.equal(fleetRouteLabel("self_hosted"), "Self-hosted");
   assert.equal(fleetRouteLabel("openai"), "OpenAI API");

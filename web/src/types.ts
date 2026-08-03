@@ -430,14 +430,19 @@ export type FleetStatusSummary = {
   access_qualified_base_models: number;
   evaluated_base_models: number;
   ranked_base_models: number;
-  workflow_qualified_base_models: number;
-  workflow_ranked_base_models: number;
+  workflow_view_evaluated_base_models: number;
+  workflow_view_ranked_base_models: number;
   published_system_configurations: number;
   published_release_rows: number;
   open_planned_models: number;
   closed_planned_models: number;
   vision_planned_models: number;
   steward_count: number;
+  evaluated_open_base_models: number;
+  evaluated_closed_base_models: number;
+  evaluated_vision_base_models: number;
+  evaluated_steward_count: number;
+  evaluated_size_tiers: Array<"small" | "medium" | "large" | "frontier" | "undisclosed">;
   route_set_count: number;
   declared_route_count: number;
 };
@@ -455,13 +460,13 @@ export type FleetStatusModel = {
   qualification_stage: "q0" | "q1" | "q2" | "q3" | null;
   evaluated: boolean;
   ranked: boolean;
-  workflow_qualified: boolean;
-  workflow_ranked: boolean;
+  workflow_view_evaluated: boolean;
+  workflow_view_ranked: boolean;
   system_configuration_count: number;
   published_release_count: number;
   published_row_count: number;
-  readiness_state: "route_planned" | "access_qualified" | "evaluated" | "workflow_qualified";
-  next_gate: "q0_access" | "q2_common_harness" | "q2_workflow" | "q3_comparison";
+  readiness_state: "route_planned" | "access_qualified" | "evaluated" | "workflow_view_evaluated";
+  next_gate: "q0_access" | "q2_common_harness" | "q2_workflow_view" | "q3_comparison";
   readiness_note: string;
   access_evidence: Array<{
     provider: string | null;
@@ -481,7 +486,7 @@ export type FleetStatusModel = {
 };
 
 export type FleetStatus = {
-  schema_version: "medphysbench.fleet-status.v2";
+  schema_version: "medphysbench.fleet-status.v3";
   generated_at: string;
   fleet_id: string;
   summary: FleetStatusSummary;
