@@ -33,6 +33,8 @@ def test_usage_summary_preserves_missing_telemetry() -> None:
         "total_complete": False,
         "campaign_attempts": 2,
         "capability_unavailable_attempts": 0,
+        "provider_output_contract_failure_attempts": 0,
+        "usage_unavailable_attempts": 0,
         "total_input_tokens": 100,
         "total_output_tokens": 25,
         "total_tokens": 125,

@@ -14,13 +14,13 @@ ROOT = Path(__file__).resolve().parents[1]
 ADMISSION = ROOT / "governance" / "descriptive-admissions-public-real-workflows-pilot-v0.6.json"
 
 
-def test_committed_descriptive_admission_exactly_covers_legacy_common_rows() -> None:
+def test_committed_descriptive_admission_exactly_covers_unranked_common_rows() -> None:
     summary = validate_descriptive_admissions(ADMISSION)
 
     assert summary == {
-        "admission_id": "openkb-v0.6-legacy-descriptive-20260803",
+        "admission_id": "openkb-v0.6-descriptive-20260803",
         "release_id": "public-real-workflows-pilot-v0.6",
-        "entry_count": 9,
+        "entry_count": 10,
         "scope": "descriptive_publication_only",
     }
 

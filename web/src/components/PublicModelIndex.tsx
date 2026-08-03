@@ -1686,6 +1686,16 @@ function modelEvidenceStatus(runs: PublicRun[], bestScore: number | null) {
       label: `Official group-ranked evidence${bestScore == null ? "" : ` · ${formatPercent(bestScore)}`}`,
     };
   }
+  if (runs.some((run) =>
+    scoreEvidenceAvailable(run)
+    && run.integrity?.integrity_errors?.length === 1
+    && run.integrity.integrity_errors[0] === "unranked_singleton_comparison_group"
+  )) {
+    return {
+      kind: "attested",
+      label: `Attested evidence · awaiting exact-contract peer${bestScore == null ? "" : ` · ${formatPercent(bestScore)}`}`,
+    };
+  }
   if (runs.some((run) => scoreEvidenceAvailable(run) && isNativeRun(run))) {
     return {
       kind: "native",

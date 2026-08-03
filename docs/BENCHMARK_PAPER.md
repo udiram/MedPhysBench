@@ -33,6 +33,9 @@ import checks. It also binds each attempt to the grader hash and scoring revisio
 family-cluster uncertainty for correlated patient-linked tasks. A model is rankable only when its
 task/attempt matrix is complete, deterministically regraded, internally consistent, and backed by
 per-call execution traces, provider/runtime receipts, usage telemetry, and duration telemetry.
+Provider-rejected structured-output calls remain scored failures and may omit usage only when the
+provider receipt explicitly records the rejection and the aggregate discloses the unavailable-token
+denominator; token counts are never imputed.
 Native conversation-surface pilots are published separately and cannot receive a common-harness rank.
 Difficulty governance adds family-level splits, rotating holdouts, paired counterfactuals,
 multi-seed consistency, saturation triggers, and a 20-phase radiation-therapy competency map.
@@ -225,6 +228,12 @@ group now receives the only official within-group ranks in v0.6; every ranked ro
 strictly validated common-harness submission sidecar. It is not merged with the older Ollama, Groq,
 or native GPT-5.6 groups. Public defect `MPB-2026-003` records the fail-closed reclassification; no
 immutable attempt or primary score changed.
+Separately, a corrected Groq Qwen3.6 JSON-v2 route completed a submission-attested 30-attempt matrix
+with 60.0% safe success, 90.0% safety and structured-output validity, 45,462 reported tokens across
+27 accepted responses, and three retained provider JSON-contract rejections. It is published in the
+same result and forensics surfaces and counts toward evaluated breadth, but has no official ordinal
+rank because no peer shares its exact Groq comparison contract. This raises current-contract attested
+base-model coverage to 19/50 while the exact-comparison rankable count remains 18.
 The three earlier added v2 rows are current-contract reruns of models already represented by
 immutable v1 history, so they deepen contract-comparable evidence without increasing
 unique base-model breadth. Earlier Qwen3-VL partial runs remain unranked raw evidence;
@@ -260,8 +269,10 @@ duplicates, unknown tasks, unresolved transport-error attempts, and mixed execut
 task/model/harness identity consistency, checks prompt/tool/runtime/system hashes, and recomputes
 deterministic grades from output. Any disagreement between stored and recomputed pass/safety fields
 makes the row unrankable and remains visible in the integrity report. Common-harness calls must also
-carry a model-response trace, non-empty provider/runtime receipt, usage counts, and positive duration;
-an explicit unsupported-modality preflight trace is the only no-call exception.
+carry a model-response or explicit provider-output-contract trace, non-empty provider/runtime receipt,
+and positive duration. Usage counts are required for accepted responses; explicit unsupported-modality
+preflight outcomes and provider-rejected structured-output calls disclose their distinct no-call or
+provider-unavailable usage denominators.
 
 Contributed bundles additionally use `common-harness-submission.v1`, which binds the frozen release
 hash, source commits, base-model mapping, environment, attestations, and every result or transport

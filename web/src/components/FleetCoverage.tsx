@@ -20,7 +20,7 @@ const FUNNEL_STAGES = [
   ["planned_base_models", "Frozen panel", "Predeclared unique base IDs"],
   ["access_qualified_base_models", "Published evidence", "Any route-backed or native public evidence; not a common-harness gate"],
   ["evaluated_base_models", "Common-harness evaluated", "Complete current-contract matrix on a common adapter"],
-  ["ranked_base_models", "Rankable", "Complete common-harness evidence"],
+  ["ranked_base_models", "Rankable", "At least two systems share one exact frozen comparison contract"],
   ["workflow_view_evaluated_base_models", "OpenKBP workflow-view", "Complete one-response OpenKBP view matrix; not stateful"],
 ] as const;
 
@@ -52,6 +52,7 @@ export function FleetCoverage({ data }: Props) {
   }
 
   const target = data.summary.planned_base_models;
+  const completionGate = data.completion_gate;
 
   return (
     <section className="fleet-section" id="fleet">
@@ -70,7 +71,11 @@ export function FleetCoverage({ data }: Props) {
       <ol className="fleet-funnel" aria-label="Model fleet qualification funnel">
         {FUNNEL_STAGES.map(([key, label, description], index) => {
           const value = data.summary[key];
-          const priorValue = index === 0 ? target : data.summary[FUNNEL_STAGES[index - 1][0]];
+          const priorValue = key === "workflow_view_evaluated_base_models"
+            ? data.summary.evaluated_base_models
+            : index === 0
+              ? target
+              : data.summary[FUNNEL_STAGES[index - 1][0]];
           return (
             <li key={key}>
               <div className="fleet-stage-topline">
@@ -88,6 +93,34 @@ export function FleetCoverage({ data }: Props) {
           );
         })}
       </ol>
+
+      {completionGate ? (
+        <section className="fleet-completion-gate" aria-label="50-model completion claim gate">
+          <div className="fleet-completion-score">
+            <span>Publication claim gate</span>
+            <strong>{completionGate.satisfied_base_model_count}<small> / {completionGate.required_base_model_count}</small></strong>
+            <p>
+              {completionGate.satisfied
+                ? "Every frozen evidence and composition requirement is satisfied."
+                : `${completionGate.remaining_base_model_count} frozen base models still need complete, attested common-harness evidence.`}
+            </p>
+          </div>
+          <div className="fleet-completion-progress" aria-hidden="true">
+            <i style={{ width: `${(completionGate.satisfied_base_model_count / completionGate.required_base_model_count) * 100}%` }} />
+          </div>
+          <dl className="fleet-completion-composition">
+            <CompletionFacet label="Open weights" facet={completionGate.composition.open_base_models} />
+            <CompletionFacet label="Closed models" facet={completionGate.composition.closed_base_models} />
+            <CompletionFacet label="Vision-capable" facet={completionGate.composition.vision_capable_base_models} />
+            <CompletionFacet label="Stewards" facet={completionGate.composition.steward_count} />
+            <div>
+              <dt>Size tiers</dt>
+              <dd>{completionGate.composition.size_tiers.observed.join(" · ") || "none"}</dd>
+              <small>{completionGate.composition.size_tiers.satisfied ? "requirement met" : `missing ${completionGate.composition.size_tiers.remaining.join(" · ")}`}</small>
+            </div>
+          </dl>
+        </section>
+      ) : null}
 
       <div className="fleet-coverage-line" aria-label="Frozen fleet composition">
         <span><strong>Planned panel</strong></span>
@@ -180,6 +213,16 @@ export function FleetCoverage({ data }: Props) {
         </div>
       </details>
     </section>
+  );
+}
+
+function CompletionFacet({ label, facet }: { label: string; facet: { required: number; observed: number; satisfied: boolean; remaining: number } }) {
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd>{facet.observed} / {facet.required}</dd>
+      <small>{facet.satisfied ? "requirement met" : `${facet.remaining} remaining`}</small>
+    </div>
   );
 }
 

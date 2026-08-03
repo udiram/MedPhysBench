@@ -262,6 +262,16 @@ expected attempt count, no canonical errors, no missing or unexpected attempt ke
 integrity issue beyond a declared cross-surface comparability annotation. Access probes and partial
 campaigns never increment the evaluated or ranked counts.
 
+The normal command intentionally permits honest progress releases. A workflow that is allowed to
+claim the frozen 50-model objective is complete must use the strict, no-write-on-failure gate:
+
+```bash
+uv run python scripts/build_fleet_status.py --require-complete
+```
+
+That stricter mode also enforces the preregistered open/closed, vision, steward, and size-tier
+composition minima; it currently fails with the exact remaining base-model IDs.
+
 Every contributed common-harness result bundle must also pass the artifact-level submission
 validator:
 
@@ -273,13 +283,15 @@ The committed sidecar inventory covers the full result directory, including any 
 transport-error ledger. Its canonical tree hash prevents omitted failures, inserted artifacts, or
 post-hoc byte edits from passing CI unnoticed. Ranking additionally requires a real model-response
 trace, non-empty provider/runtime receipt, and per-call token and duration telemetry; declared
-unsupported-modality preflight outcomes use their explicit capability trace instead.
-Every complete `reference-json-v2` row must also have a matching available Q2 access entry whose
+unsupported-modality preflight outcomes use their explicit capability trace instead. A provider-
+rejected JSON-contract call may omit usage only when the canonical attempt retains the explicit
+provider rejection receipt and duration; aggregate telemetry publishes that unavailable denominator.
+Every complete current-contract common-harness row must also have a matching available Q2 access entry whose
 promotion basis is `attested_complete_q2`, whose chronology says whether preflight preceded the
 full matrix, and whose evidence points to that exact sidecar. The fleet projection, submission
 validator, and repository-wide validator all enforce this binding.
 
-The current public inventory contains eighteen such attested v2 sidecars. Sidecar count
+The current public inventory contains nineteen such attested sidecars. Sidecar count
 is configuration evidence, not unique-model breadth: three are current-contract reruns
 of base models already counted by the fleet funnel.
 
@@ -295,8 +307,10 @@ uv run python scripts/descriptive_admission.py \
 
 These ledgers must exactly cover the release's descriptive common-harness rows and bind each row to
 its direct result directory, full expected attempt matrix, artifact-tree hash, and exact accepted
-integrity-error set. They grant visibility only; they never restore rank eligibility or current-
-contract fleet credit. Repository validation and the public projection builder both enforce them.
+integrity-error set. They grant visibility only and never restore rank eligibility by themselves.
+The corrected Groq Qwen3.6 singleton receives fleet credit from its separate submission attestation
+and Q2 access binding—not from descriptive admission. Repository validation and the public projection
+builder enforce both layers.
 
 The OpenKBP leaderboard has three byte-identical published projections plus the derived fleet
 status. Rebuild them together, or make CI prove that no copy drifted:

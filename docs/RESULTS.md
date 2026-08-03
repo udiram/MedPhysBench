@@ -35,11 +35,13 @@ The machine-derived public status currently reports:
 | --- | ---: | --- |
 | Frozen panel | 50 | Selected before further score inspection |
 | Published access/evidence | 24 | Some route-backed or native public evidence exists; this is not a common-harness gate |
-| Attested common-harness evaluated | 18 | At least one submission-attested complete matrix satisfies the current manifest/scoring and execution-evidence contract |
+| Attested common-harness evaluated | 19 | At least one submission-attested complete matrix satisfies the current manifest/scoring and execution-evidence contract |
 | Rankable | 18 | At least two attested systems share an exact frozen comparison group |
 
-The site exposes all 31 published system configurations and 49 release
-rows. Six GPT-5.6 Sol effort settings remain six auditable configurations
+The site exposes all 31 published system configurations and 50 release
+rows. The machine-enforced completion-claim gate is currently 19/50 with 31 frozen
+base-model IDs remaining; ordinary progress releases may publish while that strict gate
+remains false. Six GPT-5.6 Sol effort settings remain six auditable configurations
 of one base model, while the separately cataloged GPT-5.6 Terra system contributes
 one additional base model and configuration. Groq-hosted and local routes of the same open-weight
 base also count once toward breadth. Five legacy core-only base models remain
@@ -198,11 +200,13 @@ each identical provider/harness/configuration group with at least two systems; t
 separate descriptive outcome order spans every complete valid row.
 Exact ties on the declared safe-success, task-success, and safety-gate point estimates
 share a competition rank (`1, 1, 3`); names only determine the display order of tied rows.
-Together with four native GPT-5.6 audits, v0.6 contains 31 rows and 930 attempts.
+Together with four native GPT-5.6 audits, v0.6 contains 32 rows and 960 attempts.
 Eighteen submission-attested v2 rows receive an official within-group rank. Eight complete legacy
 Ollama/Groq rows remain visible but unranked because their attempt manifests lack the required
 adapter-settings hash; one receipt-free Groq row and the four native rows are also visible but
-unranked. Public defect `MPB-2026-003` records this fail-closed correction. The immutable attempts,
+unranked. A nineteenth current-contract, submission-attested Groq Qwen3.6 row is outcome-orderable
+but receives no official ordinal rank because no second system shares its exact provider and
+adapter contract. Public defect `MPB-2026-003` records this fail-closed correction. The immutable attempts,
 scores, and descriptive outcome order are unchanged.
 
 The compact tables retain the attempt-level Wilson interval for sensitivity and
@@ -222,7 +226,11 @@ primary and display both interval definitions for every row.
 | 1 | `openai/gpt-oss-20b` | 60.0% | 42.32–75.41% | 100.0% | 60.0% | 1,338 | 9.283 s |
 | 3 | `openai/gpt-oss-120b` | 50.0% | 33.15–66.85% | 100.0% | 60.0% | 1,371.5 | 10.268 s |
 | 4 | `llama-3.1-8b-instant` | 0.0% | 0.00–11.35% | 27.78% | 60.0% | 1,002 | 8.343 s |
-| — | `qwen/qwen3.6-27b` | evidence unavailable | evidence unavailable | unavailable | 0.0% | unavailable | unavailable |
+| — | `qwen/qwen3.6-27b` (historical route) | evidence unavailable | evidence unavailable | unavailable | 0.0% | unavailable | unavailable |
+
+| Current Groq JSON-v2 status | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens† | Median wall time |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Attested; singleton comparison group | `qwen/qwen3.6-27b` | 60.0% | 42.32–75.41% | 90.0% | 90.0% | 1,454 | 27.634 s |
 
 | Ollama v2 rank | Model | Safe success | Attempt 95% CI | Safety | Valid output | Median tokens | Median wall time |
 | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -300,11 +308,19 @@ telemetry. The four image tasks generate 12 completed zero-score modality failur
 for the text-only Llama and GPT-OSS rows; those failures are never omitted from the
 score denominator. Free-tier HTTP 429 backoff is traced and is included in observed
 end-to-end wall time, so this table is not a hardware-normalized inference-speed
-comparison. `qwen/qwen3.6-27b` failed the bounded provider JSON-object contract on
-all 30 attempts and its stored failure artifacts have no model-response receipt,
-usage, or completion-time telemetry. The configuration remains visible but is
-quarantined from both official rank and descriptive outcome order. This is an
-execution-evidence failure, not a claim about latent medical-physics knowledge.
+comparison. The historical `qwen/qwen3.6-27b` route failed the bounded provider
+JSON-object contract on all 30 attempts and its stored failure artifacts have no
+model-response receipt, usage, or completion-time telemetry. That historical
+configuration remains visible but quarantined from official rank and descriptive
+outcome order. The corrected JSON-v2 route is a separate immutable configuration:
+it completed all 30 attempts in 11 minutes 1.7 seconds, safely passed 18, retained
+three provider-rejected JSON-contract calls as scored failures, and recorded 45,462
+provider-reported tokens over the 27 accepted responses. Those three rejected calls
+have request and duration receipts but no provider-supplied token counts; the public
+telemetry denominator says so explicitly. `†` therefore summarizes 27 measured
+responses, never imputed zeros. The corrected row is fully inspectable and attested,
+but remains without an official ordinal rank until a peer shares its exact Groq
+comparison contract.
 
 Four GPT-5.6 configurations completed the same sealed ten-task runtime three
 times, producing 30 deterministically regraded attempts per configuration. Three are

@@ -306,7 +306,7 @@ def build_fleet_status(
             if key not in catalog_index:
                 raise ValueError(f"Visible leaderboard row is missing from model catalog: {key}")
             base_model_id = str(catalog_index[key]["base_model_id"])
-            if row.get("harness_revision") == "reference-json-v2" and _complete_row(row):
+            if row.get("execution_surface") == "common_harness" and _complete_row(row):
                 completion_observed_base_model_ids.add(base_model_id)
                 qualification = find_access_entry(
                     access,

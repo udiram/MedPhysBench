@@ -98,7 +98,17 @@ def test_real_workflow_release_contains_expected_groq_rows() -> None:
         "openai/gpt-oss-120b",
         "openai/gpt-oss-20b",
         "qwen/qwen3.6-27b",
+        "qwen/qwen3.6-27b",
     ]
+    qwen_rows = [
+        row
+        for row in rows
+        if row["provider"] == "groq" and row["model_name"] == "qwen/qwen3.6-27b"
+    ]
+    assert {row["harness_revision"] for row in qwen_rows} == {
+        "openai-chat-json-v1;format=json_object;mode=best-effort;effort=provider-default",
+        "openai-chat-json-v1;format=json_object;mode=best-effort;effort=none;reasoning-format=hidden",
+    }
 
 
 def test_core_release_contains_expected_gpt56_native_rows() -> None:
@@ -147,7 +157,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(payload, dict)
     rows = [*payload["models"], *payload.get("unranked_models", [])]
-    assert len(rows) == 31
+    assert len(rows) == 32
     v2_rows = [
         row
         for row in rows

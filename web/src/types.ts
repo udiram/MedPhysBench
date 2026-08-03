@@ -343,6 +343,10 @@ export type ModelResult = {
     input_complete?: boolean;
     output_complete?: boolean;
     total_complete?: boolean;
+    campaign_attempts?: number;
+    capability_unavailable_attempts?: number;
+    provider_output_contract_failure_attempts?: number;
+    usage_unavailable_attempts?: number;
     total_input_tokens: number | null;
     total_output_tokens: number | null;
     total_tokens: number | null;
@@ -507,10 +511,42 @@ export type FleetStatusModel = {
   }>;
 };
 
+type FleetNumericCompletionGate = {
+  required: number;
+  observed: number;
+  satisfied: boolean;
+  remaining: number;
+};
+
+export type FleetCompletionGate = {
+  required_base_model_count: number;
+  observed_base_model_count: number;
+  satisfied_base_model_count: number;
+  remaining_base_model_count: number;
+  required_base_model_ids: string[];
+  observed_base_model_ids: string[];
+  satisfied_base_model_ids: string[];
+  remaining_base_model_ids: string[];
+  composition: {
+    open_base_models: FleetNumericCompletionGate;
+    closed_base_models: FleetNumericCompletionGate;
+    vision_capable_base_models: FleetNumericCompletionGate;
+    steward_count: FleetNumericCompletionGate;
+    size_tiers: {
+      required: FleetStatusModel["size_tier"][];
+      observed: FleetStatusModel["size_tier"][];
+      satisfied: boolean;
+      remaining: FleetStatusModel["size_tier"][];
+    };
+  };
+  satisfied: boolean;
+};
+
 export type FleetStatus = {
   schema_version: "medphysbench.fleet-status.v3";
   generated_at: string;
   fleet_id: string;
   summary: FleetStatusSummary;
+  completion_gate?: FleetCompletionGate;
   models: FleetStatusModel[];
 };

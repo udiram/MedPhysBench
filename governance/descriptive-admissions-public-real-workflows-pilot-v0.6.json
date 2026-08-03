@@ -1,12 +1,12 @@
 {
   "schema_version": "medphysbench.descriptive-admission.v1",
-  "admission_id": "openkb-v0.6-legacy-descriptive-20260803",
-  "admitted_at": "2026-08-03T14:42:00Z",
-  "admission_commit": "ffdd9b12f8ecfdcd2fa80685d79e03bce21098bc",
+  "admission_id": "openkb-v0.6-descriptive-20260803",
+  "admitted_at": "2026-08-03T20:27:31Z",
+  "admission_commit": "1e75327bf291f110990d49cbdaa7581c784b6df8",
   "release_file": "releases/public_real_workflows_pilot_v0_6.yaml",
   "release_id": "public-real-workflows-pilot-v0.6",
   "scope": "descriptive_publication_only",
-  "review_statement": "These content-addressed historical rows may remain publicly inspectable but cannot receive an official rank or satisfy current-contract fleet completion.",
+  "review_statement": "These content-addressed rows may remain publicly inspectable but cannot receive an official ordinal rank. Attested current-contract rows whose only issue is a singleton comparison group may satisfy the fleet evidence gate without being presented as rank-comparable.",
   "entries": [
     {
       "provider": "ollama",
@@ -121,6 +121,21 @@
       "artifact_tree_sha256": "a270d5b91dc095831e8b1fdea334c4a1c4dc7daabf003de812edbbc46468c221",
       "accepted_integrity_errors": ["missing_adapter_settings_hash"],
       "limitations": ["Historical adapter settings were not content-addressed."]
+    },
+    {
+      "provider": "groq",
+      "model_name": "qwen/qwen3.6-27b",
+      "model_revision": "qwen/qwen3.6-27b",
+      "harness_name": "medphysbench-openai-compatible",
+      "harness_revision": "openai-chat-json-v1;format=json_object;mode=best-effort;effort=none;reasoning-format=hidden",
+      "results_directory": "results/releases/public-real-workflows-pilot-v0.6/qwen_qwen3_6_27b_json_v2",
+      "artifact_count": 30,
+      "artifact_tree_sha256": "ea57124e42fcf33482665b45b96945faaf2c090a08187a8620aeee98e788dc36",
+      "accepted_integrity_errors": ["unranked_singleton_comparison_group"],
+      "limitations": [
+        "No second system currently shares this exact Groq JSON-v2 comparison contract, so no official ordinal rank is assigned.",
+        "Groq reported token usage for 27 accepted responses; three provider-rejected JSON-contract calls retain request and duration evidence but no token counts."
+      ]
     }
   ]
 }

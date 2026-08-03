@@ -152,7 +152,7 @@ scored outcomes and remain canonical attempts; they are not transport retries.
 ## Current state
 
 The public website currently exposes 31 model configurations representing 24
-unique base model identifiers across 49 release rows and four release surfaces, including five
+unique base model identifiers across 50 release rows and four release surfaces, including five
 completed Groq configurations, six GPT-5.6 Sol effort configurations, and one
 GPT-5.6 Terra configuration. These are not 31 unique base models. An Ollama Cloud access probe
 for `qwen3.5:397b-cloud` on 2026-08-02 returned HTTP 429 before a scored artifact
@@ -162,12 +162,13 @@ network context. Neither event supports a model score.
 The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
 19 closed-weight, 31 declared vision-capable, and 11 stewards. After enforcing
 the current grader/scoring manifest contract, the derived funnel reports 24 base models with
-some published access or native evidence, 18 attested common-harness evaluated, and 18 officially
+some published access or native evidence, 19 attested common-harness evaluated, and 18 officially
 rankable base models. Eight complete legacy Ollama/Groq configurations remain visible but are excluded
 from current-contract rank because their attempt manifests lack adapter-settings hashes; four of the
 affected base IDs have no separate v2 row and therefore leave the evaluated/ranked fleet funnel. One
-additional fully attempted Groq row remains excluded because its provider-output failure artifacts lack
-model-response receipts and telemetry.
+historical Qwen3.6 Groq row remains excluded because its provider-output failure artifacts lack
+model-response receipts and telemetry, while a separately frozen corrected route now contributes
+complete, attested evidence for that base model without receiving an ordinal rank as a singleton group.
 GPT-5.6 Sol and Terra complete native rows remain visible in the same
 model index and attempt forensics, but do not inflate that common-harness funnel.
 
@@ -260,7 +261,7 @@ no vision projector, so it made 18 text calls and retained 12 image-required tas
 capability-unavailable outcomes. It achieved 10.0% safe success, 100% safety over evaluable calls,
 60% valid output, median 937.5 total tokens, and median 8.436-second wall time. Its attested public
 artifact tree is `sha256:ffc91ad3e878e1b4130e5b78ba2416c3ab773b72de97334d98627517b795f698`.
-All eighteen current v2 rows
+All nineteen current-contract rows
 now have their own sidecar with exact source commits, execution window, model
 identity, environment, and a SHA-256 inventory of every result artifact. The
 access ledger records whether qualification preceded the matrix or was backfilled
@@ -276,7 +277,9 @@ unranked raw evidence. The distinct digest-pinned `qwen3-vl:8b-instruct` artifac
 later completed a clean 30-attempt matrix with 30.0% safe success, 100% safety,
 and 100% schema validity under a frozen bounded unload-recovery policy.
 
-The resulting current v2 group contains eighteen exact model configurations. A complete
+The officially rankable current v2 Ollama group contains eighteen exact model configurations.
+The corrected Groq Qwen3.6 configuration is separately attested and outcome-orderable, but remains
+unranked until a second system shares its exact provider, adapter-settings, and seed contract. A complete
 campaign with any other token cap, adapter-settings hash, harness revision, or seed
 policy remains visible evidence but cannot enter that ranking group.
 
@@ -289,6 +292,12 @@ provider/transport failures enter the append-only transport side ledger.
 The 50-model target therefore remains an execution objective. MedPhysBench must
 publish the actual completed count and the access ledger until all 50 base-model
 matrices exist; the site must never display a planned model as evaluated.
+`web/public/data/fleet_status.json` now carries the derived completion gate with
+the exact satisfied and remaining base IDs plus open/closed, vision, steward, and
+size-tier minima. Progress builds remain allowed, while claim-bearing release jobs
+must run `uv run python scripts/build_fleet_status.py --require-complete`; that command
+exits nonzero and writes nothing until the frozen 50-model objective and its composition
+constraints are genuinely satisfied.
 
 ## Release report
 

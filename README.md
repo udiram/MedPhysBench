@@ -94,7 +94,9 @@ package, or evidence of autonomous clinical competence.
 - A schema-driven, serial campaign controller with memory/disk preflight, one child process per
   model, exact release/fleet binding, canonical-matrix verification, and hash-chained resume receipts;
   new v2 manifests bind every configuration to a frozen route and unexpired access receipt.
-- A reviewed local-Ollama qualification lane with 18 attested current-contract configurations.
+- Nineteen attested current-contract base-model evaluations: 18 exact local-Ollama configurations
+  in one rankable comparison group plus a corrected Groq Qwen3.6 configuration that is fully
+  inspectable and outcome-orderable but has no ordinal rank until an exact-contract peer exists.
   Qwen3-VL 8B preserves the default Thinking artifact's non-scoring failed canary separately from a
   digest-pinned Instruct artifact that passed strict JSON/image preflight and the full 30-attempt matrix;
   route declarations and failed/partial campaigns still never create or count scores.

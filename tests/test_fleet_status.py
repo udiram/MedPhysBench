@@ -63,20 +63,20 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert rebuilt["summary"] == {
         "planned_base_models": 50,
         "access_qualified_base_models": 24,
-        "evaluated_base_models": 18,
+        "evaluated_base_models": 19,
         "ranked_base_models": 18,
-        "workflow_view_evaluated_base_models": 18,
+        "workflow_view_evaluated_base_models": 19,
         "workflow_view_ranked_base_models": 18,
         "published_system_configurations": 31,
-        "published_release_rows": 49,
+        "published_release_rows": 50,
         "open_planned_models": 31,
         "closed_planned_models": 19,
         "vision_planned_models": 31,
         "steward_count": 11,
-        "evaluated_open_base_models": 18,
+        "evaluated_open_base_models": 19,
         "evaluated_closed_base_models": 0,
         "evaluated_vision_base_models": 7,
-        "evaluated_image_route_base_models": 6,
+        "evaluated_image_route_base_models": 7,
         "evaluated_steward_count": 6,
         "evaluated_size_tiers": ["medium", "small"],
         "route_set_count": 7,
@@ -84,13 +84,13 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     }
     gate = rebuilt["completion_gate"]
     assert gate["required_base_model_count"] == 50
-    assert gate["observed_base_model_count"] == 18
-    assert gate["satisfied_base_model_count"] == 18
-    assert gate["remaining_base_model_count"] == 32
+    assert gate["observed_base_model_count"] == 19
+    assert gate["satisfied_base_model_count"] == 19
+    assert gate["remaining_base_model_count"] == 31
     assert len(gate["required_base_model_ids"]) == 50
-    assert len(gate["observed_base_model_ids"]) == 18
-    assert len(gate["satisfied_base_model_ids"]) == 18
-    assert len(gate["remaining_base_model_ids"]) == 32
+    assert len(gate["observed_base_model_ids"]) == 19
+    assert len(gate["satisfied_base_model_ids"]) == 19
+    assert len(gate["remaining_base_model_ids"]) == 31
     assert gate["observed_base_model_ids"] == gate["satisfied_base_model_ids"]
     assert set(gate["satisfied_base_model_ids"]).isdisjoint(gate["remaining_base_model_ids"])
     assert set(gate["satisfied_base_model_ids"]) | set(gate["remaining_base_model_ids"]) == set(
@@ -99,8 +99,9 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert "gpt-5.6-terra" not in gate["observed_base_model_ids"]
     assert "gpt-5.6-terra" not in gate["satisfied_base_model_ids"]
     assert "gpt-5.6-terra" in gate["remaining_base_model_ids"]
+    assert "Qwen/Qwen3.6-27B" in gate["satisfied_base_model_ids"]
     assert gate["composition"] == {
-        "open_base_models": {"required": 30, "observed": 18, "satisfied": False, "remaining": 12},
+        "open_base_models": {"required": 30, "observed": 19, "satisfied": False, "remaining": 11},
         "closed_base_models": {"required": 15, "observed": 0, "satisfied": False, "remaining": 15},
         "vision_capable_base_models": {"required": 15, "observed": 7, "satisfied": False, "remaining": 8},
         "steward_count": {"required": 5, "observed": 6, "satisfied": True, "remaining": 0},
@@ -118,7 +119,7 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert any("groq" in entry["planned_routes"] for entry in rebuilt["models"])
     assert any("ollama" in entry["planned_routes"] for entry in rebuilt["models"])
     assert all(entry["readiness_note"] for entry in rebuilt["models"])
-    assert sum(entry["readiness_state"] == "workflow_view_evaluated" for entry in rebuilt["models"]) == 18
+    assert sum(entry["readiness_state"] == "workflow_view_evaluated" for entry in rebuilt["models"]) == 19
     assert sum(entry["readiness_state"] == "route_planned" for entry in rebuilt["models"]) == 26
     terra = next(entry for entry in rebuilt["models"] if entry["base_model_id"] == "gpt-5.6-terra")
     assert terra["readiness_state"] == "access_qualified"
@@ -202,8 +203,8 @@ def test_strict_completion_cli_rejects_current_progress_without_writing(tmp_path
     error = json.loads(completed.stderr)
     assert error["error"] == "fleet_completion_gate_unsatisfied"
     assert error["required_base_model_count"] == 50
-    assert error["satisfied_base_model_count"] == 18
-    assert len(error["remaining_base_model_ids"]) == 32
+    assert error["satisfied_base_model_count"] == 19
+    assert len(error["remaining_base_model_ids"]) == 31
     assert not output_path.exists()
 
 
@@ -398,7 +399,7 @@ def test_phi4_multimodal_community_quantization_is_attested_but_text_only() -> N
 
 def test_workflow_view_counts_only_common_harness_openkbp_release() -> None:
     status = build_fleet_status()
-    assert status["summary"]["workflow_view_evaluated_base_models"] == 18
+    assert status["summary"]["workflow_view_evaluated_base_models"] == 19
     assert status["summary"]["workflow_view_ranked_base_models"] == 18
 
     gpt = next(row for row in status["models"] if row["base_model_id"] == "gpt-5.6-sol")

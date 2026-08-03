@@ -90,13 +90,13 @@ the request.
 After committing the route and probe sources, qualify one route at a time:
 
 ```bash
-python scripts/probes/openai_access_probe_v2.py \
+uv run python -m scripts.probes.openai_access_probe_v2 \
   fleet/provider_expansion_routes_v2.yaml \
   --route-id google-gemini-3.6-flash
 
 # Qwen's corrected Groq request contract. Requires GROQ_API_KEY in the process
 # environment; the value is never accepted as a CLI argument or written.
-uv run python scripts/probes/openai_access_probe_v2.py \
+uv run python -m scripts.probes.openai_access_probe_v2 \
   fleet/groq_reasoning_routes_v2.yaml \
   --route-id groq-qwen-3.6-27b-json-v2
 
