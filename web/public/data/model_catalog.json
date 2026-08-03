@@ -198,5 +198,13 @@
     "openness": "open",
     "steward": "Google",
     "family": "Gemma 3"
+  },
+  {
+    "provider": "ollama",
+    "model_name": "phi4:14b",
+    "base_model_id": "microsoft/phi-4",
+    "openness": "open",
+    "steward": "Microsoft",
+    "family": "Phi-4"
   }
 ]

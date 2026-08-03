@@ -115,7 +115,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(payload, dict)
     rows = [*payload["models"], *payload.get("unranked_models", [])]
-    assert len(rows) == 22
+    assert len(rows) == 23
     v2_rows = [
         row
         for row in rows
@@ -126,6 +126,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
         "gemma3:12b-it-q4_K_M",
         "llama3.2:3b",
         "mistral-nemo:12b-instruct-2407-q4_K_M",
+        "phi4:14b",
         "phi4-mini:3.8b-q4_K_M",
         "qwen2.5:7b-instruct",
         "qwen2.5vl:7b-q4_K_M",
@@ -134,7 +135,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
         "qwen3:14b",
     }
     assert all(row["ranking_eligible"] is True for row in v2_rows)
-    assert {row["rank"] for row in v2_rows} == set(range(1, 11))
+    assert {row["rank"] for row in v2_rows} == set(range(1, 12))
     deepseek = next(row for row in rows if row["model_name"] == "deepseek-r1:1.5b")
     capability_failures = [task for task in deepseek["tasks"] if task.get("capability_failure")]
     assert len(capability_failures) == 12
@@ -198,7 +199,7 @@ def test_v2_ollama_group_freezes_the_published_sampling_and_adapter_contract() -
         if isinstance(model, dict) and model.get("harness_revision") == "reference-json-v2":
             manifests.append(manifest)
 
-    assert len(manifests) == 10 * 30
+    assert len(manifests) == 11 * 30
     assert {manifest["max_tokens"] for manifest in manifests} == {2048}
     assert {manifest["temperature"] for manifest in manifests} == {0.0}
     assert {manifest["seed"] for manifest in manifests} == {20260731, 20260732, 20260733}

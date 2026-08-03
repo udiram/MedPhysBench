@@ -2,8 +2,10 @@
 
 ## Unreleased
 
-- Froze a machine-readable 50-base-model fleet and added a deterministic public qualification funnel: 18 access-qualified, 16 common-harness evaluated and rankable under the current manifest contract, 23 published system configurations, 38 release rows, and no count inflation from aliases or GPT-5.6 effort settings.
-- Completed 210 new digest-pinned OpenKBP attempts for Qwen 3 1.7B/8B/14B, Qwen 2.5 7B Instruct, Qwen2.5-VL 7B, Llama 3.2 3B, and Phi-4 Mini under the memory-bounded `reference-json-v2` harness, plus a 22-call schema/telemetry adapter audit; the eight-system v2 group now receives an official within-group rank.
+- Froze a machine-readable 50-base-model fleet and added a deterministic public qualification funnel: 21 access-qualified, 19 common-harness evaluated and rankable under the current manifest contract, 26 published system configurations, 41 release rows, and no count inflation from aliases or GPT-5.6 effort settings.
+- Completed 330 digest-pinned OpenKBP attempts across eleven exact local model configurations under the memory-bounded `reference-json-v2` harness, with preflight chronology, immutable resume, provider-call telemetry, and an attested artifact tree for every row.
+- Added Microsoft Phi-4 14B as an evidence-complete local row: 30/30 attempts, 10.0% safe success, 100% safety over 18 evaluable provider calls, 12 explicit capability-unavailable image attempts, 18,126 total tokens, and a 30.142-second median provider-call wall time.
+- Corrected public outcome semantics so no-call capability failures remain zero-score primary outcomes without being mislabeled as unsafe model actions; safety and telemetry now expose evaluable and unavailable denominators, with the change recorded as public defect `MPB-2026-002`.
 - Added a fully vision-enabled Qwen2.5-VL 7B matrix with 30 real model calls, 12 image-grid attempts, 100% safety and schema validity, exact Ollama SHA-256 provenance, and an artifact-tree-attested submission bundle.
 - Added opt-in, schema-filtered public-development answers, score/time/token telemetry, reduced deterministic grader verdicts, redacted provider receipts, and exact run-configuration disclosures. Aggregate-only is the default, non-public releases cannot expose answers, and provider IDs/reasoning-like fields are denied.
 - Made model and forensic filter changes browser-history navigable, matched searches against visible provider labels, added explicit zero-result recovery, persisted deep links, and fixed duplicate React keys in family-level attempt chips.

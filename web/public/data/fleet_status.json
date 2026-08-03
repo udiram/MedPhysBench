@@ -4,13 +4,13 @@
   "fleet_id": "public-fleet-v1",
   "summary": {
     "planned_base_models": 50,
-    "access_qualified_base_models": 20,
-    "evaluated_base_models": 18,
-    "ranked_base_models": 18,
-    "workflow_qualified_base_models": 18,
-    "workflow_ranked_base_models": 18,
-    "published_system_configurations": 25,
-    "published_release_rows": 40,
+    "access_qualified_base_models": 21,
+    "evaluated_base_models": 19,
+    "ranked_base_models": 19,
+    "workflow_qualified_base_models": 19,
+    "workflow_ranked_base_models": 19,
+    "published_system_configurations": 26,
+    "published_release_rows": 41,
     "open_planned_models": 31,
     "closed_planned_models": 19,
     "vision_planned_models": 31,
@@ -720,19 +720,19 @@
       "modalities": [
         "text"
       ],
-      "size_tier": "small",
+      "size_tier": "medium",
       "planned_routes": [
         "self_hosted"
       ],
-      "access_qualified": false,
-      "qualification_stage": null,
-      "evaluated": false,
-      "ranked": false,
-      "workflow_qualified": false,
-      "workflow_ranked": false,
-      "system_configuration_count": 0,
-      "published_release_count": 0,
-      "published_row_count": 0
+      "access_qualified": true,
+      "qualification_stage": "q2",
+      "evaluated": true,
+      "ranked": true,
+      "workflow_qualified": true,
+      "workflow_ranked": true,
+      "system_configuration_count": 1,
+      "published_release_count": 1,
+      "published_row_count": 1
     },
     {
       "base_model_id": "command-a-plus-05-2026",

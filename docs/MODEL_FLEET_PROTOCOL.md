@@ -118,10 +118,10 @@ scored outcomes and remain canonical attempts; they are not transport retries.
 
 ## Current state
 
-The public website currently exposes 24 model configurations representing 19
+The public website currently exposes 26 model configurations representing 21
 unique base model identifiers across four release surfaces, including five
 completed Groq configurations and six GPT-5.6 effort configurations. These are
-not 22 unique base models. An Ollama Cloud access probe
+not 26 unique base models. An Ollama Cloud access probe
 for `qwen3.5:397b-cloud` on 2026-08-02 returned HTTP 429 before a scored artifact
 was created. The lab-node hostname was not resolvable from the current Mac
 network context. Neither event supports a model score.
@@ -129,7 +129,7 @@ network context. Neither event supports a model score.
 The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
 19 closed-weight, 31 declared vision-capable, and 11 stewards. After enforcing
 the current grader/scoring manifest contract, the derived funnel
-reports 20 access-qualified, 18 common-harness evaluated, and 18 officially
+reports 21 access-qualified, 19 common-harness evaluated, and 19 officially
 rankable base models. One fully attempted Groq row is excluded from evaluated/ranked
 counts because its provider-output failure artifacts lack model-response receipts and telemetry.
 GPT-5.6's complete native rows remain visible in the same
@@ -172,12 +172,20 @@ same immutable campaign to 30 attempts through exact multimodal Ollama artifact
 It made real model calls on all 12 required-image attempts, retained complete
 receipts and token/time telemetry, achieved 40.0% safe success with 100% safety
 and valid-output rates, and passed a zero-change deterministic regrade.
-All ten current v2 rows
+Microsoft Phi-4 14B then completed the same exact-source preflight and immutable
+30-attempt Q2 campaign through Ollama artifact
+`sha256:ac896e5b8b34a1f4efa7b14d7520725140d5512484457fab45d2a4ea14c69dba`.
+The text-only route made 18 provider calls and retained the 12 required-image
+attempts as capability-unavailable zeroes. It achieved 10.0% safe success, 100%
+safety over evaluable calls, 60% valid output, and complete provider-call token
+and duration telemetry; its attested artifact tree is
+`sha256:14d6100f45f5254f40a262ff2a9683bd20117c16e84548a7da90110e4eed92d9`.
+All eleven current v2 rows
 now have their own sidecar with exact source commits, execution window, model
 identity, environment, and a SHA-256 inventory of every result artifact. The
 access ledger records whether qualification preceded the matrix or was backfilled
 from the complete attested matrix.
-The resulting current v2 group contains ten exact model configurations. A complete
+The resulting current v2 group contains eleven exact model configurations. A complete
 campaign with any other token cap, adapter-settings hash, harness revision, or seed
 policy remains visible evidence but cannot enter that ranking group.
 

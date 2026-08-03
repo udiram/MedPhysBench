@@ -72,6 +72,13 @@ The published multimodal Gemma 3 12B campaign used the same command with
 used `--resume` to validate those checkpoints before requesting attempts two and
 three.
 
+The published text-only Phi-4 14B campaign used the same preflight-then-resume
+sequence with `--model phi4:14b`, revision
+`sha256:ac896e5b8b34a1f4efa7b14d7520725140d5512484457fab45d2a4ea14c69dba`, and
+`--results-dir runs/openkb-phi4-14b`. Its 12 required-image attempts are explicit
+no-call capability failures; the remaining 18 attempts have complete provider
+receipts, duration, and token telemetry.
+
 The summarizer still decides comparability from the frozen manifest hashes; matching
 the visible flags alone does not override a different harness revision, adapter
 contract, seed policy, or model digest.

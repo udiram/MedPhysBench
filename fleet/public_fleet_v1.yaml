@@ -301,7 +301,7 @@ models:
     family: Phi-4
     openness: open
     modalities: [text]
-    size_tier: small
+    size_tier: medium
     planned_routes: [self_hosted]
     license: MIT
     source_url: https://huggingface.co/microsoft/phi-4

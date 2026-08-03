@@ -270,6 +270,23 @@
     "note": "Gemma Terms of Use model evaluated through exact Ollama artifact sha256:f4031aab637d1ffa37b42570452ae0e4fad0314754d17ded67322e4b95836f8a. A 10-task first-attempt preflight established schema, safety, receipt, token, duration, and real-image transport evidence before the immutable campaign resumed to the complete 30-attempt Q2 matrix. All 12 required-image attempts were real model calls."
   },
   {
+    "model": "phi4:14b",
+    "provider": "ollama",
+    "base_model_id": "microsoft/phi-4",
+    "qualification_stage": "q2",
+    "status": "available",
+    "surface": "local_ollama",
+    "date": "2026-08-02",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "phi4-14b-openkb-v0.6-20260802",
+      "manifest_path": "submissions/phi4-14b-openkb-v0.6-20260802.json"
+    },
+    "note": "MIT-licensed Microsoft Phi-4 14B was evaluated through exact Ollama artifact sha256:ac896e5b8b34a1f4efa7b14d7520725140d5512484457fab45d2a4ea14c69dba. An exact-source 10-task preflight established schema, safety, receipt, token, and duration evidence before the campaign resumed to a complete 30-attempt Q2 matrix. The text-only route made 18 real calls; all 12 required-image attempts remain completed zero-score capability-unavailable outcomes rather than omissions or unsafe actions."
+  },
+  {
     "model": "gpt-5.6-sol",
     "provider": "codex-native",
     "base_model_id": "gpt-5.6-sol",
