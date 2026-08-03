@@ -126,6 +126,31 @@ def test_qwen_recovery_campaign_freezes_wait_and_new_result_root() -> None:
     assert campaign.resource_limits.minimum_available_memory_fraction == 0.35
 
 
+def test_groq_standard_v2_campaign_binds_two_distinct_frozen_base_models() -> None:
+    campaign = load_campaign(ROOT / "campaigns" / "groq-standard-json-v2-q2.yaml")
+
+    assert campaign.manifest_hash == "175af819c9d2e44d27e90fe7e70727c6a7e32cd74280b969b89fe5693169d6ce"
+    assert campaign.schema_version == "medeval.campaign.v2"
+    assert campaign.release_id == "public-real-workflows-pilot-v0.6"
+    assert campaign.attempts == 3
+    assert campaign.execution.max_parallel_models == 1
+    assert campaign.execution.process_isolation is True
+    assert campaign.execution.resume is True
+    assert campaign.resource_limits.minimum_available_memory_fraction == 0.35
+    assert campaign.resource_limits.minimum_available_memory_gib == 6.0
+    assert campaign.resource_limits.minimum_free_disk_gib == 12.0
+    assert {model.base_model_id for model in campaign.models} == {
+        "meta-llama/Llama-3.3-70B-Instruct",
+        "openai/gpt-oss-20b",
+    }
+    assert {model.route_id for model in campaign.models} == {
+        "groq-gpt-oss-20b-json-v2",
+        "groq-llama-3.3-70b-json-v2",
+    }
+    assert {model.max_tokens for model in campaign.models} == {4096}
+    assert {model.response_format for model in campaign.models} == {"json_object"}
+
+
 @pytest.mark.parametrize(
     ("mutate", "message"),
     [

@@ -1,0 +1,61 @@
+{
+  "adapter": "groq",
+  "base_model_id": "openai/gpt-oss-20b",
+  "capabilities": {
+    "inferred": [
+      "text"
+    ],
+    "observed": [
+      "json_object",
+      "text"
+    ]
+  },
+  "completed_at": "2026-08-03T21:18:18Z",
+  "content_sha256": "e3c02f98b2a59bc5cb667d016064cada3b3a19c9a1f8a661bdb8a51db5469644",
+  "expires_at": "2026-08-04T03:18:18Z",
+  "fleet_id": "public-fleet-v1",
+  "model": "openai/gpt-oss-20b",
+  "model_revision": "openai/gpt-oss-20b",
+  "outcome": "available",
+  "probe_dependencies": [
+    {
+      "content_sha256": "7213f4dc7971bbef238d1a77145ec9c62a6c29392f30df271237547cf4c188df",
+      "path": "scripts/probes/openai_access_probe.py"
+    },
+    {
+      "content_sha256": "0a12ce0181d88561611b8b4ef92e1d70ab32304ffe5d0a68f7b0351aedb7abdc",
+      "path": "src/medphys_agentbench/adapters/openai_compatible.py"
+    },
+    {
+      "content_sha256": "9074b67a24aa0bff1fae01685885a85c717b0e82e4e3b2b5744f8d0091100605",
+      "path": "src/medphys_agentbench/json_utils.py"
+    },
+    {
+      "content_sha256": "c13c16ba41399727772270992dec9bb44f7d620bc1e3a22ebc182834749ea5f2",
+      "path": "src/medphys_agentbench/route_qualification.py"
+    }
+  ],
+  "probe_implementation_path": "scripts/probes/openai_access_probe_v2.py",
+  "probe_implementation_sha256": "d09df9c1e6b12ff6a09fcf6ad89e3db765611d0de810d4e259e49d559a862c3b",
+  "probe_version": "openai-access-probe-v2",
+  "provider": "groq",
+  "quota": {
+    "source": "provider_headers",
+    "status": "sufficient"
+  },
+  "receipt_id": "groq-gpt-oss-20b-json-v2-20260803t211818z",
+  "route_id": "groq-gpt-oss-20b-json-v2",
+  "route_set_id": "groq-standard-routes-v2",
+  "route_spec_sha256": "fbff159021da651d34e1c9491b14b6ada3be4ecf68069ff27c05c089adb86bfd",
+  "sanitized_metadata": {
+    "endpoint_host": "api.groq.com",
+    "http_status": 200,
+    "latency_ms": 595.373,
+    "provider_request_id": "req_01kz4qvs32epstevmx7xx6mfm8",
+    "response_contract": "json_object",
+    "served_model": "openai/gpt-oss-20b"
+  },
+  "schema_version": "medphysbench.access-probe-receipt.v1",
+  "source_commit": "381900bd239d3ee1759f127a49df233498332701",
+  "started_at": "2026-08-03T21:18:18Z"
+}

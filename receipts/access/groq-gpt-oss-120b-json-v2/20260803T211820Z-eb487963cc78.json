@@ -1,0 +1,58 @@
+{
+  "adapter": "groq",
+  "base_model_id": "openai/gpt-oss-120b",
+  "capabilities": {
+    "inferred": [
+      "text"
+    ],
+    "observed": []
+  },
+  "completed_at": "2026-08-03T21:18:20Z",
+  "content_sha256": "eb487963cc78efcd23fae7e452ef02ed9d5a69018bfe8c6126255552df03658e",
+  "expires_at": "2026-08-04T03:18:20Z",
+  "fleet_id": "public-fleet-v1",
+  "model": "openai/gpt-oss-120b",
+  "model_revision": "openai/gpt-oss-120b",
+  "outcome": "network_error",
+  "probe_dependencies": [
+    {
+      "content_sha256": "7213f4dc7971bbef238d1a77145ec9c62a6c29392f30df271237547cf4c188df",
+      "path": "scripts/probes/openai_access_probe.py"
+    },
+    {
+      "content_sha256": "0a12ce0181d88561611b8b4ef92e1d70ab32304ffe5d0a68f7b0351aedb7abdc",
+      "path": "src/medphys_agentbench/adapters/openai_compatible.py"
+    },
+    {
+      "content_sha256": "9074b67a24aa0bff1fae01685885a85c717b0e82e4e3b2b5744f8d0091100605",
+      "path": "src/medphys_agentbench/json_utils.py"
+    },
+    {
+      "content_sha256": "c13c16ba41399727772270992dec9bb44f7d620bc1e3a22ebc182834749ea5f2",
+      "path": "src/medphys_agentbench/route_qualification.py"
+    }
+  ],
+  "probe_implementation_path": "scripts/probes/openai_access_probe_v2.py",
+  "probe_implementation_sha256": "d09df9c1e6b12ff6a09fcf6ad89e3db765611d0de810d4e259e49d559a862c3b",
+  "probe_version": "openai-access-probe-v2",
+  "provider": "groq",
+  "quota": {
+    "source": "provider_headers",
+    "status": "sufficient"
+  },
+  "receipt_id": "groq-gpt-oss-120b-json-v2-20260803t211820z",
+  "route_id": "groq-gpt-oss-120b-json-v2",
+  "route_set_id": "groq-standard-routes-v2",
+  "route_spec_sha256": "b4943ed36f586cc530f1dd90c5d5786a7cbc1b6061e63d2b2727ac23108655a9",
+  "sanitized_metadata": {
+    "endpoint_host": "api.groq.com",
+    "error_code": "provider_http_400",
+    "http_status": 400,
+    "latency_ms": 920.784,
+    "provider_request_id": "req_01kz4qvt3ae64sftzy79xa6vba",
+    "response_contract": "json_object"
+  },
+  "schema_version": "medphysbench.access-probe-receipt.v1",
+  "source_commit": "381900bd239d3ee1759f127a49df233498332701",
+  "started_at": "2026-08-03T21:18:19Z"
+}

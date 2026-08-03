@@ -1,0 +1,65 @@
+schema_version: medeval.campaign.v2
+campaign_id: groq-standard-json-v2-q2
+generated_at: '2026-08-03T21:19:23Z'
+release_file: releases/public_real_workflows_pilot_v0_6.yaml
+release_id: public-real-workflows-pilot-v0.6
+release_contract_hash_v2: c8bb7a810e9598eb37132884301449c1256447c90426f769fd028d3f7237909e
+fleet_file: fleet/public_fleet_v1.yaml
+fleet_id: public-fleet-v1
+route_set_file: fleet/groq_standard_routes_v2.yaml
+route_set_id: groq-standard-routes-v2
+allow_unknown_quota: false
+results_dir: runs/groq-standard-json-v2-q2
+attempts: 3
+execution:
+  max_parallel_models: 1
+  process_isolation: true
+  resume: true
+  fail_fast_attempts: true
+  continue_on_model_failure: true
+  resource_recovery_wait_seconds: 30
+resource_limits:
+  minimum_available_memory_fraction: 0.35
+  minimum_available_memory_gib: 6.0
+  minimum_free_disk_gib: 12.0
+models:
+- configuration_id: groq-gpt-oss-20b-json-v2
+  base_model_id: openai/gpt-oss-20b
+  route_id: groq-gpt-oss-20b-json-v2
+  route_spec_sha256: fbff159021da651d34e1c9491b14b6ada3be4ecf68069ff27c05c089adb86bfd
+  access_receipt_path: receipts/access/groq-gpt-oss-20b-json-v2/20260803T211818Z-e3c02f98b2a5.json
+  access_receipt_sha256: e3c02f98b2a59bc5cb667d016064cada3b3a19c9a1f8a661bdb8a51db5469644
+  quota_assessment: sufficient
+  adapter: groq
+  provider: groq
+  model: openai/gpt-oss-20b
+  model_revision: openai/gpt-oss-20b
+  response_format: json_object
+  strict_schema: false
+  timeout_seconds: 300
+  seed: 20260731
+  temperature: 0.0
+  max_tokens: 4096
+  base_url: https://api.groq.com/openai/v1
+  api_key_env: GROQ_API_KEY
+  max_rate_limit_retries: 20
+- configuration_id: groq-llama-3.3-70b-json-v2
+  base_model_id: meta-llama/Llama-3.3-70B-Instruct
+  route_id: groq-llama-3.3-70b-json-v2
+  route_spec_sha256: 7a6692c9dce9d62bd1837465580115e3cd59bcd3c470e629351f31b582a9411c
+  access_receipt_path: receipts/access/groq-llama-3.3-70b-json-v2/20260803T211817Z-8d7d47d94c9c.json
+  access_receipt_sha256: 8d7d47d94c9c5928f0a4bf4efbb15909ddaac536898a4ab3d34ae5f0a39c380a
+  quota_assessment: sufficient
+  adapter: groq
+  provider: groq
+  model: llama-3.3-70b-versatile
+  model_revision: llama-3.3-70b-versatile
+  response_format: json_object
+  strict_schema: false
+  timeout_seconds: 300
+  seed: 20260731
+  temperature: 0.0
+  max_tokens: 4096
+  base_url: https://api.groq.com/openai/v1
+  api_key_env: GROQ_API_KEY
+  max_rate_limit_retries: 20
