@@ -27,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = ROOT / "schemas" / "common-harness-submission.v1.schema.json"
 CATALOG_PATH = ROOT / "web" / "public" / "data" / "model_catalog.json"
 ACCESS_PATH = ROOT / "web" / "public" / "data" / "access_status.json"
+ATTESTATION_ONLY_INTEGRITY_ERRORS = {"unranked_singleton_comparison_group"}
 
 
 def _load_json(path: Path) -> Any:
@@ -162,15 +163,23 @@ def validate_submission(
         if row.get("provider") == model["provider"]
         and row.get("model_name") == model["model_name"]
         and row.get("model_revision") == model["model_revision"]
+        and row.get("harness_name") == model["harness_name"]
+        and row.get("harness_revision") == model["harness_revision"]
     ]
     if len(matches) != 1:
-        raise ValueError(f"Expected exactly one summarized row for submitted model; found {len(matches)}.")
-    row = matches[0]
-    if row.get("ranking_eligible") is not True:
         raise ValueError(
-            "Submitted row is not ranking-eligible after completeness, receipt, telemetry, "
+            "Expected exactly one summarized row for submitted model and harness revision; "
+            f"found {len(matches)}."
+        )
+    row = matches[0]
+    ranking_eligible = row.get("ranking_eligible") is True
+    integrity_errors = set(row.get("integrity", {}).get("integrity_errors", []))
+    attestation_eligible = ranking_eligible or integrity_errors == ATTESTATION_ONLY_INTEGRITY_ERRORS
+    if not attestation_eligible:
+        raise ValueError(
+            "Submitted row is not attestation-eligible after completeness, receipt, telemetry, "
             "and deterministic regrade checks: "
-            + ", ".join(row.get("integrity", {}).get("integrity_errors", []))
+            + ", ".join(sorted(integrity_errors))
         )
 
     started = datetime.fromisoformat(payload["execution_started_at"].replace("Z", "+00:00"))
@@ -189,7 +198,8 @@ def validate_submission(
         "results_directory": payload["results_directory"],
         "artifact_count": len(actual_artifacts),
         "artifact_tree_sha256": payload["artifact_tree_sha256"],
-        "ranking_eligible": True,
+        "attestation_eligible": True,
+        "ranking_eligible": ranking_eligible,
     }
 
 

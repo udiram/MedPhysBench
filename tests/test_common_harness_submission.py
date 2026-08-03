@@ -7,6 +7,8 @@ from pathlib import Path
 import pytest
 
 import scripts.common_harness_submission as submission_module
+from medphys_agentbench.release_loader import load_release
+from medphys_agentbench.reporting import summarize_release
 from scripts.common_harness_submission import validate_submission
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,6 +43,7 @@ def test_committed_common_harness_submission_validates() -> None:
     summary = validate_submission(MANIFEST)
 
     assert summary["artifact_count"] == 30
+    assert summary["attestation_eligible"] is True
     assert summary["ranking_eligible"] is True
     assert summary["model_name"] == "phi4-mini:3.8b-q4_K_M"
 
@@ -106,6 +109,62 @@ def test_submission_requires_matching_public_qualification_evidence(
 
     with pytest.raises(ValueError, match="qualification_evidence"):
         submission_module.validate_submission(MANIFEST)
+
+
+def test_complete_singleton_row_can_be_attested_without_being_ranked() -> None:
+    release = load_release(ROOT / "releases" / "public_real_workflows_pilot_v0_6.yaml")
+    release_summary = summarize_release(release, ROOT / "results" / "releases")
+    row = next(
+        item
+        for item in release_summary["models"]
+        if item.get("provider") == "ollama" and item.get("model_name") == "phi4-mini:3.8b-q4_K_M"
+    )
+    release_summary["models"].remove(row)
+    row["ranking_eligible"] = False
+    row["integrity"]["integrity_errors"] = ["unranked_singleton_comparison_group"]
+    release_summary["unranked_models"].append(row)
+
+    summary = validate_submission(MANIFEST, release_summary=release_summary)
+
+    assert summary["attestation_eligible"] is True
+    assert summary["ranking_eligible"] is False
+
+
+def test_submission_match_is_scoped_to_exact_harness_revision() -> None:
+    release = load_release(ROOT / "releases" / "public_real_workflows_pilot_v0_6.yaml")
+    release_summary = summarize_release(release, ROOT / "results" / "releases")
+    row = next(
+        item
+        for item in release_summary["models"]
+        if item.get("provider") == "ollama" and item.get("model_name") == "phi4-mini:3.8b-q4_K_M"
+    )
+    other_harness = copy.deepcopy(row)
+    other_harness["harness_revision"] = "different-harness-revision"
+    release_summary["models"].append(other_harness)
+
+    summary = validate_submission(MANIFEST, release_summary=release_summary)
+
+    assert summary["harness_revision"] == "reference-json-v2"
+
+
+def test_singleton_exception_does_not_mask_other_integrity_failures() -> None:
+    release = load_release(ROOT / "releases" / "public_real_workflows_pilot_v0_6.yaml")
+    release_summary = summarize_release(release, ROOT / "results" / "releases")
+    row = next(
+        item
+        for item in release_summary["models"]
+        if item.get("provider") == "ollama" and item.get("model_name") == "phi4-mini:3.8b-q4_K_M"
+    )
+    release_summary["models"].remove(row)
+    row["ranking_eligible"] = False
+    row["integrity"]["integrity_errors"] = [
+        "unranked_singleton_comparison_group",
+        "missing_attempt_keys",
+    ]
+    release_summary["unranked_models"].append(row)
+
+    with pytest.raises(ValueError, match="not attestation-eligible"):
+        validate_submission(MANIFEST, release_summary=release_summary)
 
 
 @pytest.mark.parametrize(

@@ -18,8 +18,10 @@ from medphys_agentbench.json_utils import decode_strict_json_object
 from medphys_agentbench.release_loader import load_release
 from medphys_agentbench.reporting import (
     _assign_outcome_ranks,
+    _common_harness_receipt_errors,
     _rank_models,
     _release_contract_hash,
+    _usage_summary,
     summarize_release,
 )
 from medphys_agentbench.runner import (
@@ -873,6 +875,42 @@ def test_release_summary_rejects_telemetry_free_common_harness_rows(tmp_path: Pa
     for row in summary["unranked_models"]:
         errors = row["integrity"]["integrity_errors"]
         assert "missing_usage_telemetry" in errors
+
+
+def test_provider_contract_rejection_discloses_unavailable_usage_without_losing_receipt_integrity() -> None:
+    rejected = {
+        "model_failure_kind": "provider_output_contract_failure",
+        "duration_seconds": 1.25,
+        "raw_response": {
+            "provider": "groq",
+            "model": "fixture-model",
+            "http_status": 400,
+            "provider_request_id": "req-contract-failure",
+        },
+        "trace": [
+            {
+                "event": "provider_output_contract_response",
+                "provider": "groq",
+                "model": "fixture-model",
+                "http_status": 400,
+                "provider_request_id": "req-contract-failure",
+            }
+        ],
+    }
+    accepted = {
+        "duration_seconds": 0.5,
+        "raw_response": {"usage": {"prompt_tokens": 100, "completion_tokens": 20, "total_tokens": 120}},
+        "trace": [{"event": "model_response"}],
+    }
+
+    assert "missing_usage_telemetry" not in _common_harness_receipt_errors(item=rejected)
+    usage = _usage_summary([accepted, rejected])
+    assert usage["complete"] is True
+    assert usage["observed_attempts"] == usage["expected_attempts"] == 1
+    assert usage["campaign_attempts"] == 2
+    assert usage["provider_output_contract_failure_attempts"] == 1
+    assert usage["usage_unavailable_attempts"] == 1
+    assert usage["total_tokens"] == 120
 
 
 def test_cli_sampling_contract_reaches_ollama_adapter() -> None:

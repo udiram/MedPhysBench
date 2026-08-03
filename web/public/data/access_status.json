@@ -277,8 +277,15 @@
     "qualification_stage": "q2",
     "status": "available",
     "surface": "groq_openai_compatible",
-    "date": "2026-08-01",
-    "note": "Groq-hosted model evaluated on the OpenKBP v0.6 release with three attempts per task."
+    "date": "2026-08-03",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "qwen3.6-27b-groq-json-v2-openkb-v0.6-20260803",
+      "manifest_path": "submissions/qwen3.6-27b-groq-json-v2-openkb-v0.6-20260803.json"
+    },
+    "note": "Corrected Groq JSON-v2 route completed all 30 OpenKBP v0.6 attempts after a fixed qualification canary. The run retained three provider-rejected JSON-contract calls as scored failures, reports token usage for the 27 responses where Groq supplied usage, and remains separately identifiable from the historical receipt-free route."
   },
   {
     "model": "mistral-nemo:12b-instruct-2407-q4_K_M",

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -9,7 +11,7 @@ from jsonschema import Draft202012Validator, FormatChecker, ValidationError
 
 from medphys_agentbench.qualification import validate_attested_q2_qualification
 from medphys_agentbench.route_qualification import load_route_set
-from scripts.build_fleet_status import build_fleet_status
+from scripts.build_fleet_status import build_fleet_status, derive_completion_gate
 
 ROOT = Path(__file__).resolve().parents[1]
 FLEET_PATH = ROOT / "fleet" / "public_fleet_v1.yaml"
@@ -80,6 +82,36 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
         "route_set_count": 7,
         "declared_route_count": 32,
     }
+    gate = rebuilt["completion_gate"]
+    assert gate["required_base_model_count"] == 50
+    assert gate["observed_base_model_count"] == 18
+    assert gate["satisfied_base_model_count"] == 18
+    assert gate["remaining_base_model_count"] == 32
+    assert len(gate["required_base_model_ids"]) == 50
+    assert len(gate["observed_base_model_ids"]) == 18
+    assert len(gate["satisfied_base_model_ids"]) == 18
+    assert len(gate["remaining_base_model_ids"]) == 32
+    assert gate["observed_base_model_ids"] == gate["satisfied_base_model_ids"]
+    assert set(gate["satisfied_base_model_ids"]).isdisjoint(gate["remaining_base_model_ids"])
+    assert set(gate["satisfied_base_model_ids"]) | set(gate["remaining_base_model_ids"]) == set(
+        gate["required_base_model_ids"]
+    )
+    assert "gpt-5.6-terra" not in gate["observed_base_model_ids"]
+    assert "gpt-5.6-terra" not in gate["satisfied_base_model_ids"]
+    assert "gpt-5.6-terra" in gate["remaining_base_model_ids"]
+    assert gate["composition"] == {
+        "open_base_models": {"required": 30, "observed": 18, "satisfied": False, "remaining": 12},
+        "closed_base_models": {"required": 15, "observed": 0, "satisfied": False, "remaining": 15},
+        "vision_capable_base_models": {"required": 15, "observed": 7, "satisfied": False, "remaining": 8},
+        "steward_count": {"required": 5, "observed": 6, "satisfied": True, "remaining": 0},
+        "size_tiers": {
+            "required": ["small", "medium", "large"],
+            "observed": ["medium", "small"],
+            "satisfied": False,
+            "remaining": ["large"],
+        },
+    }
+    assert gate["satisfied"] is False
     assert all("size_tier" in entry for entry in rebuilt["models"])
     assert all("planned_routes" in entry for entry in rebuilt["models"])
     assert all("evaluated_modalities" in entry for entry in rebuilt["models"])
@@ -103,6 +135,78 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert phi["evaluated_modalities"] == ["text"]
 
 
+def test_v3_schema_remains_backward_compatible_without_completion_gate() -> None:
+    schema = _load_json(ROOT / "schemas" / "fleet-status.v3.schema.json")
+    status = _load_json(STATUS_PATH)
+    assert isinstance(schema, dict)
+    assert isinstance(status, dict)
+    legacy_v3_projection = dict(status)
+    legacy_v3_projection.pop("completion_gate")
+
+    Draft202012Validator(schema, format_checker=FormatChecker()).validate(legacy_v3_projection)
+
+
+def test_synthetic_post_attestation_complete_fleet_satisfies_completion_gate() -> None:
+    fleet = yaml.safe_load(FLEET_PATH.read_text(encoding="utf-8"))
+    assert isinstance(fleet, dict)
+    fleet_models = fleet["models"]
+    satisfied_ids = {entry["base_model_id"] for entry in fleet_models}
+    model_rows = [
+        {
+            "base_model_id": entry["base_model_id"],
+            "openness": entry["openness"],
+            "modalities": entry["modalities"],
+            "steward": entry["steward"],
+            "size_tier": entry["size_tier"],
+            "published_row_count": 1,
+        }
+        for entry in fleet_models
+    ]
+
+    gate = derive_completion_gate(
+        fleet_models=fleet_models,
+        model_rows=model_rows,
+        observed_base_model_ids=satisfied_ids,
+        satisfied_base_model_ids=satisfied_ids,
+    )
+
+    assert gate["required_base_model_count"] == 50
+    assert gate["observed_base_model_count"] == 50
+    assert gate["satisfied_base_model_count"] == 50
+    assert gate["remaining_base_model_count"] == 0
+    assert gate["required_base_model_ids"] == gate["observed_base_model_ids"]
+    assert gate["required_base_model_ids"] == gate["satisfied_base_model_ids"]
+    assert gate["remaining_base_model_ids"] == []
+    assert all(item["satisfied"] for item in gate["composition"].values())
+    assert gate["satisfied"] is True
+
+
+def test_strict_completion_cli_rejects_current_progress_without_writing(tmp_path: Path) -> None:
+    output_path = tmp_path / "fleet_status.json"
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts" / "build_fleet_status.py"),
+            "--require-complete",
+            "--output",
+            str(output_path),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert completed.returncode == 1
+    assert completed.stdout == ""
+    error = json.loads(completed.stderr)
+    assert error["error"] == "fleet_completion_gate_unsatisfied"
+    assert error["required_base_model_count"] == 50
+    assert error["satisfied_base_model_count"] == 18
+    assert len(error["remaining_base_model_ids"]) == 32
+    assert not output_path.exists()
+
+
 def test_access_ledger_is_schema_valid_and_attested_promotions_resolve() -> None:
     schema = _load_json(ROOT / "schemas" / "access-status.v1.schema.json")
     access = _load_json(ACCESS_PATH)
@@ -112,7 +216,7 @@ def test_access_ledger_is_schema_valid_and_attested_promotions_resolve() -> None
     validator.validate(access)
 
     promoted = [entry for entry in access if entry.get("promotion_basis")]
-    assert len(promoted) == 18
+    assert len(promoted) == 19
     for entry in promoted:
         validate_attested_q2_qualification(
             entry,
@@ -184,6 +288,10 @@ def test_incomplete_campaign_cannot_increment_evaluated_or_ranked_counts(tmp_pat
     assert status["summary"]["published_release_rows"] == 1
     assert status["summary"]["evaluated_base_models"] == 0
     assert status["summary"]["ranked_base_models"] == 0
+    assert status["completion_gate"]["observed_base_model_count"] == 0
+    assert status["completion_gate"]["satisfied_base_model_count"] == 0
+    assert status["completion_gate"]["remaining_base_model_count"] == 50
+    assert status["completion_gate"]["satisfied"] is False
 
 
 @pytest.mark.parametrize("field", ["promotion_basis", "qualification_evidence"])

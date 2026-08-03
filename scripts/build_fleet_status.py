@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections import defaultdict
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -35,6 +37,14 @@ COMPARABILITY_ONLY_ISSUES = {
     "unranked_singleton_comparison_group",
 }
 STAGE_ORDER = {"q0": 0, "q1": 1, "q2": 2, "q3": 3}
+COMPLETION_REQUIRED_BASE_MODEL_COUNT = 50
+COMPLETION_COMPOSITION_MINIMA = {
+    "open_base_models": 30,
+    "closed_base_models": 15,
+    "vision_capable_base_models": 15,
+    "steward_count": 5,
+}
+COMPLETION_REQUIRED_SIZE_TIERS = ("small", "medium", "large")
 
 
 def _load_json(path: Path) -> Any:
@@ -74,6 +84,110 @@ def _complete_row(row: dict[str, Any]) -> bool:
     return True
 
 
+def derive_completion_gate(
+    *,
+    fleet_models: list[dict[str, Any]],
+    model_rows: list[dict[str, Any]],
+    observed_base_model_ids: set[str],
+    satisfied_base_model_ids: set[str],
+) -> dict[str, Any]:
+    """Derive the strict 50-model claim gate from post-attestation evidence."""
+
+    required_ids = [str(row["base_model_id"]) for row in fleet_models]
+    if len(required_ids) != COMPLETION_REQUIRED_BASE_MODEL_COUNT or len(required_ids) != len(set(required_ids)):
+        raise ValueError(
+            "Completion gate derivation requires exactly "
+            f"{COMPLETION_REQUIRED_BASE_MODEL_COUNT} unique frozen base-model IDs."
+        )
+    required_id_set = set(required_ids)
+    model_index = {str(row["base_model_id"]): row for row in model_rows}
+    if set(model_index) != required_id_set:
+        missing = sorted(required_id_set.difference(model_index))
+        unexpected = sorted(set(model_index).difference(required_id_set))
+        raise ValueError(
+            "Completion gate model projection must match the frozen fleet exactly: "
+            f"missing={missing}, unexpected={unexpected}"
+        )
+
+    unexpected_observed = sorted(observed_base_model_ids.difference(required_id_set))
+    if unexpected_observed:
+        raise ValueError(
+            "Current-contract completion evidence references base models outside the frozen fleet: "
+            f"{unexpected_observed}"
+        )
+    unpublished_observed = sorted(
+        base_model_id
+        for base_model_id in observed_base_model_ids
+        if not isinstance(model_index[base_model_id].get("published_row_count"), int)
+        or model_index[base_model_id]["published_row_count"] <= 0
+    )
+    if unpublished_observed:
+        raise ValueError(
+            "Current-contract completion evidence requires a published row for every observed base model: "
+            f"{unpublished_observed}"
+        )
+    unexpected_satisfied = sorted(satisfied_base_model_ids.difference(required_id_set))
+    if unexpected_satisfied:
+        raise ValueError(
+            "Completion evidence references base models outside the frozen fleet: "
+            f"{unexpected_satisfied}"
+        )
+    unobserved_satisfied = sorted(satisfied_base_model_ids.difference(observed_base_model_ids))
+    if unobserved_satisfied:
+        raise ValueError(
+            "Completion evidence cannot satisfy base models that were not observed under the current contract: "
+            f"{unobserved_satisfied}"
+        )
+
+    observed_ids = [base_model_id for base_model_id in required_ids if base_model_id in observed_base_model_ids]
+    satisfied_ids = [base_model_id for base_model_id in required_ids if base_model_id in satisfied_base_model_ids]
+    remaining_ids = [base_model_id for base_model_id in required_ids if base_model_id not in satisfied_base_model_ids]
+    satisfied_models = [model_index[base_model_id] for base_model_id in satisfied_ids]
+
+    observed_composition = {
+        "open_base_models": sum(row["openness"] == "open" for row in satisfied_models),
+        "closed_base_models": sum(row["openness"] == "closed" for row in satisfied_models),
+        "vision_capable_base_models": sum("image" in row["modalities"] for row in satisfied_models),
+        "steward_count": len({row["steward"] for row in satisfied_models}),
+    }
+    composition: dict[str, dict[str, Any]] = {}
+    for name, minimum in COMPLETION_COMPOSITION_MINIMA.items():
+        observed = observed_composition[name]
+        composition[name] = {
+            "required": minimum,
+            "observed": observed,
+            "satisfied": observed >= minimum,
+            "remaining": max(minimum - observed, 0),
+        }
+
+    observed_size_tier_set = {str(row["size_tier"]) for row in satisfied_models}
+    observed_size_tiers = sorted(observed_size_tier_set)
+    missing_size_tiers = [
+        size_tier for size_tier in COMPLETION_REQUIRED_SIZE_TIERS if size_tier not in observed_size_tier_set
+    ]
+    composition["size_tiers"] = {
+        "required": list(COMPLETION_REQUIRED_SIZE_TIERS),
+        "observed": observed_size_tiers,
+        "satisfied": not missing_size_tiers,
+        "remaining": missing_size_tiers,
+    }
+
+    all_composition_minima_satisfied = all(item["satisfied"] for item in composition.values())
+    gate_satisfied = not remaining_ids and all_composition_minima_satisfied
+    return {
+        "required_base_model_count": len(required_ids),
+        "observed_base_model_count": len(observed_ids),
+        "satisfied_base_model_count": len(satisfied_ids),
+        "remaining_base_model_count": len(remaining_ids),
+        "required_base_model_ids": required_ids,
+        "observed_base_model_ids": observed_ids,
+        "satisfied_base_model_ids": satisfied_ids,
+        "remaining_base_model_ids": remaining_ids,
+        "composition": composition,
+        "satisfied": gate_satisfied,
+    }
+
+
 def build_fleet_status(
     *,
     fleet_path: Path = DEFAULT_FLEET,
@@ -89,6 +203,11 @@ def build_fleet_status(
     target = fleet.get("target_base_model_count")
     if target != len(fleet_models):
         raise ValueError(f"Fleet target declares {target}, but manifest contains {len(fleet_models)} models.")
+    if target != COMPLETION_REQUIRED_BASE_MODEL_COUNT:
+        raise ValueError(
+            "The public completion claim gate requires exactly "
+            f"{COMPLETION_REQUIRED_BASE_MODEL_COUNT} frozen base models, not {target}."
+        )
 
     fleet_ids = [str(row["base_model_id"]) for row in fleet_models]
     duplicate_ids = sorted({model_id for model_id in fleet_ids if fleet_ids.count(model_id) > 1})
@@ -168,6 +287,8 @@ def build_fleet_status(
     row_count_by_base: dict[str, int] = defaultdict(int)
     visible_configurations: set[tuple[str, str]] = set()
     evaluated_modalities_by_base: dict[str, set[str]] = defaultdict(set)
+    completion_observed_base_model_ids: set[str] = set()
+    completion_satisfied_base_model_ids: set[str] = set()
 
     for path in leaderboard_paths:
         payload = _load_json(path)
@@ -186,6 +307,7 @@ def build_fleet_status(
                 raise ValueError(f"Visible leaderboard row is missing from model catalog: {key}")
             base_model_id = str(catalog_index[key]["base_model_id"])
             if row.get("harness_revision") == "reference-json-v2" and _complete_row(row):
+                completion_observed_base_model_ids.add(base_model_id)
                 qualification = find_access_entry(
                     access,
                     provider=key[0],
@@ -199,6 +321,7 @@ def build_fleet_status(
                     model_name=key[1],
                     base_model_id=base_model_id,
                 )
+                completion_satisfied_base_model_ids.add(base_model_id)
             visible_configurations.add(key)
             row_count_by_base[base_model_id] += 1
             releases_by_base[base_model_id].add(release_id)
@@ -255,6 +378,12 @@ def build_fleet_status(
             }
         )
 
+    completion_gate = derive_completion_gate(
+        fleet_models=fleet_models,
+        model_rows=model_rows,
+        observed_base_model_ids=completion_observed_base_model_ids,
+        satisfied_base_model_ids=completion_satisfied_base_model_ids,
+    )
     return {
         "schema_version": "medphysbench.fleet-status.v3",
         "generated_at": str(fleet["frozen_at"]),
@@ -285,6 +414,7 @@ def build_fleet_status(
             "route_set_count": len(route_sets),
             "declared_route_count": len(route_ids),
         },
+        "completion_gate": completion_gate,
         "models": model_rows,
     }
 
@@ -325,23 +455,45 @@ def _readiness(
     )
 
 
-def main() -> None:
+def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--fleet", type=Path, default=DEFAULT_FLEET)
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     parser.add_argument("--access", type=Path, default=DEFAULT_ACCESS)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    args = parser.parse_args()
+    parser.add_argument(
+        "--require-complete",
+        action="store_true",
+        help="Exit nonzero and do not write output unless all 50 attested model IDs and composition minima pass.",
+    )
+    args = parser.parse_args(argv)
 
     payload = build_fleet_status(
         fleet_path=args.fleet,
         catalog_path=args.catalog,
         access_path=args.access,
     )
+    completion_gate = payload["completion_gate"]
+    if args.require_complete and not completion_gate["satisfied"]:
+        print(
+            json.dumps(
+                {
+                    "error": "fleet_completion_gate_unsatisfied",
+                    "required_base_model_count": completion_gate["required_base_model_count"],
+                    "satisfied_base_model_count": completion_gate["satisfied_base_model_count"],
+                    "remaining_base_model_ids": completion_gate["remaining_base_model_ids"],
+                    "composition": completion_gate["composition"],
+                },
+                indent=2,
+            ),
+            file=sys.stderr,
+        )
+        return 1
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(payload["summary"], indent=2))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

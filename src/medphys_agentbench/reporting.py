@@ -160,7 +160,9 @@ def summarize_release(
             "pass_power_k": "unbiased probability that all k sampled attempts safely pass",
             "ranking_rule": (
                 "Only complete, deterministically regraded runs with execution traces, provider/runtime receipts, "
-                "per-call usage and duration telemetry receive an official rank. Ranks are computed only when at "
+                "per-call usage and duration telemetry receive an official rank. Provider-rejected output-contract "
+                "calls are retained as scored failures and may omit usage only when the provider receipt explicitly "
+                "records that rejection; the omitted-token denominator is disclosed. Ranks are computed only when at "
                 "least two systems share an identical provider, harness, harness revision, adapter-settings hash, "
                 "sampling contract, and seed policy. Explicit unsupported-modality preflight outcomes are exempt "
                 "from provider-call telemetry requirements. Exact ties on safe success, task success, and "
@@ -355,7 +357,10 @@ def _summarize_model_dir(
         float(item["duration_seconds"])
         for item in verified_results
         if item.get("duration_seconds") is not None
-        and not item.get("model_failure_kind")
+        and (
+            not item.get("model_failure_kind")
+            or _is_provider_output_contract_failure(item)
+        )
         and not item.get("capability_failure")
     ]
 
@@ -471,10 +476,16 @@ def _summarize_model_dir(
 def _usage_summary(results: list[dict[str, Any]]) -> dict[str, Any]:
     """Aggregate provider-reported token counts without treating missing values as zero."""
     provider_call_results = [item for item in results if not _is_capability_unavailable(item)]
+    provider_contract_failures = [
+        item for item in provider_call_results if _is_provider_output_contract_failure(item)
+    ]
+    usage_expected_results = [
+        item for item in provider_call_results if not _is_provider_output_contract_failure(item)
+    ]
     input_tokens: list[int] = []
     output_tokens: list[int] = []
     total_tokens: list[int] = []
-    for item in provider_call_results:
+    for item in usage_expected_results:
         usage = _provider_usage(item)
         prompt = _nonnegative_int(usage.get("prompt_eval_count", usage.get("prompt_tokens")))
         completion = _nonnegative_int(usage.get("eval_count", usage.get("completion_tokens")))
@@ -491,7 +502,7 @@ def _usage_summary(results: list[dict[str, Any]]) -> dict[str, Any]:
     observed_input = len(input_tokens)
     observed_output = len(output_tokens)
     observed_total = len(total_tokens)
-    expected = len(provider_call_results)
+    expected = len(usage_expected_results)
     return {
         # The aggregate efficiency frontier is defined on total tokens. Providers
         # that report only a trustworthy total are therefore measurable even when
@@ -507,7 +518,9 @@ def _usage_summary(results: list[dict[str, Any]]) -> dict[str, Any]:
         "output_complete": observed_output == expected and expected > 0,
         "total_complete": observed_total == expected and expected > 0,
         "campaign_attempts": len(results),
-        "capability_unavailable_attempts": len(results) - expected,
+        "capability_unavailable_attempts": len(results) - len(provider_call_results),
+        "provider_output_contract_failure_attempts": len(provider_contract_failures),
+        "usage_unavailable_attempts": len(provider_contract_failures),
         "total_input_tokens": sum(input_tokens) if input_tokens else None,
         "total_output_tokens": sum(output_tokens) if output_tokens else None,
         "total_tokens": sum(total_tokens) if total_tokens else None,
@@ -525,6 +538,15 @@ def _provider_usage(item: dict[str, Any]) -> dict[str, Any]:
         if isinstance(event, dict) and isinstance(event.get("usage"), dict):
             return event["usage"]
     return {}
+
+
+def _is_provider_output_contract_failure(item: dict[str, Any]) -> bool:
+    if item.get("model_failure_kind") != "provider_output_contract_failure":
+        return False
+    return any(
+        isinstance(event, dict) and event.get("event") == "provider_output_contract_response"
+        for event in item.get("trace", [])
+    )
 
 
 def _nonnegative_int(value: Any) -> int | None:
@@ -964,7 +986,7 @@ def _common_harness_receipt_errors(*, item: dict[str, Any]) -> list[str]:
     total = _nonnegative_int(usage.get("total_tokens"))
     if total is None and prompt is not None and completion is not None:
         total = prompt + completion
-    if total is None:
+    if total is None and not _is_provider_output_contract_failure(item):
         errors.append("missing_usage_telemetry")
     duration = item.get("duration_seconds")
     if isinstance(duration, bool) or not isinstance(duration, (int, float)) or duration <= 0:

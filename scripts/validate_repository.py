@@ -404,8 +404,12 @@ def validate_repository() -> dict[str, int]:
         model = manifest["model"]
         result_key = (
             relative_parts[0],
+            str(model["provider"]),
             str(model["model_name"]),
             str(model["model_revision"]),
+            str(model["harness_name"]),
+            str(model["harness_revision"]),
+            str(manifest.get("adapter_settings_hash", "")),
             int(payload["attempt_index"]),
             str(manifest["task_id"]),
         )
@@ -445,23 +449,35 @@ def validate_repository() -> dict[str, int]:
             raise ValueError(f"{path}: duplicate recorded capture_id {capture_id!r}.")
         capture_ids.add(capture_id)
         for task_id, output in capture["outputs"].items():
-            result_key = (
+            result_prefix = (
                 release_id,
+                "codex-native",
                 model_name,
                 str(capture["model_revision"]),
+            )
+            result_suffix = (
                 int(capture["attempt_index"]) - 1,
                 str(task_id),
             )
-            result = result_index.get(result_key)
-            if result is None:
-                raise ValueError(f"{path}: no public result matches capture output {result_key!r}.")
+            candidates = [
+                result
+                for key, result in result_index.items()
+                if key[:4] == result_prefix and key[-2:] == result_suffix
+            ]
+            matches = [
+                result
+                for result in candidates
+                if isinstance(result.get("trace"), list)
+                and any(
+                    isinstance(event, dict) and event.get("capture_id") == capture_id
+                    for event in result["trace"]
+                )
+            ]
+            if len(matches) != 1:
+                raise ValueError(f"{path}: public result trace does not bind capture_id {capture_id!r}.")
+            result = matches[0]
             if result["output"] != output:
                 raise ValueError(f"{path}: captured output differs from public result for {task_id!r}.")
-            trace = result.get("trace")
-            if not isinstance(trace, list) or not any(
-                isinstance(event, dict) and event.get("capture_id") == capture_id for event in trace
-            ):
-                raise ValueError(f"{path}: public result trace does not bind capture_id {capture_id!r}.")
             raw_response = result.get("raw_response")
             if not isinstance(raw_response, dict) or raw_response.get("capture_id") != capture_id:
                 raise ValueError(f"{path}: public result raw-response record does not bind capture_id {capture_id!r}.")
