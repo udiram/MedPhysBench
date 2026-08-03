@@ -118,10 +118,10 @@ scored outcomes and remain canonical attempts; they are not transport retries.
 
 ## Current state
 
-The public website currently exposes 26 model configurations representing 21
+The public website currently exposes 27 model configurations representing 21
 unique base model identifiers across four release surfaces, including five
 completed Groq configurations and six GPT-5.6 effort configurations. These are
-not 26 unique base models. An Ollama Cloud access probe
+not 27 unique base models. An Ollama Cloud access probe
 for `qwen3.5:397b-cloud` on 2026-08-02 returned HTTP 429 before a scored artifact
 was created. The lab-node hostname was not resolvable from the current Mac
 network context. Neither event supports a model score.
@@ -180,12 +180,21 @@ attempts as capability-unavailable zeroes. It achieved 10.0% safe success, 100%
 safety over evaluable calls, 60% valid output, and complete provider-call token
 and duration telemetry; its attested artifact tree is
 `sha256:14d6100f45f5254f40a262ff2a9683bd20117c16e84548a7da90110e4eed92d9`.
-All eleven current v2 rows
+Meta Llama 3.1 8B Instruct then completed the same exact-source preflight and
+30-attempt campaign through Ollama artifact
+`sha256:46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e`.
+It achieved 0% safe success and 33.33% safety over 18 text calls: correct naming
+or inventory actions were repeatedly paired with an unsafe refusal to escalate.
+The route is a second configuration of the already evaluated Llama 3.1 base model,
+so it expands system evidence without inflating the 50-base-model completion count.
+Its attested artifact tree is
+`sha256:85e99ed20a2ade2ad8be287d365a906bf0ac1bc1825dad389f9471f3e1723a25`.
+All twelve current v2 rows
 now have their own sidecar with exact source commits, execution window, model
 identity, environment, and a SHA-256 inventory of every result artifact. The
 access ledger records whether qualification preceded the matrix or was backfilled
 from the complete attested matrix.
-The resulting current v2 group contains eleven exact model configurations. A complete
+The resulting current v2 group contains twelve exact model configurations. A complete
 campaign with any other token cap, adapter-settings hash, harness revision, or seed
 policy remains visible evidence but cannot enter that ranking group.
 

@@ -206,5 +206,13 @@
     "openness": "open",
     "steward": "Microsoft",
     "family": "Phi-4"
+  },
+  {
+    "provider": "ollama",
+    "model_name": "llama3.1:8b",
+    "base_model_id": "meta-llama/Llama-3.1-8B-Instruct",
+    "openness": "open",
+    "steward": "Meta",
+    "family": "Llama 3.1"
   }
 ]

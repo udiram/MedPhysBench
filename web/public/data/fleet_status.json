@@ -9,8 +9,8 @@
     "ranked_base_models": 19,
     "workflow_qualified_base_models": 19,
     "workflow_ranked_base_models": 19,
-    "published_system_configurations": 26,
-    "published_release_rows": 41,
+    "published_system_configurations": 27,
+    "published_release_rows": 42,
     "open_planned_models": 31,
     "closed_planned_models": 19,
     "vision_planned_models": 31,
@@ -86,9 +86,9 @@
       "ranked": true,
       "workflow_qualified": true,
       "workflow_ranked": true,
-      "system_configuration_count": 1,
+      "system_configuration_count": 2,
       "published_release_count": 1,
-      "published_row_count": 1
+      "published_row_count": 2
     },
     {
       "base_model_id": "meta-llama/Llama-3.2-3B-Instruct",

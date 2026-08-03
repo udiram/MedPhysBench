@@ -79,6 +79,14 @@ sequence with `--model phi4:14b`, revision
 no-call capability failures; the remaining 18 attempts have complete provider
 receipts, duration, and token telemetry.
 
+The published Llama 3.1 8B campaign used the same exact-source sequence with
+`--model llama3.1:8b`, revision
+`sha256:46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e`,
+and a fresh `runs/openkb-llama3-1-8b-v2` directory. A ten-task `--attempts 1`
+preflight preceded the immutable `--resume` to 30 attempts. The result is a
+second provider route for the already cataloged Llama 3.1 base model, not a new
+base-model completion.
+
 The summarizer still decides comparability from the frozen manifest hashes; matching
 the visible flags alone does not override a different harness revision, adapter
 contract, seed policy, or model digest.

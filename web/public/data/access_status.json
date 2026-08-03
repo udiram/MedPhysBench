@@ -108,11 +108,18 @@
     "model": "llama3.1:8b",
     "provider": "ollama",
     "base_model_id": "meta-llama/Llama-3.1-8B-Instruct",
-    "qualification_stage": "q0",
+    "qualification_stage": "q2",
     "status": "available",
     "surface": "local_ollama",
-    "date": "2026-07-31",
-    "note": "Local text model; scored on the public development release."
+    "date": "2026-08-02",
+    "promotion_basis": "attested_complete_q2",
+    "qualification_chronology": "preflight_before_full_q2",
+    "qualification_evidence": {
+      "kind": "common_harness_submission",
+      "submission_id": "llama3.1-8b-openkb-v0.6-20260802",
+      "manifest_path": "submissions/llama3.1-8b-openkb-v0.6-20260802.json"
+    },
+    "note": "Meta Llama 3.1 8B Instruct was evaluated through exact Ollama artifact sha256:46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e. An exact-source ten-task preflight preceded the complete 30-attempt Q2 matrix. The text-only route made 18 real calls; all 12 required-image attempts remain completed zero-score capability-unavailable outcomes rather than omissions or unsafe actions."
   },
   {
     "model": "llama3.2:3b",

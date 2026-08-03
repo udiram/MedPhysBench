@@ -55,6 +55,38 @@ def test_public_model_catalog_distinguishes_system_rows_from_base_models() -> No
     assert len(base_model_ids) >= 15
 
 
+def test_llama31_routes_share_one_base_identity_without_merging_scores() -> None:
+    catalog = _load_json(CATALOG_PATH)
+    payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
+    assert isinstance(catalog, list)
+    assert isinstance(payload, dict)
+
+    base_model_id = "meta-llama/Llama-3.1-8B-Instruct"
+    catalog_routes = {
+        (entry["provider"], entry["model_name"])
+        for entry in catalog
+        if entry["base_model_id"] == base_model_id
+    }
+    assert catalog_routes == {
+        ("groq", "llama-3.1-8b-instant"),
+        ("ollama", "llama3.1:8b"),
+    }
+
+    rows = [*payload["models"], *payload.get("unranked_models", [])]
+    route_metrics = {
+        (row["provider"], row["model_name"]): (
+            row["safe_success_rate"],
+            row["safety_gate_rate"],
+        )
+        for row in rows
+        if (row["provider"], row["model_name"]) in catalog_routes
+    }
+    assert route_metrics == {
+        ("groq", "llama-3.1-8b-instant"): (0.0, 0.2778),
+        ("ollama", "llama3.1:8b"): (0.0, 0.3333),
+    }
+
+
 def test_real_workflow_release_contains_expected_groq_rows() -> None:
     payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(payload, dict)
@@ -115,7 +147,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     payload = _load_json(PUBLIC_DATA / "public-real-workflows-pilot-v0.6.json")
     assert isinstance(payload, dict)
     rows = [*payload["models"], *payload.get("unranked_models", [])]
-    assert len(rows) == 23
+    assert len(rows) == 24
     v2_rows = [
         row
         for row in rows
@@ -124,6 +156,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
     assert {row["model_name"] for row in v2_rows} == {
         "deepseek-r1:1.5b",
         "gemma3:12b-it-q4_K_M",
+        "llama3.1:8b",
         "llama3.2:3b",
         "mistral-nemo:12b-instruct-2407-q4_K_M",
         "phi4:14b",
@@ -135,7 +168,7 @@ def test_real_workflow_drilldown_is_complete_and_redacted() -> None:
         "qwen3:14b",
     }
     assert all(row["ranking_eligible"] is True for row in v2_rows)
-    assert {row["rank"] for row in v2_rows} == set(range(1, 12))
+    assert {row["rank"] for row in v2_rows} == set(range(1, 13))
     deepseek = next(row for row in rows if row["model_name"] == "deepseek-r1:1.5b")
     capability_failures = [task for task in deepseek["tasks"] if task.get("capability_failure")]
     assert len(capability_failures) == 12
@@ -199,7 +232,7 @@ def test_v2_ollama_group_freezes_the_published_sampling_and_adapter_contract() -
         if isinstance(model, dict) and model.get("harness_revision") == "reference-json-v2":
             manifests.append(manifest)
 
-    assert len(manifests) == 11 * 30
+    assert len(manifests) == 12 * 30
     assert {manifest["max_tokens"] for manifest in manifests} == {2048}
     assert {manifest["temperature"] for manifest in manifests} == {0.0}
     assert {manifest["seed"] for manifest in manifests} == {20260731, 20260732, 20260733}

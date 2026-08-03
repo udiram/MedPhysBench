@@ -186,11 +186,11 @@ TG-263 naming audit. The CT and expert contours are derived from OpenKBP; the
 reference plan dose is OpenKBP's standardized synthetic plan. Every task requires
 qualified review or escalation and is regraded from the stored candidate output.
 
-Twenty API/local configurations completed three attempts per task. Four ran under
+Twenty-one API/local configurations completed three attempts per task. Four ran under
 one memory-bounded Ollama harness (`temperature=0`, seeds
 `20260731`–`20260733`, 4,096-token context, 768 output-token cap). Five ran on
 Groq's OpenAI-compatible endpoint under one shared JSON-object contract with the
-same temperature, seeds, and output-token cap. Eleven ran under the digest-pinned
+same temperature, seeds, and output-token cap. Twelve ran under the digest-pinned
 `reference-json-v2` Ollama contract with the same seeds, a 4,096-token context,
 and 2,048-token output cap. Official ranks are computed within
 each identical provider/harness/configuration group with at least two systems; the
@@ -227,18 +227,19 @@ primary and display both interval definitions for every row.
 | 8 | `mistral-nemo:12b-instruct-2407-q4_K_M` | 10.0% | 3.46–25.62% | 66.67% | 60.0% | 1,053.5 | 26.964 s |
 | 9 | `qwen3:1.7b` | 0.0% | 0.00–11.35% | 100.0% | 60.0% | 1,029 | 6.420 s |
 | 10 | `deepseek-r1:1.5b` | 0.0% | 0.00–11.35% | 50.0% | 60.0% | 1,616 | 14.805 s |
-| 11 | `llama3.2:3b` | 0.0% | 0.00–11.35% | 33.33% | 60.0% | 950.5 | 7.708 s |
+| 11 | `llama3.1:8b` | 0.0% | 0.00–11.35% | 33.33% | 60.0% | 954.5 | 17.385 s |
+| 12 | `llama3.2:3b` | 0.0% | 0.00–11.35% | 33.33% | 60.0% | 950.5 | 7.708 s |
 
-All eleven v2 rows completed the same 30-attempt matrix with exact local artifact
+All twelve v2 rows completed the same 30-attempt matrix with exact local artifact
 digests. Gemma 3 12B and Qwen2.5-VL 7B each made 30 real calls, including all 12
-required-image attempts; the nine text-only rows retain those 12 tasks as explicit unsupported-modality
+required-image attempts; the ten text-only rows retain those 12 tasks as explicit unsupported-modality
 outcomes, not omissions, so their token/time medians cover 18 actual text calls.
 Safety percentages for those text-only rows also use the 18 actual provider calls;
 the 12 no-call outcomes remain zero-score capability failures but are reported as
 capability unavailable rather than unsafe. The prior derived projection mixed those
 denominators; public defect `MPB-2026-002` records the correction without changing
 any primary safe-success score.
-Nine rows completed bounded adapter audits before the full matrix. DeepSeek R1
+Ten rows completed bounded adapter audits before the full matrix. DeepSeek R1
 1.5B and Mistral Nemo advanced opportunistically through complete Q2 matrices and
 therefore disclose `backfilled_after_full_q2` qualification rather than claiming
 that a preflight protected those runs. Every v2 row's 30 sanitized artifacts,
