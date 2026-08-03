@@ -47,6 +47,23 @@ must use `keep_alive=0`, declare a context window, and may not declare an API ke
 Provider model handles must map to unique result directories inside a campaign;
 alternate revisions and effort settings get a different campaign/results root.
 
+`medeval.campaign.v2` adds a qualification boundary before execution. Every model
+entry binds an exact `model-route.v1` route and one immutable
+`access-probe-receipt.v1` by path and SHA-256. The receipt binds the route hash,
+fleet/base-model identity, provider handle/revision basis, reviewed probe
+implementation path/hash and source commit, timestamps, typed access outcome,
+the route's required response contract, observed versus inferred
+capabilities, sanitized metadata, and quota assessment. Raw response bodies and
+secret-like fields are invalid receipt metadata.
+
+The deterministic `generate-campaign` command requires an explicit RFC 3339
+`--as-of` instant, one receipt per selected route, and one provider/adapter/
+credential surface per manifest. It rejects stale, future-dated, hash-tampered,
+identity-mismatched, unavailable, or insufficient-quota receipts. Unknown quota
+fails closed unless the v2 manifest records an explicit override. Generation
+writes only the requested manifest; it does not contact a provider or create
+scored or run-state artifacts.
+
 ## Execution sequence
 
 ```text
@@ -113,17 +130,21 @@ performs the same class of validation before skipping any immutable attempt.
 ## Honest limits
 
 The controller does not create provider access, guarantee free quota, or turn the
-50-model frozen target into 50 evaluated models. Endpoint-specific quota probes
-remain future adapter work because providers expose materially different quota
-surfaces. Today the committed manifest proves a safe, reproducible 150-attempt
-Groq campaign plan for five frozen base models; it reports missing credentials in
-dry-run output without contacting Groq.
+50-model frozen target into 50 evaluated models. The repository does not commit
+invented successful probe receipts. Provider-specific probe implementations
+remain adapter work where they do not implement the reviewed OpenAI-compatible
+probe, because providers expose materially different identity and quota surfaces.
+Today the committed v1 manifest proves a safe, reproducible
+150-attempt Groq campaign plan for five frozen base models; it reports missing
+credentials in dry-run output without contacting Groq. The committed route set
+makes those handles executable candidates, but they cannot be emitted into a v2
+campaign without fresh receipt evidence.
 
-Hosted model names may still be mutable provider aliases. Campaign v1 records the
-declared alias as the revision string but does not transform that alias into an
-immutable weight revision; provider response metadata and dated run receipts must
-remain visible, and later campaign schemas should bind route-probe receipts when a
-provider exposes stronger identity evidence.
+Hosted model names may still be mutable provider aliases. The route contract labels
+that limit as `revision_basis: provider_alias`; neither an access receipt nor
+campaign v2 transforms an alias into an immutable weight revision. Dated receipts,
+served-model metadata when exposed, and exact run metadata remain visible. An
+immutable digest is claimed only when the provider or runtime supplies one.
 
 Public promotion still requires a complete common-harness submission, artifact
 tree hash, exact environment and model provenance, and the existing qualification

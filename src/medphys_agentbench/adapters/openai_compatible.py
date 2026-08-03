@@ -56,6 +56,8 @@ class OpenAICompatibleAdapter:
             raise ValueError("response_format must be 'json_schema' or 'json_object'.")
         if not self.provider.strip():
             raise ValueError("provider must be non-empty.")
+        if not 0 <= self.max_rate_limit_retries <= 20:
+            raise ValueError("max_rate_limit_retries must be between 0 and 20.")
 
     @property
     def name(self) -> str:

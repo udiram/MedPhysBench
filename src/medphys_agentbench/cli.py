@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 from dataclasses import asdict
+from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -19,11 +20,13 @@ from .adapters.openai_compatible import (
 from .adapters.recorded import RecordedOutputAdapter
 from .adapters.reference import DevelopmentReferenceAgent
 from .campaign import CampaignError, CampaignExecutionError, campaign_plan, execute_campaign, load_campaign
+from .campaign_generation import generate_campaign_payload, write_campaign_manifest
 from .contracts import ModelDescriptor, TaskSpec
 from .json_utils import stable_hash
 from .recorded_capture import sealed_batch_payload, validate_recorded_batch
 from .release_loader import load_release
 from .reporting import summarize_release, write_summary
+from .route_qualification import RouteQualificationError, load_access_probe_receipt, load_route_set
 from .runner import (
     SCORING_REVISION,
     adapter_runtime_settings,
@@ -68,6 +71,36 @@ def main() -> None:
         help="Validate and print the exact redacted execution plan without writing state or contacting providers.",
     )
 
+    generate_campaign = subparsers.add_parser(
+        "generate-campaign",
+        help="Generate an immutable v2 campaign from exact routes and unexpired access receipts.",
+    )
+    generate_campaign.add_argument("route_set_file", type=Path)
+    generate_campaign.add_argument("release_file")
+    generate_campaign.add_argument("--route-id", action="append", required=True)
+    generate_campaign.add_argument(
+        "--receipt",
+        action="append",
+        required=True,
+        metavar="ROUTE_ID=PATH",
+        help="Bind one selected route to one immutable access-probe receipt.",
+    )
+    generate_campaign.add_argument("--campaign-id", required=True)
+    generate_campaign.add_argument("--results-dir", required=True)
+    generate_campaign.add_argument("--output", type=Path, required=True)
+    generate_campaign.add_argument(
+        "--as-of",
+        required=True,
+        help="Explicit RFC 3339 generation instant used for deterministic receipt expiry checks.",
+    )
+    generate_campaign.add_argument("--seed", type=int, default=20260731)
+    generate_campaign.add_argument("--temperature", type=float, default=0.0)
+    generate_campaign.add_argument(
+        "--allow-unknown-quota",
+        action="store_true",
+        help="Record an explicit override when the provider does not expose quota state.",
+    )
+
     run = subparsers.add_parser("run", help="Run a single task against an adapter/model pair.")
     run.add_argument("task_file", type=Path)
     run.add_argument(
@@ -91,6 +124,7 @@ def main() -> None:
     run.add_argument("--seed", type=int, default=20260731)
     run.add_argument("--temperature", type=float, default=0.0)
     run.add_argument("--max-tokens", type=int, default=1024)
+    run.add_argument("--max-rate-limit-retries", type=int, default=8)
     run.add_argument(
         "--ollama-keep-alive",
         default="0",
@@ -126,6 +160,7 @@ def main() -> None:
     run_release.add_argument("--seed", type=int, default=20260731)
     run_release.add_argument("--temperature", type=float, default=0.0)
     run_release.add_argument("--max-tokens", type=int, default=1024)
+    run_release.add_argument("--max-rate-limit-retries", type=int, default=8)
     run_release.add_argument(
         "--ollama-keep-alive",
         default="0",
@@ -241,6 +276,47 @@ def main() -> None:
             raise SystemExit(str(error)) from error
         return
 
+    if args.command == "generate-campaign":
+        try:
+            route_set = load_route_set(args.route_set_file)
+            receipt_paths = _parse_route_receipt_bindings(args.receipt)
+            if set(receipt_paths) != set(args.route_id):
+                raise RouteQualificationError("Every selected route must have exactly one --receipt binding.")
+            receipts = {
+                route_id: load_access_probe_receipt(path, route_set)
+                for route_id, path in receipt_paths.items()
+            }
+            as_of = datetime.fromisoformat(args.as_of.replace("Z", "+00:00"))
+            payload = generate_campaign_payload(
+                route_set,
+                receipts,
+                route_ids=args.route_id,
+                release_file=args.release_file,
+                campaign_id=args.campaign_id,
+                results_dir=args.results_dir,
+                as_of=as_of,
+                seed=args.seed,
+                temperature=args.temperature,
+                allow_unknown_quota=args.allow_unknown_quota,
+            )
+            created = write_campaign_manifest(args.output, payload)
+        except (RouteQualificationError, ValueError) as error:
+            raise SystemExit(str(error)) from error
+        print(
+            json.dumps(
+                {
+                    "valid": True,
+                    "created": created,
+                    "campaign_id": payload["campaign_id"],
+                    "route_count": len(payload["models"]),
+                    "output": str(args.output),
+                },
+                indent=2,
+                sort_keys=True,
+            )
+        )
+        return
+
     if args.command == "run":
         task = load_task(args.task_file)
         model_revision = _resolve_model_revision(
@@ -258,6 +334,7 @@ def main() -> None:
             seed=args.seed,
             temperature=args.temperature,
             max_tokens=args.max_tokens,
+            max_rate_limit_retries=args.max_rate_limit_retries,
             api_key_env=args.api_key_env,
             provider=args.provider,
             response_format=args.response_format,
@@ -327,6 +404,7 @@ def main() -> None:
                     seed=args.seed,
                     temperature=args.temperature,
                     max_tokens=args.max_tokens,
+                    max_rate_limit_retries=args.max_rate_limit_retries,
                     api_key_env=args.api_key_env,
                     provider=args.provider,
                     response_format=args.response_format,
@@ -384,6 +462,7 @@ def main() -> None:
                         seed=attempt_seed,
                         temperature=args.temperature,
                         max_tokens=args.max_tokens,
+                        max_rate_limit_retries=args.max_rate_limit_retries,
                         api_key_env=args.api_key_env,
                         provider=args.provider,
                         response_format=args.response_format,
@@ -634,6 +713,7 @@ def _build_adapter(
     seed: int,
     temperature: float,
     max_tokens: int,
+    max_rate_limit_retries: int = 8,
     api_key_env: str | None = None,
     provider: str | None = None,
     response_format: str = "json_schema",
@@ -643,6 +723,8 @@ def _build_adapter(
     ollama_num_ctx: int = 4096,
     model_revision_override: str | None = None,
 ) -> AgentAdapter:
+    if not 0 <= max_rate_limit_retries <= 20:
+        raise ValueError("--max-rate-limit-retries must be between 0 and 20.")
     if adapter == "ollama":
         return OllamaAdapter(
             model_name=model_name,
@@ -688,6 +770,7 @@ def _build_adapter(
         response_format=response_format,
         strict_schema=strict_schema,
         reasoning_effort=reasoning_effort,
+        max_rate_limit_retries=max_rate_limit_retries,
         model_revision_override=model_revision_override,
     )
 
@@ -730,6 +813,18 @@ def _write_json_exclusive(path: Path, payload: dict[str, object]) -> None:
     with path.open("x", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2, sort_keys=True)
         handle.write("\n")
+
+
+def _parse_route_receipt_bindings(values: list[str]) -> dict[str, Path]:
+    bindings: dict[str, Path] = {}
+    for value in values:
+        route_id, separator, path = value.partition("=")
+        if not separator or not route_id or not path:
+            raise RouteQualificationError("--receipt must use ROUTE_ID=PATH syntax.")
+        if route_id in bindings:
+            raise RouteQualificationError(f"Duplicate receipt binding for route {route_id!r}.")
+        bindings[route_id] = Path(path)
+    return bindings
 
 
 def _validate_resumable_attempt(

@@ -21,6 +21,7 @@ from medphys_agentbench.qualification import (
 )
 from medphys_agentbench.recorded_capture import validate_recorded_batch
 from medphys_agentbench.release_loader import load_release
+from medphys_agentbench.route_qualification import load_route_set
 from medphys_agentbench.runner import adapter_runtime_settings
 from medphys_agentbench.scoring import score_attempt
 from medphys_agentbench.task_loader import load_task
@@ -161,8 +162,11 @@ def validate_repository() -> dict[str, int]:
         "common_harness_submission": _validator("common-harness-submission.v1.schema.json"),
         "recorded_batch_v2": _validator("recorded-batch.v2.schema.json"),
         "defect_ledger": _validator("defect-ledger.v1.schema.json"),
-        "campaign": _validator("campaign.v1.schema.json"),
+        "campaign_v1": _validator("campaign.v1.schema.json"),
+        "campaign_v2": _validator("campaign.v2.schema.json"),
         "access_status": _validator("access-status.v1.schema.json"),
+        "model_routes": _validator("model-route.v1.schema.json"),
+        "access_probe_receipt": _validator("access-probe-receipt.v1.schema.json"),
     }
 
     fleet_path = ROOT / "fleet" / "public_fleet_v1.yaml"
@@ -174,6 +178,13 @@ def validate_repository() -> dict[str, int]:
         raise ValueError(f"{fleet_path}: base_model_id values must be unique.")
     if len(fleet_ids) != fleet["target_base_model_count"]:
         raise ValueError(f"{fleet_path}: target_base_model_count does not match the frozen list.")
+
+    route_set_path = ROOT / "fleet" / "model_routes_v1.yaml"
+    route_set_payload = _load_yaml(route_set_path)
+    _validate(validators["model_routes"], route_set_payload, route_set_path)
+    route_set = load_route_set(route_set_path)
+    if route_set.fleet_id != fleet["fleet_id"]:
+        raise ValueError(f"{route_set_path}: route set does not match the frozen fleet.")
 
     fleet_status_path = ROOT / "web" / "public" / "data" / "fleet_status.json"
     fleet_status = _load_json(fleet_status_path)
@@ -245,7 +256,12 @@ def validate_repository() -> dict[str, int]:
     campaign_ids: set[str] = set()
     for path in campaign_paths:
         payload = _load_yaml(path)
-        _validate(validators["campaign"], payload, path)
+        campaign_validator = (
+            validators["campaign_v2"]
+            if payload.get("schema_version") == "medeval.campaign.v2"
+            else validators["campaign_v1"]
+        )
+        _validate(campaign_validator, payload, path)
         campaign = load_campaign(path)
         if campaign.campaign_id in campaign_ids:
             raise ValueError(f"Duplicate campaign_id {campaign.campaign_id!r} in {path}.")
@@ -407,6 +423,7 @@ def validate_repository() -> dict[str, int]:
         "campaign_count": len(campaign_paths),
         "grader_mutation_count": grader_mutation_count,
         "fleet_model_count": len(fleet_ids),
+        "route_count": len(route_set.routes),
     }
 
 

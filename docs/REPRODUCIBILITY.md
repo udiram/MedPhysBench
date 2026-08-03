@@ -53,6 +53,38 @@ receipts; scored result artifacts remain the source of truth. Changing the
 manifest, release contract, route, revision, sampling settings, or output root
 requires a new campaign ID/results directory.
 
+New campaigns should use the evidence-bound v2 generator. It requires one exact
+route-to-receipt binding per selected route and an explicit generation instant,
+so expiration decisions are reproducible. The example paths below are schematic;
+the repository intentionally does not ship fabricated successful receipts.
+
+```bash
+# Reads only the route's declared credential environment variable. It uses a
+# generic JSON canary, never a benchmark task, and persists no raw provider body.
+uv run python scripts/probes/openai_access_probe.py \
+  fleet/model_routes_v1.yaml \
+  --route-id groq-gpt-oss-20b
+
+uv run medphys-bench generate-campaign \
+  fleet/model_routes_v1.yaml \
+  releases/public_real_workflows_pilot_v0_6.yaml \
+  --route-id groq-gpt-oss-20b \
+  --receipt groq-gpt-oss-20b=receipts/access/groq-gpt-oss-20b/<probe>.json \
+  --campaign-id groq-gpt-oss-20b-q2-v2 \
+  --results-dir runs/groq-gpt-oss-20b-q2-v2 \
+  --as-of 2026-08-03T12:00:00Z \
+  --output campaigns/groq-gpt-oss-20b-q2-v2.yaml
+```
+
+The generator refuses expired, future-dated, tampered, identity-mismatched,
+unavailable, insufficient-quota, or mixed credential-surface inputs. Unknown
+quota also fails closed unless `--allow-unknown-quota` is explicitly recorded in
+the generated manifest. Generation contacts no provider and creates no run state.
+The probe emits typed access failures (missing authorization, model not found,
+quota exhausted, rate limited, unsupported contract, or network error) as
+non-scoring receipts. A successful receipt proves the route's declared JSON
+contract and binds the exact reviewed probe implementation bytes.
+
 ## Run a model
 
 ```bash

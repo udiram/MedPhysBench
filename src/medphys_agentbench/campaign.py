@@ -25,6 +25,11 @@ from .adapters.openai_compatible import OpenAICompatibleAdapter
 from .json_utils import stable_hash
 from .release_loader import BenchmarkRelease, load_release
 from .reporting import _release_contract_hash
+from .route_qualification import (
+    load_access_probe_receipt,
+    load_route_set,
+    require_campaign_eligible_receipt,
+)
 from .runner import (
     SCORING_REVISION,
     adapter_runtime_settings,
@@ -38,6 +43,7 @@ from .scoring import grades_pass, grades_safe, score_attempt, weighted_grade_sco
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 CAMPAIGN_SCHEMA_PATH = REPOSITORY_ROOT / "schemas" / "campaign.v1.schema.json"
+CAMPAIGN_V2_SCHEMA_PATH = REPOSITORY_ROOT / "schemas" / "campaign.v2.schema.json"
 _ENVIRONMENT_NAME = re.compile(r"^[A-Z][A-Z0-9_]{2,63}$")
 _SECRET_KEY = re.compile(
     r"(?:^|_)(?:api_?key|secret|token|access_?token|auth(?:orization)?|bearer|password|credential)(?:$|_)",
@@ -89,6 +95,12 @@ class CampaignModel:
     reasoning_effort: str | None = None
     ollama_keep_alive: str | int | None = None
     ollama_num_ctx: int | None = None
+    route_id: str | None = None
+    route_spec_sha256: str | None = None
+    access_receipt_path: str | None = None
+    access_receipt_sha256: str | None = None
+    quota_assessment: str | None = None
+    max_rate_limit_retries: int = 8
 
 
 @dataclass(frozen=True)
@@ -110,6 +122,10 @@ class CampaignSpec:
     execution: CampaignExecution
     resource_limits: CampaignResourceLimits
     models: tuple[CampaignModel, ...]
+    generated_at: str | None = None
+    route_set_file: str | None = None
+    route_set_id: str | None = None
+    allow_unknown_quota: bool = False
 
 
 @dataclass(frozen=True)
@@ -140,7 +156,9 @@ def load_campaign(path: str | Path) -> CampaignSpec:
     if not isinstance(payload, dict):
         raise CampaignError("Campaign manifest must contain a mapping at the document root.")
     _reject_secret_material(payload)
-    schema = json.loads(CAMPAIGN_SCHEMA_PATH.read_text(encoding="utf-8"))
+    schema_version = payload.get("schema_version")
+    schema_path = CAMPAIGN_V2_SCHEMA_PATH if schema_version == "medeval.campaign.v2" else CAMPAIGN_SCHEMA_PATH
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
     validator = Draft202012Validator(schema, format_checker=FormatChecker())
     errors = sorted(validator.iter_errors(payload), key=lambda item: list(item.absolute_path))
     if errors:
@@ -196,6 +214,8 @@ def load_campaign(path: str | Path) -> CampaignSpec:
         )
     for model in models:
         _validate_model(model)
+    if schema_version == "medeval.campaign.v2":
+        _validate_evidence_bound_models(payload, models)
 
     return CampaignSpec(
         schema_version=str(payload["schema_version"]),
@@ -215,6 +235,10 @@ def load_campaign(path: str | Path) -> CampaignSpec:
         execution=CampaignExecution(**payload["execution"]),
         resource_limits=CampaignResourceLimits(**payload["resource_limits"]),
         models=models,
+        generated_at=str(payload["generated_at"]) if payload.get("generated_at") else None,
+        route_set_file=str(payload["route_set_file"]) if payload.get("route_set_file") else None,
+        route_set_id=str(payload["route_set_id"]) if payload.get("route_set_id") else None,
+        allow_unknown_quota=bool(payload.get("allow_unknown_quota", False)),
     )
 
 
@@ -278,6 +302,8 @@ def build_model_command(spec: CampaignSpec, model: CampaignModel) -> list[str]:
         command.append("--best-effort-schema")
     if model.reasoning_effort:
         command.extend(["--reasoning-effort", model.reasoning_effort])
+    if model.adapter != "ollama":
+        command.extend(["--max-rate-limit-retries", str(model.max_rate_limit_retries)])
     if model.adapter == "ollama":
         command.extend(
             ["--ollama-keep-alive", str(model.ollama_keep_alive), "--ollama-num-ctx", str(model.ollama_num_ctx)]
@@ -339,6 +365,8 @@ def campaign_plan(
         "release_id": spec.release_id,
         "release_contract_hash_v2": spec.release_contract_hash_v2,
         "fleet_id": spec.fleet_id,
+        "route_set_id": spec.route_set_id,
+        "evidence_bound": spec.schema_version == "medeval.campaign.v2",
         "base_model_count": len({model.base_model_id for model in spec.models}),
         "system_configuration_count": len(spec.models),
         "expected_attempt_count": len(spec.release.load_tasks()) * spec.attempts * len(spec.models),
@@ -353,6 +381,8 @@ def campaign_plan(
                 "provider": model.provider,
                 "model": model.model,
                 "model_revision": model.model_revision,
+                "route_id": model.route_id,
+                "access_receipt_sha256": model.access_receipt_sha256,
                 "credential_env": model.api_key_env,
                 "credential_present": model.api_key_env is None or bool(environment.get(model.api_key_env)),
             }
@@ -674,6 +704,80 @@ def _validate_model(model: CampaignModel) -> None:
             raise CampaignError(f"OpenAI-compatible configuration {model.configuration_id} must declare base_url.")
 
 
+def _validate_evidence_bound_models(payload: dict[str, Any], models: tuple[CampaignModel, ...]) -> None:
+    route_set_path = _repository_path(str(payload["route_set_file"]), "fleet")
+    try:
+        route_set = load_route_set(route_set_path, repository_root=REPOSITORY_ROOT)
+    except ValueError as error:
+        raise CampaignError(f"Cannot validate evidence-bound route set: {error}") from error
+    if route_set.route_set_id != payload["route_set_id"]:
+        raise CampaignError("campaign route_set_id does not match the referenced route set.")
+    if route_set.fleet_id != payload["fleet_id"] or route_set.fleet_file != payload["fleet_file"]:
+        raise CampaignError("campaign route set is not bound to the campaign fleet contract.")
+    try:
+        as_of = datetime.fromisoformat(str(payload["generated_at"]).replace("Z", "+00:00"))
+    except ValueError as error:
+        raise CampaignError("campaign generated_at must be an RFC 3339 timestamp.") from error
+
+    surfaces: set[tuple[str, str, str | None, str | None]] = set()
+    for model in models:
+        if model.route_id is None or model.access_receipt_path is None:
+            raise CampaignError(f"Evidence-bound configuration {model.configuration_id} is missing route evidence.")
+        try:
+            route = route_set.route(model.route_id)
+        except ValueError as error:
+            raise CampaignError(str(error)) from error
+        expected = {
+            "configuration_id": route.route_id,
+            "base_model_id": route.base_model_id,
+            "route_spec_sha256": route.route_spec_sha256,
+            "adapter": route.adapter,
+            "provider": route.provider,
+            "model": route.model,
+            "model_revision": route.model_revision,
+            "response_format": route.response_format,
+            "strict_schema": route.strict_schema,
+            "timeout_seconds": route.timeout_seconds,
+            "max_tokens": route.max_tokens,
+            "base_url": route.base_url,
+            "api_key_env": route.api_key_env,
+            "reasoning_effort": route.reasoning_effort,
+            "ollama_keep_alive": route.ollama_keep_alive,
+            "ollama_num_ctx": route.ollama_num_ctx,
+            "max_rate_limit_retries": route.max_rate_limit_retries if route.max_rate_limit_retries is not None else 8,
+        }
+        mismatches = [key for key, value in expected.items() if getattr(model, key) != value]
+        if mismatches:
+            raise CampaignError(
+                f"Evidence-bound configuration {model.configuration_id!r} differs from route "
+                f"{route.route_id!r}: {', '.join(sorted(mismatches))}."
+            )
+        receipt_path = _repository_path(model.access_receipt_path, "receipts/access")
+        try:
+            receipt = load_access_probe_receipt(
+                receipt_path,
+                route_set,
+                repository_root=REPOSITORY_ROOT,
+            )
+            require_campaign_eligible_receipt(
+                receipt,
+                route,
+                as_of=as_of,
+                allow_unknown_quota=bool(payload["allow_unknown_quota"]),
+            )
+        except ValueError as error:
+            raise CampaignError(f"Invalid access evidence for {model.configuration_id!r}: {error}") from error
+        if receipt.content_sha256 != model.access_receipt_sha256:
+            raise CampaignError(f"Access receipt hash mismatch for {model.configuration_id!r}.")
+        if receipt.quota_status != model.quota_assessment:
+            raise CampaignError(f"Quota assessment mismatch for {model.configuration_id!r}.")
+        surfaces.add((model.adapter, model.provider, model.api_key_env, model.base_url))
+    if len(surfaces) != 1:
+        raise CampaignError(
+            "Evidence-bound campaigns must use one adapter/provider/credential surface; split the manifest."
+        )
+
+
 def _reject_secret_material(value: Any, trail: tuple[str, ...] = ()) -> None:
     if isinstance(value, dict):
         for key, child in value.items():
@@ -694,7 +798,13 @@ def _reject_secret_material(value: Any, trail: tuple[str, ...] = ()) -> None:
 
 def _repository_path(value: str, prefix: str) -> Path:
     pure = PurePosixPath(value)
-    if pure.is_absolute() or ".." in pure.parts or not pure.parts or pure.parts[0] != prefix:
+    prefix_parts = PurePosixPath(prefix).parts
+    if (
+        pure.is_absolute()
+        or ".." in pure.parts
+        or not pure.parts
+        or pure.parts[: len(prefix_parts)] != prefix_parts
+    ):
         raise CampaignError(f"Path {value!r} must be repository-relative under {prefix}/.")
     resolved = (REPOSITORY_ROOT / Path(*pure.parts)).resolve()
     if not resolved.is_relative_to((REPOSITORY_ROOT / prefix).resolve()):
@@ -852,6 +962,7 @@ def _adapter_for_model(model: CampaignModel) -> OllamaAdapter | OpenAICompatible
         response_format=model.response_format,
         strict_schema=model.strict_schema,
         reasoning_effort=model.reasoning_effort,
+        max_rate_limit_retries=model.max_rate_limit_retries,
         artifact_root=REPOSITORY_ROOT,
         model_revision_override=model.model_revision,
     )

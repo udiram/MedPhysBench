@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphysbench.org/schemas/access-probe-receipt.v1.schema.json",
+  "title": "MedPhysBench immutable access probe receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "receipt_id",
+    "route_id",
+    "route_spec_sha256",
+    "route_set_id",
+    "fleet_id",
+    "base_model_id",
+    "adapter",
+    "provider",
+    "model",
+    "model_revision",
+    "probe_version",
+    "probe_implementation_path",
+    "probe_implementation_sha256",
+    "source_commit",
+    "started_at",
+    "completed_at",
+    "expires_at",
+    "outcome",
+    "capabilities",
+    "quota",
+    "sanitized_metadata",
+    "content_sha256"
+  ],
+  "properties": {
+    "schema_version": { "const": "medphysbench.access-probe-receipt.v1" },
+    "receipt_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{7,191}$" },
+    "route_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$" },
+    "route_spec_sha256": { "$ref": "#/$defs/sha256" },
+    "route_set_id": { "type": "string", "minLength": 1 },
+    "fleet_id": { "type": "string", "minLength": 1 },
+    "base_model_id": { "type": "string", "minLength": 1 },
+    "adapter": { "enum": ["ollama", "groq", "openai", "openai-compatible"] },
+    "provider": { "type": "string", "minLength": 1 },
+    "model": { "type": "string", "minLength": 1 },
+    "model_revision": { "type": "string", "minLength": 7 },
+    "probe_version": { "type": "string", "pattern": "^[A-Za-z0-9._-]{3,64}$" },
+    "probe_implementation_path": {
+      "type": "string",
+      "pattern": "^scripts/probes/[A-Za-z0-9._/-]+\\.py$"
+    },
+    "probe_implementation_sha256": { "$ref": "#/$defs/sha256" },
+    "source_commit": { "type": "string", "pattern": "^[a-f0-9]{7,64}$" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "completed_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "outcome": {
+      "enum": [
+        "available",
+        "auth_missing",
+        "model_not_found",
+        "quota_exhausted",
+        "rate_limited",
+        "contract_unsupported",
+        "network_error"
+      ]
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observed", "inferred"],
+      "properties": {
+        "observed": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "inferred": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "quota": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "source"],
+      "properties": {
+        "status": { "enum": ["sufficient", "insufficient", "unknown"] },
+        "source": { "enum": ["provider_headers", "provider_console", "local_runtime", "not_exposed"] },
+        "reset_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "sanitized_metadata": {
+      "type": "object",
+      "propertyNames": {
+        "enum": [
+          "endpoint_host",
+          "http_status",
+          "provider_request_id",
+          "served_model",
+          "served_revision",
+          "latency_ms",
+          "response_contract",
+          "error_code"
+        ]
+      },
+      "additionalProperties": {
+        "type": ["string", "number", "integer", "boolean", "null"]
+      }
+    },
+    "content_sha256": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

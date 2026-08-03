@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphysbench.org/schemas/model-route.v1.schema.json",
+  "title": "MedPhysBench executable model route set v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "route_set_id", "fleet_file", "fleet_id", "frozen_at", "routes"],
+  "properties": {
+    "schema_version": { "const": "medphysbench.model-routes.v1" },
+    "route_set_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{7,127}$" },
+    "fleet_file": { "type": "string", "pattern": "^fleet/[A-Za-z0-9._/-]+\\.ya?ml$" },
+    "fleet_id": { "type": "string", "minLength": 1 },
+    "frozen_at": { "type": "string", "format": "date-time" },
+    "routes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/route" }
+    }
+  },
+  "$defs": {
+    "route": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "route_id",
+        "base_model_id",
+        "adapter",
+        "provider",
+        "model",
+        "model_revision",
+        "revision_basis",
+        "response_format",
+        "strict_schema",
+        "timeout_seconds",
+        "max_tokens",
+        "access_ttl_seconds",
+        "modalities"
+      ],
+      "properties": {
+        "route_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$" },
+        "base_model_id": { "type": "string", "minLength": 1 },
+        "adapter": { "enum": ["ollama", "groq", "openai", "openai-compatible"] },
+        "provider": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 },
+        "model_revision": { "type": "string", "minLength": 7 },
+        "revision_basis": { "enum": ["immutable_digest", "provider_snapshot", "provider_alias"] },
+        "base_url": { "type": "string", "format": "uri", "pattern": "^https?://" },
+        "api_key_env": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,63}$" },
+        "response_format": { "enum": ["json_schema", "json_object"] },
+        "strict_schema": { "type": "boolean" },
+        "reasoning_effort": { "enum": ["low", "medium", "high"] },
+        "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 3600 },
+        "max_tokens": { "type": "integer", "minimum": 64, "maximum": 131072 },
+        "max_rate_limit_retries": { "type": "integer", "minimum": 0, "maximum": 20 },
+        "access_ttl_seconds": { "type": "integer", "minimum": 60, "maximum": 2592000 },
+        "modalities": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["text", "image"] }
+        },
+        "ollama_keep_alive": { "oneOf": [{ "const": 0 }, { "const": "0" }] },
+        "ollama_num_ctx": { "type": "integer", "minimum": 512, "maximum": 262144 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "adapter": { "const": "ollama" } }, "required": ["adapter"] },
+          "then": {
+            "required": ["ollama_keep_alive", "ollama_num_ctx"],
+            "not": { "required": ["api_key_env"] }
+          },
+          "else": { "required": ["api_key_env", "base_url", "max_rate_limit_retries"] }
+        },
+        {
+          "if": { "properties": { "adapter": { "const": "openai-compatible" } }, "required": ["adapter"] },
+          "then": { "required": ["base_url"] }
+        }
+      ]
+    }
+  }
+}

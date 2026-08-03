@@ -170,6 +170,7 @@ def test_command_is_shell_free_resumable_and_never_contains_secret_value() -> No
     assert "--resume" in command
     assert "--fail-fast" in command
     assert "--best-effort-schema" in command
+    assert command[command.index("--max-rate-limit-retries") + 1] == "8"
     assert "GROQ_API_KEY" in command
     assert "literal-secret" not in " ".join(command)
 

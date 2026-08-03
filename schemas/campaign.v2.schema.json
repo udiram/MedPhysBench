@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphysbench.org/schemas/campaign.v2.schema.json",
+  "title": "MedPhysBench evidence-bound serial campaign manifest v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "campaign_id",
+    "generated_at",
+    "release_file",
+    "release_id",
+    "release_contract_hash_v2",
+    "fleet_file",
+    "fleet_id",
+    "route_set_file",
+    "route_set_id",
+    "allow_unknown_quota",
+    "results_dir",
+    "attempts",
+    "execution",
+    "resource_limits",
+    "models"
+  ],
+  "properties": {
+    "schema_version": { "const": "medeval.campaign.v2" },
+    "campaign_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{7,127}$" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "release_file": { "type": "string", "pattern": "^releases/[A-Za-z0-9._/-]+\\.ya?ml$" },
+    "release_id": { "type": "string", "minLength": 1 },
+    "release_contract_hash_v2": { "$ref": "#/$defs/sha256" },
+    "fleet_file": { "type": "string", "pattern": "^fleet/[A-Za-z0-9._/-]+\\.ya?ml$" },
+    "fleet_id": { "type": "string", "minLength": 1 },
+    "route_set_file": { "type": "string", "pattern": "^fleet/[A-Za-z0-9._/-]+\\.ya?ml$" },
+    "route_set_id": { "type": "string", "minLength": 1 },
+    "allow_unknown_quota": { "type": "boolean" },
+    "results_dir": { "type": "string", "pattern": "^runs/[A-Za-z0-9._/-]+$" },
+    "attempts": { "type": "integer", "minimum": 1 },
+    "execution": { "$ref": "#/$defs/execution" },
+    "resource_limits": { "$ref": "#/$defs/resource_limits" },
+    "models": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/model" } }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_parallel_models", "process_isolation", "resume", "fail_fast_attempts", "continue_on_model_failure"],
+      "properties": {
+        "max_parallel_models": { "const": 1 },
+        "process_isolation": { "const": true },
+        "resume": { "const": true },
+        "fail_fast_attempts": { "type": "boolean" },
+        "continue_on_model_failure": { "type": "boolean" }
+      }
+    },
+    "resource_limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum_available_memory_fraction", "minimum_available_memory_gib", "minimum_free_disk_gib"],
+      "properties": {
+        "minimum_available_memory_fraction": { "type": "number", "minimum": 0.1, "maximum": 0.9 },
+        "minimum_available_memory_gib": { "type": "number", "minimum": 1 },
+        "minimum_free_disk_gib": { "type": "number", "minimum": 1 }
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "configuration_id",
+        "base_model_id",
+        "route_id",
+        "route_spec_sha256",
+        "access_receipt_path",
+        "access_receipt_sha256",
+        "quota_assessment",
+        "adapter",
+        "provider",
+        "model",
+        "model_revision",
+        "response_format",
+        "strict_schema",
+        "timeout_seconds",
+        "seed",
+        "temperature",
+        "max_tokens"
+      ],
+      "properties": {
+        "configuration_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$" },
+        "base_model_id": { "type": "string", "minLength": 1 },
+        "route_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,127}$" },
+        "route_spec_sha256": { "$ref": "#/$defs/sha256" },
+        "access_receipt_path": { "type": "string", "pattern": "^receipts/access/[A-Za-z0-9._/-]+\\.json$" },
+        "access_receipt_sha256": { "$ref": "#/$defs/sha256" },
+        "quota_assessment": { "enum": ["sufficient", "unknown"] },
+        "adapter": { "enum": ["ollama", "groq", "openai", "openai-compatible"] },
+        "provider": { "type": "string", "minLength": 1 },
+        "model": { "type": "string", "minLength": 1 },
+        "model_revision": { "type": "string", "minLength": 7 },
+        "base_url": { "type": "string", "format": "uri", "pattern": "^https?://" },
+        "api_key_env": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,63}$" },
+        "response_format": { "enum": ["json_schema", "json_object"] },
+        "strict_schema": { "type": "boolean" },
+        "reasoning_effort": { "enum": ["low", "medium", "high"] },
+        "timeout_seconds": { "type": "integer", "minimum": 1, "maximum": 3600 },
+        "seed": { "type": "integer", "minimum": 0, "maximum": 4294967295 },
+        "temperature": { "type": "number", "minimum": 0, "maximum": 2 },
+        "max_tokens": { "type": "integer", "minimum": 64, "maximum": 131072 },
+        "max_rate_limit_retries": { "type": "integer", "minimum": 0, "maximum": 20 },
+        "ollama_keep_alive": { "oneOf": [{ "const": 0 }, { "const": "0" }] },
+        "ollama_num_ctx": { "type": "integer", "minimum": 512, "maximum": 262144 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "adapter": { "const": "ollama" } }, "required": ["adapter"] },
+          "then": { "required": ["ollama_keep_alive", "ollama_num_ctx"], "not": { "required": ["api_key_env"] } },
+          "else": { "required": ["api_key_env", "base_url", "max_rate_limit_retries"] }
+        },
+        {
+          "if": { "properties": { "adapter": { "const": "openai-compatible" } }, "required": ["adapter"] },
+          "then": { "required": ["base_url"] }
+        }
+      ]
+    }
+  }
+}

@@ -6,6 +6,7 @@ Review date: 2026-08-02
 Machine-readable artifacts:
 
 - frozen selection: [`../fleet/public_fleet_v1.yaml`](../fleet/public_fleet_v1.yaml);
+- executable route candidates: [`../fleet/model_routes_v1.yaml`](../fleet/model_routes_v1.yaml);
 - public derived status: [`../web/public/data/fleet_status.json`](../web/public/data/fleet_status.json);
 - deterministic builder: [`../scripts/build_fleet_status.py`](../scripts/build_fleet_status.py).
 
@@ -58,6 +59,14 @@ Resolve the exact endpoint/model ID, live status, terms, data boundary, context
 and modality support, rate limits, and whether the route can complete a frozen
 matrix without paid overage. Record failures in `access_status.json`; do not
 create a score row.
+
+An executable route is not access evidence. `model-route.v1` freezes the exact
+adapter/provider/model configuration and its revision basis. A successful route
+probe produces a content-addressed `access-probe-receipt.v1` under
+`receipts/access/`; only an unexpired receipt with matching route/fleet/model
+identity and sufficient quota can feed the evidence-bound campaign generator.
+Failure receipts are useful operational evidence but never increment evaluated or
+ranked counts.
 
 The ledger is validated against `access-status.v1`: available routes must bind a
 provider, exact handle or base-level native surface, frozen base-model ID, and
@@ -117,6 +126,13 @@ configuration, rechecks pressure before every model, and verifies the complete
 canonical attempt matrix before recording completion. Alternate revisions or
 reasoning settings with the same provider model handle use separate campaigns so
 they cannot collide in one result directory or inflate the 50-base-model count.
+
+For new campaigns, `medeval.campaign.v2` additionally binds every model entry to
+an exact route hash and immutable access-receipt hash. Generation is byte-stable
+for the same selected routes, receipts, release, sampling policy, and declared
+generation instant. It refuses mixed credential surfaces, expired/future/tampered
+receipts, insufficient quota, and unrecorded unknown-quota assumptions before any
+model request is possible.
 
 Hosted free-tier campaigns must snapshot live quotas before dispatch. HTTP 429,
 retired handles, and weekly limits are access failures, not model failures. The

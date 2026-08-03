@@ -153,6 +153,17 @@ def test_cli_provider_presets_require_named_environment_variables(
         )
 
 
+def test_openai_compatible_rejects_unbounded_rate_limit_retries() -> None:
+    with pytest.raises(ValueError, match="between 0 and 20"):
+        OpenAICompatibleAdapter(
+            model_name="test-model",
+            api_key="test-only",
+            base_url="https://api.example.test/v1",
+            provider="test-provider",
+            max_rate_limit_retries=21,
+        )
+
+
 def test_openai_compatible_retries_rate_limits_with_auditable_trace(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

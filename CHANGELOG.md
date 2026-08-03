@@ -12,6 +12,14 @@
 
 ## Unreleased
 
+- Added a frozen executable-route contract, content-addressed access-probe receipts,
+  a reviewed OpenAI-compatible JSON-canary probe, and evidence-bound `campaign.v2`
+  generation. New campaigns fail closed on stale,
+  future, tampered, mismatched, unavailable, insufficient-quota, mixed-surface, or
+  unacknowledged unknown-quota evidence without contacting a provider or writing a
+  score artifact; successful receipts must postdate the route freeze, prove the
+  declared response contract, and hash-bind the probe implementation.
+
 - Updated the public GitHub Actions runtime pins to the Node 24-based
   `actions/checkout@v5` and `actions/setup-node@v5` releases while preserving
   the existing explicit npm cache contract.

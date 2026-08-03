@@ -82,7 +82,8 @@ package, or evidence of autonomous clinical competence.
   non-finite numbers, or non-object roots.
 - A runnable Ollama adapter and release runner that persist benchmark artifacts under [`runs/`](runs/).
 - A schema-driven, serial campaign controller with memory/disk preflight, one child process per
-  model, exact release/fleet binding, canonical-matrix verification, and hash-chained resume receipts.
+  model, exact release/fleet binding, canonical-matrix verification, and hash-chained resume receipts;
+  new v2 manifests bind every configuration to a frozen route and unexpired access receipt.
 - Strict structured-output parsing: one exact JSON object, with no repair from Markdown wrappers,
   duplicate keys, trailing prose, or non-finite numbers.
 - A 97-task public catalog spanning core physics, RT physics, brachytherapy,
@@ -98,7 +99,7 @@ package, or evidence of autonomous clinical competence.
 - Harness-group release ranks plus a clearly labeled descriptive cross-surface outcome order;
   incomplete or manifest-inconsistent runs remain published but receive neither.
 - Architecture, governance, evaluation, onboarding, and deployment documentation in [`docs/`](docs/).
-- Repository-wide validation of all fourteen JSON Schemas, every authored/runtime task projection,
+- Repository-wide validation of all eighteen JSON Schemas, every authored/runtime task projection,
   every artifact digest, constructed reference feasibility, and every published result artifact.
 - A unified browser model index that exposes open/closed and provider filters, release-specific
   scores, task-level outcome facets, failed grader contracts, exact configuration hashes, and
@@ -150,10 +151,11 @@ uv run medphys-bench summarize \
 ```text
 docs/                    Architecture, governance, protocol, and release docs
 campaigns/               Frozen, secret-free, serial multi-model execution manifests
-fleet/                   Frozen base-model selection manifests
+fleet/                   Frozen base-model selection and executable route manifests
+receipts/access/         Immutable route-probe evidence; never score artifacts
 releases/                Immutable benchmark release manifests
 results/releases/        Published release artifacts and leaderboard inputs
-schemas/                 Versioned task, runtime, run, result, fleet, and release schemas
+schemas/                 Versioned task, runtime, run, result, route, campaign, fleet, and release schemas
 src/medphys_agentbench/  Loader, contracts, graders, adapters, prompts, runner, reporting
 tasks/                   Development and public task packs
 tests/                   Contract, regression, and summary tests
