@@ -369,6 +369,62 @@ def test_model_failures_are_recorded_without_erasing_later_models(tmp_path: Path
     assert [event["event_type"] for event in events].count("model_failed") == 1
 
 
+def test_provider_quota_failure_skips_sibling_routes_without_retries(tmp_path: Path) -> None:
+    original = load_campaign(CAMPAIGN_PATH)
+    campaign = replace(
+        original,
+        results_dir=tmp_path / "runs",
+        models=original.models[:2],
+    )
+    commands: list[list[str]] = []
+
+    def runner(command: list[str], _cwd: Path, _environment: object) -> int:
+        commands.append(command)
+        model_name = command[command.index("--model") + 1]
+        model_slug = "".join(character if character.isalnum() else "_" for character in model_name).strip("_").lower()
+        error_dir = campaign.results_dir / campaign.release_id / model_slug / "_transport_errors"
+        error_dir.mkdir(parents=True, exist_ok=True)
+        (error_dir / "quota-error.json").write_text(
+            json.dumps(
+                {
+                    "status": "error",
+                    "error_type": "AdapterError",
+                    "error": "groq HTTP 429 after bounded retries",
+                    "raw_response": {"http_status": 429, "content_redacted": True},
+                }
+            ),
+            encoding="utf-8",
+        )
+        return 7
+
+    report = execute_campaign(
+        campaign,
+        environ={"GROQ_API_KEY": "test-only"},
+        snapshot_provider=lambda _path: _safe_snapshot(),
+        command_runner=runner,
+    )
+
+    assert len(commands) == 1
+    assert report["status"] == "completed_with_failures"
+    assert report["completed_models"] == 0
+    assert report["failed_models"] == 2
+    assert report["skipped_models"] == 1
+    assert report["blocked_providers"] == ["groq"]
+    events = validate_event_ledger(
+        campaign.results_dir / "_campaigns" / campaign.campaign_id / "events.jsonl",
+        expected_campaign_hash=campaign.manifest_hash,
+    )
+    assert [event["event_type"] for event in events] == [
+        "campaign_started",
+        "model_started",
+        "model_failed",
+        "model_skipped_provider_block",
+        "campaign_finished",
+    ]
+    assert events[2]["details"]["failure_kind"] == "provider_quota_blocked"
+    assert events[3]["details"]["provider_block"]["reason_code"] == ("provider_quota_or_rate_limit_exhausted")
+
+
 def test_zero_exit_without_canonical_matrix_is_not_marked_complete(tmp_path: Path) -> None:
     campaign = replace(
         load_campaign(CAMPAIGN_PATH),

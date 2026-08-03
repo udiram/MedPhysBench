@@ -60,6 +60,7 @@ validate schema and paths
        -> launch one typed child process
        -> run existing immutable run-release --resume
        -> verify every canonical task/attempt key
+       -> open provider-wide quota circuit when new bounded-retry evidence is 429/quota exhaustion
        -> append completion or failure receipt
   -> append campaign completion receipt
 ```
@@ -73,6 +74,13 @@ inherited. The
 control plane does not shorten the release after rate limits or resource pressure.
 A transport failure remains in `_transport_errors`, the canonical attempt stays
 missing, and the configuration is not complete.
+
+Only transport-error files created by the current child are considered for the
+provider circuit breaker. A 429, explicit quota exhaustion, rate-limit exhaustion,
+or usage-limit receipt blocks later configurations on that provider for the same
+campaign and records each skip; unrelated providers remain eligible. Historical
+retry receipts do not by themselves block a successful resumed matrix, and raw
+provider error bodies are not copied into campaign events.
 
 A missing credential stops before state is created. A measurable resource
 preflight failure writes only the immutable state header and a hash-chained

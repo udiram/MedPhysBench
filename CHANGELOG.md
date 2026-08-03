@@ -12,6 +12,7 @@
 
 ## Unreleased
 
+- Added a provider-wide quota circuit breaker: newly exhausted 429/quota/usage-limit transport receipts stop sibling routes from repeatedly consuming retries, record sanitized skip evidence, and leave unrelated providers available.
 - Added a standalone `access-status.v1` contract with frozen-fleet, public-catalog, duplicate-route, blocked-stage, and attested-submission validation; readiness cards now link directly to the exact common-harness sidecar when promotion evidence exists.
 - Hardened campaign completion so zero-exit children are rechecked against provider/model/harness identity, adapter settings, seeds, prompt/tool/runtime/grader hashes, scoring revision, deterministic regrading, and an exact no-extra-files matrix; campaign children now receive only an allowlisted runtime environment plus their one declared credential.
 - Upgraded the public fleet projection to `fleet-status.v2` with data-derived readiness states, next gates, and route-level access evidence for all 50 frozen base IDs; fixed the five-stage funnel's four-column layout bug and added searchable, expandable readiness cards with honest no-access-evidence states on desktop and mobile.

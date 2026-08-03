@@ -392,6 +392,8 @@ def execute_campaign(
     verifier = completion_verifier or verify_model_completion
     completed = 0
     failed = 0
+    skipped = 0
+    blocked_providers: dict[str, dict[str, object]] = {}
     with _campaign_lock(state_dir):
         _initialize_state(spec, state_dir)
         failures = resource_limit_failures(initial_snapshot, spec.resource_limits)
@@ -405,6 +407,22 @@ def execute_campaign(
             raise CampaignExecutionError("Campaign resource preflight failed: " + "; ".join(failures))
         _append_event(spec, state_dir, "campaign_started", {"model_count": len(spec.models)})
         for model in spec.models:
+            provider_block = blocked_providers.get(model.provider)
+            if provider_block:
+                failed += 1
+                skipped += 1
+                _append_event(
+                    spec,
+                    state_dir,
+                    "model_skipped_provider_block",
+                    {
+                        "configuration_id": model.configuration_id,
+                        "base_model_id": model.base_model_id,
+                        "provider": model.provider,
+                        "provider_block": provider_block,
+                    },
+                )
+                continue
             snapshot = snapshot_provider(spec.results_dir)
             failures = resource_limit_failures(snapshot, spec.resource_limits)
             if failures:
@@ -431,11 +449,17 @@ def execute_campaign(
                     "resource_snapshot": snapshot.to_dict(),
                 },
             )
+            model_dir = spec.results_dir / spec.release_id / _slugify(model.model)
+            transport_errors_before = set((model_dir / "_transport_errors").glob("*.json"))
             return_code = runner(
                 build_model_command(spec, model),
                 REPOSITORY_ROOT,
                 _child_environment(environment, model),
             )
+            new_transport_errors = sorted(
+                set((model_dir / "_transport_errors").glob("*.json")) - transport_errors_before
+            )
+            quota_block = _provider_quota_block(new_transport_errors)
             completion = (
                 verifier(spec, model)
                 if return_code == 0
@@ -460,7 +484,18 @@ def execute_campaign(
                 )
                 continue
             failed += 1
-            failure_kind = "child_exit_nonzero" if return_code != 0 else "canonical_matrix_incomplete"
+            failure_kind = (
+                "provider_quota_blocked"
+                if quota_block
+                else "child_exit_nonzero"
+                if return_code != 0
+                else "canonical_matrix_incomplete"
+            )
+            if quota_block:
+                blocked_providers[model.provider] = {
+                    **quota_block,
+                    "source_configuration_id": model.configuration_id,
+                }
             _append_event(
                 spec,
                 state_dir,
@@ -470,6 +505,7 @@ def execute_campaign(
                     "return_code": return_code,
                     "failure_kind": failure_kind,
                     "completion": completion,
+                    "provider_block": blocked_providers.get(model.provider),
                 },
             )
             if not spec.execution.continue_on_model_failure:
@@ -481,9 +517,23 @@ def execute_campaign(
             spec,
             state_dir,
             "campaign_finished",
-            {"status": status, "completed_models": completed, "failed_models": failed},
+            {
+                "status": status,
+                "completed_models": completed,
+                "failed_models": failed,
+                "skipped_models": skipped,
+                "blocked_providers": sorted(blocked_providers),
+            },
         )
-    return {**plan, "dry_run": False, "status": status, "completed_models": completed, "failed_models": failed}
+    return {
+        **plan,
+        "dry_run": False,
+        "status": status,
+        "completed_models": completed,
+        "failed_models": failed,
+        "skipped_models": skipped,
+        "blocked_providers": sorted(blocked_providers),
+    }
 
 
 def verify_model_completion(spec: CampaignSpec, model: CampaignModel) -> dict[str, object]:
@@ -733,6 +783,39 @@ def _child_environment(environment: Mapping[str, str], model: CampaignModel) -> 
 
 def _run_child(command: list[str], cwd: Path, environment: Mapping[str, str]) -> int:
     return subprocess.run(command, cwd=cwd, env=dict(environment), check=False).returncode
+
+
+def _provider_quota_block(paths: list[Path]) -> dict[str, object] | None:
+    """Classify only new, sanitized transport failures after provider retries end."""
+    evidence_files: list[str] = []
+    for path in paths:
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not isinstance(payload, dict):
+            continue
+        raw_response = payload.get("raw_response")
+        http_status = raw_response.get("http_status") if isinstance(raw_response, dict) else None
+        error_text = str(payload.get("error", "")).lower()
+        if http_status == 429 or any(
+            marker in error_text
+            for marker in (
+                "http 429",
+                "quota exceeded",
+                "quota exhausted",
+                "rate limit exceeded",
+                "usage limit",
+            )
+        ):
+            evidence_files.append(path.name)
+    if not evidence_files:
+        return None
+    return {
+        "reason_code": "provider_quota_or_rate_limit_exhausted",
+        "new_transport_error_count": len(evidence_files),
+        "evidence_files": sorted(evidence_files),
+    }
 
 
 def _adapter_for_model(model: CampaignModel) -> OllamaAdapter | OpenAICompatibleAdapter:
