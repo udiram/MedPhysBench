@@ -27,7 +27,12 @@ export async function generateMetadata(): Promise<Metadata> {
       description:
         "Can AI do the work—and know when to stop? Reproducible medical-physics AI evaluation.",
       type: "website",
-      images: [{ url: "/og.png", width: 1730, height: 909, alt: "MedPhysBench calibration-grid social card" }],
+      images: [{
+        url: "/og.png",
+        width: 1730,
+        height: 909,
+        alt: "MedPhysBench evidence comparison: model, verified peer, and recruiting human benchmark",
+      }],
     },
     twitter: {
       card: "summary_large_image",

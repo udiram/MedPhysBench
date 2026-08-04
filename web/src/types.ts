@@ -23,6 +23,10 @@ export type ReviewEvidence = {
   schema_version: "medphysbench.review-evidence.v1";
   release_id: string;
   release_status: "provisional" | "reviewed" | "retired";
+  reference_feasibility: {
+    status: "passed" | "failed" | "pending";
+    method: string;
+  };
   independent_domain_review: ReviewState;
   human_baseline: ReviewState;
   paired_counterfactuals: ReviewState;
@@ -35,6 +39,11 @@ export type ReviewEvidence = {
     allowed: string[];
     prohibited: string[];
   };
+  task_reviews: Array<{
+    task_id: string;
+    reference_feasibility: "automated_pass" | "failed" | "pending";
+    domain_review: "approved" | "revision_required" | "pending";
+  }>;
 };
 
 export type EvidenceCountState = {

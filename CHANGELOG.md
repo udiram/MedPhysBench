@@ -12,6 +12,15 @@
 
 ## Unreleased
 
+- Re-architected the public site around inspectable evidence: the overview now opens on one exact
+  task attempt and places its structured answer, decisive grader verdict, best verified
+  identical-harness peer, and current human-baseline status in one comparison ledger. Added
+  dedicated `/results`, `/explore`, `/humans`, `/run`, and `/methods` routes; removed planned
+  models from result surfaces; unified GPT-5.6 with all other evaluated rows; and added exact
+  attempt matching so peer links fail closed instead of opening a sibling seed or artifact.
+- Added public-safe GitHub issue forms for human-baseline interest and model evaluation requests,
+  plus keyboard-trapped mobile navigation, 44-pixel touch targets, reduced-motion handling,
+  responsive evidence layouts, and regression tests for evidence selection and peer identity.
 - Added a matched, submission-attested Groq JSON-v2 comparison group: GPT-OSS 20B
   reached 60.0% safe success and Llama 3.3 70B reached 53.33%, with 100% safety
   on 18 text calls each and 12 explicit image-capability-unavailable outcomes.

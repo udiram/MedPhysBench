@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { publicArtifactHref, runForensicsAccessibleLabel, taskAttemptKey, taskForensicsSelection } from "../src/lib/forensicsNavigation.ts";
+import { exactPeerAttempt, publicArtifactHref, runForensicsAccessibleLabel, taskAttemptKey, taskForensicsSelection } from "../src/lib/forensicsNavigation.ts";
 
 test("attempt IDs remain the canonical forensic navigation key", () => {
   const task = {
@@ -42,6 +42,22 @@ test("public artifact links accept only repository result JSON paths", () => {
   assert.equal(publicArtifactHref("results/releases/../private/attempt.json"), null);
   assert.equal(publicArtifactHref("governance/private.json"), null);
   assert.equal(publicArtifactHref("results/releases/pilot/model/attempt.txt"), null);
+});
+
+test("exact peer navigation preserves task, attempt, seed, and runtime contract", () => {
+  const reference = {
+    task_id: "task-a",
+    attempt_index: 1,
+    seed: 11,
+    runtime_task_hash: "runtime-a",
+  };
+  const tasks = [
+    { ...reference, attempt_index: 0 },
+    { ...reference },
+    { ...reference, seed: 12 },
+  ];
+  assert.equal(exactPeerAttempt(tasks, reference), tasks[1]);
+  assert.equal(exactPeerAttempt([...tasks, { ...reference }], reference), null);
 });
 
 test("task drilldown binds the exact run and attempt without carrying stale filters", () => {

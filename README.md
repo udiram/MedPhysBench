@@ -19,7 +19,11 @@ package, or evidence of autonomous clinical competence.
 
 ## Current public release
 
-- Live site: `https://medphysbench.xs8psvkmj6.chatgpt.site/`
+- Live site: [overview](https://medphysbench.xs8psvkmj6.chatgpt.site/) ·
+  [verified results](https://medphysbench.xs8psvkmj6.chatgpt.site/results) ·
+  [attempt explorer](https://medphysbench.xs8psvkmj6.chatgpt.site/explore) ·
+  [human benchmark](https://medphysbench.xs8psvkmj6.chatgpt.site/humans) ·
+  [run or request a model](https://medphysbench.xs8psvkmj6.chatgpt.site/run)
 - Public repository: `https://github.com/udiram/MedPhysBench`
 - Scored core snapshot: `public-core-v0.4` (`64` tasks; five comparable local models)
 - Hardening candidate: `public-core-v0.5` (`82` tasks, including `18` TG-263-aligned structure-naming tasks)
@@ -62,6 +66,9 @@ package, or evidence of autonomous clinical competence.
 | If you want to… | Read or run |
 | --- | --- |
 | Understand the benchmark and current evidence | [Benchmark paper](docs/BENCHMARK_PAPER.md) · [Benchmark card](docs/BENCHMARK_CARD.md) |
+| Inspect one model answer against a verified peer | [Attempt explorer](https://medphysbench.xs8psvkmj6.chatgpt.site/explore) |
+| Take part in the human baseline | [Human benchmark](https://medphysbench.xs8psvkmj6.chatgpt.site/humans) · [protocol](docs/HUMAN_BASELINE_PROTOCOL.md) |
+| Run the benchmark or request a model | [Run or request](https://medphysbench.xs8psvkmj6.chatgpt.site/run) · [submission guide](CONTRIBUTING.md#result-submission-requirements) |
 | Audit the benchmark methodology and reporting contract | [Methods review](docs/BENCHMARK_METHODS_REVIEW.md) · [Public reporting standard](docs/PUBLIC_REPORTING_STANDARD.md) |
 | Reproduce the public release | [Reproducibility guide](docs/REPRODUCIBILITY.md) · [Evaluation protocol](docs/EVALUATION_PROTOCOL.md) |
 | Inspect what could invalidate a score | [Defect ledger](governance/benchmark-defects.json) · [Threat model](docs/THREAT_MODEL.md) · [Data statement](docs/DATA_STATEMENT.md) |

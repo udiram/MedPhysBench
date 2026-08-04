@@ -1,17 +1,19 @@
 import { ChevronDown, Search } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { versionedDataUrl } from "../lib/dataAssets";
 import { domainLabel, formatDuration, formatPercent, formatTokens, normalizeModelDisplayName, providerLabel, shortHash } from "../lib/format";
 import { defectsForTask } from "../lib/defects";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import { modelRunKey } from "../lib/modelRunKey";
-import { publicArtifactHref, taskAttemptKey } from "../lib/forensicsNavigation";
+import { exactPeerAttempt, publicArtifactHref, taskAttemptKey } from "../lib/forensicsNavigation";
 import { matchesForensicsRunQuery, matchesForensicsTaskQuery, selectForensicsTaskWindow, sortForensicsTasks } from "../lib/forensicsWorkbench";
 import { buildTaskComparison } from "../lib/taskComparison";
 import type { TaskComparisonScope } from "../lib/taskComparison";
+import { feasibilityLabel, taskReviewFor, taskReviewLabel, taskReviewTone } from "../lib/taskReview";
 import { effectiveComparisonScope, rowVisibleInResultsScope, type ResultsScope } from "../lib/resultsScope";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { normalizeForensicsOutcome } from "../types";
-import type { DefectLedger, ForensicsOutcomeCategory, Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, ReleaseView } from "../types";
+import type { DefectLedger, ForensicsOutcomeCategory, Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, ReleaseView, ReviewEvidence } from "../types";
 import { TaskFingerprintMatrix } from "./TaskFingerprintMatrix";
 
 type SourceFilter = "all" | "open" | "closed" | "unknown";
@@ -22,6 +24,8 @@ type Props = {
   defectLedger: DefectLedger | null;
   modelCatalog: ModelCatalogEntry[];
   releaseView: ReleaseView;
+  reviewEvidence: ReviewEvidence | null;
+  reviewEvidenceLoaded: boolean;
   resultsScope: ResultsScope;
 };
 
@@ -48,7 +52,7 @@ type DomainSummaryRow = {
 const OUTCOME_ORDER: OutcomeKey[] = ["safe_success", "safe_failure", "unsafe", "unavailable", "inconclusive"];
 const DEFAULT_RENDERED_TASK_LIMIT = 120;
 
-export function ResultForensics({ data, defectLedger, modelCatalog, releaseView, resultsScope }: Props) {
+export function ResultForensics({ data, defectLedger, modelCatalog, releaseView, reviewEvidence, reviewEvidenceLoaded, resultsScope }: Props) {
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>(() => readEnumParam("fx_source", ["all", "open", "closed", "unknown"] as const, "all"));
   const [providerFilter, setProviderFilter] = useState(() => getUrlParam("fx_provider") ?? "all");
   const [runQuery, setRunQuery] = useState(() => getUrlParam("fx_run_query") ?? "");
@@ -179,6 +183,10 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
   const selectedTaskDefects = useMemo(
     () => defectsForTask(defectLedger, selectedTask?.task_id ?? ""),
     [defectLedger, selectedTask?.task_id],
+  );
+  const selectedTaskReview = useMemo(
+    () => taskReviewFor(reviewEvidence, selectedTask?.task_id),
+    [reviewEvidence, selectedTask?.task_id],
   );
   const taskComparison = useMemo(() => {
     return buildTaskComparison(visibleRows, selectedTask?.task_id ?? null, {
@@ -498,6 +506,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
                               <tr>
                                 <th>Task</th>
                                 <th>Outcome</th>
+                                {reviewEvidence ? <th>Task validation</th> : null}
                                 <th>Failure signal</th>
                                 <th>Time</th>
                                 <th>Tokens</th>
@@ -524,6 +533,14 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
                                         {outcomeLabel(task.outcome_category, task.capability_failure === true)}
                                       </span>
                                     </td>
+                                    {reviewEvidence ? (
+                                      <td>
+                                        <strong className={`forensics-review-state ${taskReviewTone(taskReviewFor(reviewEvidence, task.task_id))}`}>
+                                          {taskReviewLabel(taskReviewFor(reviewEvidence, task.task_id))}
+                                        </strong>
+                                        <small>{feasibilityLabel(taskReviewFor(reviewEvidence, task.task_id))}</small>
+                                      </td>
+                                    ) : null}
                                     <td>
                                       <strong>{primaryFailureSignal(task)}</strong>
                                       <small>{secondaryFailureSignal(task, taskDefectCount)}</small>
@@ -533,6 +550,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
                                     <td>
                                       <button
                                         type="button"
+                                        aria-label={`Inspect ${task.title}, attempt ${task.attempt_index != null ? task.attempt_index + 1 : "unknown"}`}
                                         onClick={() => {
                                           setSelectedTaskKey(currentKey);
                                           setUrlParams({ fx_task: currentKey }, { history: "push" });
@@ -614,6 +632,11 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
                                       {task.model_failure_kind ? <small>{failureKindLabel(task.model_failure_kind)}</small> : null}
                                       {taskDefectCount > 0 ? (
                                         <small className="forensics-task-qa">QA history · {taskDefectCount} disclosed</small>
+                                      ) : null}
+                                      {reviewEvidence ? (
+                                        <small className={`forensics-task-review ${taskReviewTone(taskReviewFor(reviewEvidence, task.task_id))}`}>
+                                          {taskReviewLabel(taskReviewFor(reviewEvidence, task.task_id))}
+                                        </small>
                                       ) : null}
                                       <em>{outcomeLabel(task.outcome_category, task.capability_failure === true)}</em>
                                     </button>
@@ -752,6 +775,36 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
                                 <small>{defect.score_treatment}</small>
                               </article>
                             ))}
+                          </div>
+                        ) : null}
+                        {reviewEvidence ? (
+                          <div className={`forensics-review-note ${taskReviewTone(selectedTaskReview)}`} role="note">
+                            <header>
+                              <strong>Task validation</strong>
+                              <span>{taskReviewLabel(selectedTaskReview)}</span>
+                            </header>
+                            <p>
+                              {feasibilityLabel(selectedTaskReview)}. Automated reference feasibility proves that the
+                              frozen answer can be constructed and deterministically graded; it is not independent
+                              physicist validation.
+                            </p>
+                            <a
+                              href={versionedReviewEvidenceHref(reviewEvidence.release_id)}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Open release review ledger
+                            </a>
+                          </div>
+                        ) : !reviewEvidenceLoaded && releaseView === "real" ? (
+                          <div className="forensics-review-note neutral" role="status">
+                            <header><strong>Task validation</strong><span>Loading evidence</span></header>
+                            <p>No task-review claim is inferred until the canonical review ledger loads.</p>
+                          </div>
+                        ) : releaseView === "real" ? (
+                          <div className="forensics-review-note bad" role="alert">
+                            <header><strong>Task validation</strong><span>Evidence unavailable</span></header>
+                            <p>The canonical review ledger did not load. No automated-feasibility or physicist-review claim is inferred.</p>
                           </div>
                         ) : null}
                         <dl className="forensics-meta compact">
@@ -971,11 +1024,10 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
                             <td>
                               <button
                                 type="button"
+                                disabled={!exactPeerAttempt(comparison.entry.row.tasks, selectedTask)}
+                                aria-label={`Inspect ${selectedTask.title} for ${normalizeModelDisplayName(comparison.entry.row.model_name)} on ${providerLabel(comparison.entry.row.provider)}`}
                                 onClick={() => {
-                                  const nextIndex = comparison.entry.row.tasks.findIndex(
-                                    (task) => task.task_id === selectedTask.task_id,
-                                  );
-                                  const nextTask = comparison.entry.row.tasks[nextIndex];
+                                  const nextTask = exactPeerAttempt(comparison.entry.row.tasks, selectedTask);
                                   if (!nextTask) return;
                                   const nextTaskKey = taskAttemptKey(nextTask);
                                   setModelKey(comparison.entry.key);
@@ -990,7 +1042,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
                                   }, { history: "push" });
                                 }}
                               >
-                                Inspect
+                                {exactPeerAttempt(comparison.entry.row.tasks, selectedTask) ? "Inspect" : "No exact pair"}
                               </button>
                             </td>
                           </tr>
@@ -1125,4 +1177,8 @@ function formatTimestamp(value: string | undefined) {
     minute: "2-digit",
     timeZoneName: "short",
   });
+}
+
+function versionedReviewEvidenceHref(releaseId: string) {
+  return versionedDataUrl(`/data/${encodeURIComponent(releaseId)}-review.json`);
 }

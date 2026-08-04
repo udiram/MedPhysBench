@@ -5,19 +5,21 @@ import { REPO_URL } from "./content";
 import { CapabilityExplorer } from "./components/CapabilityExplorer";
 import { EvidenceSections } from "./components/EvidenceSections";
 import { EfficiencyExplorer } from "./components/EfficiencyExplorer";
-import { FleetCoverage } from "./components/FleetCoverage";
 import { Header } from "./components/Header";
-import { Hero } from "./components/Hero";
+import { HumanBenchmarkPage } from "./components/HumanBenchmarkPage";
 import { LeaderboardExplorer } from "./components/LeaderboardExplorer";
-import { PublicModelIndex } from "./components/PublicModelIndex";
+import { OverviewPage } from "./components/OverviewPage";
+import { PageIntro } from "./components/PageIntro";
+import { ReleaseSelector } from "./components/ReleaseSelector";
 import { ResultForensics } from "./components/ResultForensics";
 import { ResultsScopeBar } from "./components/ResultsScopeBar";
+import { RunBenchmarkPage } from "./components/RunBenchmarkPage";
 import { useLeaderboard } from "./hooks/useLeaderboard";
 import { releaseEvidenceFor, releaseIdForView } from "./lib/releaseEvidence";
 import { versionedDataUrl } from "./lib/dataAssets";
 import type { ResultsScope } from "./lib/resultsScope";
 import { readEnumParam, setUrlParams } from "./lib/urlState";
-import type { AccessStatus, DefectLedger, FleetStatus, ModelCatalogEntry, ReleaseEvidenceIndex, ReleaseView, Tg263Audit } from "./types";
+import type { AccessStatus, DefectLedger, FleetStatus, ModelCatalogEntry, ReleaseEvidenceIndex, ReleaseView, ReviewEvidence, Tg263Audit } from "./types";
 
 const LEADERBOARD_URL = versionedDataUrl("/data/leaderboard.json");
 const IMAGING_LEADERBOARD_URL = versionedDataUrl("/data/imaging_leaderboard.json");
@@ -29,8 +31,15 @@ const MODEL_CATALOG_URL = versionedDataUrl("/data/model_catalog.json");
 const FLEET_STATUS_URL = versionedDataUrl("/data/fleet_status.json");
 const RELEASE_EVIDENCE_URL = versionedDataUrl("/data/release_evidence.json");
 const DEFECT_LEDGER_URL = versionedDataUrl("/data/benchmark-defects.json");
+const REAL_WORKFLOWS_REVIEW_URL = versionedDataUrl("/data/public-real-workflows-pilot-v0.6-review.json");
 
-function App() {
+export type AppPage = "overview" | "results" | "explore" | "humans" | "run" | "methods";
+
+type AppProps = {
+  page?: AppPage;
+};
+
+function App({ page = "overview" }: AppProps) {
   const core = useLeaderboard(LEADERBOARD_URL);
   const imaging = useLeaderboard(IMAGING_LEADERBOARD_URL);
   const realWorkflows = useLeaderboard(REAL_WORKFLOWS_LEADERBOARD_URL);
@@ -40,7 +49,8 @@ function App() {
   const [modelCatalog, setModelCatalog] = useState<ModelCatalogEntry[]>([]);
   const [fleetStatus, setFleetStatus] = useState<FleetStatus | null>(null);
   const [releaseEvidenceIndex, setReleaseEvidenceIndex] = useState<ReleaseEvidenceIndex | null>(null);
-  const [releaseEvidenceLoaded, setReleaseEvidenceLoaded] = useState(false);
+  const [realWorkflowReview, setRealWorkflowReview] = useState<ReviewEvidence | null>(null);
+  const [realWorkflowReviewLoaded, setRealWorkflowReviewLoaded] = useState(false);
   const [defectLedger, setDefectLedger] = useState<DefectLedger | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [releaseView, setReleaseView] = useState<ReleaseView>("real");
@@ -80,15 +90,26 @@ function App() {
 
   useEffect(() => {
     const controller = new AbortController();
+    fetch(REAL_WORKFLOWS_REVIEW_URL, { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<ReviewEvidence>) : null))
+      .then((payload) => startTransition(() => setRealWorkflowReview(payload)))
+      .catch(() => {
+        if (!controller.signal.aborted) setRealWorkflowReview(null);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setRealWorkflowReviewLoaded(true);
+      });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
     fetch(RELEASE_EVIDENCE_URL, { signal: controller.signal })
       .then((response) => (response.ok ? (response.json() as Promise<ReleaseEvidenceIndex>) : null))
       .then((payload) => startTransition(() => setReleaseEvidenceIndex(payload)))
       .catch(() => {
         if (!controller.signal.aborted) setReleaseEvidenceIndex(null);
       })
-      .finally(() => {
-        if (!controller.signal.aborted) setReleaseEvidenceLoaded(true);
-      });
     return () => controller.abort();
   }, []);
 
@@ -153,86 +174,103 @@ function App() {
 
   return (
     <div className="site-shell" id="top">
-      <a className="skip-link" href="#leaderboard">
-        Skip to leaderboard
+      <a className="skip-link" href="#main-content">
+        Skip to content
       </a>
       <Header
+        currentPage={page}
         mobileOpen={mobileOpen}
         onToggle={toggleMobileNavigation}
         onClose={closeMobileNavigation}
         repoUrl={REPO_URL}
       />
-      <main>
-        <Hero
-          data={selected.data}
-          onReleaseViewChange={handleReleaseViewChange}
-          releaseView={releaseView}
-          releaseEvidence={selectedEvidence}
-          releaseEvidenceLoaded={releaseEvidenceLoaded}
-          repoUrl={REPO_URL}
-        />
-        <PublicModelIndex
-          activeRelease={releaseView}
-          catalog={modelCatalog}
-          fleetStatus={fleetStatus}
-          datasets={[
-            { key: "core", label: "Core v0.4", data: core.data },
-            { key: "imaging", label: "Imaging pilot", data: imaging.data },
-            { key: "tg263", label: "TG-263 pilot", data: tg263.data },
-            { key: "real", label: "OpenKBP real-data workflow-view pilot", data: realWorkflows.data },
-          ]}
-        />
-        <nav className="results-subnav" aria-label="Results views">
-          <span>Results views</span>
-          <a href="#leaderboard">Leaderboard</a>
-          <a href="#efficiency">Plots</a>
-          <a href="#forensics">Attempt forensics</a>
-        </nav>
-        <ResultsScopeBar data={selected.data} onChange={handleResultsScopeChange} value={resultsScope} />
-        <LeaderboardExplorer
-          data={selected.data}
-          accessStatus={accessStatus}
-          modelCatalog={modelCatalog}
-          loadError={selected.loadError}
-          releaseView={releaseView}
-          resultsScope={resultsScope}
-          tg263Audit={tg263Audit}
-        />
-        <EfficiencyExplorer
-          data={selected.data}
-          fleetStatus={fleetStatus}
-          modelCatalog={modelCatalog}
-          releaseView={releaseView}
-          resultsScope={resultsScope}
-        />
-        <CapabilityExplorer
-          data={selected.data}
-          loadError={selected.loadError}
-          releaseView={releaseView}
-          modelCatalog={modelCatalog}
-          releaseEvidence={selectedEvidence}
-          resultsScope={resultsScope}
-        />
-        <ResultForensics
-          data={selected.data}
-          defectLedger={defectLedger}
-          modelCatalog={modelCatalog}
-          releaseView={releaseView}
-          resultsScope={resultsScope}
-        />
-        <FleetCoverage data={fleetStatus} />
-        <EvidenceSections
-          accessStatus={accessStatus}
-          data={selected.data}
-          defectLedger={defectLedger}
-          releaseView={releaseView}
-          releaseEvidence={selectedEvidence}
-        />
+      <main id="main-content" tabIndex={-1}>
+        {page === "overview" ? (
+          <OverviewPage
+            data={realWorkflows.data}
+            fleetStatus={fleetStatus}
+            releaseEvidence={releaseEvidenceFor(releaseEvidenceIndex, releaseIdForView("real"))}
+            reviewEvidence={realWorkflowReview}
+          />
+        ) : null}
+        {page === "results" ? (
+          <>
+            <PageIntro
+              title="Verified results"
+              description="Only released model runs appear here. GPT-5.6, Groq, Ollama, open-weight, and closed systems use the same rows; comparability metadata states whether an ordinal rank is valid."
+              actions={<a className="secondary-action" href="/explore">Inspect exact attempts</a>}
+            />
+            <ReleaseSelector data={selected.data} onChange={handleReleaseViewChange} value={releaseView} />
+            <ResultsScopeBar data={selected.data} onChange={handleResultsScopeChange} value={resultsScope} />
+            <LeaderboardExplorer
+              data={selected.data}
+              accessStatus={accessStatus}
+              modelCatalog={modelCatalog}
+              loadError={selected.loadError}
+              releaseView={releaseView}
+              resultsScope={resultsScope}
+              tg263Audit={tg263Audit}
+            />
+            <EfficiencyExplorer
+              data={selected.data}
+              fleetStatus={fleetStatus}
+              modelCatalog={modelCatalog}
+              releaseView={releaseView}
+              resultsScope={resultsScope}
+            />
+          </>
+        ) : null}
+        {page === "explore" ? (
+          <>
+            <PageIntro
+              title="Attempt explorer"
+              description="Choose a released run and task to inspect the structured output, decisive grader, same-task peers, tokens, time, receipts, and immutable hashes."
+              actions={<a className="secondary-action" href="/results">Back to results</a>}
+            />
+            <ReleaseSelector data={selected.data} onChange={handleReleaseViewChange} value={releaseView} />
+            <ResultsScopeBar data={selected.data} onChange={handleResultsScopeChange} value={resultsScope} />
+            <ResultForensics
+              data={selected.data}
+              defectLedger={defectLedger}
+              modelCatalog={modelCatalog}
+              releaseView={releaseView}
+              reviewEvidence={releaseView === "real" ? realWorkflowReview : null}
+              reviewEvidenceLoaded={releaseView === "real" ? realWorkflowReviewLoaded : true}
+              resultsScope={resultsScope}
+            />
+          </>
+        ) : null}
+        {page === "humans" ? <HumanBenchmarkPage releaseEvidence={releaseEvidenceFor(releaseEvidenceIndex, releaseIdForView("real"))} /> : null}
+        {page === "run" ? <RunBenchmarkPage fleetStatus={fleetStatus} /> : null}
+        {page === "methods" ? (
+          <>
+            <PageIntro
+              title="Methods and evidence"
+              description="Release maturity, task coverage, uncertainty, benchmark defects, claim boundaries, and public governance evidence."
+            />
+            <ReleaseSelector data={selected.data} onChange={handleReleaseViewChange} value={releaseView} />
+            <CapabilityExplorer
+              data={selected.data}
+              loadError={selected.loadError}
+              releaseView={releaseView}
+              modelCatalog={modelCatalog}
+              releaseEvidence={selectedEvidence}
+              resultsScope={resultsScope}
+            />
+            <EvidenceSections
+              accessStatus={accessStatus}
+              data={selected.data}
+              defectLedger={defectLedger}
+              releaseView={releaseView}
+              releaseEvidence={selectedEvidence}
+            />
+          </>
+        ) : null}
       </main>
       <footer className="site-footer">
         <p>MedPhysBench is a research and evaluation platform. It is not a clinical decision-support system.</p>
         <p>
-          Release artifacts, writeups, and contribution guidance live in{" "}
+          <a href="/methods">Methods and evidence</a> · Release artifacts, writeups, and contribution guidance live in{" "}
           <a href={`${REPO_URL}/tree/main/docs`} target="_blank" rel="noreferrer">
             the repository documentation
           </a>.

@@ -1,0 +1,43 @@
+name: Human baseline participation interest
+description: Express interest in the governed MedPhysBench human-baseline pilot
+title: "[Human baseline] Participation interest"
+labels: ["human-baseline", "needs-coordinator-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue is public and is only an interest signal. Do not include your name, employer, license number, clinical credentials, PHI, patient information, or confidential workplace details. A study coordinator must complete the study determination and issue a pseudonymous assignment before any timed benchmark work begins.
+  - type: dropdown
+    id: role
+    attributes:
+      label: Broad professional stratum
+      options:
+        - Board-certified or locally equivalent medical physicist
+        - Accredited medical-physics resident
+        - Certified medical dosimetrist
+        - Study coordinator or institutional collaborator
+    validations:
+      required: true
+  - type: dropdown
+    id: experience
+    attributes:
+      label: Broad experience band
+      options:
+        - In training
+        - 0-4 years after training
+        - 5-9 years after training
+        - 10 or more years after training
+        - Prefer not to state publicly
+    validations:
+      required: true
+  - type: checkboxes
+    id: declarations
+    attributes:
+      label: Declarations
+      options:
+        - label: I understand this is research-only and is not professional certification or personnel evaluation.
+          required: true
+        - label: I did not include identifying, clinical, credential, or patient information.
+          required: true
+        - label: I will not begin a scored session until a coordinator provides the governed assignment and consent or study instructions.
+          required: true
