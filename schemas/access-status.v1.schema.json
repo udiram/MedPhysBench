@@ -5,6 +5,18 @@
   "type": "array",
   "items": { "$ref": "#/$defs/entry" },
   "$defs": {
+    "access_probe_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^receipts/access/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+\\.json$"
+        },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
     "qualification_evidence": {
       "type": "object",
       "additionalProperties": false,
@@ -35,6 +47,7 @@
           "enum": ["preflight_before_full_q2", "backfilled_after_full_q2"]
         },
         "qualification_evidence": { "$ref": "#/$defs/qualification_evidence" },
+        "access_probe_receipt": { "$ref": "#/$defs/access_probe_receipt" },
         "note": { "type": "string", "minLength": 20 }
       },
       "dependentRequired": {

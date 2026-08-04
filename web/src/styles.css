@@ -4456,7 +4456,12 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 }
 .full-analysis-disclosure > summary span,
 .overview-example > summary span,
-.forensics-deep-dive > summary span { font-size: 16px; font-weight: 600; }
+.forensics-deep-dive > summary span {
+  display: grid;
+  gap: 4px;
+  font-size: 16px;
+  font-weight: 600;
+}
 .full-analysis-disclosure > summary small,
 .overview-example > summary small,
 .forensics-deep-dive > summary small { color: var(--muted); font-size: 12px; }

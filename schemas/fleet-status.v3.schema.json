@@ -192,6 +192,23 @@
             }
           ]
         },
+        "access_probe_receipt": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["path", "sha256"],
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "pattern": "^receipts/access/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+\\.json$"
+                },
+                "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+              }
+            }
+          ]
+        },
         "note": { "type": "string", "minLength": 1 }
       }
     },

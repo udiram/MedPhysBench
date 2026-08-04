@@ -299,6 +299,15 @@ function FleetModelCard({ model }: { model: FleetStatusModel }) {
                       Inspect attested submission · {evidence.qualification_evidence.submission_id}
                     </a>
                   ) : null}
+                  {evidence.access_probe_receipt ? (
+                    <a
+                      href={`${REPO_URL}/blob/main/${evidence.access_probe_receipt.path}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Inspect access receipt · {evidence.access_probe_receipt.sha256.slice(0, 12)}
+                    </a>
+                  ) : null}
                 </li>
               ))}
             </ul>

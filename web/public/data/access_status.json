@@ -194,6 +194,10 @@
       "submission_id": "qwen3-vl-8b-instruct-openkb-v0.6-20260803",
       "manifest_path": "submissions/qwen3-vl-8b-instruct-openkb-v0.6-20260803.json"
     },
+    "access_probe_receipt": {
+      "path": "receipts/access/ollama-qwen3-vl-8b-instruct/20260803T152930Z-a6f8117364e1.json",
+      "sha256": "a6f8117364e173d37b3c0e3637a6ff075da009b7e3e9cbdacfa799028c2d4762"
+    },
     "note": "Digest-pinned Qwen3-VL 8B Instruct artifact sha256:0533d74300e4f9bc367d675d4e64ffd073d50ff16a2b4096cc2e8a1cf8c96319 passed a strict JSON Schema and image-transport preflight before completing the full 30-attempt OpenKBP Q2 matrix. The current reference-json-v2 run used a 4,096-token context, a 2,048-token output cap, serial keep_alive=0 execution, and frozen per-attempt resource floors; all 30 outcomes were safe and 9 passed."
   },
   {
@@ -255,6 +259,10 @@
       "submission_id": "llama-3.3-70b-groq-json-v2-openkb-v0.6-20260803",
       "manifest_path": "submissions/llama-3.3-70b-groq-json-v2-openkb-v0.6-20260803.json"
     },
+    "access_probe_receipt": {
+      "path": "receipts/access/groq-llama-3.3-70b-json-v2/20260803T211817Z-8d7d47d94c9c.json",
+      "sha256": "8d7d47d94c9c5928f0a4bf4efbb15909ddaac536898a4ab3d34ae5f0a39c380a"
+    },
     "note": "A fresh JSON-v2 canary preceded a complete 30-attempt OpenKBP v0.6 campaign. This current-contract row remains separately identifiable from the historical Groq configuration."
   },
   {
@@ -271,6 +279,10 @@
       "kind": "common_harness_submission",
       "submission_id": "gpt-oss-20b-groq-json-v2-openkb-v0.6-20260803",
       "manifest_path": "submissions/gpt-oss-20b-groq-json-v2-openkb-v0.6-20260803.json"
+    },
+    "access_probe_receipt": {
+      "path": "receipts/access/groq-gpt-oss-20b-json-v2/20260803T211818Z-e3c02f98b2a5.json",
+      "sha256": "e3c02f98b2a59bc5cb667d016064cada3b3a19c9a1f8a661bdb8a51db5469644"
     },
     "note": "A fresh JSON-v2 canary preceded a complete 30-attempt OpenKBP v0.6 campaign. This current-contract row remains separately identifiable from the historical Groq configuration."
   },
@@ -298,6 +310,10 @@
       "kind": "common_harness_submission",
       "submission_id": "qwen3.6-27b-groq-json-v2-openkb-v0.6-20260803",
       "manifest_path": "submissions/qwen3.6-27b-groq-json-v2-openkb-v0.6-20260803.json"
+    },
+    "access_probe_receipt": {
+      "path": "receipts/access/groq-qwen-3.6-27b-json-v2/20260803T200236Z-b4790c79cb64.json",
+      "sha256": "b4790c79cb6485c1dfd6757b86845e6fc5da449a1e33187fa495afa0f32388c1"
     },
     "note": "Corrected Groq JSON-v2 route completed all 30 OpenKBP v0.6 attempts after a fixed qualification canary. The run retained three provider-rejected JSON-contract calls as scored failures, reports token usage for the 27 responses where Groq supplied usage, and remains separately identifiable from the historical receipt-free route."
   },
@@ -404,6 +420,10 @@
       "submission_id": "phi4-multimodal-3-8b-community-q4km-openkb-v0.6-20260803",
       "manifest_path": "submissions/phi4-multimodal-3-8b-community-q4km-openkb-v0.6-20260803.json"
     },
+    "access_probe_receipt": {
+      "path": "receipts/access/ollama-phi4-multimodal-3-8b-q4-k-m/20260803T180732Z-0e4dae8825b8.json",
+      "sha256": "0e4dae8825b8e4eb04fe21d823ccc9eb715f11d56ed193d2e1a227a27fb48faf"
+    },
     "note": "Digest-pinned community Phi-4 Multimodal Q4_K_M artifact passed the strict JSON Schema access canary before completing all 30 OpenKBP Q2 attempts. Ollama exposed text only because the artifact contains no vision projector; all 12 required-image attempts remain explicit capability-unavailable outcomes. The 18 provider calls retain complete token and duration telemetry."
   },
   {
@@ -420,6 +440,10 @@
     "status": "blocked",
     "surface": "ollama_cloud",
     "date": "2026-08-04",
+    "access_probe_receipt": {
+      "path": "receipts/access/ollama-gpt-oss-120b-cloud-v1/20260804T062816Z-629876562d6e.json",
+      "sha256": "629876562d6e157870c51746b0972e351b19a54a46979862ebcc3db5f8c1c6c6"
+    },
     "note": "The frozen Ollama Cloud route resolved the expected gpt-oss:120b-cloud snapshot, then a source-bound v2 canary returned sanitized HTTP 429. Receipt 629876562d6e157870c51746b0972e351b19a54a46979862ebcc3db5f8c1c6c6 records rate_limited with insufficient quota; no benchmark task was disclosed and the route was not promoted or scored."
   },
   {

@@ -12,7 +12,7 @@ from typing import Any
 import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
-from medphys_agentbench.access_receipt_audit import audit_access_receipts
+from medphys_agentbench.access_receipt_audit import audit_access_receipts, validate_access_entry_receipt
 from medphys_agentbench.artifacts import resolve_asset_reference
 from medphys_agentbench.campaign import load_campaign
 from medphys_agentbench.json_utils import decode_strict_json_object, stable_hash
@@ -222,6 +222,7 @@ def validate_repository() -> dict[str, int]:
         route_sets.append(route_set)
 
     access_receipts = audit_access_receipts(route_sets, repository_root=ROOT)
+    access_receipts_by_path = {receipt.source_label: receipt for receipt in access_receipts}
 
     fleet_status_path = ROOT / "web" / "public" / "data" / "fleet_status.json"
     fleet_status = _load_json(fleet_status_path)
@@ -249,6 +250,7 @@ def validate_repository() -> dict[str, int]:
     catalog_provider_bases = {(str(entry["provider"]), str(entry["base_model_id"])) for entry in catalog}
     access_keys: set[tuple[str, str, str]] = set()
     for entry in access_status:
+        validate_access_entry_receipt(entry, access_receipts_by_path)
         if entry["status"] != "available":
             continue
         base_model_id = str(entry["base_model_id"])

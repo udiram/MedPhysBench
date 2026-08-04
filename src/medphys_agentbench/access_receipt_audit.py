@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -126,3 +127,36 @@ def audit_access_receipts(
         content_hashes.add(receipt.content_sha256)
         receipts.append(receipt)
     return receipts
+
+
+def validate_access_entry_receipt(
+    entry: dict[str, Any],
+    receipts_by_path: Mapping[str, AccessProbeReceipt],
+) -> None:
+    """Bind an optional public access-ledger claim to one audited receipt."""
+    reference = entry.get("access_probe_receipt")
+    if reference is None:
+        return
+    if not isinstance(reference, dict):
+        raise RouteQualificationError("access_probe_receipt must be an object.")
+    path = str(reference.get("path", ""))
+    receipt = receipts_by_path.get(path)
+    if receipt is None:
+        raise RouteQualificationError(f"Access ledger references an unaudited receipt {path!r}.")
+    if reference.get("sha256") != receipt.content_sha256:
+        raise RouteQualificationError(f"Access ledger receipt hash mismatch for {path!r}.")
+    expected_identity = {
+        "provider": receipt.payload["provider"],
+        "model": receipt.payload["model"],
+        "base_model_id": receipt.payload["base_model_id"],
+    }
+    mismatches = [key for key, value in expected_identity.items() if entry.get(key) != value]
+    if mismatches:
+        raise RouteQualificationError(
+            f"Access ledger receipt identity mismatch for {path!r}: {', '.join(sorted(mismatches))}."
+        )
+    status = entry.get("status")
+    if status == "available" and receipt.outcome != "available":
+        raise RouteQualificationError("Available access status must reference an available receipt.")
+    if status == "blocked" and receipt.outcome == "available":
+        raise RouteQualificationError("Blocked access status must reference a non-available receipt.")

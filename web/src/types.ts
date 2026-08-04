@@ -547,6 +547,10 @@ export type FleetStatusModel = {
       submission_id: string;
       manifest_path: string;
     } | null;
+    access_probe_receipt?: {
+      path: string;
+      sha256: string;
+    };
     note: string;
   }>;
 };

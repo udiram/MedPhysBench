@@ -127,6 +127,22 @@ def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:
     assert terra["access_evidence"][0]["provider"] == "codex-native"
     assert "fresh-context" in terra["access_evidence"][0]["note"]
     assert terra["access_evidence"][0]["qualification_evidence"] is None
+    gpt_oss_120b = next(
+        entry for entry in rebuilt["models"] if entry["base_model_id"] == "openai/gpt-oss-120b"
+    )
+    blocked_cloud = next(
+        evidence
+        for evidence in gpt_oss_120b["access_evidence"]
+        if evidence["model"] == "gpt-oss:120b-cloud"
+    )
+    assert blocked_cloud["status"] == "blocked"
+    assert blocked_cloud["access_probe_receipt"] == {
+        "path": (
+            "receipts/access/ollama-gpt-oss-120b-cloud-v1/"
+            "20260804T062816Z-629876562d6e.json"
+        ),
+        "sha256": "629876562d6e157870c51746b0972e351b19a54a46979862ebcc3db5f8c1c6c6",
+    }
     phi = next(
         entry
         for entry in rebuilt["models"]

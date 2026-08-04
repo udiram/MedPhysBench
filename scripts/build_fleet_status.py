@@ -273,6 +273,11 @@ def build_fleet_status(
                 "date": str(entry["date"]),
                 "promotion_basis": entry.get("promotion_basis"),
                 "qualification_evidence": entry.get("qualification_evidence"),
+                **(
+                    {"access_probe_receipt": entry["access_probe_receipt"]}
+                    if "access_probe_receipt" in entry
+                    else {}
+                ),
                 "note": str(entry["note"]),
             }
         )

@@ -1,6 +1,7 @@
 import { ExternalLink } from "lucide-react";
 import { REPO_URL } from "../content";
 import type { FleetStatus } from "../types";
+import { FleetCoverage } from "./FleetCoverage";
 import { PageIntro } from "./PageIntro";
 
 type Props = {
@@ -72,6 +73,18 @@ uv run medphys-bench run-release \\
           Inspect the frozen fleet protocol <ExternalLink aria-hidden="true" />
         </a>
       </section>
+
+      <details className="full-analysis-disclosure qualification-backlog">
+        <summary>
+          <span>
+            <strong>Inspect the 50-model qualification backlog</strong>
+            <small>Filter frozen base models by source and evidence stage, then inspect exact access or submission evidence.</small>
+          </span>
+        </summary>
+        <div>
+          <FleetCoverage data={fleetStatus} />
+        </div>
+      </details>
     </>
   );
 }
