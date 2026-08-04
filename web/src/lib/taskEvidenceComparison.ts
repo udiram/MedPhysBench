@@ -13,7 +13,7 @@ export type BestTaskEvidence<T extends TaskComparisonEntry> = {
   comparisonKind: "selected_is_leader" | "controlled_peer" | "descriptive_cross_contract";
 };
 
-export function bestPublishedTaskEvidence<T extends TaskComparisonEntry>(
+export function bestVerifiedTaskEvidence<T extends TaskComparisonEntry>(
   entries: readonly T[],
   selected: T | null,
   referenceTask: ModelTaskResult | null,
@@ -21,6 +21,7 @@ export function bestPublishedTaskEvidence<T extends TaskComparisonEntry>(
   if (!referenceTask?.runtime_task_hash) return null;
   const eligible = entries.filter((entry) =>
     scoreEvidenceAvailable(entry.row)
+    && entry.row.ranking_eligible === true
     && entry.row.completed_count === entry.row.expected_attempt_count
     && entry.row.error_count === 0
     && entry.row.integrity.missing_attempt_keys === 0
@@ -28,6 +29,7 @@ export function bestPublishedTaskEvidence<T extends TaskComparisonEntry>(
   const comparisons = buildTaskComparison(eligible, referenceTask.task_id, {
     scope: "all_visible",
     reference: selected,
+    runtimeTaskHash: referenceTask.runtime_task_hash,
   });
   for (const comparison of comparisons) {
     const match = representativeAttempt(comparison.attempts, referenceTask);
@@ -44,6 +46,21 @@ export function bestPublishedTaskEvidence<T extends TaskComparisonEntry>(
     };
   }
   return null;
+}
+
+export function summarizeEvidenceValue(value: unknown, maxItems = 8): string {
+  if (Array.isArray(value)) {
+    if (!value.length) return "None";
+    const visible = value.slice(0, maxItems).map((item) =>
+      Array.isArray(item) ? `[${item.join(", ")}]` : summarizeEvidenceValue(item, maxItems)
+    );
+    const remainder = value.length - visible.length;
+    return `${visible.join(" · ")}${remainder > 0 ? ` · +${remainder} more` : ""}`;
+  }
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (value == null) return "Unavailable";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
 }
 
 export function representativeAttempt(

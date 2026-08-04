@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { buildTaskComparison, tallyTaskOutcomes } from "../src/lib/taskComparison.ts";
 
-function attempt(outcome, failedGraders = [], capabilityFailure = false) {
+function attempt(outcome, failedGraders = [], capabilityFailure = false, overrides = {}) {
   return {
     task_id: "task-a",
     title: "Task A",
@@ -11,6 +11,7 @@ function attempt(outcome, failedGraders = [], capabilityFailure = false) {
     outcome_category: outcome,
     capability_failure: capabilityFailure,
     failed_graders: failedGraders,
+    ...overrides,
   };
 }
 
@@ -117,4 +118,20 @@ test("native reference has no implied controlled peers", () => {
   );
 
   assert.deepEqual(controlled.map((row) => row.entry.key), ["native-a"]);
+});
+
+test("task comparison can be pinned to one immutable runtime task hash", () => {
+  const exact = entry("exact", "Exact", [
+    attempt("safe_success", [], false, { runtime_task_hash: "runtime-a" }),
+    attempt("safe_failure", [], false, { runtime_task_hash: "runtime-b" }),
+  ]);
+  const wrong = entry("wrong", "Wrong", [
+    attempt("safe_success", [], false, { runtime_task_hash: "runtime-b" }),
+  ]);
+
+  const results = buildTaskComparison([exact, wrong], "task-a", { runtimeTaskHash: "runtime-a" });
+
+  assert.equal(results.length, 1);
+  assert.equal(results[0].entry.key, "exact");
+  assert.equal(results[0].attempts.length, 1);
 });

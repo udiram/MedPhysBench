@@ -22,6 +22,7 @@ export type TaskComparisonScope = "identical_harness" | "all_visible";
 export type TaskComparisonOptions<T extends TaskComparisonEntry> = {
   scope?: TaskComparisonScope;
   reference?: T | null;
+  runtimeTaskHash?: string | null;
 };
 
 export function buildTaskComparison<T extends TaskComparisonEntry>(
@@ -37,7 +38,10 @@ export function buildTaskComparison<T extends TaskComparisonEntry>(
 
   return scopedEntries
     .flatMap((entry) => {
-      const attempts = entry.row.tasks.filter((task) => task.task_id === taskId);
+      const attempts = entry.row.tasks.filter((task) =>
+        task.task_id === taskId
+        && (!options.runtimeTaskHash || task.runtime_task_hash === options.runtimeTaskHash)
+      );
       if (!attempts.length) return [];
       const outcomes = tallyTaskOutcomes(attempts);
       const topFailedGrader = mostFrequent(attempts.flatMap((task) => task.failed_graders ?? []));

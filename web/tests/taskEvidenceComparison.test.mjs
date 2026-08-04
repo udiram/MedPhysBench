@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { bestPublishedTaskEvidence, representativeAttempt } from "../src/lib/taskEvidenceComparison.ts";
+import { bestVerifiedTaskEvidence, representativeAttempt, summarizeEvidenceValue } from "../src/lib/taskEvidenceComparison.ts";
 
 function attempt(outcome, score, attemptIndex = 0, runtimeHash = "runtime-a") {
   return {
@@ -38,7 +38,7 @@ test("best task evidence uses task performance before overall leaderboard perfor
   const reference = entry("selected", "Selected", [attempt("safe_failure", 0.8)]);
   const taskLeader = entry("leader", "Task leader", [attempt("safe_success", 1)], { safe_success_rate: 0.4 });
   const overallLeader = entry("overall", "Overall leader", [attempt("safe_failure", 0.9)], { safe_success_rate: 0.9 });
-  const best = bestPublishedTaskEvidence([reference, taskLeader, overallLeader], reference, reference.row.tasks[0]);
+  const best = bestVerifiedTaskEvidence([reference, taskLeader, overallLeader], reference, reference.row.tasks[0]);
 
   assert.equal(best.comparison.entry.key, "leader");
   assert.equal(best.attemptMatch, "exact_attempt");
@@ -61,6 +61,46 @@ test("incomplete and outcome-ineligible rows cannot become the task leader", () 
   const quarantined = entry("bad", "Quarantined", [attempt("safe_success", 1)], {
     outcome_order_eligible: false,
   });
-  const best = bestPublishedTaskEvidence([reference, quarantined], reference, reference.row.tasks[0]);
+  const best = bestVerifiedTaskEvidence([reference, quarantined], reference, reference.row.tasks[0]);
   assert.equal(best.comparison.entry.key, "selected");
+});
+
+test("task leader excludes descriptive rows even when they have the best output", () => {
+  const reference = entry("selected", "Selected", [attempt("safe_failure", 0.5)]);
+  const descriptive = entry("descriptive", "Descriptive", [attempt("safe_success", 1)], {
+    ranking_eligible: false,
+  });
+  const verified = entry("verified", "Verified", [attempt("safe_success", 0.9)]);
+
+  const best = bestVerifiedTaskEvidence([reference, descriptive, verified], reference, reference.row.tasks[0]);
+
+  assert.equal(best.comparison.entry.key, "verified");
+});
+
+test("task leader rate uses only attempts with the exact runtime task hash", () => {
+  const referenceTask = attempt("safe_failure", 0.5, 0, "runtime-a");
+  const reference = entry("selected", "Selected", [referenceTask]);
+  const exactLeader = entry("exact", "Exact leader", [
+    attempt("safe_success", 1, 0, "runtime-a"),
+    attempt("safe_failure", 0, 1, "runtime-b"),
+  ]);
+  const wrongRuntime = entry("wrong", "Wrong runtime", [
+    attempt("safe_success", 1, 0, "runtime-b"),
+    attempt("safe_success", 1, 1, "runtime-b"),
+  ]);
+
+  const best = bestVerifiedTaskEvidence([reference, exactLeader, wrongRuntime], reference, referenceTask);
+
+  assert.equal(best.comparison.entry.key, "exact");
+  assert.equal(best.comparison.attempts.length, 1);
+  assert.equal(best.comparison.safeSuccessRate, 1);
+});
+
+test("output summaries stay readable without replacing exact JSON evidence", () => {
+  assert.equal(summarizeEvidenceValue(true), "Yes");
+  assert.equal(summarizeEvidenceValue([]), "None");
+  assert.equal(
+    summarizeEvidenceValue([[1, 2], [3, 4], [5, 6]], 2),
+    "[1, 2] · [3, 4] · +1 more",
+  );
 });

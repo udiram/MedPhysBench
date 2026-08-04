@@ -12,11 +12,14 @@
 
 ## Unreleased
 
-- Added a task-level evidence comparator that shows one hash-matched sealed runtime input beside
-  the selected model output, the strongest eligible published model result on that exact task,
-  and a deliberately empty human column until verified task-level human evidence exists. The
-  public input catalog is generated only from `TaskSpec.runtime_task()`, validated against the
-  runtime schema, and fails closed on release/task/hash ambiguity without exposing gold or graders.
+- Added a task-level evidence comparator that places one hash-matched sealed runtime input beside
+  the selected model output, the strongest complete officially ranked model on that exact runtime
+  task, and a deliberately empty human column until verified task-level human evidence exists.
+  The primary model/task controls now precede the comparison, secondary filters are progressively
+  disclosed, structured outputs receive readable field summaries plus exact JSON, and server-rendered
+  component tests cover the comparison and aggregate-only suppression. The public input catalog is
+  generated only from `TaskSpec.runtime_task()`, validated against the runtime schema, and fails
+  closed on release/task/hash ambiguity without exposing gold or graders.
 - Re-architected the public site around inspectable evidence: the overview now opens on one exact
   task attempt and places its structured answer, decisive grader verdict, best verified
   identical-harness peer, and current human-baseline status in one comparison ledger. Added

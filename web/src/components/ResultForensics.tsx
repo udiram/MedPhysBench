@@ -260,6 +260,13 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
   const supportsForensics = forensicRows.length > 0;
   const showsPublicOutputs = data?.release.public_attempt_detail === "sanitized_output";
   const taskWindowed = renderedTasks.length < orderedFilteredTasks.length;
+  const activeFilterCount = [
+    sourceFilter !== "all",
+    providerFilter !== "all",
+    runQuery.trim().length > 0,
+    domainFilter !== "all",
+    outcomeFilter !== "all",
+  ].filter(Boolean).length;
 
   useEffect(() => {
     setTaskWindowExpanded(false);
@@ -280,11 +287,10 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
     <section className="forensics-section" id="forensics">
       <div className="section-heading section-heading-row">
         <div>
-          <h2>Attempt-level forensics</h2>
+          <h2>Compare one exact task</h2>
           <p>
-            Inspect where a model went right or wrong at the task level. This view uses deterministic regrading,
-            failure contracts, immutable hashes, and—only when the release explicitly permits it—schema-filtered
-            public-development outputs. Legacy manifest gaps remain visible and cannot receive a current-contract rank.
+            Choose a model run and task attempt. The released input, selected response, verified task leader, and human
+            evidence state update together; no nearby task or unverified row is silently substituted.
           </p>
         </div>
         <p className="coverage-summary">
@@ -304,67 +310,9 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
         </div>
       ) : (
         <>
-          <div className="forensics-controls">
-            <label className="field">
-              <span>Openness</span>
-              <span className="select-wrap">
-                <select
-                  value={sourceFilter}
-                  onChange={(event) => {
-                    const next = event.target.value as SourceFilter;
-                    setSourceFilter(next);
-                    setProviderFilter("all");
-                    setUrlParams(
-                      { fx_source: next === "all" ? null : next, fx_provider: null },
-                      { history: "push" },
-                    );
-                  }}
-                >
-                  <option value="all">All systems</option>
-                  <option value="open">Open weights</option>
-                  <option value="closed">Closed models</option>
-                  <option value="unknown">Unclassified</option>
-                </select>
-                <ChevronDown aria-hidden="true" />
-              </span>
-            </label>
-            <label className="field">
-              <span>Execution provider</span>
-              <span className="select-wrap">
-                <select value={providerFilter} onChange={(event) => {
-                  const next = event.target.value;
-                  setProviderFilter(next);
-                  setUrlParams({ fx_provider: next === "all" ? null : next }, { history: "push" });
-                }}>
-                  <option value="all">All execution providers</option>
-                  {providers.map((provider) => (
-                    <option key={provider} value={provider}>
-                      {providerLabel(provider)}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown aria-hidden="true" />
-              </span>
-            </label>
-            <label className="field forensics-search-field">
-              <span>Find run set</span>
-              <span className="search-wrap">
-                <Search aria-hidden="true" />
-                <input
-                  type="search"
-                  value={runQuery}
-                  onChange={(event) => {
-                    const next = event.target.value;
-                    setRunQuery(next);
-                    setUrlParams({ fx_run_query: next || null });
-                  }}
-                  placeholder="Model, provider, harness, or config"
-                  aria-label="Find run set"
-                />
-              </span>
-            </label>
+          <div className="forensics-primary-controls" aria-label="Exact task comparison controls">
             <label className="field model-field">
-              <span>Run set</span>
+              <span>Model run to inspect</span>
               <span className="select-wrap">
                 <select value={modelKey} onChange={(event) => {
                   const nextModelKey = event.target.value;
@@ -394,7 +342,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
               </small>
             </label>
             <label className="field task-attempt-field">
-              <span>Task attempt</span>
+              <span>Exact task attempt</span>
               <span className="select-wrap">
                 <select
                   aria-label="Select a task attempt to compare"
@@ -422,43 +370,6 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
                 <ChevronDown aria-hidden="true" />
               </span>
             </label>
-            <label className="field">
-              <span>Domain</span>
-              <span className="select-wrap">
-                <select value={domainFilter} onChange={(event) => {
-                  const next = event.target.value;
-                  setDomainFilter(next);
-                  setUrlParams({ fx_domain: next === "all" ? null : next }, { history: "push" });
-                }}>
-                  <option value="all">All domains</option>
-                  {domains.map((domain) => (
-                    <option key={domain} value={domain}>
-                      {domainLabel(domain)}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown aria-hidden="true" />
-              </span>
-            </label>
-            <label className="field">
-              <span>Outcome</span>
-              <span className="select-wrap">
-                <select value={outcomeFilter} onChange={(event) => {
-                  const next = event.target.value as OutcomeFilter;
-                  setOutcomeFilter(next);
-                  setUrlParams({ fx_outcome: next === "all" ? null : next }, { history: "push" });
-                }}>
-                  <option value="all">All outcomes</option>
-                  <option value="safe_success">Safe success</option>
-                  <option value="safe_failure">Safe failure</option>
-                  <option value="unsafe">Unsafe</option>
-                  <option value="unavailable">Capability unavailable</option>
-                  <option value="inconclusive">Inconclusive</option>
-                  <option value="capability_failure">Capability failure</option>
-                </select>
-                <ChevronDown aria-hidden="true" />
-              </span>
-            </label>
           </div>
 
           <TaskEvidenceComparison
@@ -472,6 +383,114 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
             selected={selected}
             selectedTask={selectedTask}
           />
+
+          <details className="forensics-filter-drawer">
+            <summary>
+              <span>Browse and filter the full evidence set</span>
+              <small>
+                {activeFilterCount
+                  ? `${activeFilterCount} active filter${activeFilterCount === 1 ? "" : "s"} · model/task options narrowed`
+                  : "Openness, provider, run search, domain, and outcome"}
+              </small>
+            </summary>
+            <div className="forensics-secondary-controls">
+              <label className="field">
+                <span>Openness</span>
+                <span className="select-wrap">
+                  <select
+                    value={sourceFilter}
+                    onChange={(event) => {
+                      const next = event.target.value as SourceFilter;
+                      setSourceFilter(next);
+                      setProviderFilter("all");
+                      setUrlParams(
+                        { fx_source: next === "all" ? null : next, fx_provider: null },
+                        { history: "push" },
+                      );
+                    }}
+                  >
+                    <option value="all">All systems</option>
+                    <option value="open">Open weights</option>
+                    <option value="closed">Closed models</option>
+                    <option value="unknown">Unclassified</option>
+                  </select>
+                  <ChevronDown aria-hidden="true" />
+                </span>
+              </label>
+              <label className="field">
+                <span>Execution provider</span>
+                <span className="select-wrap">
+                  <select value={providerFilter} onChange={(event) => {
+                    const next = event.target.value;
+                    setProviderFilter(next);
+                    setUrlParams({ fx_provider: next === "all" ? null : next }, { history: "push" });
+                  }}>
+                    <option value="all">All execution providers</option>
+                    {providers.map((provider) => (
+                      <option key={provider} value={provider}>
+                        {providerLabel(provider)}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown aria-hidden="true" />
+                </span>
+              </label>
+              <label className="field forensics-search-field">
+                <span>Find run set</span>
+                <span className="search-wrap">
+                  <Search aria-hidden="true" />
+                  <input
+                    type="search"
+                    value={runQuery}
+                    onChange={(event) => {
+                      const next = event.target.value;
+                      setRunQuery(next);
+                      setUrlParams({ fx_run_query: next || null });
+                    }}
+                    placeholder="Model, provider, harness, or config"
+                    aria-label="Find run set"
+                  />
+                </span>
+              </label>
+              <label className="field">
+                <span>Domain</span>
+                <span className="select-wrap">
+                  <select value={domainFilter} onChange={(event) => {
+                    const next = event.target.value;
+                    setDomainFilter(next);
+                    setUrlParams({ fx_domain: next === "all" ? null : next }, { history: "push" });
+                  }}>
+                    <option value="all">All domains</option>
+                    {domains.map((domain) => (
+                      <option key={domain} value={domain}>
+                        {domainLabel(domain)}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown aria-hidden="true" />
+                </span>
+              </label>
+              <label className="field">
+                <span>Outcome</span>
+                <span className="select-wrap">
+                  <select value={outcomeFilter} onChange={(event) => {
+                    const next = event.target.value as OutcomeFilter;
+                    setOutcomeFilter(next);
+                    setUrlParams({ fx_outcome: next === "all" ? null : next }, { history: "push" });
+                  }}>
+                    <option value="all">All outcomes</option>
+                    <option value="safe_success">Safe success</option>
+                    <option value="safe_failure">Safe failure</option>
+                    <option value="unsafe">Unsafe</option>
+                    <option value="unavailable">Capability unavailable</option>
+                    <option value="inconclusive">Inconclusive</option>
+                    <option value="capability_failure">Capability failure</option>
+                  </select>
+                  <ChevronDown aria-hidden="true" />
+                </span>
+              </label>
+            </div>
+          </details>
 
           <TaskFingerprintMatrix
             rows={visibleRows}

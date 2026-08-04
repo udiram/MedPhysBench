@@ -145,15 +145,15 @@ export function EvidenceSpotlight({ data, releaseEvidence, reviewEvidence }: Pro
             )}
             <section className="ledger-column human-column" aria-label="Best verified human result">
               <p className="ledger-label">Best verified human</p>
-              <h3>{human?.completed ? "Verified human evidence available" : "No verified human result published"}</h3>
+              <h3>Coming soon</h3>
               <p>
                 {human
                   ? `${human.status === "recruiting" ? "Recruiting" : human.status.replaceAll("_", " ")} · ${human.completed}/${human.target ?? "—"} release-matched participants`
                   : "Human-baseline evidence is unavailable."}
               </p>
               <p>
-                Reference solutions prove task feasibility; they are not human performance and are never substituted
-                here.
+                No reviewed task-level human response is published. Aggregate participation alone is not enough;
+                reference solutions prove feasibility and are never substituted for human performance.
               </p>
               <a className="text-link" href="/humans">
                 Human benchmark and eligibility <span aria-hidden="true">→</span>
