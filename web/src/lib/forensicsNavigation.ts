@@ -48,6 +48,20 @@ export function exactPeerAttempt(
   return matches.length === 1 ? matches[0] : null;
 }
 
+export function correspondingTaskAttempt(
+  tasks: readonly ModelTaskResult[],
+  reference: ModelTaskResult,
+): ModelTaskResult | null {
+  const exact = exactPeerAttempt(tasks, reference);
+  if (exact) return exact;
+  const matches = tasks.filter((task) =>
+    task.task_id === reference.task_id
+    && task.attempt_index === reference.attempt_index
+    && task.runtime_task_hash === reference.runtime_task_hash
+  );
+  return matches.length === 1 ? matches[0] : null;
+}
+
 export function publicArtifactHref(path: string | null | undefined) {
   if (!path || !/^results\/releases\/[A-Za-z0-9._/-]+\.json$/.test(path)) return null;
   if (path.split("/").includes("..")) return null;

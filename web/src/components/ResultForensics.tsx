@@ -5,7 +5,7 @@ import { domainLabel, formatDuration, formatPercent, formatTokens, normalizeMode
 import { defectsForTask } from "../lib/defects";
 import { inferExecutionSurface, surfaceLabel } from "../lib/runSurface";
 import { modelRunKey } from "../lib/modelRunKey";
-import { exactPeerAttempt, publicArtifactHref, taskAttemptKey } from "../lib/forensicsNavigation";
+import { correspondingTaskAttempt, exactPeerAttempt, publicArtifactHref, taskAttemptKey } from "../lib/forensicsNavigation";
 import { matchesForensicsRunQuery, matchesForensicsTaskQuery, selectForensicsTaskWindow, sortForensicsTasks } from "../lib/forensicsWorkbench";
 import { buildTaskComparison } from "../lib/taskComparison";
 import type { TaskComparisonScope } from "../lib/taskComparison";
@@ -367,8 +367,17 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
               <span>Run set</span>
               <span className="select-wrap">
                 <select value={modelKey} onChange={(event) => {
-                  setModelKey(event.target.value);
-                  setUrlParams({ fx_model: event.target.value }, { history: "push" });
+                  const nextModelKey = event.target.value;
+                  const nextRow = visibleRows.find((entry) => entry.key === nextModelKey)?.row ?? null;
+                  const nextTask = selectedTask && nextRow
+                    ? correspondingTaskAttempt(nextRow.tasks, selectedTask)
+                    : null;
+                  setModelKey(nextModelKey);
+                  if (nextTask) setSelectedTaskKey(taskAttemptKey(nextTask));
+                  setUrlParams(
+                    { fx_model: nextModelKey, fx_task: nextTask ? taskAttemptKey(nextTask) : null },
+                    { history: "push" },
+                  );
                 }}>
                   {visibleRows.map((entry) => (
                     <option key={entry.key} value={entry.key}>

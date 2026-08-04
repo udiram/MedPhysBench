@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { exactPeerAttempt, publicArtifactHref, runForensicsAccessibleLabel, taskAttemptKey, taskForensicsSelection } from "../src/lib/forensicsNavigation.ts";
+import { correspondingTaskAttempt, exactPeerAttempt, publicArtifactHref, runForensicsAccessibleLabel, taskAttemptKey, taskForensicsSelection } from "../src/lib/forensicsNavigation.ts";
 
 test("attempt IDs remain the canonical forensic navigation key", () => {
   const task = {
@@ -58,6 +58,22 @@ test("exact peer navigation preserves task, attempt, seed, and runtime contract"
   ];
   assert.equal(exactPeerAttempt(tasks, reference), tasks[1]);
   assert.equal(exactPeerAttempt([...tasks, { ...reference }], reference), null);
+});
+
+test("model switching preserves the same runtime task and attempt across sampling contracts", () => {
+  const reference = {
+    task_id: "task-a",
+    attempt_index: 2,
+    seed: 103,
+    runtime_task_hash: "runtime-a",
+  };
+  const corresponding = { ...reference, seed: 9003, attempt_id: "other-run" };
+  assert.equal(correspondingTaskAttempt([corresponding], reference), corresponding);
+  assert.equal(
+    correspondingTaskAttempt([{ ...corresponding, runtime_task_hash: "runtime-b" }], reference),
+    null,
+  );
+  assert.equal(correspondingTaskAttempt([corresponding, { ...corresponding }], reference), null);
 });
 
 test("task drilldown binds the exact run and attempt without carrying stale filters", () => {
