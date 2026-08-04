@@ -154,10 +154,11 @@ scored outcomes and remain canonical attempts; they are not transport retries.
 The public website currently exposes 31 model configurations representing 24
 unique base model identifiers across 52 release rows and four release surfaces, including seven
 completed Groq configurations, six GPT-5.6 Sol effort configurations, and one
-GPT-5.6 Terra configuration. These are not 31 unique base models. An Ollama Cloud access probe
-for `qwen3.5:397b-cloud` on 2026-08-02 returned HTTP 429 before a scored artifact
-was created. The lab-node hostname was not resolvable from the current Mac
-network context. Neither event supports a model score.
+GPT-5.6 Terra configuration. These are not 31 unique base models. Ollama Cloud access probes
+for `qwen3.5:397b-cloud` on 2026-08-02 and `gpt-oss:120b-cloud` on 2026-08-04 returned HTTP 429
+before a scored artifact was created. The latter is preserved as a sanitized, source-bound receipt
+with an explicit insufficient-quota outcome. The lab-node hostname was not resolvable from the current Mac
+network context. None of these observations supports a model score.
 
 The frozen v1 target panel contains exactly 50 unique base IDs: 31 open-weight,
 19 closed-weight, 31 declared vision-capable, and 11 stewards. After enforcing
@@ -178,14 +179,14 @@ base-model-bound access evidence, including a direct attested-submission link wh
 one exists. It also separates the planned-panel composition from the actually
 evaluated slice: the current common-harness slice contains 21 open-weight and zero
 closed-weight base models, seven base identities whose source model is vision-capable, seven
-image-capable evaluated routes, six stewards, and two
+image-capable evaluated routes, seven stewards, and three
 size tiers. The OpenKBP field is explicitly a one-response workflow-view gate, not
 stateful workflow qualification. “Planned route” means no Q0 evidence is
 committed; it is not a claim that an API handle, free quota, local artifact, or
 compatible hardware is currently available. The website can therefore filter the
-remaining 31 models by openness, route, and missing gate without inventing access
+remaining 29 models by openness, route, and missing gate without inventing access
 reasons or confusing native GPT-5.6 evidence with common-harness qualification.
-Eight frozen route sets now declare 35 executable configurations. Eighteen are digest-pinned Ollama
+Ten frozen route sets now declare 38 executable configurations. Eighteen are digest-pinned Ollama
 routes corresponding exactly to current-contract submission sidecars, including the Phi-4 Multimodal
 route that records the text-only capability actually exposed by its community GGUF under Ollama. The remaining routes cover
 Groq and hosted-provider expansion candidates. Route presence is operational readiness metadata,
