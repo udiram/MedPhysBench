@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://medphysbench.org/schemas/item-diagnostics.v1.schema.json",
+  "title": "MedPhysBench item diagnostics",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "release_id", "source", "item_diagnostics"],
+  "properties": {
+    "schema_version": { "const": "medphysbench.item-diagnostics.v1" },
+    "release_id": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["leaderboard_file", "leaderboard_sha256", "results_directory", "result_record_count", "result_manifest_sha256"],
+      "properties": {
+        "leaderboard_file": { "type": "string", "pattern": "^web/public/data/[A-Za-z0-9._-]+\\.json$" },
+        "leaderboard_sha256": { "$ref": "#/$defs/sha256" },
+        "results_directory": { "type": "string", "pattern": "^results/releases/[A-Za-z0-9._-]+$" },
+        "result_record_count": { "type": "integer", "minimum": 1 },
+        "result_manifest_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "item_diagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason", "groups", "methodology"],
+      "properties": {
+        "status": { "const": "available" },
+        "reason": { "type": "null" },
+        "groups": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/group" } },
+        "methodology": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["response", "task_difficulty", "discrimination", "family_solution", "near_zero_entropy", "watch_thresholds"],
+          "properties": {
+            "response": { "type": "string", "minLength": 20 },
+            "task_difficulty": { "type": "string", "minLength": 20 },
+            "discrimination": { "type": "string", "minLength": 20 },
+            "family_solution": { "type": "string", "minLength": 20 },
+            "near_zero_entropy": { "type": "string", "minLength": 20 },
+            "watch_thresholds": { "type": "string", "minLength": 20 }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "nullable_rate": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "number", "minimum": 0, "maximum": 1 }
+      ]
+    },
+    "task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["task_id", "family_id", "model_count", "attempt_count", "safe_success_count", "safe_success_rate", "response_entropy_bits", "discrimination", "discrimination_model_count"],
+      "properties": {
+        "task_id": { "type": "string", "minLength": 1 },
+        "family_id": { "type": "string", "minLength": 1 },
+        "model_count": { "type": "integer", "minimum": 1 },
+        "attempt_count": { "type": "integer", "minimum": 1 },
+        "safe_success_count": { "type": "integer", "minimum": 0 },
+        "safe_success_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "response_entropy_bits": { "type": "number", "minimum": 0, "maximum": 1 },
+        "discrimination": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "number", "minimum": -1, "maximum": 1 }
+          ]
+        },
+        "discrimination_model_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "family": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["family_id", "task_count", "model_count", "attempt_count", "safe_success_rate", "system_solved_count", "system_solved_fraction", "panel_solved", "response_entropy_bits", "near_zero_response_entropy"],
+      "properties": {
+        "family_id": { "type": "string", "minLength": 1 },
+        "task_count": { "type": "integer", "minimum": 1 },
+        "model_count": { "type": "integer", "minimum": 1 },
+        "attempt_count": { "type": "integer", "minimum": 1 },
+        "safe_success_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "system_solved_count": { "type": "integer", "minimum": 0 },
+        "system_solved_fraction": { "type": "number", "minimum": 0, "maximum": 1 },
+        "panel_solved": { "type": "boolean" },
+        "response_entropy_bits": { "type": "number", "minimum": 0, "maximum": 1 },
+        "near_zero_response_entropy": { "type": "boolean" }
+      }
+    },
+    "watch_signal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "observed"],
+      "properties": {
+        "code": {
+          "enum": [
+            "best_system_at_or_above_80_percent",
+            "families_panel_solved_at_or_above_60_percent",
+            "median_task_discrimination_below_0_10",
+            "near_zero_family_entropy_above_half"
+          ]
+        },
+        "observed": { "type": "number", "minimum": -1, "maximum": 1 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["best_system_safe_success_rate", "median_task_safe_success_rate", "median_task_discrimination", "discrimination_task_count", "panel_solved_family_count", "panel_solved_family_fraction", "near_zero_entropy_family_count", "near_zero_entropy_family_fraction", "watch", "watch_signals", "governance_status"],
+      "properties": {
+        "best_system_safe_success_rate": { "$ref": "#/$defs/nullable_rate" },
+        "median_task_safe_success_rate": { "$ref": "#/$defs/nullable_rate" },
+        "median_task_discrimination": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "number", "minimum": -1, "maximum": 1 }
+          ]
+        },
+        "discrimination_task_count": { "type": "integer", "minimum": 0 },
+        "panel_solved_family_count": { "type": "integer", "minimum": 0 },
+        "panel_solved_family_fraction": { "$ref": "#/$defs/nullable_rate" },
+        "near_zero_entropy_family_count": { "type": "integer", "minimum": 0 },
+        "near_zero_entropy_family_fraction": { "$ref": "#/$defs/nullable_rate" },
+        "watch": { "type": "boolean" },
+        "watch_signals": { "type": "array", "items": { "$ref": "#/$defs/watch_signal" } },
+        "governance_status": { "const": "public_development_diagnostic_only" }
+      }
+    },
+    "group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["comparison_group", "model_count", "task_count", "family_count", "attempt_count", "tasks", "families", "summary"],
+      "properties": {
+        "comparison_group": { "type": "string", "minLength": 1 },
+        "model_count": { "type": "integer", "minimum": 1 },
+        "task_count": { "type": "integer", "minimum": 1 },
+        "family_count": { "type": "integer", "minimum": 1 },
+        "attempt_count": { "type": "integer", "minimum": 1 },
+        "tasks": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/task" } },
+        "families": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/family" } },
+        "summary": { "$ref": "#/$defs/summary" }
+      }
+    }
+  }
+}

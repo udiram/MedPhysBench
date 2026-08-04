@@ -153,6 +153,7 @@ def _validate_defect_ledger_semantics(
 
 
 def validate_repository() -> dict[str, int]:
+    from medphys_agentbench.item_diagnostics import build_item_diagnostics_artifact
     from medphys_agentbench.public_task_inputs import build_public_task_input_catalog
     from scripts.build_fleet_status import build_fleet_status
     from scripts.build_public_task_inputs import DEFAULT_RELEASES
@@ -183,6 +184,7 @@ def validate_repository() -> dict[str, int]:
         "access_status": _validator("access-status.v1.schema.json"),
         "model_routes": _validator("model-route.v1.schema.json"),
         "access_probe_receipt": _validator("access-probe-receipt.v1.schema.json"),
+        "item_diagnostics": _validator("item-diagnostics.v1.schema.json"),
     }
 
     fleet_path = ROOT / "fleet" / "public_fleet_v1.yaml"
@@ -358,6 +360,23 @@ def validate_repository() -> dict[str, int]:
     if public_task_inputs != expected_public_task_inputs:
         raise ValueError(
             f"{public_task_inputs_path}: projection differs from the sealed runtime task views."
+        )
+
+    item_diagnostics_path = (
+        ROOT / "web" / "public" / "data" / "public-real-workflows-pilot-v0.6-diagnostics.json"
+    )
+    if not item_diagnostics_path.is_file():
+        raise ValueError(f"{item_diagnostics_path}: public item diagnostics are missing.")
+    item_diagnostics = _load_json(item_diagnostics_path)
+    _validate(validators["item_diagnostics"], item_diagnostics, item_diagnostics_path)
+    expected_item_diagnostics = build_item_diagnostics_artifact(
+        ROOT / "results" / "releases" / "public-real-workflows-pilot-v0.6",
+        ROOT / "web" / "public" / "data" / "public-real-workflows-pilot-v0.6.json",
+        repository_root=ROOT,
+    )
+    if item_diagnostics != expected_item_diagnostics:
+        raise ValueError(
+            f"{item_diagnostics_path}: projection differs from immutable result and leaderboard sources."
         )
 
     grader_mutation_count = 0

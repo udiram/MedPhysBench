@@ -12,6 +12,54 @@ export type LaneScores = {
 
 export type ReleaseView = "core" | "imaging" | "tg263" | "real";
 
+export type ItemDiagnosticsArtifact = {
+  schema_version: "medphysbench.item-diagnostics.v1";
+  release_id: string;
+  source: {
+    leaderboard_file: string;
+    leaderboard_sha256: string;
+    results_directory: string;
+    result_record_count: number;
+    result_manifest_sha256: string;
+  };
+  item_diagnostics: {
+    status: "available";
+    reason: null;
+    groups: Array<{
+      comparison_group: string;
+      model_count: number;
+      task_count: number;
+      family_count: number;
+      attempt_count: number;
+      tasks: Array<{
+        task_id: string;
+        family_id: string;
+        model_count: number;
+        attempt_count: number;
+        safe_success_count: number;
+        safe_success_rate: number;
+        response_entropy_bits: number;
+        discrimination: number | null;
+        discrimination_model_count: number;
+      }>;
+      summary: {
+        best_system_safe_success_rate: number | null;
+        median_task_safe_success_rate: number | null;
+        median_task_discrimination: number | null;
+        discrimination_task_count: number;
+        panel_solved_family_count: number;
+        panel_solved_family_fraction: number | null;
+        near_zero_entropy_family_count: number;
+        near_zero_entropy_family_fraction: number | null;
+        watch: boolean;
+        watch_signals: Array<{ code: string; observed: number }>;
+        governance_status: "public_development_diagnostic_only";
+      };
+    }>;
+    methodology: Record<string, string>;
+  };
+};
+
 export type ReviewState = {
   status: "complete" | "recruiting" | "pending" | "blocked" | "not_started";
   completed: number;

@@ -1,0 +1,351 @@
+{
+  "item_diagnostics": {
+    "groups": [
+      {
+        "attempt_count": 60,
+        "comparison_group": "groq::medphysbench-openai-compatible::openai-chat-json-v1;format=json_object;mode=best-effort;effort=provider-default::config=a2805525e3c98399",
+        "families": [
+          {
+            "attempt_count": 30,
+            "family_id": "openkb.pt_242",
+            "model_count": 2,
+            "near_zero_response_entropy": true,
+            "panel_solved": false,
+            "response_entropy_bits": 0.0,
+            "safe_success_rate": 0.566667,
+            "system_solved_count": 0,
+            "system_solved_fraction": 0.0,
+            "task_count": 5
+          },
+          {
+            "attempt_count": 30,
+            "family_id": "openkb.pt_289",
+            "model_count": 2,
+            "near_zero_response_entropy": true,
+            "panel_solved": false,
+            "response_entropy_bits": 0.0,
+            "safe_success_rate": 0.566667,
+            "system_solved_count": 0,
+            "system_solved_fraction": 0.0,
+            "task_count": 5
+          }
+        ],
+        "family_count": 2,
+        "model_count": 2,
+        "summary": {
+          "best_system_safe_success_rate": 0.6,
+          "discrimination_task_count": 0,
+          "governance_status": "public_development_diagnostic_only",
+          "median_task_discrimination": null,
+          "median_task_safe_success_rate": 0.833333,
+          "near_zero_entropy_family_count": 2,
+          "near_zero_entropy_family_fraction": 1.0,
+          "panel_solved_family_count": 0,
+          "panel_solved_family_fraction": 0.0,
+          "watch": true,
+          "watch_signals": [
+            {
+              "code": "near_zero_family_entropy_above_half",
+              "observed": 1.0
+            }
+          ]
+        },
+        "task_count": 10,
+        "tasks": [
+          {
+            "attempt_count": 6,
+            "discrimination": null,
+            "discrimination_model_count": 2,
+            "family_id": "openkb.pt_242",
+            "model_count": 2,
+            "response_entropy_bits": 0.0,
+            "safe_success_count": 0,
+            "safe_success_rate": 0.0,
+            "task_id": "public.rt.openkb-pt242-high-dose-segmentation-001"
+          },
+          {
+            "attempt_count": 6,
+            "discrimination": null,
+            "discrimination_model_count": 2,
+            "family_id": "openkb.pt_242",
+            "model_count": 2,
+            "response_entropy_bits": 0.0,
+            "safe_success_count": 0,
+            "safe_success_rate": 0.0,
+            "task_id": "public.rt.openkb-pt242-parotid-segmentation-001"
+          },
+          {
+            "attempt_count": 6,
+            "discrimination": null,
+            "discrimination_model_count": 2,
+            "family_id": "openkb.pt_242",
+            "model_count": 2,
+            "response_entropy_bits": 0.0,
+            "safe_success_count": 6,
+            "safe_success_rate": 1.0,
+            "task_id": "public.rt.openkb-pt242-plan-criteria-audit-001"
+          },
+          {
+            "attempt_count": 6,
+            "discrimination": null,
+            "discrimination_model_count": 2,
+            "family_id": "openkb.pt_242",
+            "model_count": 2,
+            "response_entropy_bits": 0.650022,
+            "safe_success_count": 5,
+            "safe_success_rate": 0.833333,
+            "task_id": "public.rt.openkb-pt242-structure-inventory-001"
+          },
+          {
+            "attempt_count": 6,
+            "discrimination": null,
+            "discrimination_model_count": 2,
+            "family_id": "openkb.pt_242",
+            "model_count": 2,
+            "response_entropy_bits": 0.0,
+            "safe_success_count": 6,
+            "safe_success_rate": 1.0,
+            "task_id": "public.rt.openkb-pt242-tg263-naming-audit-001"
+          },
+          {
+            "attempt_count": 6,
+            "discrimination": null,
+            "discrimination_model_count": 2,
+            "family_id": "openkb.pt_289",
+            "model_count": 2,
+            "response_entropy_bits": 0.0,
+            "safe_success_count": 0,
+            "safe_success_rate": 0.0,
+            "task_id": "public.rt.openkb-pt289-high-dose-segmentation-001"
+          },
+          {
+            "attempt_count": 6,
+            "discrimination": null,
+            "discrimination_model_count": 2,
+            "family_id": "openkb.pt_289",
+            "model_count": 2,
+            "response_entropy_bits": 0.0,
+            "safe_success_count": 0,
+            "safe_success_rate": 0.0,
+            "task_id": "public.rt.openkb-pt289-parotid-segmentation-001"
+          },
+          {
+            "attempt_count": 6,
+            "discrimination": null,
+            "discrimination_model_count": 2,
+            "family_id": "openkb.pt_289",
+            "model_count": 2,
+            "response_entropy_bits": 0.650022,
+            "safe_success_count": 5,
+            "safe_success_rate": 0.833333,
+            "task_id": "public.rt.openkb-pt289-plan-criteria-audit-001"
+          },
+          {
+            "attempt_count": 6,
+            "discrimination": null,
+            "discrimination_model_count": 2,
+            "family_id": "openkb.pt_289",
+            "model_count": 2,
+            "response_entropy_bits": 0.0,
+            "safe_success_count": 6,
+            "safe_success_rate": 1.0,
+            "task_id": "public.rt.openkb-pt289-structure-inventory-001"
+          },
+          {
+            "attempt_count": 6,
+            "discrimination": null,
+            "discrimination_model_count": 2,
+            "family_id": "openkb.pt_289",
+            "model_count": 2,
+            "response_entropy_bits": 0.0,
+            "safe_success_count": 6,
+            "safe_success_rate": 1.0,
+            "task_id": "public.rt.openkb-pt289-tg263-naming-audit-001"
+          }
+        ]
+      },
+      {
+        "attempt_count": 540,
+        "comparison_group": "ollama::medphysbench-ollama::reference-json-v2::config=ee32011812af9f4a",
+        "families": [
+          {
+            "attempt_count": 270,
+            "family_id": "openkb.pt_242",
+            "model_count": 18,
+            "near_zero_response_entropy": true,
+            "panel_solved": false,
+            "response_entropy_bits": 0.0,
+            "safe_success_rate": 0.166667,
+            "system_solved_count": 0,
+            "system_solved_fraction": 0.0,
+            "task_count": 5
+          },
+          {
+            "attempt_count": 270,
+            "family_id": "openkb.pt_289",
+            "model_count": 18,
+            "near_zero_response_entropy": true,
+            "panel_solved": false,
+            "response_entropy_bits": 0.0,
+            "safe_success_rate": 0.211111,
+            "system_solved_count": 0,
+            "system_solved_fraction": 0.0,
+            "task_count": 5
+          }
+        ],
+        "family_count": 2,
+        "model_count": 18,
+        "summary": {
+          "best_system_safe_success_rate": 0.5,
+          "discrimination_task_count": 5,
+          "governance_status": "public_development_diagnostic_only",
+          "median_task_discrimination": 0.542326,
+          "median_task_safe_success_rate": 0.027778,
+          "near_zero_entropy_family_count": 2,
+          "near_zero_entropy_family_fraction": 1.0,
+          "panel_solved_family_count": 0,
+          "panel_solved_family_fraction": 0.0,
+          "watch": true,
+          "watch_signals": [
+            {
+              "code": "near_zero_family_entropy_above_half",
+              "observed": 1.0
+            }
+          ]
+        },
+        "task_count": 10,
+        "tasks": [
+          {
+            "attempt_count": 54,
+            "discrimination": null,
+            "discrimination_model_count": 18,
+            "family_id": "openkb.pt_242",
+            "model_count": 18,
+            "response_entropy_bits": 0.0,
+            "safe_success_count": 0,
+            "safe_success_rate": 0.0,
+            "task_id": "public.rt.openkb-pt242-high-dose-segmentation-001"
+          },
+          {
+            "attempt_count": 54,
+            "discrimination": null,
+            "discrimination_model_count": 18,
+            "family_id": "openkb.pt_242",
+            "model_count": 18,
+            "response_entropy_bits": 0.0,
+            "safe_success_count": 0,
+            "safe_success_rate": 0.0,
+            "task_id": "public.rt.openkb-pt242-parotid-segmentation-001"
+          },
+          {
+            "attempt_count": 54,
+            "discrimination": null,
+            "discrimination_model_count": 18,
+            "family_id": "openkb.pt_242",
+            "model_count": 18,
+            "response_entropy_bits": 0.0,
+            "safe_success_count": 0,
+            "safe_success_rate": 0.0,
+            "task_id": "public.rt.openkb-pt242-plan-criteria-audit-001"
+          },
+          {
+            "attempt_count": 54,
+            "discrimination": 0.440157,
+            "discrimination_model_count": 18,
+            "family_id": "openkb.pt_242",
+            "model_count": 18,
+            "response_entropy_bits": 0.964079,
+            "safe_success_count": 21,
+            "safe_success_rate": 0.388889,
+            "task_id": "public.rt.openkb-pt242-structure-inventory-001"
+          },
+          {
+            "attempt_count": 54,
+            "discrimination": 0.83998,
+            "discrimination_model_count": 18,
+            "family_id": "openkb.pt_242",
+            "model_count": 18,
+            "response_entropy_bits": 0.991076,
+            "safe_success_count": 24,
+            "safe_success_rate": 0.444444,
+            "task_id": "public.rt.openkb-pt242-tg263-naming-audit-001"
+          },
+          {
+            "attempt_count": 54,
+            "discrimination": null,
+            "discrimination_model_count": 18,
+            "family_id": "openkb.pt_289",
+            "model_count": 18,
+            "response_entropy_bits": 0.0,
+            "safe_success_count": 0,
+            "safe_success_rate": 0.0,
+            "task_id": "public.rt.openkb-pt289-high-dose-segmentation-001"
+          },
+          {
+            "attempt_count": 54,
+            "discrimination": null,
+            "discrimination_model_count": 18,
+            "family_id": "openkb.pt_289",
+            "model_count": 18,
+            "response_entropy_bits": 0.0,
+            "safe_success_count": 0,
+            "safe_success_rate": 0.0,
+            "task_id": "public.rt.openkb-pt289-parotid-segmentation-001"
+          },
+          {
+            "attempt_count": 54,
+            "discrimination": 0.326947,
+            "discrimination_model_count": 18,
+            "family_id": "openkb.pt_289",
+            "model_count": 18,
+            "response_entropy_bits": 0.309543,
+            "safe_success_count": 3,
+            "safe_success_rate": 0.055556,
+            "task_id": "public.rt.openkb-pt289-plan-criteria-audit-001"
+          },
+          {
+            "attempt_count": 54,
+            "discrimination": 0.542326,
+            "discrimination_model_count": 18,
+            "family_id": "openkb.pt_289",
+            "model_count": 18,
+            "response_entropy_bits": 0.991076,
+            "safe_success_count": 30,
+            "safe_success_rate": 0.555556,
+            "task_id": "public.rt.openkb-pt289-structure-inventory-001"
+          },
+          {
+            "attempt_count": 54,
+            "discrimination": 0.83998,
+            "discrimination_model_count": 18,
+            "family_id": "openkb.pt_289",
+            "model_count": 18,
+            "response_entropy_bits": 0.991076,
+            "safe_success_count": 24,
+            "safe_success_rate": 0.444444,
+            "task_id": "public.rt.openkb-pt289-tg263-naming-audit-001"
+          }
+        ]
+      }
+    ],
+    "methodology": {
+      "discrimination": "Pearson correlation across systems between each system's task safe-success rate and its safe-success rate on all other tasks; at least three systems and non-zero variance are required.",
+      "family_solution": "A system solves a family when at least 80% of its observed family attempts are safe successes. A family is panel-solved when at least 80% of eligible systems solve it.",
+      "near_zero_entropy": "Binary Shannon entropy at or below 0.10 bits for the system-level family-solved indicator.",
+      "response": "Safe success requires passed=true and safe=true; missing booleans are excluded, not imputed.",
+      "task_difficulty": "Observed safe-success proportion over all eligible attempts in the comparison group.",
+      "watch_thresholds": "The predeclared MedPhysBench thresholds are applied as public-development diagnostics only: best system >=80%; >=60% of families panel-solved; median task discrimination <0.10; or >50% of families with near-zero response entropy."
+    },
+    "reason": null,
+    "status": "available"
+  },
+  "release_id": "public-real-workflows-pilot-v0.6",
+  "schema_version": "medphysbench.item-diagnostics.v1",
+  "source": {
+    "leaderboard_file": "web/public/data/public-real-workflows-pilot-v0.6.json",
+    "leaderboard_sha256": "f2a558b0a0bfe143c0ba810d2e3ac5f36d51736330899fb373e9eb5f11f52a37",
+    "result_manifest_sha256": "6e814a3f90eb554a702cc8dcc622cf1726ca7d737558b2926c4b5c4bacaff6f4",
+    "result_record_count": 1020,
+    "results_directory": "results/releases/public-real-workflows-pilot-v0.6"
+  }
+}

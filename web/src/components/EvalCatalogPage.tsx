@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
-import { domainLabel } from "../lib/format";
+import { domainLabel, formatPercent, providerLabel } from "../lib/format";
 import { modelRunKey } from "../lib/modelRunKey";
 import { taskAttemptKey } from "../lib/forensicsNavigation";
 import { scoreEvidenceAvailable } from "../lib/resultEvidence";
-import type { Leaderboard, PublicTaskInputCatalog, ReleaseView } from "../types";
+import type { ItemDiagnosticsArtifact, Leaderboard, PublicTaskInputCatalog, ReleaseView } from "../types";
 
 type Props = {
   catalog: PublicTaskInputCatalog | null;
   catalogLoaded: boolean;
   data: Leaderboard | null;
+  diagnostics?: ItemDiagnosticsArtifact | null;
   releaseView: ReleaseView;
 };
 
-export function EvalCatalogPage({ catalog, catalogLoaded, data, releaseView }: Props) {
+export function EvalCatalogPage({ catalog, catalogLoaded, data, diagnostics, releaseView }: Props) {
   const [query, setQuery] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState("");
   const releaseTasks = useMemo(
@@ -70,6 +71,10 @@ export function EvalCatalogPage({ catalog, catalogLoaded, data, releaseView }: P
           <div><dt>Released runs</dt><dd>{data.models.length + (data.unranked_models?.length ?? 0)}</dd></div>
         </dl>
       </header>
+
+      {diagnostics?.release_id === data.release.release_id ? (
+        <BenchmarkPowerPanel diagnostics={diagnostics} />
+      ) : null}
 
       <div className="eval-domain-map" aria-label="Task coverage by domain">
         {domainCounts.map(([domain, count]) => (
@@ -148,6 +153,82 @@ export function EvalCatalogPage({ catalog, catalogLoaded, data, releaseView }: P
           <div className="eval-reader-empty" role="status">No released task matches this search.</div>
         )}
       </div>
+    </section>
+  );
+}
+
+function BenchmarkPowerPanel({ diagnostics }: { diagnostics: ItemDiagnosticsArtifact }) {
+  const groups = diagnostics.item_diagnostics.groups;
+  const floorSignal = groups.some((group) =>
+    group.summary.watch_signals.some((signal) => signal.code === "near_zero_family_entropy_above_half")
+  );
+  const totalModels = groups.reduce((sum, group) => sum + group.model_count, 0);
+  const totalAttempts = groups.reduce((sum, group) => sum + group.attempt_count, 0);
+
+  return (
+    <section className="benchmark-power" aria-labelledby="benchmark-power-title">
+      <header>
+        <div>
+          <span>Benchmark power</span>
+          <h3 id="benchmark-power-title">
+            {floorSignal ? "The public response matrix shows floor effects." : "The public response matrix remains informative."}
+          </h3>
+          <p>
+            This diagnostic asks whether tasks separate systems inside one exact harness contract. It does not mix
+            providers, call a public set contamination-resistant, or convert small-panel estimates into official ranks.
+          </p>
+        </div>
+        <dl>
+          <div><dt>Eligible systems</dt><dd>{totalModels}</dd></div>
+          <div><dt>Scored attempts</dt><dd>{totalAttempts}</dd></div>
+          <div><dt>Exact groups</dt><dd>{groups.length}</dd></div>
+        </dl>
+      </header>
+
+      <div className="benchmark-power-groups">
+        {groups.map((group) => {
+          const provider = group.comparison_group.split("::", 1)[0];
+          const taskRates = group.tasks.map((task) => task.safe_success_rate).sort((left, right) => left - right);
+          const minimum = taskRates[0] ?? 0;
+          const maximum = taskRates.at(-1) ?? 0;
+          const median = group.summary.median_task_safe_success_rate ?? 0;
+          return (
+            <article key={group.comparison_group}>
+              <header>
+                <span>{providerLabel(provider)}</span>
+                <strong>{group.model_count} systems · {group.attempt_count} attempts</strong>
+              </header>
+              <div className="benchmark-power-spectrum" aria-label={`${providerLabel(provider)} task safe-success range`}>
+                <i style={{ left: `${minimum * 100}%`, width: `${Math.max(1, (maximum - minimum) * 100)}%` }} />
+                <b style={{ left: `${median * 100}%` }} />
+              </div>
+              <dl>
+                <div><dt>Best system</dt><dd>{formatPercent(group.summary.best_system_safe_success_rate)}</dd></div>
+                <div><dt>Median task</dt><dd>{formatPercent(group.summary.median_task_safe_success_rate)}</dd></div>
+                <div>
+                  <dt>Discrimination</dt>
+                  <dd>{group.summary.median_task_discrimination == null ? "Not estimable" : group.summary.median_task_discrimination.toFixed(2)}</dd>
+                </div>
+                <div><dt>Estimable tasks</dt><dd>{group.summary.discrimination_task_count}/{group.task_count}</dd></div>
+              </dl>
+              <p>
+                {group.summary.panel_solved_family_count}/{group.family_count} families were solved by at least 80% of
+                systems. {group.summary.near_zero_entropy_family_count}/{group.family_count} had near-zero family-solved entropy.
+              </p>
+            </article>
+          );
+        })}
+      </div>
+
+      <details>
+        <summary>How to read this diagnostic</summary>
+        <p>
+          A floor signal means most systems fail the family-level threshold in the same way; a ceiling signal would mean
+          most solve it. Both reduce separation. Task discrimination is reported only with at least three systems and
+          non-zero variance. These are public-development diagnostics, not protected-holdout saturation decisions.
+        </p>
+        <a href="/data/public-real-workflows-pilot-v0.6-diagnostics.json">Download the hash-bound diagnostic JSON</a>
+      </details>
     </section>
   );
 }

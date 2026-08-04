@@ -21,7 +21,7 @@ import { releaseEvidenceFor, releaseIdForView } from "./lib/releaseEvidence";
 import { versionedDataUrl } from "./lib/dataAssets";
 import type { ResultsScope } from "./lib/resultsScope";
 import { readEnumParam, setUrlParams } from "./lib/urlState";
-import type { AccessStatus, DefectLedger, FleetStatus, ModelCatalogEntry, PublicTaskInputCatalog, ReleaseEvidenceIndex, ReleaseView, ReviewEvidence, Tg263Audit } from "./types";
+import type { AccessStatus, DefectLedger, FleetStatus, ItemDiagnosticsArtifact, ModelCatalogEntry, PublicTaskInputCatalog, ReleaseEvidenceIndex, ReleaseView, ReviewEvidence, Tg263Audit } from "./types";
 
 const LEADERBOARD_URL = versionedDataUrl("/data/leaderboard.json");
 const IMAGING_LEADERBOARD_URL = versionedDataUrl("/data/imaging_leaderboard.json");
@@ -35,6 +35,7 @@ const RELEASE_EVIDENCE_URL = versionedDataUrl("/data/release_evidence.json");
 const DEFECT_LEDGER_URL = versionedDataUrl("/data/benchmark-defects.json");
 const REAL_WORKFLOWS_REVIEW_URL = versionedDataUrl("/data/public-real-workflows-pilot-v0.6-review.json");
 const PUBLIC_TASK_INPUTS_URL = versionedDataUrl("/data/public_task_inputs.json");
+const REAL_WORKFLOWS_DIAGNOSTICS_URL = versionedDataUrl("/data/public-real-workflows-pilot-v0.6-diagnostics.json");
 
 export type AppPage = "overview" | "results" | "evals" | "explore" | "humans" | "run" | "methods";
 
@@ -57,6 +58,7 @@ function App({ page = "overview" }: AppProps) {
   const [defectLedger, setDefectLedger] = useState<DefectLedger | null>(null);
   const [publicTaskInputs, setPublicTaskInputs] = useState<PublicTaskInputCatalog | null>(null);
   const [publicTaskInputsLoaded, setPublicTaskInputsLoaded] = useState(false);
+  const [realWorkflowDiagnostics, setRealWorkflowDiagnostics] = useState<ItemDiagnosticsArtifact | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [releaseView, setReleaseView] = useState<ReleaseView>("real");
   const [resultsScope, setResultsScope] = useState<ResultsScope>("descriptive");
@@ -83,6 +85,18 @@ function App({ page = "overview" }: AppProps) {
       .catch(() => setTg263Audit(null));
     return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    if (page !== "evals") return;
+    const controller = new AbortController();
+    fetch(REAL_WORKFLOWS_DIAGNOSTICS_URL, { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<ItemDiagnosticsArtifact>) : null))
+      .then((payload) => startTransition(() => setRealWorkflowDiagnostics(payload)))
+      .catch(() => {
+        if (!controller.signal.aborted) setRealWorkflowDiagnostics(null);
+      });
+    return () => controller.abort();
+  }, [page]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -256,6 +270,7 @@ function App({ page = "overview" }: AppProps) {
               catalog={publicTaskInputs}
               catalogLoaded={publicTaskInputsLoaded}
               data={selected.data}
+              diagnostics={realWorkflowDiagnostics}
               releaseView={releaseView}
             />
           </>

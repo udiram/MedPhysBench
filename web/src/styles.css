@@ -4484,6 +4484,32 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
 .eval-catalog-summary dl div { display: grid; gap: 6px; }
 .eval-catalog-summary dt { color: #77756e; font: 500 10px/1.3 "IBM Plex Mono", monospace; text-transform: uppercase; }
 .eval-catalog-summary dd { margin: 0; font-size: 24px; font-weight: 500; }
+.benchmark-power { margin-top: 30px; border: 1px solid #d3d0c7; background: #f5f3ed; }
+.benchmark-power > header { display: flex; justify-content: space-between; gap: 30px; padding: 24px; border-bottom: 1px solid #d3d0c7; }
+.benchmark-power > header > div { max-width: 720px; }
+.benchmark-power > header span { color: #8a611f; font: 600 10px/1.4 "IBM Plex Mono", monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+.benchmark-power > header h3 { margin-top: 8px; font-size: clamp(20px, 2vw, 28px); font-weight: 500; letter-spacing: -0.025em; }
+.benchmark-power > header p { margin: 9px 0 0; color: #686761; font-size: 13px; line-height: 1.6; }
+.benchmark-power > header dl { display: flex; flex: 0 0 auto; gap: 24px; margin: 0; }
+.benchmark-power > header dl div { display: grid; align-content: start; gap: 6px; }
+.benchmark-power dt { color: #77756e; font: 500 9px/1.3 "IBM Plex Mono", monospace; letter-spacing: 0.04em; text-transform: uppercase; }
+.benchmark-power dd { margin: 0; color: #262521; font: 600 15px/1.3 "IBM Plex Mono", monospace; }
+.benchmark-power-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.benchmark-power-groups article { min-width: 0; padding: 22px 24px; }
+.benchmark-power-groups article + article { border-left: 1px solid #d3d0c7; }
+.benchmark-power-groups article > header { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.benchmark-power-groups article > header span { color: #262521; font-size: 15px; font-weight: 650; }
+.benchmark-power-groups article > header strong { color: #77756e; font: 500 9px/1.4 "IBM Plex Mono", monospace; }
+.benchmark-power-spectrum { position: relative; height: 18px; margin: 20px 0; border-radius: 2px; background: linear-gradient(90deg, #d9d4c7, #ece9df); }
+.benchmark-power-spectrum i { position: absolute; top: 6px; height: 6px; border-radius: 3px; background: #957025; }
+.benchmark-power-spectrum b { position: absolute; top: 2px; width: 2px; height: 14px; background: #1d1d1b; transform: translateX(-1px); }
+.benchmark-power-groups article dl { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin: 0; background: #ddd9cf; }
+.benchmark-power-groups article dl div { display: grid; gap: 6px; padding: 11px; background: #faf9f6; }
+.benchmark-power-groups article p { margin: 15px 0 0; color: #686761; font-size: 11px; line-height: 1.55; }
+.benchmark-power > details { border-top: 1px solid #d3d0c7; }
+.benchmark-power > details summary { min-height: 52px; padding: 17px 24px; cursor: pointer; color: #5f4518; font-size: 12px; font-weight: 650; }
+.benchmark-power > details p { max-width: 88ch; margin: 0; padding: 0 24px; color: #686761; font-size: 12px; line-height: 1.65; }
+.benchmark-power > details a { display: inline-block; margin: 14px 24px 22px; color: #6f4c14; font-size: 12px; font-weight: 650; }
 .eval-domain-map { display: grid; gap: 12px; padding: 26px 0; border-bottom: 1px solid #d9d7d0; }
 .eval-domain-map > div { display: grid; grid-template-columns: minmax(180px, 0.7fr) minmax(80px, 1.3fr) 34px; align-items: center; gap: 14px; }
 .eval-domain-map span { color: #56554f; font-size: 12px; }
@@ -4588,6 +4614,10 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   .overview-example > summary,
   .forensics-deep-dive > summary { align-items: flex-start; flex-direction: column; justify-content: center; gap: 5px; padding-block: 15px; }
   .eval-catalog-summary dl { width: 100%; justify-content: space-between; }
+  .benchmark-power > header { flex-direction: column; }
+  .benchmark-power > header dl { width: 100%; justify-content: space-between; }
+  .benchmark-power-groups { grid-template-columns: 1fr; }
+  .benchmark-power-groups article + article { border-top: 1px solid #d3d0c7; border-left: 0; }
   .eval-browser { grid-template-columns: 1fr; }
   .eval-task-index { border-right: 0; border-bottom: 1px solid #d9d7d0; }
   .eval-task-index > div { max-height: 260px; }
@@ -4605,6 +4635,9 @@ main > section, .site-footer { padding-inline: max(24px, calc((100vw - var(--max
   .glance-model a { font-size: 14px; }
   .eval-catalog-summary dl { gap: 14px; }
   .eval-catalog-summary dd { font-size: 19px; }
+  .benchmark-power > header,
+  .benchmark-power-groups article { padding: 18px; }
+  .benchmark-power-groups article dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .eval-domain-map > div { grid-template-columns: minmax(130px, 1fr) 70px 24px; }
   .eval-task-reader { padding: 22px 16px; }
   .task-evidence-comparison { padding-inline: 0; }

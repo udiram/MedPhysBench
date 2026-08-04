@@ -785,7 +785,7 @@ def test_repository_contracts_and_public_artifacts_validate() -> None:
     )
     counts = json.loads(completed.stdout)
 
-    assert counts["schema_count"] == 23
+    assert counts["schema_count"] == 24
     assert counts["descriptive_admission_count"] == 2
     assert counts["campaign_count"] == 6
     assert counts["submission_count"] >= 1

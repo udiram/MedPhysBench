@@ -37,6 +37,7 @@ def load_result_records(release_results_dir: str | Path) -> list[dict[str, Any]]
             payload = json.load(handle)
         if not isinstance(payload, dict):
             raise ValueError(f"Result artifact must contain a JSON object: {path}")
+        payload["_analytics_source_group"] = path.parent.name
         records.append(payload)
     return records
 
@@ -61,13 +62,24 @@ def build_leaderboard_analytics(
     grouped: dict[tuple[str, ...], list[dict[str, Any]]] = defaultdict(list)
     for record in records:
         descriptor = _model_descriptor(record)
-        grouped[tuple(descriptor[field] for field in _MODEL_FIELDS)].append(record)
+        grouped[_analytics_group_key(record, descriptor)].append(record)
 
     model_rows: list[dict[str, Any]] = []
-    for descriptor_key in sorted(grouped):
+    resolved_groups: dict[tuple[str, ...], list[dict[str, Any]]] = {}
+    for group_key in sorted(grouped):
+        descriptor_key = group_key[: len(_MODEL_FIELDS)]
+        attempts = sorted(grouped[group_key], key=_attempt_sort_key)
+        run_configuration_hash = _run_configuration_hash(attempts)
+        resolved_key = (*descriptor_key, run_configuration_hash)
+        if resolved_key in resolved_groups:
+            raise ValueError(
+                "Analytics source groups resolve to the same immutable model configuration: "
+                f"{resolved_key!r}."
+            )
+        resolved_groups[resolved_key] = attempts
         descriptor = dict(zip(_MODEL_FIELDS, descriptor_key, strict=True))
-        attempts = sorted(grouped[descriptor_key], key=_attempt_sort_key)
-        leaderboard_row = leaderboard_rows.get(descriptor_key)
+        descriptor["run_configuration_hash"] = run_configuration_hash
+        leaderboard_row = _leaderboard_row_for(resolved_key, leaderboard_rows)
         model_rows.append(
             _aggregate_model(
                 descriptor,
@@ -109,6 +121,7 @@ def build_leaderboard_analytics(
             eligibility=_quality_throughput_eligible,
         ),
     }
+    item_diagnostics = _build_item_diagnostics(resolved_groups, leaderboard_rows)
 
     return {
         "schema_version": "medphysbench.analytics.v1",
@@ -119,6 +132,7 @@ def build_leaderboard_analytics(
             "leaderboard_attached": leaderboard is not None,
         },
         "models": model_rows,
+        "item_diagnostics": item_diagnostics,
         "pareto_frontiers": frontiers,
         "methodology": {
             "missing_usage": "Missing token, latency, or throughput telemetry is null and is never imputed as zero.",
@@ -137,6 +151,11 @@ def build_leaderboard_analytics(
             "pareto": (
                 "A model is efficient when no eligible model is at least as good on every named axis and strictly "
                 "better on at least one. Leaderboard-ineligible and explicitly non-comparable surfaces are excluded."
+            ),
+            "item_diagnostics": (
+                "Task and family diagnostics are computed separately within each exact comparison group from "
+                "ranking-eligible rows only. Public-development watch signals are diagnostic and never imply a "
+                "protected-holdout saturation decision."
             ),
         },
     }
@@ -451,6 +470,272 @@ def _safe_task_success_rate(attempts: Sequence[Mapping[str, Any]]) -> dict[str, 
     }
 
 
+def _build_item_diagnostics(
+    grouped: Mapping[tuple[str, ...], Sequence[Mapping[str, Any]]],
+    leaderboard_rows: Mapping[tuple[str, ...], Mapping[str, Any]],
+) -> dict[str, Any]:
+    if not leaderboard_rows:
+        return {
+            "status": "not_available",
+            "reason": "A signed leaderboard is required to identify exact comparison groups and eligible rows.",
+            "groups": [],
+        }
+
+    task_families: dict[str, str] = {}
+    comparison_models: dict[str, list[tuple[tuple[str, ...], Sequence[Mapping[str, Any]]]]] = defaultdict(list)
+    for descriptor_key, attempts in grouped.items():
+        leaderboard_row = _leaderboard_row_for(descriptor_key, leaderboard_rows)
+        if not isinstance(leaderboard_row, Mapping) or leaderboard_row.get("ranking_eligible") is not True:
+            continue
+        comparison_group = leaderboard_row.get("comparison_group")
+        if not isinstance(comparison_group, str) or not comparison_group:
+            continue
+        comparison_models[comparison_group].append((descriptor_key, attempts))
+        tasks = leaderboard_row.get("tasks")
+        if isinstance(tasks, list):
+            for task in tasks:
+                if not isinstance(task, Mapping):
+                    continue
+                task_id = task.get("task_id")
+                family_id = task.get("family_id")
+                if not isinstance(task_id, str) or not task_id:
+                    continue
+                normalized_family = family_id if isinstance(family_id, str) and family_id else task_id
+                existing = task_families.get(task_id)
+                if existing is not None and existing != normalized_family:
+                    raise ValueError(
+                        f"Leaderboard task {task_id!r} maps to conflicting families "
+                        f"{existing!r} and {normalized_family!r}."
+                    )
+                task_families[task_id] = normalized_family
+
+    groups = [
+        _comparison_group_item_diagnostics(group, models, task_families)
+        for group, models in sorted(comparison_models.items())
+    ]
+    return {
+        "status": "available" if groups else "not_available",
+        "reason": None if groups else "No ranking-eligible rows declared an exact comparison group.",
+        "groups": groups,
+        "methodology": {
+            "response": "Safe success requires passed=true and safe=true; missing booleans are excluded, not imputed.",
+            "task_difficulty": "Observed safe-success proportion over all eligible attempts in the comparison group.",
+            "discrimination": (
+                "Pearson correlation across systems between each system's task safe-success rate and its "
+                "safe-success rate on all other tasks; at least three systems and non-zero variance are required."
+            ),
+            "family_solution": (
+                "A system solves a family when at least 80% of its observed family attempts are safe successes. "
+                "A family is panel-solved when at least 80% of eligible systems solve it."
+            ),
+            "near_zero_entropy": (
+                "Binary Shannon entropy at or below 0.10 bits for the system-level family-solved indicator."
+            ),
+            "watch_thresholds": (
+                "The predeclared MedPhysBench thresholds are applied as public-development diagnostics only: "
+                "best system >=80%; >=60% of families panel-solved; median task discrimination <0.10; or "
+                ">50% of families with near-zero response entropy."
+            ),
+        },
+    }
+
+
+def _comparison_group_item_diagnostics(
+    comparison_group: str,
+    models: Sequence[tuple[tuple[str, ...], Sequence[Mapping[str, Any]]]],
+    task_families: Mapping[str, str],
+) -> dict[str, Any]:
+    system_task_observations: list[dict[str, list[bool]]] = []
+    attempt_count = 0
+    for _, attempts in sorted(models, key=lambda item: item[0]):
+        task_observations: dict[str, list[bool]] = defaultdict(list)
+        for attempt in attempts:
+            task_id = _attempt_task_id(attempt)
+            passed = attempt.get("passed")
+            safe = attempt.get("safe")
+            if task_id and isinstance(passed, bool) and isinstance(safe, bool):
+                task_observations[task_id].append(passed and safe)
+                attempt_count += 1
+        system_task_observations.append(dict(task_observations))
+
+    task_ids = sorted({task_id for observations in system_task_observations for task_id in observations})
+    task_rows = [
+        _task_item_diagnostic(task_id, system_task_observations, task_families.get(task_id, task_id))
+        for task_id in task_ids
+    ]
+    family_ids = sorted({row["family_id"] for row in task_rows})
+    family_rows = [
+        _family_item_diagnostic(family_id, task_rows, system_task_observations)
+        for family_id in family_ids
+    ]
+
+    system_rates = [_system_rate(observations) for observations in system_task_observations]
+    observed_system_rates = [rate for rate in system_rates if rate is not None]
+    discriminations = [
+        float(row["discrimination"])
+        for row in task_rows
+        if isinstance(row["discrimination"], (int, float))
+    ]
+    panel_solved_count = sum(bool(row["panel_solved"]) for row in family_rows)
+    near_zero_count = sum(bool(row["near_zero_response_entropy"]) for row in family_rows)
+    family_count = len(family_rows)
+    median_discrimination = statistics.median(discriminations) if discriminations else None
+    panel_solved_fraction = panel_solved_count / family_count if family_count else None
+    near_zero_fraction = near_zero_count / family_count if family_count else None
+    best_system_rate = max(observed_system_rates) if observed_system_rates else None
+
+    watch_signals: list[dict[str, Any]] = []
+    if best_system_rate is not None and best_system_rate >= 0.8:
+        watch_signals.append({"code": "best_system_at_or_above_80_percent", "observed": _rounded(best_system_rate)})
+    if panel_solved_fraction is not None and panel_solved_fraction >= 0.6:
+        watch_signals.append(
+            {
+                "code": "families_panel_solved_at_or_above_60_percent",
+                "observed": _rounded(panel_solved_fraction),
+            }
+        )
+    if median_discrimination is not None and median_discrimination < 0.1:
+        watch_signals.append(
+            {
+                "code": "median_task_discrimination_below_0_10",
+                "observed": _rounded(median_discrimination),
+            }
+        )
+    if near_zero_fraction is not None and near_zero_fraction > 0.5:
+        watch_signals.append({"code": "near_zero_family_entropy_above_half", "observed": _rounded(near_zero_fraction)})
+
+    return {
+        "comparison_group": comparison_group,
+        "model_count": len(system_task_observations),
+        "task_count": len(task_rows),
+        "family_count": family_count,
+        "attempt_count": attempt_count,
+        "tasks": task_rows,
+        "families": family_rows,
+        "summary": {
+            "best_system_safe_success_rate": _rounded(best_system_rate) if best_system_rate is not None else None,
+            "median_task_safe_success_rate": (
+                _rounded(statistics.median([row["safe_success_rate"] for row in task_rows]))
+                if task_rows
+                else None
+            ),
+            "median_task_discrimination": (
+                _rounded(median_discrimination) if median_discrimination is not None else None
+            ),
+            "discrimination_task_count": len(discriminations),
+            "panel_solved_family_count": panel_solved_count,
+            "panel_solved_family_fraction": (
+                _rounded(panel_solved_fraction) if panel_solved_fraction is not None else None
+            ),
+            "near_zero_entropy_family_count": near_zero_count,
+            "near_zero_entropy_family_fraction": (
+                _rounded(near_zero_fraction) if near_zero_fraction is not None else None
+            ),
+            "watch": bool(watch_signals),
+            "watch_signals": watch_signals,
+            "governance_status": "public_development_diagnostic_only",
+        },
+    }
+
+
+def _task_item_diagnostic(
+    task_id: str,
+    system_task_observations: Sequence[Mapping[str, Sequence[bool]]],
+    family_id: str,
+) -> dict[str, Any]:
+    pooled = [value for observations in system_task_observations for value in observations.get(task_id, ())]
+    system_task_rates: list[float] = []
+    system_rest_rates: list[float] = []
+    for observations in system_task_observations:
+        task_values = list(observations.get(task_id, ()))
+        rest_values = [
+            value
+            for other_task_id, values in observations.items()
+            if other_task_id != task_id
+            for value in values
+        ]
+        if task_values and rest_values:
+            system_task_rates.append(sum(task_values) / len(task_values))
+            system_rest_rates.append(sum(rest_values) / len(rest_values))
+    rate = sum(pooled) / len(pooled) if pooled else 0.0
+    return {
+        "task_id": task_id,
+        "family_id": family_id,
+        "model_count": sum(bool(observations.get(task_id)) for observations in system_task_observations),
+        "attempt_count": len(pooled),
+        "safe_success_count": sum(pooled),
+        "safe_success_rate": _rounded(rate),
+        "response_entropy_bits": _rounded(_binary_entropy(rate)),
+        "discrimination": _pearson_correlation(system_task_rates, system_rest_rates),
+        "discrimination_model_count": len(system_task_rates),
+    }
+
+
+def _family_item_diagnostic(
+    family_id: str,
+    task_rows: Sequence[Mapping[str, Any]],
+    system_task_observations: Sequence[Mapping[str, Sequence[bool]]],
+) -> dict[str, Any]:
+    task_ids = {str(row["task_id"]) for row in task_rows if row["family_id"] == family_id}
+    system_rates: list[float] = []
+    for observations in system_task_observations:
+        values = [value for task_id in task_ids for value in observations.get(task_id, ())]
+        if values:
+            system_rates.append(sum(values) / len(values))
+    solved = [rate >= 0.8 for rate in system_rates]
+    solved_rate = sum(solved) / len(solved) if solved else 0.0
+    pooled_values = [
+        value
+        for observations in system_task_observations
+        for task_id in task_ids
+        for value in observations.get(task_id, ())
+    ]
+    safe_success_rate = sum(pooled_values) / len(pooled_values) if pooled_values else 0.0
+    entropy = _binary_entropy(solved_rate)
+    return {
+        "family_id": family_id,
+        "task_count": len(task_ids),
+        "model_count": len(system_rates),
+        "attempt_count": len(pooled_values),
+        "safe_success_rate": _rounded(safe_success_rate),
+        "system_solved_count": sum(solved),
+        "system_solved_fraction": _rounded(solved_rate),
+        "panel_solved": solved_rate >= 0.8,
+        "response_entropy_bits": _rounded(entropy),
+        "near_zero_response_entropy": entropy <= 0.1,
+    }
+
+
+def _attempt_task_id(attempt: Mapping[str, Any]) -> str:
+    manifest = attempt.get("manifest")
+    task_id = manifest.get("task_id") if isinstance(manifest, Mapping) else None
+    return str(task_id) if isinstance(task_id, str) and task_id else ""
+
+
+def _system_rate(observations: Mapping[str, Sequence[bool]]) -> float | None:
+    values = [value for task_values in observations.values() for value in task_values]
+    return sum(values) / len(values) if values else None
+
+
+def _binary_entropy(rate: float) -> float:
+    if rate <= 0 or rate >= 1:
+        return 0.0
+    return -(rate * math.log2(rate) + (1 - rate) * math.log2(1 - rate))
+
+
+def _pearson_correlation(left: Sequence[float], right: Sequence[float]) -> float | None:
+    if len(left) != len(right) or len(left) < 3:
+        return None
+    left_mean = statistics.mean(left)
+    right_mean = statistics.mean(right)
+    left_delta = [value - left_mean for value in left]
+    right_delta = [value - right_mean for value in right]
+    denominator = math.sqrt(sum(value * value for value in left_delta) * sum(value * value for value in right_delta))
+    if denominator == 0:
+        return None
+    return _rounded(sum(a * b for a, b in zip(left_delta, right_delta, strict=True)) / denominator)
+
+
 def _throughput(observations: Sequence[Mapping[str, Any]], total_count: int) -> dict[str, Any]:
     paired = [
         (int(observation["output_tokens"]), float(observation["latency_seconds"]))
@@ -610,6 +895,54 @@ def _model_descriptor(record: Mapping[str, Any]) -> dict[str, str]:
     return {field: str(model.get(field, "unknown")) for field in _MODEL_FIELDS}
 
 
+def _analytics_group_key(record: Mapping[str, Any], descriptor: Mapping[str, str]) -> tuple[str, ...]:
+    source_group = record.get("_analytics_source_group")
+    if isinstance(source_group, str) and source_group:
+        partition = f"source:{source_group}"
+    else:
+        manifest = record.get("manifest")
+        normalized_manifest = manifest if isinstance(manifest, Mapping) else {}
+        partition = "config:" + stable_hash(
+            {
+                "adapter_settings_hash": normalized_manifest.get("adapter_settings_hash"),
+                "temperature": normalized_manifest.get("temperature"),
+                "max_tokens": normalized_manifest.get("max_tokens"),
+                "sandbox_image_digest": normalized_manifest.get("sandbox_image_digest"),
+                "tool_environment_version": normalized_manifest.get("tool_environment_version"),
+            }
+        )
+    return (*tuple(descriptor[field] for field in _MODEL_FIELDS), partition)
+
+
+def _run_configuration_hash(attempts: Sequence[Mapping[str, Any]]) -> str:
+    run_configurations: set[tuple[Any, ...]] = set()
+    seeds_by_attempt_index: dict[int, set[Any]] = defaultdict(set)
+    for attempt in attempts:
+        manifest = attempt.get("manifest")
+        normalized_manifest = manifest if isinstance(manifest, Mapping) else {}
+        run_configurations.add(
+            (
+                normalized_manifest.get("adapter_settings_hash"),
+                normalized_manifest.get("temperature"),
+                normalized_manifest.get("max_tokens"),
+                normalized_manifest.get("sandbox_image_digest"),
+                normalized_manifest.get("tool_environment_version"),
+            )
+        )
+        attempt_index = attempt.get("attempt_index")
+        if isinstance(attempt_index, int) and not isinstance(attempt_index, bool) and attempt_index >= 0:
+            seeds_by_attempt_index[attempt_index].add(normalized_manifest.get("seed"))
+    return stable_hash(
+        {
+            "run_configurations": [list(values) for values in sorted(run_configurations, key=repr)],
+            "seeds_by_attempt_index": {
+                str(index): sorted(seeds, key=repr)
+                for index, seeds in sorted(seeds_by_attempt_index.items())
+            },
+        }
+    )
+
+
 def _leaderboard_rows(leaderboard: Mapping[str, Any] | None) -> dict[tuple[str, ...], Mapping[str, Any]]:
     if leaderboard is None:
         return {}
@@ -621,9 +954,30 @@ def _leaderboard_rows(leaderboard: Mapping[str, Any] | None) -> dict[tuple[str, 
         for row in collection:
             if not isinstance(row, Mapping):
                 continue
-            key = tuple(str(row.get(field, "unknown")) for field in _MODEL_FIELDS)
+            base_key = tuple(str(row.get(field, "unknown")) for field in _MODEL_FIELDS)
+            run_profile = row.get("run_profile")
+            run_configuration_hash = (
+                run_profile.get("run_configuration_hash") if isinstance(run_profile, Mapping) else None
+            )
+            key = (
+                (*base_key, str(run_configuration_hash))
+                if isinstance(run_configuration_hash, str) and run_configuration_hash
+                else base_key
+            )
+            if key in rows:
+                raise ValueError(f"Leaderboard contains duplicate analytics identity {key!r}.")
             rows[key] = row
     return rows
+
+
+def _leaderboard_row_for(
+    resolved_key: tuple[str, ...],
+    leaderboard_rows: Mapping[tuple[str, ...], Mapping[str, Any]],
+) -> Mapping[str, Any] | None:
+    exact = leaderboard_rows.get(resolved_key)
+    if exact is not None:
+        return exact
+    return leaderboard_rows.get(resolved_key[: len(_MODEL_FIELDS)])
 
 
 def _leaderboard_projection(

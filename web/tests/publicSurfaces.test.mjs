@@ -99,3 +99,67 @@ test("eval catalog renders a released sealed input and a direct answer link", ()
   assert.match(html, /See model answers/);
   assert.match(html, /fx_task_query=ct-review/);
 });
+
+test("eval catalog shows comparison-group benchmark power without manufacturing cross-provider statistics", () => {
+  const diagnostics = {
+    release_id: "release-a",
+    item_diagnostics: {
+      groups: [
+        {
+          comparison_group: "groq::exact-config-a",
+          model_count: 2,
+          task_count: 10,
+          family_count: 2,
+          attempt_count: 60,
+          tasks: [{ safe_success_rate: 0 }, { safe_success_rate: 1 }],
+          summary: {
+            best_system_safe_success_rate: 0.6,
+            median_task_safe_success_rate: 0.5,
+            median_task_discrimination: null,
+            discrimination_task_count: 0,
+            panel_solved_family_count: 0,
+            near_zero_entropy_family_count: 2,
+            watch_signals: [{ code: "near_zero_family_entropy_above_half", observed: 1 }],
+          },
+        },
+        {
+          comparison_group: "ollama::exact-config-b",
+          model_count: 18,
+          task_count: 10,
+          family_count: 2,
+          attempt_count: 540,
+          tasks: [{ safe_success_rate: 0 }, { safe_success_rate: 0.5 }],
+          summary: {
+            best_system_safe_success_rate: 0.5,
+            median_task_safe_success_rate: 0.03,
+            median_task_discrimination: 0.54,
+            discrimination_task_count: 5,
+            panel_solved_family_count: 0,
+            near_zero_entropy_family_count: 2,
+            watch_signals: [{ code: "near_zero_family_entropy_above_half", observed: 1 }],
+          },
+        },
+      ],
+    },
+  };
+  const html = renderToStaticMarkup(React.createElement(EvalCatalogPage, {
+    catalog: { releases: [{ release_id: "release-a", tasks: [] }] },
+    catalogLoaded: true,
+    data: {
+      release: { release_id: "release-a", title: "Workflow release", description: "Released workflow tasks" },
+      models: [],
+      unranked_models: [],
+    },
+    diagnostics,
+    releaseView: "real",
+  }));
+
+  assert.match(html, /The public response matrix shows floor effects/);
+  assert.match(html, /20<\/dd>/);
+  assert.match(html, /600<\/dd>/);
+  assert.match(html, /Groq/);
+  assert.match(html, /Ollama/);
+  assert.match(html, /Not estimable/);
+  assert.match(html, /0\.54/);
+  assert.match(html, /public-development diagnostics/);
+});

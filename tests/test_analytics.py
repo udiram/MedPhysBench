@@ -55,7 +55,12 @@ def _result(
     return payload
 
 
-def _leaderboard_row(model_name: str, *, ranking_eligible: bool = True) -> dict[str, Any]:
+def _leaderboard_row(
+    model_name: str,
+    *,
+    ranking_eligible: bool = True,
+    tasks: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     return {
         "provider": "test-provider",
         "model_name": model_name,
@@ -64,9 +69,11 @@ def _leaderboard_row(model_name: str, *, ranking_eligible: bool = True) -> dict[
         "harness_revision": "1",
         "rank": 1 if ranking_eligible else None,
         "ranking_eligible": ranking_eligible,
+        "comparison_group": "test-provider::test-harness::1::config=frozen",
         "attempt_count": 1,
         "task_success_rate": 1.0,
         "safe_success_rate": 1.0,
+        "tasks": tasks or [],
     }
 
 
@@ -239,6 +246,118 @@ def test_aggregation_is_independent_of_input_order() -> None:
     ]
 
     assert build_leaderboard_analytics(records) == build_leaderboard_analytics(reversed(records))
+
+
+def test_item_diagnostics_are_grouped_eligible_and_saturation_watch_is_diagnostic_only() -> None:
+    response_matrix = {
+        "strong": (True, True, True),
+        "upper-middle": (True, True, False),
+        "lower-middle": (True, False, False),
+        "weak": (False, False, False),
+    }
+    records = [
+        _result(
+            model_name,
+            run_id=f"run-{task_index}",
+            score=float(passed),
+            passed=passed,
+            safe=True,
+        )
+        for model_name, responses in response_matrix.items()
+        for task_index, passed in enumerate(responses)
+    ]
+    task_projection = [
+        {"task_id": f"task-run-{task_index}", "family_id": "family-a"}
+        for task_index in range(3)
+    ]
+    leaderboard = {
+        "release": {"release_id": "diagnostic-release"},
+        "models": [
+            _leaderboard_row(model_name, tasks=task_projection)
+            for model_name in response_matrix
+        ],
+        "unranked_models": [
+            _leaderboard_row("descriptive-only", ranking_eligible=False, tasks=task_projection)
+        ],
+    }
+
+    diagnostics = build_leaderboard_analytics(records, leaderboard=leaderboard)["item_diagnostics"]
+    group = diagnostics["groups"][0]
+
+    assert diagnostics["status"] == "available"
+    assert group["model_count"] == 4
+    assert group["task_count"] == 3
+    assert group["family_count"] == 1
+    assert group["attempt_count"] == 12
+    assert group["tasks"][0]["safe_success_rate"] == 0.75
+    assert group["tasks"][0]["discrimination"] is not None
+    assert group["tasks"][0]["discrimination_model_count"] == 4
+    assert group["families"][0]["system_solved_fraction"] == 0.25
+    assert group["summary"]["best_system_safe_success_rate"] == 1.0
+    assert group["summary"]["watch"] is True
+    assert group["summary"]["watch_signals"] == [
+        {"code": "best_system_at_or_above_80_percent", "observed": 1.0}
+    ]
+    assert group["summary"]["governance_status"] == "public_development_diagnostic_only"
+
+
+def test_item_diagnostics_require_signed_comparison_eligibility() -> None:
+    analytics = build_leaderboard_analytics(
+        [_result("unattached", run_id="run-0", score=1.0, passed=True, safe=True)]
+    )
+
+    assert analytics["item_diagnostics"] == {
+        "status": "not_available",
+        "reason": "A signed leaderboard is required to identify exact comparison groups and eligible rows.",
+        "groups": [],
+    }
+
+
+def test_analytics_keeps_same_model_harness_configurations_separate_and_joins_exactly() -> None:
+    current = [
+        _result("same-model", run_id=f"run-{index}", score=1.0, passed=True, safe=True)
+        for index in range(2)
+    ]
+    historical = [
+        _result("same-model", run_id=f"run-{index}", score=0.0, passed=False, safe=True)
+        for index in range(2)
+    ]
+    for record in current:
+        record["_analytics_source_group"] = "current-json-v2"
+        record["manifest"]["adapter_settings_hash"] = "a" * 64
+    for record in historical:
+        record["_analytics_source_group"] = "historical-json-v1"
+    records = [*current, *historical]
+    preliminary = build_leaderboard_analytics(records)
+    configuration_by_rate = {
+        row["outcomes"]["safe_task_success"]["rate"]: row["model"]["run_configuration_hash"]
+        for row in preliminary["models"]
+    }
+
+    def exact_row(rate: float, *, eligible: bool) -> dict[str, Any]:
+        row = _leaderboard_row("same-model", ranking_eligible=eligible)
+        row["comparison_group"] = f"same-model::config={configuration_by_rate[rate][:16]}"
+        row["run_profile"] = {"run_configuration_hash": configuration_by_rate[rate]}
+        return row
+
+    analytics = build_leaderboard_analytics(
+        records,
+        leaderboard={
+            "release": {"release_id": "configuration-release"},
+            "models": [exact_row(1.0, eligible=True)],
+            "unranked_models": [exact_row(0.0, eligible=False)],
+        },
+    )
+    rows = sorted(analytics["models"], key=lambda row: row["outcomes"]["safe_task_success"]["rate"])
+
+    assert analytics["source"]["model_count"] == 2
+    assert rows[0]["leaderboard"]["matched"] is True
+    assert rows[0]["leaderboard"]["ranking_eligible"] is False
+    assert rows[1]["leaderboard"]["matched"] is True
+    assert rows[1]["leaderboard"]["ranking_eligible"] is True
+    assert rows[0]["model_id"] != rows[1]["model_id"]
+    assert len(analytics["item_diagnostics"]["groups"]) == 1
+    assert analytics["item_diagnostics"]["groups"][0]["attempt_count"] == 2
 
 
 def test_build_script_emits_valid_analytics_json(tmp_path: Path) -> None:
