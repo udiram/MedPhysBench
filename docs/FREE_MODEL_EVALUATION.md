@@ -57,6 +57,13 @@ because their attempt manifests predate the required adapter-settings hash. The 
 documented `reasoning_effort: none` and `reasoning_format: hidden` fields and still needs a fresh
 successful receipt plus complete rerun before promotion.
 
+GPT-OSS 120B's fresh JSON-v2 canary returned a sanitized HTTP 400 and was not promoted. The
+versioned [`groq_gpt_oss_routes_v3.yaml`](../fleet/groq_gpt_oss_routes_v3.yaml) candidate instead
+freezes low reasoning effort and strict JSON Schema for both GPT-OSS 20B and 120B, using the
+separately hashed 512-token v3 access canary. These are executable candidate contracts, not new
+results: both routes still require fresh successful receipts and complete matrices before they can
+form a controlled comparison group.
+
 ```bash
 GROQ_API_KEY=... medphys-bench run-release \
   releases/public_real_workflows_pilot_v0_6.yaml \

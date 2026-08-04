@@ -243,6 +243,7 @@
 - Froze comparison groups by adapter-settings hash and seed policy, withheld singleton ranks, and aligned the bulk regrader with the canonical safety-lane and weighted-score functions.
 - Made the fleet headline data-derived, kept forensic controls mounted across empty filter intersections, and constrained the complete site shell horizontally after expanded desktop/mobile task-evidence QA.
 - Added 150 Groq-hosted v0.6 attempts across Llama 3.1 8B Instant, Llama 3.3 70B Versatile, GPT-OSS 20B, GPT-OSS 120B, and Qwen 3.6 27B, with bounded rate-limit backoff and no persisted provider credential.
+- Added a versioned GPT-OSS strict-schema qualification lane for 20B and 120B with low reasoning effort, a 512-token non-benchmark canary, sanitized HTTP 400 contract taxonomy, and frozen route hashes; it does not publish a score without fresh access receipts and complete reruns.
 - Expanded the GPT-5.6 OpenKBP audit from one to three attempts per task and effort, publishing 90 native-surface attempts with Wilson intervals, repeated-attempt agreement, and a descriptive outcome order.
 - Split official ranks by identical provider/harness revision while retaining a clearly labeled cross-surface point-estimate order, so native evidence is visible without being misrepresented as API-equivalent.
 - Replaced the primary time scatter with a direct-labeled outcome interval plot and added frontier and reliability views grounded in SWE-bench, MLPerf, METR, and Artificial Analysis conventions.

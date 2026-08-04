@@ -50,6 +50,17 @@ current model contract documents text and image input, JSON-object mode, `reason
 and `reasoning_format: hidden`; those fields therefore form part of the new route identity rather
 than an undocumented retry heuristic. [Groq Qwen 3.6 model contract](https://console.groq.com/docs/model/qwen/qwen3.6-27b)
 
+[`groq_gpt_oss_routes_v3.yaml`](../fleet/groq_gpt_oss_routes_v3.yaml) separately freezes GPT-OSS
+20B and 120B at low reasoning effort with strict JSON Schema output. It does not rewrite the
+published JSON-v2 comparison group. Groq documents both bases as strict-structured-output models,
+states that best-effort JSON modes can return HTTP 400, and recommends enough completion budget for
+reasoning output. The paired v3 routes therefore use the same 4,096-token scoring cap and can form
+one controlled group only after both routes independently qualify and complete the full matrix.
+The route declarations themselves are not access or score evidence.
+[Groq GPT-OSS 120B](https://console.groq.com/docs/model/openai/gpt-oss-120b) ·
+[Groq structured outputs](https://console.groq.com/docs/structured-outputs) ·
+[Groq reasoning](https://console.groq.com/docs/reasoning)
+
 [`local_ollama_routes_v1.yaml`](../fleet/local_ollama_routes_v1.yaml) freezes 16 existing,
 submission-attested local configurations. A separate
 [`local_ollama_candidate_routes_v1.yaml`](../fleet/local_ollama_candidate_routes_v1.yaml) isolates
@@ -80,6 +91,13 @@ an exact dependency set covering the v1 probe, runtime request helper, strict JS
 route/receipt validator. The receipt loader rejects missing, extra, substituted, or modified
 dependencies and checks the same bytes in both the worktree and claimed source commit.
 
+The GPT-OSS schema routes use a new, separately hashed
+[`openai_access_probe_v3.py`](../scripts/probes/openai_access_probe_v3.py) rather than changing the
+published v2 implementation. Its fixed non-benchmark canary uses a 512-token ceiling so a
+reasoning model is not rejected by an unrealistically small access check, proves the declared
+strict-schema response contract, and classifies sanitized HTTP 400 provider codes as contract
+failures instead of network failures. It records neither the provider body nor the credential.
+
 The reviewed [`ollama_access_probe.py`](../scripts/probes/ollama_access_probe.py) applies the same
 principle to the local runtime. It verifies `/api/tags` against the exact route digest, checks
 declared text/vision capability through `/api/show`, and sends a 64-token strict-JSON canary through
@@ -105,6 +123,12 @@ uv run python -m scripts.probes.openai_access_probe_v2 \
 uv run python -m scripts.probes.openai_access_probe_v2 \
   fleet/groq_standard_routes_v2.yaml \
   --route-id groq-gpt-oss-20b-json-v2
+
+# Versioned GPT-OSS strict-schema qualification. Qualify both routes before
+# generating a paired campaign; a failed receipt remains non-scoring evidence.
+uv run python -m scripts.probes.openai_access_probe_v3 \
+  fleet/groq_gpt_oss_routes_v3.yaml \
+  --route-id groq-gpt-oss-120b-schema-v3
 
 # Local, digest-pinned example. Run one route at a time on the machine that
 # actually hosts Ollama; the probe is non-scoring and memory bounded.

@@ -20,6 +20,9 @@ from medphys_agentbench.route_qualification import (
 from scripts.probes.ollama_access_probe import probe_ollama_route
 from scripts.probes.openai_access_probe import probe_openai_route
 from scripts.probes.openai_access_probe_v2 import probe_openai_route as probe_openai_route_v2
+from scripts.probes.openai_access_probe_v3 import DEPENDENCY_LABELS as V3_DEPENDENCY_LABELS
+from scripts.probes.openai_access_probe_v3 import PROBE_MAX_TOKENS
+from scripts.probes.openai_access_probe_v3 import probe_openai_route as probe_openai_route_v3
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -72,12 +75,33 @@ def _ollama_clock() -> Any:
     return lambda: next(values)
 
 
+def _v3_clock() -> Any:
+    values = iter(
+        [
+            datetime(2026, 8, 4, 5, 20, 0, tzinfo=UTC),
+            datetime(2026, 8, 4, 5, 20, 1, tzinfo=UTC),
+        ]
+    )
+    return lambda: next(values)
+
+
 def _copy_v2_probe_contract(tmp_path: Path) -> None:
     labels = (
         "scripts/probes/openai_access_probe_v2.py",
         "src/medphys_agentbench/adapters/openai_compatible.py",
         "src/medphys_agentbench/json_utils.py",
         "src/medphys_agentbench/route_qualification.py",
+    )
+    for label in labels:
+        destination = tmp_path / label
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / label, destination)
+
+
+def _copy_v3_probe_contract(tmp_path: Path) -> None:
+    labels = (
+        "scripts/probes/openai_access_probe_v3.py",
+        *V3_DEPENDENCY_LABELS,
     )
     for label in labels:
         destination = tmp_path / label
@@ -261,6 +285,101 @@ def test_v2_probe_does_not_promote_local_json_parsing_as_provider_contract(tmp_p
     path.write_text(json.dumps(receipt_payload_with_hash(forged)), encoding="utf-8")
     with pytest.raises(ValueError, match="cannot prove a provider response contract"):
         load_access_probe_receipt(path, route_set, repository_root=tmp_path)
+
+
+def test_v3_probe_uses_budgeted_strict_schema_reasoning_contract(tmp_path: Path) -> None:
+    fleet_dir = tmp_path / "fleet"
+    fleet_dir.mkdir(parents=True)
+    shutil.copy2(ROOT / "fleet" / "public_fleet_v1.yaml", fleet_dir / "public_fleet_v1.yaml")
+    shutil.copy2(ROOT / "fleet" / "groq_gpt_oss_routes_v3.yaml", fleet_dir / "groq_gpt_oss_routes_v3.yaml")
+    _copy_v3_probe_contract(tmp_path)
+    captured: dict[str, object] = {}
+
+    def opener(request: Any, **_kwargs: object) -> _FakeResponse:
+        captured["payload"] = json.loads(bytes(request.data or b"").decode("utf-8"))
+        return _FakeResponse(
+            {"model": "openai/gpt-oss-120b", "choices": [{"message": {"content": '{"status":"ok"}'}}]},
+            {"x-ratelimit-remaining-requests": "10"},
+        )
+
+    route_set_path = fleet_dir / "groq_gpt_oss_routes_v3.yaml"
+    path, receipt = probe_openai_route_v3(
+        route_set_path,
+        "groq-gpt-oss-120b-schema-v3",
+        repository_root=tmp_path,
+        environ={"GROQ_API_KEY": "test-only"},
+        opener=opener,
+        now=_v3_clock(),
+        source_commit="a" * 40,
+    )
+
+    payload = captured["payload"]
+    assert isinstance(payload, dict)
+    assert payload["max_completion_tokens"] == PROBE_MAX_TOKENS == 512
+    assert payload["reasoning_effort"] == "low"
+    assert "reasoning_format" not in payload
+    assert payload["response_format"] == {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "medphysbench_access_probe",
+            "strict": True,
+            "schema": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["status"],
+                "properties": {"status": {"type": "string", "enum": ["ok"]}},
+            },
+        },
+    }
+    assert receipt["outcome"] == "available"
+    assert receipt["capabilities"]["observed"] == ["json_schema", "strict_schema", "text"]
+    assert {item["path"] for item in receipt["probe_dependencies"]} == set(V3_DEPENDENCY_LABELS)
+    route_set = load_route_set(route_set_path, repository_root=tmp_path)
+    assert load_access_probe_receipt(path, route_set, repository_root=tmp_path).outcome == "available"
+
+
+def test_v3_probe_classifies_sanitized_http_400_without_persisting_body(tmp_path: Path) -> None:
+    fleet_dir = tmp_path / "fleet"
+    fleet_dir.mkdir(parents=True)
+    shutil.copy2(ROOT / "fleet" / "public_fleet_v1.yaml", fleet_dir / "public_fleet_v1.yaml")
+    shutil.copy2(ROOT / "fleet" / "groq_gpt_oss_routes_v3.yaml", fleet_dir / "groq_gpt_oss_routes_v3.yaml")
+    _copy_v3_probe_contract(tmp_path)
+    sensitive_message = "request details that must not be stored"
+
+    def opener(*_args: object, **_kwargs: object) -> None:
+        raise urllib.error.HTTPError(
+            "https://api.groq.com/openai/v1/chat/completions",
+            400,
+            "Bad Request",
+            {"x-ratelimit-remaining-requests": "10"},
+            io.BytesIO(
+                json.dumps(
+                    {
+                        "error": {
+                            "code": "json_validate_failed",
+                            "type": "invalid_request_error",
+                            "message": sensitive_message,
+                        }
+                    }
+                ).encode("utf-8")
+            ),
+        )
+
+    route_set_path = fleet_dir / "groq_gpt_oss_routes_v3.yaml"
+    path, receipt = probe_openai_route_v3(
+        route_set_path,
+        "groq-gpt-oss-120b-schema-v3",
+        repository_root=tmp_path,
+        environ={"GROQ_API_KEY": "test-only"},
+        opener=opener,
+        now=_v3_clock(),
+        source_commit="a" * 40,
+    )
+
+    assert receipt["outcome"] == "contract_unsupported"
+    assert receipt["sanitized_metadata"]["http_status"] == 400
+    assert receipt["sanitized_metadata"]["error_code"] == "provider_http_400_json_validate_failed"
+    assert sensitive_message not in path.read_text(encoding="utf-8")
 
 
 def test_probe_records_missing_credential_without_network_call(tmp_path: Path) -> None:

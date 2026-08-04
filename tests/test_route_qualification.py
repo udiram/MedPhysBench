@@ -33,6 +33,7 @@ LOCAL_OLLAMA_CANDIDATE_V3_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_candid
 PROVIDER_ROUTE_SET_PATH = ROOT / "fleet" / "provider_expansion_routes_v2.yaml"
 GROQ_REASONING_ROUTE_SET_PATH = ROOT / "fleet" / "groq_reasoning_routes_v2.yaml"
 GROQ_STANDARD_ROUTE_SET_PATH = ROOT / "fleet" / "groq_standard_routes_v2.yaml"
+GROQ_GPT_OSS_ROUTE_SET_PATH = ROOT / "fleet" / "groq_gpt_oss_routes_v3.yaml"
 RELEASE_FILE = "releases/public_real_workflows_pilot_v0_6.yaml"
 
 
@@ -235,6 +236,31 @@ def test_groq_standard_v2_routes_freeze_one_exact_three_model_comparison_contrac
         "groq-gpt-oss-120b-json-v2": "b4943ed36f586cc530f1dd90c5d5786a7cbc1b6061e63d2b2727ac23108655a9",
         "groq-gpt-oss-20b-json-v2": "fbff159021da651d34e1c9491b14b6ada3be4ecf68069ff27c05c089adb86bfd",
         "groq-llama-3.3-70b-json-v2": "7a6692c9dce9d62bd1837465580115e3cd59bcd3c470e629351f31b582a9411c",
+    }
+
+
+def test_groq_gpt_oss_v3_routes_freeze_one_strict_reasoning_contract() -> None:
+    route_set = load_route_set(GROQ_GPT_OSS_ROUTE_SET_PATH)
+
+    assert route_set.route_set_id == "groq-gpt-oss-routes-v3"
+    assert {route.route_id for route in route_set.routes} == {
+        "groq-gpt-oss-20b-schema-v3",
+        "groq-gpt-oss-120b-schema-v3",
+    }
+    assert {route.base_model_id for route in route_set.routes} == {
+        "openai/gpt-oss-20b",
+        "openai/gpt-oss-120b",
+    }
+    assert {route.response_format for route in route_set.routes} == {"json_schema"}
+    assert {route.strict_schema for route in route_set.routes} == {True}
+    assert {route.reasoning_effort for route in route_set.routes} == {"low"}
+    assert {route.reasoning_format for route in route_set.routes} == {None}
+    assert {route.max_tokens for route in route_set.routes} == {4096}
+    assert {route.max_rate_limit_retries for route in route_set.routes} == {20}
+    assert {route.modalities for route in route_set.routes} == {("text",)}
+    assert {route.route_id: route.route_spec_sha256 for route in route_set.routes} == {
+        "groq-gpt-oss-120b-schema-v3": "2a00b5b2aa84a21ab3ad0152305f18b3a40b8ccaf623f400bebda7a501baa5dc",
+        "groq-gpt-oss-20b-schema-v3": "a4286725f2366300d233cdfe8ed1d3e5376662f67ebc9680b0cd8cf36f0bfbc3",
     }
 
 
