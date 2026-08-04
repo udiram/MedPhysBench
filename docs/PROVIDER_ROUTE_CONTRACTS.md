@@ -82,6 +82,17 @@ by the same receipt-bound control plane used for hosted providers. The Qwen3-VL 
 produce a fresh access receipt, complete campaign, and attested submission before it can affect
 evaluated breadth or any score surface.
 
+[`ollama_cloud_routes_v1.yaml`](../fleet/ollama_cloud_routes_v1.yaml) isolates the installed
+`gpt-oss:120b-cloud` handle as a provider-hosted configuration of the already frozen
+`openai/gpt-oss-120b` base. The route pins the exact snapshot identifier exposed by the local
+Ollama proxy and declares only the text capability returned by `/api/show`. That identifier is
+replay evidence for the observed hosted route, not a claim that Ollama exposes an immutable weight
+artifact. Calls leave the workstation for Ollama Cloud even though the transport endpoint is the
+local Ollama API. The configuration therefore requires a fresh canary receipt, an explicit quota
+assessment, the full 30-attempt matrix, deterministic regrading, and a submission attestation before
+it can appear as scored evidence. It strengthens one existing base-model record and never increments
+the 50-model denominator as a second model.
+
 ## Receipt integrity
 
 The original [`openai_access_probe.py`](../scripts/probes/openai_access_probe.py) remains byte-frozen

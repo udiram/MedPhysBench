@@ -1,0 +1,22 @@
+schema_version: medphysbench.model-routes.v1
+route_set_id: ollama-cloud-routes-v1
+fleet_file: fleet/public_fleet_v1.yaml
+fleet_id: public-fleet-v1
+frozen_at: "2026-08-04T05:40:00Z"
+routes:
+  - route_id: ollama-gpt-oss-120b-cloud-v1
+    base_model_id: openai/gpt-oss-120b
+    adapter: ollama
+    provider: ollama
+    model: gpt-oss:120b-cloud
+    model_revision: sha256:ac7f7a1e778577c4418f6a25e46e0b45dced6746c75422d4b343aa1495a022ed
+    revision_basis: provider_snapshot
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 600
+    max_tokens: 4096
+    access_ttl_seconds: 21600
+    modalities: [text]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096

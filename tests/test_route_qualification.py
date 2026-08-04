@@ -30,6 +30,7 @@ LOCAL_OLLAMA_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_routes_v1.yaml"
 LOCAL_OLLAMA_CANDIDATE_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_candidate_routes_v1.yaml"
 LOCAL_OLLAMA_CANDIDATE_V2_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_candidate_routes_v2.yaml"
 LOCAL_OLLAMA_CANDIDATE_V3_ROUTE_SET_PATH = ROOT / "fleet" / "local_ollama_candidate_routes_v3.yaml"
+OLLAMA_CLOUD_ROUTE_SET_PATH = ROOT / "fleet" / "ollama_cloud_routes_v1.yaml"
 PROVIDER_ROUTE_SET_PATH = ROOT / "fleet" / "provider_expansion_routes_v2.yaml"
 GROQ_REASONING_ROUTE_SET_PATH = ROOT / "fleet" / "groq_reasoning_routes_v2.yaml"
 GROQ_STANDARD_ROUTE_SET_PATH = ROOT / "fleet" / "groq_standard_routes_v2.yaml"
@@ -342,6 +343,27 @@ def test_phi4_multimodal_candidate_records_the_observed_text_only_ollama_surface
     assert candidate.modalities == ("text",)
     assert str(candidate.ollama_keep_alive) == "0"
     assert candidate.ollama_num_ctx == 4096
+
+
+def test_ollama_cloud_route_is_one_snapshot_pinned_existing_fleet_base() -> None:
+    route_set = load_route_set(OLLAMA_CLOUD_ROUTE_SET_PATH)
+
+    assert route_set.route_set_id == "ollama-cloud-routes-v1"
+    assert len(route_set.routes) == 1
+    route = route_set.route("ollama-gpt-oss-120b-cloud-v1")
+    assert route.base_model_id == "openai/gpt-oss-120b"
+    assert route.adapter == "ollama"
+    assert route.provider == "ollama"
+    assert route.model == "gpt-oss:120b-cloud"
+    assert route.model_revision == (
+        "sha256:ac7f7a1e778577c4418f6a25e46e0b45dced6746c75422d4b343aa1495a022ed"
+    )
+    assert route.revision_basis == "provider_snapshot"
+    assert route.response_format == "json_schema"
+    assert route.strict_schema is True
+    assert route.modalities == ("text",)
+    assert str(route.ollama_keep_alive) == "0"
+    assert route.ollama_num_ctx == 4096
 
 
 def test_self_hosted_planned_model_can_bind_a_reviewed_local_ollama_route(tmp_path: Path) -> None:
