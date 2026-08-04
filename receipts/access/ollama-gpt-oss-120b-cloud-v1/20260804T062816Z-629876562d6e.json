@@ -1,0 +1,60 @@
+{
+  "adapter": "ollama",
+  "base_model_id": "openai/gpt-oss-120b",
+  "capabilities": {
+    "inferred": [
+      "text"
+    ],
+    "observed": [
+      "text"
+    ]
+  },
+  "completed_at": "2026-08-04T06:28:16Z",
+  "content_sha256": "629876562d6e157870c51746b0972e351b19a54a46979862ebcc3db5f8c1c6c6",
+  "expires_at": "2026-08-04T12:28:16Z",
+  "fleet_id": "public-fleet-v1",
+  "model": "gpt-oss:120b-cloud",
+  "model_revision": "sha256:ac7f7a1e778577c4418f6a25e46e0b45dced6746c75422d4b343aa1495a022ed",
+  "outcome": "rate_limited",
+  "probe_dependencies": [
+    {
+      "content_sha256": "fdaa7e7e6023dc6972fade7fbe0ecb2ab605af01e6622b55a55a991d7753c924",
+      "path": "scripts/probes/ollama_access_probe.py"
+    },
+    {
+      "content_sha256": "5ddd56a52e1e8db9fa16eef85da749a7decd585a43fd2a56b51978c2af185ef6",
+      "path": "src/medphys_agentbench/adapters/ollama.py"
+    },
+    {
+      "content_sha256": "9074b67a24aa0bff1fae01685885a85c717b0e82e4e3b2b5744f8d0091100605",
+      "path": "src/medphys_agentbench/json_utils.py"
+    },
+    {
+      "content_sha256": "c13c16ba41399727772270992dec9bb44f7d620bc1e3a22ebc182834749ea5f2",
+      "path": "src/medphys_agentbench/route_qualification.py"
+    }
+  ],
+  "probe_implementation_path": "scripts/probes/ollama_cloud_access_probe_v2.py",
+  "probe_implementation_sha256": "e231bd6884c31bf8dca930ca8870b9c34c241f32b67766b0bae9befcb49a56a4",
+  "probe_version": "ollama-cloud-access-probe-v2",
+  "provider": "ollama",
+  "quota": {
+    "source": "not_exposed",
+    "status": "insufficient"
+  },
+  "receipt_id": "ollama-gpt-oss-120b-cloud-v1-20260804t062816z",
+  "route_id": "ollama-gpt-oss-120b-cloud-v1",
+  "route_set_id": "ollama-cloud-routes-v1",
+  "route_spec_sha256": "54e0354c7e9683b02e64da331572adb2b0565e331ea0057970d0e9e7876b2be2",
+  "sanitized_metadata": {
+    "endpoint_host": "127.0.0.1",
+    "error_code": "ollama_cloud_rate_limited",
+    "http_status": 429,
+    "latency_ms": 299.733,
+    "served_model": "gpt-oss:120b-cloud",
+    "served_revision": "sha256:ac7f7a1e778577c4418f6a25e46e0b45dced6746c75422d4b343aa1495a022ed"
+  },
+  "schema_version": "medphysbench.access-probe-receipt.v1",
+  "source_commit": "1a9e048b3eef3b7bd2b7bfa52b1dedb51a403b2a",
+  "started_at": "2026-08-04T06:28:16Z"
+}

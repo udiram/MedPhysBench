@@ -12,6 +12,7 @@ from typing import Any
 import yaml
 from jsonschema import Draft202012Validator, FormatChecker
 
+from medphys_agentbench.access_receipt_audit import audit_access_receipts
 from medphys_agentbench.artifacts import resolve_asset_reference
 from medphys_agentbench.campaign import load_campaign
 from medphys_agentbench.json_utils import decode_strict_json_object, stable_hash
@@ -219,6 +220,8 @@ def validate_repository() -> dict[str, int]:
                 raise ValueError(f"{route_set_path}: duplicate cross-manifest route_id {route.route_id!r}.")
             route_ids.add(route.route_id)
         route_sets.append(route_set)
+
+    access_receipts = audit_access_receipts(route_sets, repository_root=ROOT)
 
     fleet_status_path = ROOT / "web" / "public" / "data" / "fleet_status.json"
     fleet_status = _load_json(fleet_status_path)
@@ -524,6 +527,7 @@ def validate_repository() -> dict[str, int]:
         "grader_mutation_count": grader_mutation_count,
         "fleet_model_count": len(fleet_ids),
         "route_count": sum(len(route_set.routes) for route_set in route_sets),
+        "access_receipt_count": len(access_receipts),
     }
 
 

@@ -100,6 +100,18 @@ a successful canary retains `quota.status: unknown`, HTTP 429 is `rate_limited` 
 quota, and HTTP 401/403 is an authentication failure. Provider error bodies are consumed and
 discarded rather than persisted.
 
+Run the hosted route through its repository module so the inherited, immutable local-probe helpers
+resolve from the reviewed source tree:
+
+```bash
+uv run python -m scripts.probes.ollama_cloud_access_probe_v2 \
+  fleet/ollama_cloud_routes_v1.yaml \
+  --route-id ollama-gpt-oss-120b-cloud-v1
+```
+
+Every committed access receipt is audited repository-wide against its frozen route, source commit,
+probe implementation, and exact reviewed dependency set. An unrecognized probe version fails closed.
+
 ## Receipt integrity
 
 The original [`openai_access_probe.py`](../scripts/probes/openai_access_probe.py) remains byte-frozen
