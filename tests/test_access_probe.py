@@ -18,6 +18,10 @@ from medphys_agentbench.route_qualification import (
     receipt_payload_with_hash,
 )
 from scripts.probes.ollama_access_probe import probe_ollama_route
+from scripts.probes.ollama_cloud_access_probe_v2 import (
+    DEPENDENCY_LABELS as OLLAMA_CLOUD_V2_DEPENDENCY_LABELS,
+)
+from scripts.probes.ollama_cloud_access_probe_v2 import probe_ollama_cloud_route
 from scripts.probes.openai_access_probe import probe_openai_route
 from scripts.probes.openai_access_probe_v2 import probe_openai_route as probe_openai_route_v2
 from scripts.probes.openai_access_probe_v3 import DEPENDENCY_LABELS as V3_DEPENDENCY_LABELS
@@ -75,6 +79,16 @@ def _ollama_clock() -> Any:
     return lambda: next(values)
 
 
+def _ollama_cloud_clock() -> Any:
+    values = iter(
+        [
+            datetime(2026, 8, 4, 5, 50, 0, tzinfo=UTC),
+            datetime(2026, 8, 4, 5, 50, 1, tzinfo=UTC),
+        ]
+    )
+    return lambda: next(values)
+
+
 def _v3_clock() -> Any:
     values = iter(
         [
@@ -127,6 +141,24 @@ def _ollama_probe_repository(tmp_path: Path) -> tuple[Path, str]:
     route_set_path = fleet_dir / "local_ollama_routes_v1.yaml"
     load_route_set(route_set_path, repository_root=tmp_path)
     return route_set_path, "ollama-qwen2-5vl-3b"
+
+
+def _ollama_cloud_probe_repository(tmp_path: Path) -> tuple[Path, str]:
+    fleet_dir = tmp_path / "fleet"
+    fleet_dir.mkdir(parents=True)
+    shutil.copy2(ROOT / "fleet" / "public_fleet_v1.yaml", fleet_dir / "public_fleet_v1.yaml")
+    shutil.copy2(ROOT / "fleet" / "ollama_cloud_routes_v1.yaml", fleet_dir / "ollama_cloud_routes_v1.yaml")
+    labels = (
+        "scripts/probes/ollama_cloud_access_probe_v2.py",
+        *OLLAMA_CLOUD_V2_DEPENDENCY_LABELS,
+    )
+    for label in labels:
+        destination = tmp_path / label
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / label, destination)
+    route_set_path = fleet_dir / "ollama_cloud_routes_v1.yaml"
+    load_route_set(route_set_path, repository_root=tmp_path)
+    return route_set_path, "ollama-gpt-oss-120b-cloud-v1"
 
 
 def test_v1_probe_bytes_remain_frozen() -> None:
@@ -499,6 +531,110 @@ def test_ollama_probe_writes_valid_local_runtime_receipt_without_scores(tmp_path
         "http://127.0.0.1:11434/api/show",
         "http://127.0.0.1:11434/api/chat",
     ]
+    assert not (tmp_path / "runs").exists()
+    assert not (tmp_path / "results").exists()
+
+
+def test_ollama_cloud_probe_keeps_successful_quota_unknown(tmp_path: Path) -> None:
+    route_set_path, route_id = _ollama_cloud_probe_repository(tmp_path)
+
+    def opener(request: Any, **_kwargs: object) -> _FakeResponse:
+        if request.full_url.endswith("/api/tags"):
+            return _FakeResponse(
+                {
+                    "models": [
+                        {
+                            "name": "gpt-oss:120b-cloud",
+                            "model": "gpt-oss:120b-cloud",
+                            "digest": "ac7f7a1e778577c4418f6a25e46e0b45dced6746c75422d4b343aa1495a022ed",
+                        }
+                    ]
+                }
+            )
+        if request.full_url.endswith("/api/show"):
+            return _FakeResponse({"capabilities": ["completion", "tools", "thinking"]})
+        if request.full_url.endswith("/api/chat"):
+            return _FakeResponse({"message": {"content": '{"status":"ok"}'}})
+        raise AssertionError(f"unexpected URL {request.full_url}")
+
+    path, payload = probe_ollama_cloud_route(
+        route_set_path,
+        route_id,
+        repository_root=tmp_path,
+        opener=opener,
+        now=_ollama_cloud_clock(),
+        source_commit="a" * 40,
+    )
+
+    route_set = load_route_set(route_set_path, repository_root=tmp_path)
+    receipt = load_access_probe_receipt(path, route_set, repository_root=tmp_path)
+    assert receipt.outcome == "available"
+    assert receipt.quota_status == "unknown"
+    assert payload["capabilities"]["observed"] == ["json_schema", "strict_schema", "text"]
+    assert {item["path"] for item in payload["probe_dependencies"]} == set(
+        OLLAMA_CLOUD_V2_DEPENDENCY_LABELS
+    )
+
+
+@pytest.mark.parametrize(
+    ("status", "expected_outcome", "expected_error", "expected_quota"),
+    [
+        (401, "auth_missing", "ollama_cloud_auth_required", "unknown"),
+        (403, "auth_missing", "ollama_cloud_auth_required", "unknown"),
+        (429, "rate_limited", "ollama_cloud_rate_limited", "insufficient"),
+        (503, "network_error", "ollama_cloud_http_503", "unknown"),
+    ],
+)
+def test_ollama_cloud_probe_types_hosted_failures_without_persisting_body(
+    tmp_path: Path,
+    status: int,
+    expected_outcome: str,
+    expected_error: str,
+    expected_quota: str,
+) -> None:
+    route_set_path, route_id = _ollama_cloud_probe_repository(tmp_path)
+    sensitive_body = b'{"error":"private hosted account or generated output detail"}'
+
+    def opener(request: Any, **_kwargs: object) -> _FakeResponse:
+        if request.full_url.endswith("/api/tags"):
+            return _FakeResponse(
+                {
+                    "models": [
+                        {
+                            "name": "gpt-oss:120b-cloud",
+                            "model": "gpt-oss:120b-cloud",
+                            "digest": "ac7f7a1e778577c4418f6a25e46e0b45dced6746c75422d4b343aa1495a022ed",
+                        }
+                    ]
+                }
+            )
+        if request.full_url.endswith("/api/show"):
+            return _FakeResponse({"capabilities": ["completion", "tools", "thinking"]})
+        if request.full_url.endswith("/api/chat"):
+            raise urllib.error.HTTPError(
+                request.full_url,
+                status,
+                "hosted failure",
+                {},
+                io.BytesIO(sensitive_body),
+            )
+        raise AssertionError(f"unexpected URL {request.full_url}")
+
+    path, payload = probe_ollama_cloud_route(
+        route_set_path,
+        route_id,
+        repository_root=tmp_path,
+        opener=opener,
+        now=_ollama_cloud_clock(),
+        source_commit="a" * 40,
+    )
+
+    route_set = load_route_set(route_set_path, repository_root=tmp_path)
+    receipt = load_access_probe_receipt(path, route_set, repository_root=tmp_path)
+    assert receipt.outcome == expected_outcome
+    assert receipt.quota_status == expected_quota
+    assert payload["sanitized_metadata"]["error_code"] == expected_error
+    assert "private hosted account" not in path.read_text(encoding="utf-8")
     assert not (tmp_path / "runs").exists()
     assert not (tmp_path / "results").exists()
 

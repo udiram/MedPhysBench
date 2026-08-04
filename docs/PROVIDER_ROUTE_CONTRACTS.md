@@ -93,6 +93,13 @@ assessment, the full 30-attempt matrix, deterministic regrading, and a submissio
 it can appear as scored evidence. It strengthens one existing base-model record and never increments
 the 50-model denominator as a second model.
 
+Cloud handles use the separately versioned
+[`ollama_cloud_access_probe_v2.py`](../scripts/probes/ollama_cloud_access_probe_v2.py). Unlike the
+immutable local-runtime probe, it never treats local proxy availability as sufficient hosted quota:
+a successful canary retains `quota.status: unknown`, HTTP 429 is `rate_limited` with insufficient
+quota, and HTTP 401/403 is an authentication failure. Provider error bodies are consumed and
+discarded rather than persisted.
+
 ## Receipt integrity
 
 The original [`openai_access_probe.py`](../scripts/probes/openai_access_probe.py) remains byte-frozen
