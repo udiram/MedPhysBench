@@ -282,7 +282,7 @@
     "status": "available",
     "surface": "groq_openai_compatible",
     "date": "2026-08-01",
-    "note": "The historical Groq route has a complete descriptive run. A fresh JSON-v2 qualification canary on August 3 returned a sanitized provider HTTP 400, so no current-contract campaign was started and the base model remains outside the attested fleet gate."
+    "note": "The historical Groq route has a complete descriptive run. A fresh JSON-v2 canary returned a sanitized provider HTTP 400 and was excluded. A versioned strict-schema, low-effort v3 route and 512-token canary are now committed, but no v3 access receipt or campaign is claimed; the base remains outside the attested fleet gate."
   },
   {
     "model": "qwen/qwen3.6-27b",
