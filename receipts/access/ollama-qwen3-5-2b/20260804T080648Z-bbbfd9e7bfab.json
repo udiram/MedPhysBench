@@ -1,0 +1,60 @@
+{
+  "adapter": "ollama",
+  "base_model_id": "Qwen/Qwen3.5-2B",
+  "capabilities": {
+    "inferred": [
+      "image",
+      "text"
+    ],
+    "observed": [
+      "image",
+      "json_schema",
+      "strict_schema",
+      "text"
+    ]
+  },
+  "completed_at": "2026-08-04T08:06:48Z",
+  "content_sha256": "bbbfd9e7bfab36d97c10d5784849d282ec094f2c849bfe4257202e33e86e4485",
+  "expires_at": "2026-08-04T14:06:48Z",
+  "fleet_id": "public-fleet-v2",
+  "model": "qwen3.5:2b",
+  "model_revision": "sha256:324d162be6ca5629ae4517c8710434d0bd2d665bc94dbad46e9af8fbf8a2f0df",
+  "outcome": "available",
+  "probe_dependencies": [
+    {
+      "content_sha256": "5ddd56a52e1e8db9fa16eef85da749a7decd585a43fd2a56b51978c2af185ef6",
+      "path": "src/medphys_agentbench/adapters/ollama.py"
+    },
+    {
+      "content_sha256": "9074b67a24aa0bff1fae01685885a85c717b0e82e4e3b2b5744f8d0091100605",
+      "path": "src/medphys_agentbench/json_utils.py"
+    },
+    {
+      "content_sha256": "c13c16ba41399727772270992dec9bb44f7d620bc1e3a22ebc182834749ea5f2",
+      "path": "src/medphys_agentbench/route_qualification.py"
+    }
+  ],
+  "probe_implementation_path": "scripts/probes/ollama_access_probe.py",
+  "probe_implementation_sha256": "fdaa7e7e6023dc6972fade7fbe0ecb2ab605af01e6622b55a55a991d7753c924",
+  "probe_version": "ollama-access-probe-v1",
+  "provider": "ollama",
+  "quota": {
+    "source": "local_runtime",
+    "status": "sufficient"
+  },
+  "receipt_id": "ollama-qwen3-5-2b-20260804t080648z",
+  "route_id": "ollama-qwen3-5-2b",
+  "route_set_id": "local-ollama-routes-v2",
+  "route_spec_sha256": "60fddf466f2235eee08504d11372b0f15c7735d63b7e9e7f8b4a2009b96e82e4",
+  "sanitized_metadata": {
+    "endpoint_host": "127.0.0.1",
+    "http_status": 200,
+    "latency_ms": 2634.489,
+    "response_contract": "json_schema",
+    "served_model": "qwen3.5:2b",
+    "served_revision": "sha256:324d162be6ca5629ae4517c8710434d0bd2d665bc94dbad46e9af8fbf8a2f0df"
+  },
+  "schema_version": "medphysbench.access-probe-receipt.v1",
+  "source_commit": "cec1f7c4b7e76c075d454c67b45e28e64ba0b396",
+  "started_at": "2026-08-04T08:06:46Z"
+}

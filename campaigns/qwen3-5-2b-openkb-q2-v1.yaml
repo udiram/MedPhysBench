@@ -1,0 +1,45 @@
+schema_version: medeval.campaign.v2
+campaign_id: qwen3-5-2b-openkb-q2-v1
+generated_at: '2026-08-04T08:08:00Z'
+release_file: releases/public_real_workflows_pilot_v0_6.yaml
+release_id: public-real-workflows-pilot-v0.6
+release_contract_hash_v2: c8bb7a810e9598eb37132884301449c1256447c90426f769fd028d3f7237909e
+fleet_file: fleet/public_fleet_v2.yaml
+fleet_id: public-fleet-v2
+route_set_file: fleet/local_ollama_routes_v2.yaml
+route_set_id: local-ollama-routes-v2
+allow_unknown_quota: false
+results_dir: runs/openkb-qwen3-5-2b-v1
+attempts: 3
+execution:
+  max_parallel_models: 1
+  process_isolation: true
+  resume: true
+  fail_fast_attempts: true
+  continue_on_model_failure: true
+  resource_recovery_wait_seconds: 30
+resource_limits:
+  minimum_available_memory_fraction: 0.35
+  minimum_available_memory_gib: 6.0
+  minimum_free_disk_gib: 10.0
+models:
+- configuration_id: ollama-qwen3-5-2b
+  base_model_id: Qwen/Qwen3.5-2B
+  route_id: ollama-qwen3-5-2b
+  route_spec_sha256: 60fddf466f2235eee08504d11372b0f15c7735d63b7e9e7f8b4a2009b96e82e4
+  access_receipt_path: receipts/access/ollama-qwen3-5-2b/20260804T080648Z-bbbfd9e7bfab.json
+  access_receipt_sha256: bbbfd9e7bfab36d97c10d5784849d282ec094f2c849bfe4257202e33e86e4485
+  quota_assessment: sufficient
+  adapter: ollama
+  provider: ollama
+  model: qwen3.5:2b
+  model_revision: sha256:324d162be6ca5629ae4517c8710434d0bd2d665bc94dbad46e9af8fbf8a2f0df
+  response_format: json_schema
+  strict_schema: true
+  timeout_seconds: 300
+  seed: 20260731
+  temperature: 0.0
+  max_tokens: 2048
+  base_url: http://127.0.0.1:11434
+  ollama_keep_alive: 0
+  ollama_num_ctx: 4096
