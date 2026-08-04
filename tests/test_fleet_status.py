@@ -42,14 +42,31 @@ def test_frozen_fleet_meets_preregistered_composition() -> None:
 
 
 def test_every_executable_route_resolves_to_the_frozen_fleet() -> None:
-    fleet = yaml.safe_load(FLEET_PATH.read_text(encoding="utf-8"))
-    frozen_ids = {entry["base_model_id"] for entry in fleet["models"]}
     route_paths = sorted((ROOT / "fleet").glob("*routes*.yaml"))
-    routes = [route for path in route_paths for route in load_route_set(path).routes]
-
     assert route_paths
-    assert routes
-    assert all(route.base_model_id in frozen_ids for route in routes)
+    for path in route_paths:
+        route_set = load_route_set(path)
+        fleet_path = ROOT / route_set.fleet_file
+        fleet = yaml.safe_load(fleet_path.read_text(encoding="utf-8"))
+        frozen_ids = {entry["base_model_id"] for entry in fleet["models"]}
+        assert route_set.fleet_id == fleet["fleet_id"]
+        assert route_set.routes
+        assert all(route.base_model_id in frozen_ids for route in route_set.routes)
+
+
+def test_v2_fleet_expansion_is_preregistered_without_mutating_v1() -> None:
+    v1 = yaml.safe_load(FLEET_PATH.read_text(encoding="utf-8"))
+    v2 = yaml.safe_load((ROOT / "fleet" / "public_fleet_v2.yaml").read_text(encoding="utf-8"))
+    assert v1["target_base_model_count"] == 50
+    assert v2["target_base_model_count"] == 51
+    v1_ids = [entry["base_model_id"] for entry in v1["models"]]
+    v2_ids = [entry["base_model_id"] for entry in v2["models"]]
+    assert set(v2_ids) == {*v1_ids, "Qwen/Qwen3.5-2B"}
+    v2_index = {entry["base_model_id"]: entry for entry in v2["models"]}
+    assert all(v2_index[entry["base_model_id"]] == entry for entry in v1["models"])
+    route_set = load_route_set(ROOT / "fleet" / "local_ollama_routes_v2.yaml")
+    route = route_set.route("ollama-qwen3-5-2b")
+    assert route.model_revision == "sha256:324d162be6ca5629ae4517c8710434d0bd2d665bc94dbad46e9af8fbf8a2f0df"
 
 
 def test_public_fleet_projection_is_schema_valid_and_reproducible() -> None:

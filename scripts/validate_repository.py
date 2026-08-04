@@ -188,14 +188,27 @@ def validate_repository() -> dict[str, int]:
     }
 
     fleet_path = ROOT / "fleet" / "public_fleet_v1.yaml"
+    fleet_paths = sorted((ROOT / "fleet").glob("public_fleet_v*.yaml"))
+    if not fleet_paths:
+        raise ValueError("No frozen public fleet manifests were found under fleet/.")
+    fleets_by_id: dict[str, tuple[Path, dict[str, Any], set[str]]] = {}
+    for candidate_path in fleet_paths:
+        candidate = _load_yaml(candidate_path)
+        _validate(validators["model_fleet"], candidate, candidate_path)
+        candidate_ids = [str(item["base_model_id"]) for item in candidate["models"]]
+        if len(candidate_ids) != len(set(candidate_ids)):
+            raise ValueError(f"{candidate_path}: base_model_id values must be unique.")
+        if len(candidate_ids) != candidate["target_base_model_count"]:
+            raise ValueError(f"{candidate_path}: target_base_model_count does not match the frozen list.")
+        fleet_id = str(candidate["fleet_id"])
+        if fleet_id in fleets_by_id:
+            raise ValueError(f"{candidate_path}: duplicate fleet_id {fleet_id!r}.")
+        fleets_by_id[fleet_id] = (candidate_path, candidate, set(candidate_ids))
+
     fleet = _load_yaml(fleet_path)
-    _validate(validators["model_fleet"], fleet, fleet_path)
     fleet_models = fleet["models"]
     fleet_ids = [str(item["base_model_id"]) for item in fleet_models]
-    if len(fleet_ids) != len(set(fleet_ids)):
-        raise ValueError(f"{fleet_path}: base_model_id values must be unique.")
-    if len(fleet_ids) != fleet["target_base_model_count"]:
-        raise ValueError(f"{fleet_path}: target_base_model_count does not match the frozen list.")
+    all_fleet_ids = set().union(*(entry[2] for entry in fleets_by_id.values()))
 
     route_set_paths = sorted((ROOT / "fleet").glob("*routes*.yaml"))
     if not route_set_paths:
@@ -207,16 +220,18 @@ def validate_repository() -> dict[str, int]:
         route_set_payload = _load_yaml(route_set_path)
         _validate(validators["model_routes"], route_set_payload, route_set_path)
         route_set = load_route_set(route_set_path)
-        if route_set.fleet_id != fleet["fleet_id"]:
-            raise ValueError(f"{route_set_path}: route set does not match the frozen fleet.")
+        route_fleet = fleets_by_id.get(route_set.fleet_id)
+        if route_fleet is None:
+            raise ValueError(f"{route_set_path}: route set references unknown fleet {route_set.fleet_id!r}.")
+        route_fleet_ids = route_fleet[2]
         if route_set.route_set_id in route_set_ids:
             raise ValueError(f"{route_set_path}: duplicate route_set_id {route_set.route_set_id!r}.")
         route_set_ids.add(route_set.route_set_id)
         for route in route_set.routes:
-            if route.base_model_id not in fleet_ids:
+            if route.base_model_id not in route_fleet_ids:
                 raise ValueError(
                     f"{route_set_path}: route {route.route_id!r} references base model "
-                    f"{route.base_model_id!r} outside the frozen fleet."
+                    f"{route.base_model_id!r} outside its declared frozen fleet."
                 )
             if route.route_id in route_ids:
                 raise ValueError(f"{route_set_path}: duplicate cross-manifest route_id {route.route_id!r}.")
@@ -256,9 +271,9 @@ def validate_repository() -> dict[str, int]:
         if entry["status"] != "available":
             continue
         base_model_id = str(entry["base_model_id"])
-        if base_model_id not in fleet_ids:
+        if base_model_id not in all_fleet_ids:
             raise ValueError(
-                f"{access_status_path}: available route references model outside the frozen fleet: {base_model_id!r}."
+                f"{access_status_path}: available route references model outside every frozen fleet: {base_model_id!r}."
             )
         provider_model = (str(entry["provider"]), str(entry["model"]))
         exact_catalog_match = catalog_index.get(provider_model) == base_model_id

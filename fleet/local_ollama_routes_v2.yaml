@@ -1,0 +1,22 @@
+schema_version: medphysbench.model-routes.v1
+route_set_id: local-ollama-routes-v2
+fleet_file: fleet/public_fleet_v2.yaml
+fleet_id: public-fleet-v2
+frozen_at: "2026-08-04T08:02:26Z"
+routes:
+  - route_id: ollama-qwen3-5-2b
+    base_model_id: Qwen/Qwen3.5-2B
+    adapter: ollama
+    provider: ollama
+    model: qwen3.5:2b
+    model_revision: sha256:324d162be6ca5629ae4517c8710434d0bd2d665bc94dbad46e9af8fbf8a2f0df
+    revision_basis: immutable_digest
+    base_url: http://127.0.0.1:11434
+    response_format: json_schema
+    strict_schema: true
+    timeout_seconds: 300
+    max_tokens: 2048
+    access_ttl_seconds: 21600
+    modalities: [text, image]
+    ollama_keep_alive: 0
+    ollama_num_ctx: 4096

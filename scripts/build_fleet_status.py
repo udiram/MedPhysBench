@@ -30,7 +30,16 @@ DEFAULT_LEADERBOARDS = (
     REPO_ROOT / "web" / "public" / "data" / "public-real-workflows-pilot-v0.6.json",
 )
 DEFAULT_OUTPUT = REPO_ROOT / "web" / "public" / "data" / "fleet_status.json"
-DEFAULT_ROUTE_SETS = tuple(sorted((REPO_ROOT / "fleet").glob("*routes*.yaml")))
+def _route_sets_for_fleet(fleet_id: str) -> tuple[Path, ...]:
+    selected: list[Path] = []
+    for path in sorted((REPO_ROOT / "fleet").glob("*routes*.yaml")):
+        payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+        if isinstance(payload, dict) and payload.get("fleet_id") == fleet_id:
+            selected.append(path)
+    return tuple(selected)
+
+
+DEFAULT_ROUTE_SETS = _route_sets_for_fleet("public-fleet-v1")
 WORKFLOW_VIEW_RELEASE_IDS = {"public-real-workflows-pilot-v0.6"}
 
 COMPARABILITY_ONLY_ISSUES = {

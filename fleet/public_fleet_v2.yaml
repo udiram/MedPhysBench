@@ -1,0 +1,501 @@
+schema_version: medphysbench.model-fleet.v1
+fleet_id: public-fleet-v2
+title: Frozen 51-base-model public qualification fleet
+frozen_at: "2026-08-04T08:02:26Z"
+target_base_model_count: 51
+selection_policy_version: model-fleet-protocol-v1
+models:
+  - base_model_id: openai/gpt-oss-120b
+    display_name: gpt-oss 120B
+    steward: OpenAI
+    family: gpt-oss
+    openness: open
+    modalities: [text]
+    size_tier: large
+    planned_routes: [groq, self_hosted]
+    license: Apache-2.0
+    source_url: https://console.groq.com/docs/models
+  - base_model_id: openai/gpt-oss-20b
+    display_name: gpt-oss 20B
+    steward: OpenAI
+    family: gpt-oss
+    openness: open
+    modalities: [text]
+    size_tier: medium
+    planned_routes: [groq, self_hosted]
+    license: Apache-2.0
+    source_url: https://console.groq.com/docs/models
+  - base_model_id: meta-llama/Llama-3.1-8B-Instruct
+    display_name: Llama 3.1 8B Instruct
+    steward: Meta
+    family: Llama 3.1
+    openness: open
+    modalities: [text]
+    size_tier: small
+    planned_routes: [groq, ollama, self_hosted]
+    license: Llama 3.1 Community License
+    source_url: https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct
+  - base_model_id: meta-llama/Llama-3.2-3B-Instruct
+    display_name: Llama 3.2 3B Instruct
+    steward: Meta
+    family: Llama 3.2
+    openness: open
+    modalities: [text]
+    size_tier: small
+    planned_routes: [ollama, self_hosted]
+    license: Llama 3.2 Community License
+    source_url: https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct
+  - base_model_id: meta-llama/Llama-3.3-70B-Instruct
+    display_name: Llama 3.3 70B Instruct
+    steward: Meta
+    family: Llama 3.3
+    openness: open
+    modalities: [text]
+    size_tier: large
+    planned_routes: [groq, self_hosted]
+    license: Llama 3.3 Community License
+    source_url: https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct
+  - base_model_id: meta-llama/Llama-3.2-90B-Vision-Instruct
+    display_name: Llama 3.2 90B Vision Instruct
+    steward: Meta
+    family: Llama 3.2 Vision
+    openness: open
+    modalities: [text, image]
+    size_tier: large
+    planned_routes: [self_hosted]
+    license: Llama 3.2 Community License
+    source_url: https://huggingface.co/meta-llama/Llama-3.2-90B-Vision-Instruct
+  - base_model_id: meta-llama/Llama-4-Scout-17B-16E-Instruct
+    display_name: Llama 4 Scout 17B 16E Instruct
+    steward: Meta
+    family: Llama 4
+    openness: open
+    modalities: [text, image]
+    size_tier: large
+    planned_routes: [self_hosted]
+    license: Llama 4 Community License
+    source_url: https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E-Instruct
+  - base_model_id: Qwen/Qwen2.5-7B-Instruct
+    display_name: Qwen2.5 7B Instruct
+    steward: Qwen
+    family: Qwen 2.5
+    openness: open
+    modalities: [text]
+    size_tier: small
+    planned_routes: [ollama, self_hosted]
+    license: Apache-2.0
+    source_url: https://huggingface.co/Qwen/Qwen2.5-7B-Instruct
+  - base_model_id: Qwen/Qwen2.5-72B-Instruct
+    display_name: Qwen2.5 72B Instruct
+    steward: Qwen
+    family: Qwen 2.5
+    openness: open
+    modalities: [text]
+    size_tier: large
+    planned_routes: [self_hosted]
+    license: Qwen Research License
+    source_url: https://huggingface.co/Qwen/Qwen2.5-72B-Instruct
+  - base_model_id: Qwen/Qwen3-1.7B
+    display_name: Qwen3 1.7B
+    steward: Qwen
+    family: Qwen 3
+    openness: open
+    modalities: [text]
+    size_tier: small
+    planned_routes: [ollama, self_hosted]
+    license: Apache-2.0
+    source_url: https://huggingface.co/Qwen/Qwen3-1.7B
+  - base_model_id: Qwen/Qwen3-8B
+    display_name: Qwen3 8B
+    steward: Qwen
+    family: Qwen 3
+    openness: open
+    modalities: [text]
+    size_tier: small
+    planned_routes: [ollama, self_hosted]
+    license: Apache-2.0
+    source_url: https://huggingface.co/Qwen/Qwen3-8B
+  - base_model_id: Qwen/Qwen3-14B
+    display_name: Qwen3 14B
+    steward: Qwen
+    family: Qwen 3
+    openness: open
+    modalities: [text]
+    size_tier: medium
+    planned_routes: [ollama, self_hosted]
+    license: Apache-2.0
+    source_url: https://huggingface.co/Qwen/Qwen3-14B
+  - base_model_id: Qwen/Qwen3-32B
+    display_name: Qwen3 32B
+    steward: Qwen
+    family: Qwen 3
+    openness: open
+    modalities: [text]
+    size_tier: medium
+    planned_routes: [self_hosted]
+    license: Apache-2.0
+    source_url: https://huggingface.co/Qwen/Qwen3-32B
+  - base_model_id: Qwen/Qwen3.5-4B
+    display_name: Qwen3.5 4B
+    steward: Qwen
+    family: Qwen 3.5
+    openness: open
+    modalities: [text]
+    size_tier: small
+    planned_routes: [ollama, self_hosted]
+    license: Apache-2.0
+    source_url: https://huggingface.co/Qwen/Qwen3.5-4B
+  - base_model_id: Qwen/Qwen3.5-2B
+    display_name: Qwen3.5 2B
+    steward: Qwen
+    family: Qwen 3.5
+    openness: open
+    modalities: [text, image]
+    size_tier: small
+    planned_routes: [ollama, self_hosted]
+    license: Apache-2.0
+    source_url: https://huggingface.co/Qwen/Qwen3.5-2B
+    notes: Added before scoring after the official 2.7 GB Ollama route was resolved for resource-bounded expansion.
+  - base_model_id: Qwen/Qwen3.6-27B
+    display_name: Qwen3.6 27B
+    steward: Qwen
+    family: Qwen 3.6
+    openness: open
+    modalities: [text]
+    size_tier: medium
+    planned_routes: [groq, self_hosted]
+    license: Apache-2.0
+    source_url: https://huggingface.co/Qwen/Qwen3.6-27B
+  - base_model_id: Qwen/Qwen2.5-VL-3B-Instruct
+    display_name: Qwen2.5-VL 3B Instruct
+    steward: Qwen
+    family: Qwen 2.5 VL
+    openness: open
+    modalities: [text, image]
+    size_tier: small
+    planned_routes: [ollama, self_hosted]
+    license: Apache-2.0
+    source_url: https://huggingface.co/Qwen/Qwen2.5-VL-3B-Instruct
+  - base_model_id: Qwen/Qwen2.5-VL-7B-Instruct
+    display_name: Qwen2.5-VL 7B Instruct
+    steward: Qwen
+    family: Qwen 2.5 VL
+    openness: open
+    modalities: [text, image]
+    size_tier: small
+    planned_routes: [self_hosted]
+    license: Apache-2.0
+    source_url: https://huggingface.co/Qwen/Qwen2.5-VL-7B-Instruct
+  - base_model_id: Qwen/Qwen2.5-VL-72B-Instruct
+    display_name: Qwen2.5-VL 72B Instruct
+    steward: Qwen
+    family: Qwen 2.5 VL
+    openness: open
+    modalities: [text, image]
+    size_tier: large
+    planned_routes: [self_hosted]
+    license: Qwen Research License
+    source_url: https://huggingface.co/Qwen/Qwen2.5-VL-72B-Instruct
+  - base_model_id: Qwen/Qwen3-VL-8B-Instruct
+    display_name: Qwen3-VL 8B Instruct
+    steward: Qwen
+    family: Qwen 3 VL
+    openness: open
+    modalities: [text, image]
+    size_tier: small
+    planned_routes: [ollama, self_hosted]
+    license: Apache-2.0
+    source_url: https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct
+  - base_model_id: Qwen/Qwen3-VL-32B-Instruct
+    display_name: Qwen3-VL 32B Instruct
+    steward: Qwen
+    family: Qwen 3 VL
+    openness: open
+    modalities: [text, image]
+    size_tier: medium
+    planned_routes: [self_hosted]
+    license: Apache-2.0
+    source_url: https://huggingface.co/Qwen/Qwen3-VL-32B-Instruct
+  - base_model_id: google/gemma-3-4b-it
+    display_name: Gemma 3 4B IT
+    steward: Google
+    family: Gemma 3
+    openness: open
+    modalities: [text, image]
+    size_tier: small
+    planned_routes: [ollama, self_hosted]
+    license: Gemma Terms of Use
+    source_url: https://huggingface.co/google/gemma-3-4b-it
+  - base_model_id: google/gemma-3-12b-it
+    display_name: Gemma 3 12B IT
+    steward: Google
+    family: Gemma 3
+    openness: open
+    modalities: [text, image]
+    size_tier: medium
+    planned_routes: [self_hosted]
+    license: Gemma Terms of Use
+    source_url: https://huggingface.co/google/gemma-3-12b-it
+  - base_model_id: deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+    display_name: DeepSeek R1 Distill Qwen 1.5B
+    steward: DeepSeek
+    family: DeepSeek R1 Distill
+    openness: open
+    modalities: [text]
+    size_tier: small
+    planned_routes: [ollama, self_hosted]
+    license: MIT
+    source_url: https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
+  - base_model_id: deepseek-ai/DeepSeek-R1
+    display_name: DeepSeek R1
+    steward: DeepSeek
+    family: DeepSeek R1
+    openness: open
+    modalities: [text]
+    size_tier: frontier
+    planned_routes: [self_hosted]
+    license: MIT
+    source_url: https://huggingface.co/deepseek-ai/DeepSeek-R1
+  - base_model_id: deepseek-ai/DeepSeek-V3-0324
+    display_name: DeepSeek V3 0324
+    steward: DeepSeek
+    family: DeepSeek V3
+    openness: open
+    modalities: [text]
+    size_tier: frontier
+    planned_routes: [self_hosted]
+    license: MIT
+    source_url: https://huggingface.co/deepseek-ai/DeepSeek-V3-0324
+  - base_model_id: mistralai/Mistral-Nemo-Instruct-2407
+    display_name: Mistral Nemo Instruct 2407
+    steward: Mistral AI
+    family: Mistral Nemo
+    openness: open
+    modalities: [text]
+    size_tier: medium
+    planned_routes: [self_hosted]
+    license: Apache-2.0
+    source_url: https://huggingface.co/mistralai/Mistral-Nemo-Instruct-2407
+  - base_model_id: mistralai/Pixtral-12B-2409
+    display_name: Pixtral 12B 2409
+    steward: Mistral AI
+    family: Pixtral
+    openness: open
+    modalities: [text, image]
+    size_tier: medium
+    planned_routes: [self_hosted]
+    license: Apache-2.0
+    source_url: https://huggingface.co/mistralai/Pixtral-12B-2409
+  - base_model_id: microsoft/Phi-4-mini-instruct
+    display_name: Phi-4 Mini Instruct
+    steward: Microsoft
+    family: Phi-4
+    openness: open
+    modalities: [text]
+    size_tier: small
+    planned_routes: [self_hosted]
+    license: MIT
+    source_url: https://huggingface.co/microsoft/Phi-4-mini-instruct
+  - base_model_id: microsoft/Phi-4-multimodal-instruct
+    display_name: Phi-4 Multimodal Instruct
+    steward: Microsoft
+    family: Phi-4
+    openness: open
+    modalities: [text, image]
+    size_tier: small
+    planned_routes: [self_hosted]
+    license: MIT
+    source_url: https://huggingface.co/microsoft/Phi-4-multimodal-instruct
+  - base_model_id: microsoft/phi-4
+    display_name: Phi-4
+    steward: Microsoft
+    family: Phi-4
+    openness: open
+    modalities: [text]
+    size_tier: medium
+    planned_routes: [self_hosted]
+    license: MIT
+    source_url: https://huggingface.co/microsoft/phi-4
+  - base_model_id: command-a-plus-05-2026
+    display_name: Command A Plus
+    steward: Cohere
+    family: Command A
+    openness: open
+    modalities: [text, image]
+    size_tier: large
+    planned_routes: [cohere, self_hosted]
+    license: CC-BY-NC-4.0
+    source_url: https://docs.cohere.com/docs/command-a-plus
+    notes: Open weights under a noncommercial license; openness does not imply OSI approval.
+  - base_model_id: gpt-5.6-sol
+    display_name: GPT-5.6 Sol
+    steward: OpenAI
+    family: GPT-5.6
+    openness: closed
+    modalities: [text, image]
+    size_tier: frontier
+    planned_routes: [openai, codex_native]
+    source_url: https://developers.openai.com/api/docs/models
+  - base_model_id: gpt-5.6-terra
+    display_name: GPT-5.6 Terra
+    steward: OpenAI
+    family: GPT-5.6
+    openness: closed
+    modalities: [text, image]
+    size_tier: frontier
+    planned_routes: [openai, codex_native]
+    source_url: https://developers.openai.com/api/docs/models
+  - base_model_id: gpt-5.6-luna
+    display_name: GPT-5.6 Luna
+    steward: OpenAI
+    family: GPT-5.6
+    openness: closed
+    modalities: [text, image]
+    size_tier: frontier
+    planned_routes: [openai, codex_native]
+    source_url: https://developers.openai.com/api/docs/models
+  - base_model_id: gpt-5-mini
+    display_name: GPT-5 mini
+    steward: OpenAI
+    family: GPT-5
+    openness: closed
+    modalities: [text, image]
+    size_tier: undisclosed
+    planned_routes: [openai]
+    source_url: https://developers.openai.com/api/docs/models
+  - base_model_id: gpt-5-nano
+    display_name: GPT-5 nano
+    steward: OpenAI
+    family: GPT-5
+    openness: closed
+    modalities: [text, image]
+    size_tier: undisclosed
+    planned_routes: [openai]
+    source_url: https://developers.openai.com/api/docs/models
+  - base_model_id: gpt-4.1
+    display_name: GPT-4.1
+    steward: OpenAI
+    family: GPT-4.1
+    openness: closed
+    modalities: [text, image]
+    size_tier: undisclosed
+    planned_routes: [openai]
+    source_url: https://developers.openai.com/api/docs/models
+  - base_model_id: claude-fable-5
+    display_name: Claude Fable 5
+    steward: Anthropic
+    family: Claude 5
+    openness: closed
+    modalities: [text, image]
+    size_tier: undisclosed
+    planned_routes: [anthropic]
+    source_url: https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions
+  - base_model_id: claude-opus-5
+    display_name: Claude Opus 5
+    steward: Anthropic
+    family: Claude 5
+    openness: closed
+    modalities: [text, image]
+    size_tier: frontier
+    planned_routes: [anthropic]
+    source_url: https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions
+  - base_model_id: claude-sonnet-5
+    display_name: Claude Sonnet 5
+    steward: Anthropic
+    family: Claude 5
+    openness: closed
+    modalities: [text, image]
+    size_tier: frontier
+    planned_routes: [anthropic]
+    source_url: https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions
+  - base_model_id: claude-haiku-4-5-20251001
+    display_name: Claude Haiku 4.5
+    steward: Anthropic
+    family: Claude 4.5
+    openness: closed
+    modalities: [text, image]
+    size_tier: undisclosed
+    planned_routes: [anthropic]
+    source_url: https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions
+  - base_model_id: gemini-3.6-flash
+    display_name: Gemini 3.6 Flash
+    steward: Google
+    family: Gemini 3.6
+    openness: closed
+    modalities: [text, image]
+    size_tier: undisclosed
+    planned_routes: [google]
+    source_url: https://ai.google.dev/gemini-api/docs/models
+  - base_model_id: gemini-3.5-flash
+    display_name: Gemini 3.5 Flash
+    steward: Google
+    family: Gemini 3.5
+    openness: closed
+    modalities: [text, image]
+    size_tier: undisclosed
+    planned_routes: [google]
+    source_url: https://ai.google.dev/gemini-api/docs/models
+  - base_model_id: gemini-3.5-flash-lite
+    display_name: Gemini 3.5 Flash-Lite
+    steward: Google
+    family: Gemini 3.5
+    openness: closed
+    modalities: [text, image]
+    size_tier: undisclosed
+    planned_routes: [google]
+    source_url: https://ai.google.dev/gemini-api/docs/models
+  - base_model_id: gemini-3.1-flash-lite
+    display_name: Gemini 3.1 Flash-Lite
+    steward: Google
+    family: Gemini 3.1
+    openness: closed
+    modalities: [text, image]
+    size_tier: undisclosed
+    planned_routes: [google]
+    source_url: https://ai.google.dev/gemini-api/docs/models
+  - base_model_id: gemini-2.5-pro
+    display_name: Gemini 2.5 Pro
+    steward: Google
+    family: Gemini 2.5
+    openness: closed
+    modalities: [text, image]
+    size_tier: frontier
+    planned_routes: [google]
+    source_url: https://ai.google.dev/gemini-api/docs/models
+  - base_model_id: gemini-2.5-flash
+    display_name: Gemini 2.5 Flash
+    steward: Google
+    family: Gemini 2.5
+    openness: closed
+    modalities: [text, image]
+    size_tier: undisclosed
+    planned_routes: [google]
+    source_url: https://ai.google.dev/gemini-api/docs/models
+  - base_model_id: grok-4.5
+    display_name: Grok 4.5
+    steward: xAI
+    family: Grok 4.5
+    openness: closed
+    modalities: [text, image]
+    size_tier: frontier
+    planned_routes: [xai]
+    source_url: https://docs.x.ai/developers/models/grok-4.5
+    notes: Alias route; the exact resolved revision must be frozen in a scored run.
+  - base_model_id: amazon.nova-pro-v1:0
+    display_name: Amazon Nova Pro
+    steward: Amazon
+    family: Amazon Nova
+    openness: closed
+    modalities: [text, image]
+    size_tier: undisclosed
+    planned_routes: [aws_bedrock]
+    source_url: https://docs.aws.amazon.com/nova/latest/userguide/additional-resources.html
+  - base_model_id: amazon.nova-lite-v1:0
+    display_name: Amazon Nova Lite
+    steward: Amazon
+    family: Amazon Nova
+    openness: closed
+    modalities: [text, image]
+    size_tier: undisclosed
+    planned_routes: [aws_bedrock]
+    source_url: https://docs.aws.amazon.com/nova/latest/userguide/additional-resources.html
