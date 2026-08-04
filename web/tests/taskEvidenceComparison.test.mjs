@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { bestVerifiedTaskEvidence, representativeAttempt, summarizeEvidenceValue } from "../src/lib/taskEvidenceComparison.ts";
+import { bestVerifiedTaskEvidence, publishedTaskEvidence, representativeAttempt, summarizeEvidenceValue } from "../src/lib/taskEvidenceComparison.ts";
 
 function attempt(outcome, score, attemptIndex = 0, runtimeHash = "runtime-a") {
   return {
@@ -75,6 +75,21 @@ test("task leader excludes descriptive rows even when they have the best output"
   const best = bestVerifiedTaskEvidence([reference, descriptive, verified], reference, reference.row.tasks[0]);
 
   assert.equal(best.comparison.entry.key, "verified");
+});
+
+test("descriptive rows remain available as explicit exact-input comparison peers", () => {
+  const reference = entry("selected", "Selected", [attempt("safe_failure", 0.5)]);
+  const descriptive = entry("descriptive", "Descriptive", [attempt("safe_success", 1)], {
+    ranking_eligible: false,
+  });
+  const verified = entry("verified", "Verified", [attempt("safe_success", 0.9)]);
+
+  assert.deepEqual(
+    publishedTaskEvidence([reference, descriptive, verified], reference, reference.row.tasks[0])
+      .map((result) => result.comparison.entry.key),
+    ["descriptive", "verified", "selected"],
+  );
+  assert.equal(bestVerifiedTaskEvidence([reference, descriptive, verified], reference, reference.row.tasks[0]).comparison.entry.key, "verified");
 });
 
 test("task leader rate uses only attempts with the exact runtime task hash", () => {

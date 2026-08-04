@@ -61,6 +61,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
   const [providerFilter, setProviderFilter] = useState(() => getUrlParam("fx_provider") ?? "all");
   const [runQuery, setRunQuery] = useState(() => getUrlParam("fx_run_query") ?? "");
   const [modelKey, setModelKey] = useState<string>(() => getUrlParam("fx_model") ?? "");
+  const [peerModelKey, setPeerModelKey] = useState<string>(() => getUrlParam("fx_peer") ?? "");
   const [domainFilter, setDomainFilter] = useState(() => getUrlParam("fx_domain") ?? "all");
   const [outcomeFilter, setOutcomeFilter] = useState<OutcomeFilter>(() => readEnumParam("fx_outcome", ["all", "safe_success", "safe_failure", "unsafe", "unavailable", "inconclusive", "capability_failure"] as const, "all"));
   const [taskQuery, setTaskQuery] = useState(() => getUrlParam("fx_task_query") ?? "");
@@ -80,6 +81,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
       setProviderFilter(getUrlParam("fx_provider") ?? "all");
       setRunQuery(getUrlParam("fx_run_query") ?? "");
       setModelKey(getUrlParam("fx_model") ?? "");
+      setPeerModelKey(getUrlParam("fx_peer") ?? "");
       setDomainFilter(getUrlParam("fx_domain") ?? "all");
       setOutcomeFilter(readEnumParam("fx_outcome", ["all", "safe_success", "safe_failure", "unsafe", "unavailable", "inconclusive", "capability_failure"] as const, "all"));
       setTaskQuery(getUrlParam("fx_task_query") ?? "");
@@ -375,7 +377,12 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
           <TaskEvidenceComparison
             catalog={taskInputCatalog}
             catalogLoaded={taskInputCatalogLoaded}
+            comparisonKey={peerModelKey}
             entries={comparisonRows}
+            onComparisonChange={(nextKey) => {
+              setPeerModelKey(nextKey);
+              setUrlParams({ fx_peer: nextKey }, { history: "push" });
+            }}
             publicOutputs={showsPublicOutputs}
             releaseEvidence={releaseEvidence}
             releaseId={data.release.release_id}
@@ -492,7 +499,13 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
             </div>
           </details>
 
-          <TaskFingerprintMatrix
+          <details className="forensics-deep-dive">
+            <summary>
+              <span>Detailed run forensics</span>
+              <small>Outcome matrix, graders, hashes, artifacts, telemetry, and failure anatomy</small>
+            </summary>
+            <div className="forensics-deep-dive-body">
+              <TaskFingerprintMatrix
             rows={visibleRows}
             selectedRowKey={selected?.key ?? null}
             onSelect={(nextModelKey, nextTaskKey) => {
@@ -502,6 +515,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
               setOutcomeFilter("all");
               setTaskQuery("");
               setTaskWindowExpanded(false);
+              scrollToExactComparison();
               setUrlParams(
                 {
                   fx_model: nextModelKey,
@@ -513,7 +527,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
                 { history: "push" },
               );
             }}
-          />
+              />
 
           {selectedRow ? (
             <>
@@ -632,6 +646,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
                                         onClick={() => {
                                           setSelectedTaskKey(currentKey);
                                           setUrlParams({ fx_task: currentKey }, { history: "push" });
+                                          scrollToExactComparison();
                                         }}
                                       >
                                         Inspect
@@ -699,6 +714,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
                                       onClick={() => {
                                         setSelectedTaskKey(currentKey);
                                         setUrlParams({ fx_task: currentKey }, { history: "push" });
+                                        scrollToExactComparison();
                                       }}
                                     >
                                       <span>{task.title}</span>
@@ -1112,6 +1128,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
                                   setDomainFilter("all");
                                   setOutcomeFilter("all");
                                   setSelectedTaskKey(nextTaskKey);
+                                  scrollToExactComparison();
                                   setUrlParams({
                                     fx_model: comparison.entry.key,
                                     fx_domain: null,
@@ -1137,6 +1154,8 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
               <p>Change the run search, openness, or provider filter to restore the attempt-level evidence view.</p>
             </div>
           )}
+            </div>
+          </details>
         </>
       )}
     </section>
@@ -1148,6 +1167,17 @@ function releaseLabel(releaseView: ReleaseView) {
   if (releaseView === "tg263") return "the TG-263 pilot";
   if (releaseView === "imaging") return "the imaging pilot";
   return "the public core release";
+}
+
+function scrollToExactComparison() {
+  if (typeof window === "undefined") return;
+  window.requestAnimationFrame(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById("exact-task-comparison")?.scrollIntoView({
+      behavior: reducedMotion ? "auto" : "smooth",
+      block: "start",
+    });
+  });
 }
 
 function tallyOutcomes(tasks: readonly ModelTaskResult[]) {

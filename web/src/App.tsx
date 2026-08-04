@@ -3,6 +3,8 @@
 import { startTransition, useCallback, useEffect, useState } from "react";
 import { REPO_URL } from "./content";
 import { CapabilityExplorer } from "./components/CapabilityExplorer";
+import { AtAGlanceLeaderboard } from "./components/AtAGlanceLeaderboard";
+import { EvalCatalogPage } from "./components/EvalCatalogPage";
 import { EvidenceSections } from "./components/EvidenceSections";
 import { EfficiencyExplorer } from "./components/EfficiencyExplorer";
 import { Header } from "./components/Header";
@@ -34,7 +36,7 @@ const DEFECT_LEDGER_URL = versionedDataUrl("/data/benchmark-defects.json");
 const REAL_WORKFLOWS_REVIEW_URL = versionedDataUrl("/data/public-real-workflows-pilot-v0.6-review.json");
 const PUBLIC_TASK_INPUTS_URL = versionedDataUrl("/data/public_task_inputs.json");
 
-export type AppPage = "overview" | "results" | "explore" | "humans" | "run" | "methods";
+export type AppPage = "overview" | "results" | "evals" | "explore" | "humans" | "run" | "methods";
 
 type AppProps = {
   page?: AppPage;
@@ -206,44 +208,60 @@ function App({ page = "overview" }: AppProps) {
           <OverviewPage
             data={realWorkflows.data}
             fleetStatus={fleetStatus}
+            modelCatalog={modelCatalog}
             releaseEvidence={releaseEvidenceFor(releaseEvidenceIndex, releaseIdForView("real"))}
             reviewEvidence={realWorkflowReview}
           />
         ) : null}
         {page === "results" ? (
           <>
-            <PageIntro
-              title="Verified results"
-              description="Only released model runs appear here. GPT-5.6, Groq, Ollama, open-weight, and closed systems use the same rows; comparability metadata states whether an ordinal rank is valid."
-              actions={<a className="secondary-action" href="/explore">Inspect exact attempts</a>}
-            />
             <ReleaseSelector data={selected.data} onChange={handleReleaseViewChange} value={releaseView} />
             <ResultsScopeBar data={selected.data} onChange={handleResultsScopeChange} value={resultsScope} />
-            <LeaderboardExplorer
-              data={selected.data}
-              accessStatus={accessStatus}
-              modelCatalog={modelCatalog}
-              loadError={selected.loadError}
-              releaseView={releaseView}
-              resultsScope={resultsScope}
-              tg263Audit={tg263Audit}
+            <AtAGlanceLeaderboard data={selected.data} modelCatalog={modelCatalog} resultsScope={resultsScope} />
+            <details className="full-analysis-disclosure">
+              <summary>
+                <span>Open full analysis</span>
+                <small>Intervals, filters, domain scores, time, tokens, and downloadable evidence</small>
+              </summary>
+              <div>
+                <LeaderboardExplorer
+                  data={selected.data}
+                  accessStatus={accessStatus}
+                  modelCatalog={modelCatalog}
+                  loadError={selected.loadError}
+                  releaseView={releaseView}
+                  resultsScope={resultsScope}
+                  tg263Audit={tg263Audit}
+                />
+                <EfficiencyExplorer
+                  data={selected.data}
+                  fleetStatus={fleetStatus}
+                  modelCatalog={modelCatalog}
+                  releaseView={releaseView}
+                  resultsScope={resultsScope}
+                />
+              </div>
+            </details>
+          </>
+        ) : null}
+        {page === "evals" ? (
+          <>
+            <PageIntro
+              title="The evals"
+              description="Browse the released medical-physics tasks, inspect the sealed input a model receives, and jump directly to scored answers."
+              actions={<a className="secondary-action" href="/explore">Compare model answers</a>}
             />
-            <EfficiencyExplorer
+            <ReleaseSelector data={selected.data} onChange={handleReleaseViewChange} value={releaseView} />
+            <EvalCatalogPage
+              catalog={publicTaskInputs}
+              catalogLoaded={publicTaskInputsLoaded}
               data={selected.data}
-              fleetStatus={fleetStatus}
-              modelCatalog={modelCatalog}
               releaseView={releaseView}
-              resultsScope={resultsScope}
             />
           </>
         ) : null}
         {page === "explore" ? (
           <>
-            <PageIntro
-              title="Attempt explorer"
-              description="Choose a released run and task to compare the exact sealed input, the selected model output, the strongest published model on that task, and the current human benchmark evidence."
-              actions={<a className="secondary-action" href="/results">Back to results</a>}
-            />
             <ReleaseSelector data={selected.data} onChange={handleReleaseViewChange} value={releaseView} />
             <ResultsScopeBar data={selected.data} onChange={handleResultsScopeChange} value={resultsScope} />
             <ResultForensics

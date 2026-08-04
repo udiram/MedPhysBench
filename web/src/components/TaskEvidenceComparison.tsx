@@ -1,7 +1,7 @@
 import { formatDuration, formatPercent, formatTokens, normalizeModelDisplayName, providerLabel, shortHash } from "../lib/format";
 import { taskAttemptKey } from "../lib/forensicsNavigation";
 import { publicTaskInputFor } from "../lib/publicTaskInputs";
-import { bestVerifiedTaskEvidence, summarizeEvidenceValue } from "../lib/taskEvidenceComparison";
+import { publishedTaskEvidence, summarizeEvidenceValue, verifiedTaskEvidence } from "../lib/taskEvidenceComparison";
 import type { TaskComparisonEntry } from "../lib/taskComparison";
 import type { ResultsScope } from "../lib/resultsScope";
 import type {
@@ -13,7 +13,9 @@ import type {
 type Props<T extends TaskComparisonEntry> = {
   catalog: PublicTaskInputCatalog | null;
   catalogLoaded: boolean;
+  comparisonKey: string;
   entries: readonly T[];
+  onComparisonChange: (key: string) => void;
   publicOutputs: boolean;
   releaseEvidence: ReleaseEvidence | null;
   releaseId: string;
@@ -25,7 +27,9 @@ type Props<T extends TaskComparisonEntry> = {
 export function TaskEvidenceComparison<T extends TaskComparisonEntry>({
   catalog,
   catalogLoaded,
+  comparisonKey,
   entries,
+  onComparisonChange,
   publicOutputs,
   releaseEvidence,
   releaseId,
@@ -36,18 +40,21 @@ export function TaskEvidenceComparison<T extends TaskComparisonEntry>({
   if (!selected || !selectedTask) return null;
 
   const input = publicTaskInputFor(catalog, releaseId, selectedTask);
-  const best = bestVerifiedTaskEvidence(entries, selected, selectedTask);
+  const verified = verifiedTaskEvidence(entries, selected, selectedTask);
+  const comparisons = publishedTaskEvidence(entries, selected, selectedTask);
+  const best = verified[0] ?? null;
+  const comparison = comparisons.find((entry) => entry.comparison.entry.key === comparisonKey) ?? best ?? comparisons[0] ?? null;
   const human = releaseEvidence?.evidence.human_baseline ?? null;
   const selectedName = normalizeModelDisplayName(selected.row.model_name);
 
   return (
-    <section className="task-evidence-comparison" aria-labelledby="task-evidence-title">
+    <section className="task-evidence-comparison" id="exact-task-comparison" aria-labelledby="task-evidence-title">
       <header className="task-evidence-heading">
         <div>
-          <h3 id="task-evidence-title">Compare the exact response</h3>
+          <h3 id="task-evidence-title">Exact task comparison</h3>
           <p>
-            The shared input is the released runtime object seen by every compared system. The response columns show
-            the selected attempt, the best verified model on this exact task input, and matched human evidence.
+            Read the shared input once, then compare the exact scored outputs. The comparison model defaults to the
+            verified task leader, but any eligible released peer can be selected.
           </p>
         </div>
         <div className="task-evidence-integrity" aria-label="Comparison integrity contract">
@@ -56,6 +63,25 @@ export function TaskEvidenceComparison<T extends TaskComparisonEntry>({
           <span>Exact runtime hash required</span>
         </div>
       </header>
+      {comparisons.length ? (
+        <div className="task-peer-control">
+          <label htmlFor="task-peer-select">Compare {selectedName} with</label>
+          <select
+            id="task-peer-select"
+            value={comparison?.comparison.entry.key ?? ""}
+            onChange={(event) => onComparisonChange(event.target.value)}
+          >
+            {comparisons.map((entry) => (
+              <option key={entry.comparison.entry.key} value={entry.comparison.entry.key}>
+                {normalizeModelDisplayName(entry.comparison.entry.row.model_name)}
+                {entry.comparison.entry.key === best?.comparison.entry.key ? " · task leader" : ""}
+                {entry.comparison.entry.row.ranking_eligible ? "" : " · descriptive"}
+              </option>
+            ))}
+          </select>
+          <span>{best ? `${normalizeModelDisplayName(best.comparison.entry.row.model_name)} leads the official rows · ${best.comparison.outcomes.safe_success}/${best.comparison.attempts.length} safe successes.` : ""}</span>
+        </div>
+      ) : null}
       <p className="sr-only" aria-live="polite">
         Showing {selectedName}, task {selectedTask.title}, attempt {(selectedTask.attempt_index ?? 0) + 1}.
       </p>
@@ -117,17 +143,22 @@ export function TaskEvidenceComparison<T extends TaskComparisonEntry>({
             task={selectedTask}
           />
 
-          {best ? (
+          {comparison ? (
             <OutputEvidenceCard
-              aggregate={`${best.comparison.outcomes.safe_success}/${best.comparison.attempts.length} safe successes · ${formatPercent(best.comparison.safeSuccessRate)}`}
+              aggregate={`${comparison.comparison.outcomes.safe_success}/${comparison.comparison.attempts.length} safe successes · ${formatPercent(comparison.comparison.safeSuccessRate)}`}
               cardTone="leader"
-              comparisonNote={bestModelNote(best.comparisonKind, best.attemptMatch)}
-              inspectHref={forensicsHref(releaseId, best.comparison.entry.key, best.attempt)}
-              label="Best verified model"
-              modelName={best.comparison.entry.row.model_name}
-              provider={best.comparison.entry.row.provider}
+              comparisonNote={comparisonModelNote(
+                comparison.comparisonKind,
+                comparison.attemptMatch,
+                comparison.comparison.entry.key === best?.comparison.entry.key,
+                comparison.comparison.entry.row.ranking_eligible,
+              )}
+              inspectHref={forensicsHref(releaseId, comparison.comparison.entry.key, comparison.attempt)}
+              label={comparison.comparison.entry.key === best?.comparison.entry.key ? "Best verified model" : "Comparison model"}
+              modelName={comparison.comparison.entry.row.model_name}
+              provider={comparison.comparison.entry.row.provider}
               publicOutputs={publicOutputs}
-              task={best.attempt}
+              task={comparison.attempt}
             />
           ) : (
             <section className="task-output-card unavailable" aria-label="Best verified model unavailable">
@@ -206,12 +237,12 @@ function OutputEvidenceCard({
       {aggregate ? <p className="task-output-aggregate">{aggregate}</p> : null}
       <p className="task-comparison-note">{comparisonNote}</p>
       <div className="task-output-json">
-        <span>Model output</span>
-        {publicOutputs ? <OutputFields output={task.output} /> : <p>Output is not public for this release.</p>}
-        {publicOutputs && task.output ? (
+        <span>Exact scored output</span>
+        {publicOutputs && task.output ? <pre>{renderJson(task.output)}</pre> : <p>Output is not public for this release.</p>}
+        {publicOutputs ? (
           <details className="exact-output-detail">
-            <summary>View exact structured output</summary>
-            <pre>{renderJson(task.output)}</pre>
+            <summary>Readable field summary</summary>
+            <OutputFields output={task.output} />
           </details>
         ) : null}
       </div>
@@ -252,16 +283,18 @@ function EvidenceJson({ label, value }: { label: string; value: Record<string, u
   );
 }
 
-function bestModelNote(
-  comparisonKind: "selected_is_leader" | "controlled_peer" | "descriptive_cross_contract",
+function comparisonModelNote(
+  comparisonKind: "selected_run" | "controlled_peer" | "descriptive_cross_contract",
   attemptMatch: "exact_attempt" | "same_runtime_input",
+  taskLeader: boolean,
+  rankingEligible: boolean,
 ) {
   const attempt = attemptMatch === "exact_attempt"
     ? "Exact attempt index, seed, and runtime input match."
     : "Same sealed runtime input; representative attempt from a different sampling contract.";
-  if (comparisonKind === "selected_is_leader") return `The selected run is also the verified task leader. ${attempt}`;
-  if (comparisonKind === "controlled_peer") return `Official same-harness task leader. ${attempt}`;
-  return `Official task leader from a different execution contract; the comparison is descriptive. ${attempt}`;
+  if (comparisonKind === "selected_run") return `${taskLeader ? "The selected run is also the verified task leader." : "This is the selected run shown in both columns."} ${attempt}`;
+  if (comparisonKind === "controlled_peer") return `${taskLeader ? "Verified task leader" : "User-selected published peer"} from the same harness contract. ${attempt}`;
+  return `${taskLeader ? "Verified task leader" : rankingEligible ? "User-selected verified peer" : "User-selected descriptive peer"} from a different execution contract. ${attempt}`;
 }
 
 function outcomeLabel(task: ModelTaskResult) {
@@ -283,5 +316,5 @@ function forensicsHref(releaseId: string, runKey: string, task: ModelTaskResult)
   else if (releaseId === "public-tg263-pilot-v0.5") params.set("release", "tg263");
   params.set("fx_model", runKey);
   params.set("fx_task", taskAttemptKey(task));
-  return `/explore?${params.toString()}#forensics`;
+  return `/explore?${params.toString()}#exact-task-comparison`;
 }

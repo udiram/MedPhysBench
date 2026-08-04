@@ -10,7 +10,7 @@ export type BestTaskEvidence<T extends TaskComparisonEntry> = {
   comparison: TaskComparisonResult<T>;
   attempt: ModelTaskResult;
   attemptMatch: TaskAttemptMatch;
-  comparisonKind: "selected_is_leader" | "controlled_peer" | "descriptive_cross_contract";
+  comparisonKind: "selected_run" | "controlled_peer" | "descriptive_cross_contract";
 };
 
 export function bestVerifiedTaskEvidence<T extends TaskComparisonEntry>(
@@ -18,10 +18,35 @@ export function bestVerifiedTaskEvidence<T extends TaskComparisonEntry>(
   selected: T | null,
   referenceTask: ModelTaskResult | null,
 ): BestTaskEvidence<T> | null {
-  if (!referenceTask?.runtime_task_hash) return null;
+  return verifiedTaskEvidence(entries, selected, referenceTask)[0] ?? null;
+}
+
+export function verifiedTaskEvidence<T extends TaskComparisonEntry>(
+  entries: readonly T[],
+  selected: T | null,
+  referenceTask: ModelTaskResult | null,
+): BestTaskEvidence<T>[] {
+  return resolveTaskEvidence(entries, selected, referenceTask, true);
+}
+
+export function publishedTaskEvidence<T extends TaskComparisonEntry>(
+  entries: readonly T[],
+  selected: T | null,
+  referenceTask: ModelTaskResult | null,
+): BestTaskEvidence<T>[] {
+  return resolveTaskEvidence(entries, selected, referenceTask, false);
+}
+
+function resolveTaskEvidence<T extends TaskComparisonEntry>(
+  entries: readonly T[],
+  selected: T | null,
+  referenceTask: ModelTaskResult | null,
+  officialOnly: boolean,
+): BestTaskEvidence<T>[] {
+  if (!referenceTask?.runtime_task_hash) return [];
   const eligible = entries.filter((entry) =>
     scoreEvidenceAvailable(entry.row)
-    && entry.row.ranking_eligible === true
+    && (!officialOnly || entry.row.ranking_eligible === true)
     && entry.row.completed_count === entry.row.expected_attempt_count
     && entry.row.error_count === 0
     && entry.row.integrity.missing_attempt_keys === 0
@@ -31,21 +56,22 @@ export function bestVerifiedTaskEvidence<T extends TaskComparisonEntry>(
     reference: selected,
     runtimeTaskHash: referenceTask.runtime_task_hash,
   });
+  const resolved: BestTaskEvidence<T>[] = [];
   for (const comparison of comparisons) {
     const match = representativeAttempt(comparison.attempts, referenceTask);
     if (!match) continue;
-    return {
+    resolved.push({
       comparison,
       attempt: match.attempt,
       attemptMatch: match.kind,
       comparisonKind: comparison.entry.key === selected?.key
-        ? "selected_is_leader"
+        ? "selected_run"
         : selected && isIdenticalHarnessPeer(selected, comparison.entry)
           ? "controlled_peer"
           : "descriptive_cross_contract",
-    };
+    });
   }
-  return null;
+  return resolved;
 }
 
 export function summarizeEvidenceValue(value: unknown, maxItems = 8): string {

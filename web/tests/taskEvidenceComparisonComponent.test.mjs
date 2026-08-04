@@ -100,7 +100,9 @@ function props(publicOutputs = true) {
       }],
     },
     catalogLoaded: true,
+    comparisonKey: "",
     entries: [selected, leader],
+    onComparisonChange: () => {},
     publicOutputs,
     releaseEvidence: {
       evidence: {
@@ -124,7 +126,10 @@ test("comparison component renders exact input, selected output, verified leader
   assert.match(html, /Coming soon/);
   assert.match(html, /No verified task-level human response is published/);
   assert.match(html, /answer gy/);
-  assert.match(html, /View exact structured output/);
+  assert.match(html, /Exact scored output/);
+  assert.match(html, /Readable field summary/);
+  assert.match(html, /Compare GPT-5\.6 with/);
+  assert.match(html, /GPT-5\.6 · descriptive/);
 });
 
 test("comparison component suppresses output bodies when the release is aggregate-only", () => {

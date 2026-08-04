@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import { Logo } from "../Logo";
 
 type HeaderProps = {
-  currentPage: "overview" | "results" | "explore" | "humans" | "run" | "methods";
+  currentPage: "overview" | "results" | "evals" | "explore" | "humans" | "run" | "methods";
   mobileOpen: boolean;
   onToggle: () => void;
   onClose: () => void;
@@ -86,8 +86,9 @@ export function Header({ currentPage, mobileOpen, onToggle, onClose, repoUrl }: 
         aria-label="Primary"
       >
         <a href="/" aria-current={currentPage === "overview" ? "page" : undefined} onClick={onClose}>Overview</a>
-        <a href="/results" aria-current={currentPage === "results" ? "page" : undefined} onClick={onClose}>Results</a>
-        <a href="/explore" aria-current={currentPage === "explore" ? "page" : undefined} onClick={onClose}>Explore attempts</a>
+        <a href="/results" aria-current={currentPage === "results" ? "page" : undefined} onClick={onClose}>Leaderboard</a>
+        <a href="/evals" aria-current={currentPage === "evals" ? "page" : undefined} onClick={onClose}>Evals</a>
+        <a href="/explore" aria-current={currentPage === "explore" ? "page" : undefined} onClick={onClose}>Compare</a>
         <a href="/humans" aria-current={currentPage === "humans" ? "page" : undefined} onClick={onClose}>Human benchmark</a>
         <a href="/run" aria-current={currentPage === "run" ? "page" : undefined} onClick={onClose}>Run or request</a>
         <a href={repoUrl} target="_blank" rel="noreferrer" onClick={onClose}>
