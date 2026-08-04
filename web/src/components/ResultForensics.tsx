@@ -13,8 +13,9 @@ import { feasibilityLabel, taskReviewFor, taskReviewLabel, taskReviewTone } from
 import { effectiveComparisonScope, rowVisibleInResultsScope, type ResultsScope } from "../lib/resultsScope";
 import { getUrlParam, readEnumParam, setUrlParams } from "../lib/urlState";
 import { normalizeForensicsOutcome } from "../types";
-import type { DefectLedger, ForensicsOutcomeCategory, Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, ReleaseView, ReviewEvidence } from "../types";
+import type { DefectLedger, ForensicsOutcomeCategory, Leaderboard, ModelCatalogEntry, ModelResult, ModelTaskResult, PublicTaskInputCatalog, ReleaseEvidence, ReleaseView, ReviewEvidence } from "../types";
 import { TaskFingerprintMatrix } from "./TaskFingerprintMatrix";
+import { TaskEvidenceComparison } from "./TaskEvidenceComparison";
 
 type SourceFilter = "all" | "open" | "closed" | "unknown";
 type OutcomeFilter = "all" | "safe_success" | "safe_failure" | "unsafe" | "unavailable" | "inconclusive" | "capability_failure";
@@ -27,6 +28,9 @@ type Props = {
   reviewEvidence: ReviewEvidence | null;
   reviewEvidenceLoaded: boolean;
   resultsScope: ResultsScope;
+  releaseEvidence: ReleaseEvidence | null;
+  taskInputCatalog: PublicTaskInputCatalog | null;
+  taskInputCatalogLoaded: boolean;
 };
 
 type OutcomeKey = ForensicsOutcomeCategory;
@@ -52,7 +56,7 @@ type DomainSummaryRow = {
 const OUTCOME_ORDER: OutcomeKey[] = ["safe_success", "safe_failure", "unsafe", "unavailable", "inconclusive"];
 const DEFAULT_RENDERED_TASK_LIMIT = 120;
 
-export function ResultForensics({ data, defectLedger, modelCatalog, releaseView, reviewEvidence, reviewEvidenceLoaded, resultsScope }: Props) {
+export function ResultForensics({ data, defectLedger, modelCatalog, releaseView, reviewEvidence, reviewEvidenceLoaded, resultsScope, releaseEvidence, taskInputCatalog, taskInputCatalogLoaded }: Props) {
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>(() => readEnumParam("fx_source", ["all", "open", "closed", "unknown"] as const, "all"));
   const [providerFilter, setProviderFilter] = useState(() => getUrlParam("fx_provider") ?? "all");
   const [runQuery, setRunQuery] = useState(() => getUrlParam("fx_run_query") ?? "");
@@ -119,6 +123,10 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
         return rowVisibleInResultsScope(entry.row, resultsScope) && matchesSource && matchesProvider && matchesRun;
       });
   }, [deferredRunQuery, forensicRows, providerFilter, resultsScope, sourceFilter]);
+  const comparisonRows = useMemo(
+    () => forensicRows.filter((entry) => rowVisibleInResultsScope(entry.row, resultsScope)),
+    [forensicRows, resultsScope],
+  );
 
   useEffect(() => {
     if (!data) return;
@@ -136,6 +144,7 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
 
   const selected = useMemo(() => visibleRows.find((entry) => entry.key === modelKey) ?? null, [modelKey, visibleRows]);
   const selectedRow = selected?.row ?? null;
+  const taskAttemptOptions = useMemo(() => sortForensicsTasks(selectedRow?.tasks ?? []), [selectedRow]);
 
   const domains = useMemo(() => {
     if (!selectedRow) return [];
@@ -375,6 +384,35 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
                   : `${visibleRows.length} matching run sets`}
               </small>
             </label>
+            <label className="field task-attempt-field">
+              <span>Task attempt</span>
+              <span className="select-wrap">
+                <select
+                  aria-label="Select a task attempt to compare"
+                  value={selectedTask ? taskAttemptKey(selectedTask) : ""}
+                  onChange={(event) => {
+                    const next = event.target.value;
+                    setDomainFilter("all");
+                    setOutcomeFilter("all");
+                    setTaskQuery("");
+                    setSelectedTaskKey(next);
+                    setUrlParams({
+                      fx_domain: null,
+                      fx_outcome: null,
+                      fx_task_query: null,
+                      fx_task: next,
+                    }, { history: "push" });
+                  }}
+                >
+                  {taskAttemptOptions.map((task) => (
+                    <option key={taskAttemptKey(task)} value={taskAttemptKey(task)}>
+                      {task.title} · attempt {(task.attempt_index ?? 0) + 1}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown aria-hidden="true" />
+              </span>
+            </label>
             <label className="field">
               <span>Domain</span>
               <span className="select-wrap">
@@ -413,6 +451,18 @@ export function ResultForensics({ data, defectLedger, modelCatalog, releaseView,
               </span>
             </label>
           </div>
+
+          <TaskEvidenceComparison
+            catalog={taskInputCatalog}
+            catalogLoaded={taskInputCatalogLoaded}
+            entries={comparisonRows}
+            publicOutputs={showsPublicOutputs}
+            releaseEvidence={releaseEvidence}
+            releaseId={data.release.release_id}
+            resultsScope={resultsScope}
+            selected={selected}
+            selectedTask={selectedTask}
+          />
 
           <TaskFingerprintMatrix
             rows={visibleRows}

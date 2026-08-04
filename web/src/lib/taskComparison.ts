@@ -13,6 +13,7 @@ export type TaskComparisonResult<T extends TaskComparisonEntry> = {
   attempts: ModelTaskResult[];
   outcomes: TaskOutcomeCounts;
   safeSuccessRate: number;
+  averageScore: number | null;
   topFailedGrader: string | null;
 };
 
@@ -40,16 +41,25 @@ export function buildTaskComparison<T extends TaskComparisonEntry>(
       if (!attempts.length) return [];
       const outcomes = tallyTaskOutcomes(attempts);
       const topFailedGrader = mostFrequent(attempts.flatMap((task) => task.failed_graders ?? []));
+      const scoredAttempts = attempts.filter((task) => task.score != null);
       return [{
         entry,
         attempts,
         outcomes,
         safeSuccessRate: outcomes.safe_success / attempts.length,
+        averageScore: scoredAttempts.length
+          ? scoredAttempts.reduce((sum, task) => sum + (task.score ?? 0), 0) / scoredAttempts.length
+          : null,
         topFailedGrader,
       }];
     })
     .sort((left, right) =>
       right.safeSuccessRate - left.safeSuccessRate
+      || (right.averageScore ?? -1) - (left.averageScore ?? -1)
+      || left.outcomes.unsafe - right.outcomes.unsafe
+      || (left.entry.row.outcome_rank ?? Number.POSITIVE_INFINITY)
+        - (right.entry.row.outcome_rank ?? Number.POSITIVE_INFINITY)
+      || right.entry.row.safe_success_rate - left.entry.row.safe_success_rate
       || left.entry.row.model_name.localeCompare(right.entry.row.model_name),
     );
 }

@@ -19,7 +19,7 @@ import { releaseEvidenceFor, releaseIdForView } from "./lib/releaseEvidence";
 import { versionedDataUrl } from "./lib/dataAssets";
 import type { ResultsScope } from "./lib/resultsScope";
 import { readEnumParam, setUrlParams } from "./lib/urlState";
-import type { AccessStatus, DefectLedger, FleetStatus, ModelCatalogEntry, ReleaseEvidenceIndex, ReleaseView, ReviewEvidence, Tg263Audit } from "./types";
+import type { AccessStatus, DefectLedger, FleetStatus, ModelCatalogEntry, PublicTaskInputCatalog, ReleaseEvidenceIndex, ReleaseView, ReviewEvidence, Tg263Audit } from "./types";
 
 const LEADERBOARD_URL = versionedDataUrl("/data/leaderboard.json");
 const IMAGING_LEADERBOARD_URL = versionedDataUrl("/data/imaging_leaderboard.json");
@@ -32,6 +32,7 @@ const FLEET_STATUS_URL = versionedDataUrl("/data/fleet_status.json");
 const RELEASE_EVIDENCE_URL = versionedDataUrl("/data/release_evidence.json");
 const DEFECT_LEDGER_URL = versionedDataUrl("/data/benchmark-defects.json");
 const REAL_WORKFLOWS_REVIEW_URL = versionedDataUrl("/data/public-real-workflows-pilot-v0.6-review.json");
+const PUBLIC_TASK_INPUTS_URL = versionedDataUrl("/data/public_task_inputs.json");
 
 export type AppPage = "overview" | "results" | "explore" | "humans" | "run" | "methods";
 
@@ -52,6 +53,8 @@ function App({ page = "overview" }: AppProps) {
   const [realWorkflowReview, setRealWorkflowReview] = useState<ReviewEvidence | null>(null);
   const [realWorkflowReviewLoaded, setRealWorkflowReviewLoaded] = useState(false);
   const [defectLedger, setDefectLedger] = useState<DefectLedger | null>(null);
+  const [publicTaskInputs, setPublicTaskInputs] = useState<PublicTaskInputCatalog | null>(null);
+  const [publicTaskInputsLoaded, setPublicTaskInputsLoaded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [releaseView, setReleaseView] = useState<ReleaseView>("real");
   const [resultsScope, setResultsScope] = useState<ResultsScope>("descriptive");
@@ -76,6 +79,20 @@ function App({ page = "overview" }: AppProps) {
         }
       })
       .catch(() => setTg263Audit(null));
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch(PUBLIC_TASK_INPUTS_URL, { signal: controller.signal })
+      .then((response) => (response.ok ? (response.json() as Promise<PublicTaskInputCatalog>) : null))
+      .then((payload) => startTransition(() => setPublicTaskInputs(payload)))
+      .catch(() => {
+        if (!controller.signal.aborted) setPublicTaskInputs(null);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setPublicTaskInputsLoaded(true);
+      });
     return () => controller.abort();
   }, []);
 
@@ -224,7 +241,7 @@ function App({ page = "overview" }: AppProps) {
           <>
             <PageIntro
               title="Attempt explorer"
-              description="Choose a released run and task to inspect the structured output, decisive grader, same-task peers, tokens, time, receipts, and immutable hashes."
+              description="Choose a released run and task to compare the exact sealed input, the selected model output, the strongest published model on that task, and the current human benchmark evidence."
               actions={<a className="secondary-action" href="/results">Back to results</a>}
             />
             <ReleaseSelector data={selected.data} onChange={handleReleaseViewChange} value={releaseView} />
@@ -237,6 +254,9 @@ function App({ page = "overview" }: AppProps) {
               reviewEvidence={releaseView === "real" ? realWorkflowReview : null}
               reviewEvidenceLoaded={releaseView === "real" ? realWorkflowReviewLoaded : true}
               resultsScope={resultsScope}
+              releaseEvidence={selectedEvidence}
+              taskInputCatalog={publicTaskInputs}
+              taskInputCatalogLoaded={publicTaskInputsLoaded}
             />
           </>
         ) : null}

@@ -121,6 +121,21 @@ zero evaluable attempts must not be described as either safe or unsafe.
 
 No chart should imply that correlated task views are independent patients.
 
+### Task-level input and output comparison
+
+- A task drilldown must bind the release ID, task ID, and runtime-task hash before showing an input.
+  Missing or duplicate bindings fail closed rather than falling back to a similarly named task.
+- The displayed input must be generated from the same sealed runtime projection delivered to the
+  evaluated system. It may include instructions, payload, context artifacts, declared tools, output
+  schema, safety constraints, and stop conditions; it must not include gold answers, grader rules,
+  provenance-only authoring metadata, or contamination labels.
+- “Best model on this task” is selected by task-level safe success, then task score and safety—not by
+  the overall leaderboard rank. Cross-contract examples remain descriptive and are labeled as such.
+- The representative comparison attempt must match the exact attempt/seed contract when available,
+  otherwise it may use only the same runtime-task hash and must disclose the sampling mismatch.
+- Human output appears only from reviewed, release-matched, task-level participant evidence. Until
+  that artifact exists, show an explicit pending placeholder; never substitute a reference solution.
+
 ## Efficiency reporting
 
 - Tokens are provider-reported and tokenizer-specific. Compare them only inside a declared measurement context.

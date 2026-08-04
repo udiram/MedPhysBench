@@ -140,6 +140,10 @@ package, or evidence of autonomous clinical competence.
   immutable hashes. Each current public-development attempt also carries a content-bound stable ID
   and exact source-artifact SHA-256 for audit navigation. Aggregate-only is the default; non-public
   and comparison-profile releases cannot opt in.
+- A side-by-side task evidence view that resolves the complete sealed runtime input by release,
+  task ID, and runtime hash, then compares the selected output with the strongest eligible model
+  result for that task. Human output stays explicitly `Coming soon` until matched task-level
+  participant evidence is reviewed; reference feasibility is never presented as human performance.
 - A same-release score-certainty frontier joins the primary safe-success interval to median token or
   wall-time evidence, while keeping broader native/outcome-only rows opt-in and excluding incomplete
   telemetry from Pareto extraction.

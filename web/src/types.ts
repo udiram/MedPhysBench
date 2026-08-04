@@ -402,6 +402,37 @@ export type LeaderboardTask = {
   tool_schema_hash: string;
 };
 
+export type PublicRuntimeTask = {
+  schema_version: "medeval.task.v1";
+  task_id: string;
+  version: string;
+  title: string;
+  domain: string;
+  track: string;
+  risk_tier: string;
+  instructions: string;
+  input_payload: Record<string, unknown>;
+  context_artifacts: Array<Record<string, unknown>>;
+  allowed_tools: Array<Record<string, unknown>>;
+  expected_output_schema: Record<string, unknown>;
+  safety: Record<string, unknown>;
+  stop_conditions: Record<string, unknown>;
+};
+
+export type PublicTaskInput = {
+  task_id: string;
+  runtime_task_hash: string;
+  runtime_task: PublicRuntimeTask;
+};
+
+export type PublicTaskInputCatalog = {
+  schema_version: "medphysbench.public-task-inputs.v1";
+  releases: Array<{
+    release_id: string;
+    tasks: PublicTaskInput[];
+  }>;
+};
+
 export type TaskCatalogEntry = LeaderboardTask;
 
 export type CoverageRow = {

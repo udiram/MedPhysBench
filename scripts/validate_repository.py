@@ -152,7 +152,9 @@ def _validate_defect_ledger_semantics(
 
 
 def validate_repository() -> dict[str, int]:
+    from medphys_agentbench.public_task_inputs import build_public_task_input_catalog
     from scripts.build_fleet_status import build_fleet_status
+    from scripts.build_public_task_inputs import DEFAULT_RELEASES
     from scripts.common_harness_submission import validate_submission
     from scripts.descriptive_admission import validate_descriptive_admissions
 
@@ -343,6 +345,16 @@ def validate_repository() -> dict[str, int]:
     if public_release_evidence != governance_release_evidence:
         raise ValueError(f"{public_release_evidence_path}: projection differs from canonical release evidence.")
 
+    public_task_inputs_path = ROOT / "web" / "public" / "data" / "public_task_inputs.json"
+    if not public_task_inputs_path.is_file():
+        raise ValueError(f"{public_task_inputs_path}: sealed public task-input projection is missing.")
+    public_task_inputs = _load_json(public_task_inputs_path)
+    expected_public_task_inputs = build_public_task_input_catalog(DEFAULT_RELEASES)
+    if public_task_inputs != expected_public_task_inputs:
+        raise ValueError(
+            f"{public_task_inputs_path}: projection differs from the sealed runtime task views."
+        )
+
     grader_mutation_count = 0
     task_paths = sorted((ROOT / "tasks").rglob("task.yaml"))
     for path in task_paths:
@@ -499,6 +511,9 @@ def validate_repository() -> dict[str, int]:
         "release_count": len(release_paths),
         "review_evidence_count": len(review_paths),
         "release_evidence_count": len(governance_release_evidence["releases"]),
+        "public_task_input_count": sum(
+            len(release["tasks"]) for release in public_task_inputs["releases"]
+        ),
         "defect_count": len(defect_ledger["entries"]),
         "task_count": len(task_paths),
         "result_count": len(result_paths),
